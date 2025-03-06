@@ -56,7 +56,7 @@ const MailchimpSubscriptionForm = () => {
                   <Form.Label className="fs-9">
                     First Name <span className="asterisk">*</span>
                   </Form.Label>
-                  <Form.Control type="text" name="FNAME" className="w-100 form-control" />
+                  <Form.Control type="text" name="FNAME" className="w-100 form-control rounded-1 border" />
                 </Form.Group>
               </Col>
               <Col sm={6} xs={12}>
@@ -64,7 +64,7 @@ const MailchimpSubscriptionForm = () => {
                   <Form.Label className="fs-9">
                     Last Name <span className="asterisk">*</span>
                   </Form.Label>
-                  <Form.Control type="text" name="LNAME" className="w-100 form-control" />
+                  <Form.Control type="text" name="LNAME" className="w-100 form-control rounded-1 border" />
                 </Form.Group>
               </Col>
             </Row>
@@ -74,7 +74,7 @@ const MailchimpSubscriptionForm = () => {
               <Form.Label className="fs-9">
                 Email Address <span className="asterisk">*</span>
               </Form.Label>
-              <Form.Control type="email" name="EMAIL" className="w-100 form-control" required />
+              <Form.Control type="email" name="EMAIL" className="w-100 form-control rounded-1 border" required />
             </Form.Group>
 
             {/* Hidden Anti-Bot Field */}

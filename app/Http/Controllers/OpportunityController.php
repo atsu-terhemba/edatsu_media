@@ -25,15 +25,15 @@ class OpportunityController extends Controller
 
     function initOpportunitiesPage(){
         $categories = Category::all();
-        $regions = Region::all();
         $countries = Country::all();
         $continents = Continent::all();
+        $brands = BrandLabel::all();
 
-        return view("opportunities", [
+        return Inertia::render("Opportunities", [
             "categories" => $categories, 
-            "regions" => $regions,
             "countries" => $countries,
-            "continents" => $continents
+            "continents" => $continents,
+            "brands" => $brands
         ]);
     }
 
@@ -256,24 +256,21 @@ class OpportunityController extends Controller
 function store(Request $request)
 {
 
-    dd($request->input());
+    //dd($request->input());
+
+    // $categories = extractSelectData($request->category);
+
+    //dd($categories);
     
     // Define custom validation rules
     $rules = [
         'title' => 'required|string|max:255',
         'description' => 'required|string',
         'source_url' => 'required|url|max:255',
-        'regions' => 'nullable|string',
-        'country' => 'nullable|string',
-        'continent' => 'nullable|string',
         'deadline' => 'nullable|date|after_or_equal:today',
-        'category' => 'nullable|string',
         'meta_description' => 'nullable|string',
         'meta_keywords' => 'nullable|string',
-        'post_type' => 'nullable|string',
-        'cover_img' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         'post_id' => 'nullable|integer|exists:opportunities,id',
-        'signature' => 'required_with:post_id|string'
     ];
 
     // Validate the request
@@ -291,12 +288,12 @@ function store(Request $request)
     $isEditing = false;
 
     // Verify the HMAC signature if post_id is provided
-    if ($postId && !hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Invalid signature'
-        ], 422);
-    }
+    // if ($postId && !hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
+    //     return response()->json([
+    //         'success' => false,
+    //         'message' => 'Invalid signature'
+    //     ], 422);
+    // }
 
     $op = $postId ? Oppty::findOrFail($postId) : new Oppty();
 
@@ -320,8 +317,6 @@ function store(Request $request)
     $op->slug = $this->createSlug($request->title);
 
     // Store the data in the database
-    $op->u_id = $request->user()->id;
-    $op->user_role = $request->user()->role;
     $op->title = $request->title;
     $op->description = $request->description;
     $op->deadline = $request->deadline;
@@ -329,30 +324,36 @@ function store(Request $request)
     $op->direct_link = $request->direct_link;
     $op->meta_description = $request->meta_description;
     $op->meta_keywords = $request->meta_keywords;
-    $op->post_type = $request->post_type;
 
     $op->save();
 
     // Get the ID of the newly created or updated post
     $postId = $op->id;
 
+    $categories = extractSelectData($request->categories);
+    $brand_labels = extractSelectData($request->brand_labels);
+    $tags = extractSelectData($request->tags);
+    $regions = extractSelectData($request->regions);
+    $countries = extractSelectData($request->countries);
+    $continents = extractSelectData($request->continents);
+
+
     // Helper function to delete and insert relational data
     $manageRelationalData = function ($table, $columnName, $data) use ($postId, $request) {
         // First, delete existing records for the post in this table
         DB::table($table)->where('post_id', $postId)->delete();
-
         // Insert new data
         if (empty($data)) return;
-
         // Decode JSON string and extract IDs
+
         $decodedData = json_decode($data, true);
-        $insertData = [];
-        foreach ($decodedData as $item) {
-            if (isset($item['id']) && !empty($item['id'])) {
+
+        foreach ($decodedData as $id) {
+            if (isset($id) && !empty($id)) {
                 $insertData[] = [
                     'user_id' => $request->user()->id,
                     'post_id' => $postId,
-                    $columnName => $item['id'], // Use 'id' from the new format
+                    $columnName => $id, // Use 'id' from the new format
                     'post_type' => 'opportunity',
                     'created_at' => now(),
                     'updated_at' => now(),
@@ -366,13 +367,15 @@ function store(Request $request)
 
     // Manage relational data for each attribute
     $relationalData = [
-        'category_selections' => ['category_id', $request->input('category')],
-        'brand_labels_selections' => ['brand_label_id', $request->input('brand_labels')],
-        'tags_selections' => ['tag_id', $request->input('tags')],
-        'region_selections' => ['region_id', $request->input('region')],
-        'country_selections' => ['country_id', $request->input('country')],
-        'continent_selections' => ['continent_id', $request->input('continent')],
+        'category_selections' => ['category_id', $categories],
+        'brand_labels_selections' => ['brand_label_id', $brand_labels],
+        'tags_selections' => ['tag_id', $tags],
+        'region_selections' => ['region_id', $regions],
+        'country_selections' => ['country_id', $countries],
+        'continent_selections' => ['continent_id', $continents],
     ];
+
+    // dd($brand_labels);
 
     // Loop through each relational data table and update it
     foreach ($relationalData as $table => $data) {

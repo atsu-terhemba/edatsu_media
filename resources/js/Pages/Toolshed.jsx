@@ -4,46 +4,36 @@ import Metadata from '@/Components/Metadata';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, usePage } from '@inertiajs/react';
-// import MailchimpSubscriptionForm from '@/Components/MailchimpSubscriptionForm';
-import OppSearchFilter from '@/Components/OppSearchFilter';
+import { Head, Link } from '@inertiajs/react';
+import MailchimpSubscriptionForm from '@/Components/MailchimpSubscriptionForm';
 
-const Opportunities = () => {
 
-    const props = usePage().props;
-
+export default function Opportunities(){
     return (
         <GuestLayout>
-            <Metadata
-                title="Opportunities"
-                description="Explore global business opportunities, grants, and finance resources with Edatsu Media. Get the latest news, events, and tools for growth."
-                keywords="global business opportunities, business grants and funding, crypto investment opportunities, finance tools and resources, latest global news, blockchain business tools, international business events, cryptocurrency news and updates, decentralized finance (DeFi) tools, global funding opportunities"
-                canonicalUrl="https://www.edatsu.com"
-                ogTitle="Edatsu Global Hub: News, Events, Funding & Business Resources"
-                ogDescription="Explore global business opportunities, grants, and finance resources with Edatsu Media. Get the latest news, events, and tools for growth."
-                ogImage="/img/logo/default_logo.jpg"
-                ogUrl="https://www.edatsu.com"
-                twitterTitle="Edatsu Global Hub: News, Events, Funding & Business Resources"
-                twitterDescription="Explore global business opportunities, grants, and finance resources with Edatsu Media. Get the latest news, events, and tools for growth."
-                twitterImage="/img/logo/default_logo.jpg"
-            />
+        <Metadata
+            title="Toolshed: AI & Software Tools for Business Efficiency"
+            description="Discover the latest AI and software tools to enhance productivity, automate tasks, and drive business growth. Stay ahead with cutting-edge technology solutions."
+            keywords="AI tools for business, productivity software, automation tools, workflow optimization, business efficiency tools, AI-powered business solutions, latest business tech"
+            canonicalUrl="https://www.edatsu.com/toolshed"
+            ogTitle="Toolshed: AI & Software Tools for Business Efficiency"
+            ogDescription="Find the best AI and software tools to streamline workflows, boost productivity, and grow your business with the latest innovations."
+            ogImage="/img/logo/default_logo.jpg"
+            ogUrl="https://www.edatsu.com/toolshed"
+            twitterTitle="Toolshed: AI & Software Tools for Business Efficiency"
+            twitterDescription="Stay ahead with the latest AI and software tools to improve workflows, automate tasks, and enhance business growth."
+            twitterImage="/img/logo/default_logo.jpg"
+        />
+
         <Container fluid={true} className="container-sm">
             <Row>
                 <Col sm={8} xs={12}>
-                    <div className='mt-3'>
-                        <OppSearchFilter
-                        categories={props.categories}
-                        continents={props.continents}
-                        countries={props.countries}
-                        brands={props.brands}
-                        />
-                    </div>
                     <div className='my-3'>
                         <h3 className="m-0 p-0 dm-serif-display-regular mb-1 mt-3" style={{ fontSize: '1.5em' }}>
-                        Opportunities
+                        Toolshed
                         </h3>
                         <p className="m-0 p-0 text-secondary mb-3 fs-9">
-                        No. 1 Destination for Startups, Business Growth, Funding, Grants, International Markets and Investment Opportunities
+                        Discover the latest AI and software tools to enhance productivity, automate tasks, and drive business growth. Stay ahead with cutting-edge technology solutions.
                         </p>
                         <span id="search-result"></span>
                         <span id="filter-entries"></span>
@@ -96,33 +86,29 @@ const Opportunities = () => {
                         </a>
                     </div>
                 </div>
-                {/* Podcast */} 
-                {/* <Link href={route('podcast')} className='text-decoration-none text-dark'>
-                <div className='border rounded py-3 mb-3'>
-                <Container>
-                    <Row>
-                        <Col sm={4} xs={12}>
-                            <div className="">
-                                    <img 
-                                    src='/img/main/podcast.jpg'
-                                    width="400"
-                                    className="img-fluid rounded" 
-                                    alt="Telegram banner"
-                                    />
-                            </div>
-                        </Col>
-                        <Col sm={8} xs={12}>
-                            <div className='d-none d-sm-block d-md-block d-lg-block'>
-                                <span className="fs-9">
-                                    Join our  Podcast
-                                    for the latest insights on technology, business, and finance
-                                </span>
-                            </div>
-                        </Col>
-                    </Row>
-                    </Container>
-                </div>
-                </Link> */}
+
+                {/* Podcast */}
+                {/* <div className="my-3 d-flex align-items-center border rounded content-meta-data py-3">
+                    <div className="px-3">
+                        <img 
+                            src='/img/main/podcast.jpg'
+                            width="400"
+                            className="img-fluid rounded" 
+                            alt="Telegram banner"
+                        />
+                    </div>
+                    <div>
+                        <span className="fs-9">
+                            Join our <Link
+                                href={route('podcast')}
+                                target="_blank" 
+                                className="poppins-semibold text-primary"
+                            >
+                                Podcast
+                            </Link> for the latest insights on technology, business, and finance.
+                        </span>
+                    </div>
+                </div> */}
                 {/* <div className='my-3'>
                     <MailchimpSubscriptionForm />
                 </div> */}
@@ -133,4 +119,4 @@ const Opportunities = () => {
     );
 };
 
-export default Opportunities;
+

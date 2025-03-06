@@ -57,6 +57,16 @@ function handleCopyRSS(){
                 Opportunities
                 </Link>
             </li>
+            <li>
+                <Link className="text-light text-decoration-none mb-1 d-inline-block" href="toolshed">
+                Toolshed
+                </Link>
+            </li>
+            <li>
+                <Link className="text-light text-decoration-none mb-1 d-inline-block" href="sponsorship">
+                Sponsorship
+                </Link>
+            </li>
             </ul>
         </div>
         </Col>

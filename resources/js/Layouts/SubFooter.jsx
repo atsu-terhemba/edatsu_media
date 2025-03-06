@@ -1,8 +1,16 @@
-import { Fragment } from "react";
+import { Fragment, useEffect } from "react";
 import { Container, Row, Col, Button } from 'react-bootstrap';
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from '@inertiajs/react';
 
 export default function SubFooter(){
+
+  const user = usePage().props.auth.user;
+
+  useEffect(() => {
+    console.log(user);
+  }, [user]);
+
+
     return (
         <Fragment>
 <Container fluid={true}>
@@ -19,12 +27,20 @@ export default function SubFooter(){
                   <p className="m-0 p-0 text-light">
                     Unlock exclusive content on technology, finance, and exciting opportunities. Don’t miss out—subscribe now!
                   </p>
-                  <Link
+                  {/* <Link
                     href="subscribe"
                     className=" btn text-decoration-none shadow-sm btn-lg custom-bg-highlight text-light poppins-semibold px-5 border-0 py-3 mt-3"
                     >
                     Subscribe
+                  </Link> */}
+                  {!user &&
+                  <Link
+                    href="sign-up"
+                    className=" btn text-decoration-none shadow-sm btn-lg custom-bg-highlight text-light poppins-semibold px-5 border-0 py-3 mt-3"
+                    >
+                    Sign Up
                   </Link>
+                  }
                 </div>
               </Col>
               <Col sm={3}></Col>

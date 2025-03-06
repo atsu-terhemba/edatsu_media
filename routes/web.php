@@ -46,7 +46,7 @@ Route::get('/clean', function() {
     dd('CACHE-CLEARED, VIEW-CLEARED, ROUTE-CLEARED & CONFIG-CACHED SUCCESSFUL!');
 });
 Route::get('/', function () {
-    return Inertia::render('Opportunities');
+    return redirect()->intended(route('oppty', absolute: false));
 });
 
 // Route::get('/dashboard', function () {
@@ -67,8 +67,9 @@ Route::get('/comments/{post_id}', [CommentController::class, 'getComments']);
 Route::get('/op/categories/{id}/{slug}', [CategoryController::class, 'initCategoriesPage']);
 Route::get('/ts/categories/{id}/{slug}', [CategoryController::class, 'initProductCategoriesPage']);
 Route::post('/comments/reply', [CommentController::class, "storeReply"]);
-Route::get('/opportunities', [Opportunity::class, 'initOpportunitiesPage'])->name('oppty');
+Route::get('/opportunities', [OpportunityController::class, 'initOpportunitiesPage'])->name('oppty');
 Route::get('/toolshed', [ToolShedController::class, 'initToolShedPage'])->name('toolshed');
+Route::get('/money-guide', [ToolShedController::class, 'initMoneyGuidePage'])->name('money_guide');
 
 Route::get('/subscribe', fn() => Inertia::render('Subscribe'))->name('subscribe');
 Route::get('/feedback', fn() => Inertia::render('Feedback'))->name('feedback');

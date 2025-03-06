@@ -4,14 +4,14 @@ import Metadata from '@/Components/Metadata';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, usePage } from '@inertiajs/react';
-// import MailchimpSubscriptionForm from '@/Components/MailchimpSubscriptionForm';
+import { Head, Link } from '@inertiajs/react';
+import MailchimpSubscriptionForm from '@/Components/MailchimpSubscriptionForm';
 import OppSearchFilter from '@/Components/OppSearchFilter';
+import CryptoWidget from '@/Components/CryptoWidget';
+import CryptoConverterWidget from '@/Components/CryptoConverter';
 
-const Opportunities = () => {
 
-    const props = usePage().props;
-
+const MoneyGuide = () => {
     return (
         <GuestLayout>
             <Metadata
@@ -30,20 +30,21 @@ const Opportunities = () => {
         <Container fluid={true} className="container-sm">
             <Row>
                 <Col sm={8} xs={12}>
+
                     <div className='mt-3'>
-                        <OppSearchFilter
-                        categories={props.categories}
-                        continents={props.continents}
-                        countries={props.countries}
-                        brands={props.brands}
-                        />
+                        <OppSearchFilter />
                     </div>
+
+                    <div className='mt-3'>
+                        <CryptoWidget/>
+                    </div>
+
                     <div className='my-3'>
                         <h3 className="m-0 p-0 dm-serif-display-regular mb-1 mt-3" style={{ fontSize: '1.5em' }}>
-                        Opportunities
+                        Money Guide
                         </h3>
                         <p className="m-0 p-0 text-secondary mb-3 fs-9">
-                        No. 1 Destination for Startups, Business Growth, Funding, Grants, International Markets and Investment Opportunities
+                        Your Ultimate Source for Financial Insights, Wealth-Building Strategies, and Money-Making Ideas 
                         </p>
                         <span id="search-result"></span>
                         <span id="filter-entries"></span>
@@ -96,33 +97,33 @@ const Opportunities = () => {
                         </a>
                     </div>
                 </div>
-                {/* Podcast */} 
-                {/* <Link href={route('podcast')} className='text-decoration-none text-dark'>
-                <div className='border rounded py-3 mb-3'>
-                <Container>
-                    <Row>
-                        <Col sm={4} xs={12}>
-                            <div className="">
-                                    <img 
-                                    src='/img/main/podcast.jpg'
-                                    width="400"
-                                    className="img-fluid rounded" 
-                                    alt="Telegram banner"
-                                    />
-                            </div>
-                        </Col>
-                        <Col sm={8} xs={12}>
-                            <div className='d-none d-sm-block d-md-block d-lg-block'>
-                                <span className="fs-9">
-                                    Join our  Podcast
-                                    for the latest insights on technology, business, and finance
-                                </span>
-                            </div>
-                        </Col>
-                    </Row>
-                    </Container>
+
+                <div className='my-3'>
+                    <CryptoConverterWidget/>
                 </div>
-                </Link> */}
+
+                {/* Podcast */}
+                {/* <div className="my-3 d-flex align-items-center border rounded content-meta-data py-3">
+                    <div className="px-3">
+                        <img 
+                            src='/img/main/podcast.jpg'
+                            width="400"
+                            className="img-fluid rounded" 
+                            alt="Telegram banner"
+                        />
+                    </div>
+                    <div>
+                        <span className="fs-9">
+                            Join our <Link
+                                href={route('podcast')}
+                                target="_blank" 
+                                className="poppins-semibold text-primary"
+                            >
+                                Podcast
+                            </Link> for the latest insights on technology, business, and finance.
+                        </span>
+                    </div>
+                </div> */}
                 {/* <div className='my-3'>
                     <MailchimpSubscriptionForm />
                 </div> */}
@@ -133,4 +134,4 @@ const Opportunities = () => {
     );
 };
 
-export default Opportunities;
+export default MoneyGuide;

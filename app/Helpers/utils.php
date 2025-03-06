@@ -130,6 +130,23 @@ function processor($itemsString, $label = '', $slugString = '', $idString = '') 
     echo $output;
 }
 
+function extractSelectData($data, $key = 'value') {
+    // Check if the data is not empty
+    if (empty($data)) {
+        return null;
+    }
+    
+    // If data is an array of arrays (e.g., a list of select options)
+    if (isset($data[0])) {
+        // Use array_map to extract the specified key ('value' by default)
+        return json_encode(array_map(function($item) use ($key) {
+            return $item[$key];
+        }, $data));
+    }
+    
+    // If it's a single item (not an array of options)
+    return $data[$key] ?? null; // If the key doesn't exist, return null
+}
 
 // function processor($itemsString, $label = '', $slugString = '') {
 //     // Dynamically determine the base URL

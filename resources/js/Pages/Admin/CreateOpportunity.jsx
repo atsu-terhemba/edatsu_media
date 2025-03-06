@@ -21,22 +21,22 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
         meta_keywords: edits?.meta_keywords || '',
         meta_description: edits?.meta_description || '',
         post_id: edits?.id || '',
-        category: edits?.category || [],
+        categories: edits?.category || [],
         brand_labels: edits?.brand_labels || [],
         tags: edits?.tags || [],
-        region: edits?.region || [],
-        country: edits?.country || [],
-        continent: edits?.continent || [],
+        regions: edits?.regions || [],
+        countries: edits?.countries || [],
+        continents: edits?.continents || [],
+        signature: '',
     });
-    const [section, setSection] = useState('details'); 
 
+   const [section, setSection] = useState('details'); 
    const [categoryOption, setCategoryOptions] = useState([]);
    const [brandLabelOption, setBrandLabelOptions] = useState([]);
    const [tagOption, setTagOptions] = useState([]);
    const [regionOption, setRegionOptions] = useState([]);
    const [countryOption, setCountryOptions] = useState([]);
    const [continentOption, setContinentOptions] = useState([]);
-   
 
     useEffect(()=>{
         setStateFromData(categories, setCategoryOptions);
@@ -65,22 +65,22 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
         }
     }
 
-    function getFilteredOptions(data, prevData) {
-        if (!prevData || prevData.length === 0 || prevData === null) {
-            return null;
-        }
+    // function getFilteredOptions(data, prevData) {
+    //     if (!prevData || prevData.length === 0 || prevData === null) {
+    //         return null;
+    //     }
     
-        const options = data.map((item) => ({
-            value: item.id || item.value,
-            label: item.name || item.label
-        }));
+    //     const options = data.map((item) => ({
+    //         value: item.id || item.value,
+    //         label: item.name || item.label
+    //     }));
     
-        if (prevData) {
-            return options.find((item) => prevData === item.value) || null;
-        }
+    //     if (prevData) {
+    //         return options.find((item) => prevData === item.value) || null;
+    //     }
     
-        return options;
-    }
+    //     return options;
+    // }
 
     /**update selection**/
     function updateSelection( selectedOption, fieldName){
@@ -91,12 +91,13 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
     }
 
     const handleFileUpload = (e) => {
-        const file = e.target.files?.[0];
+        const file = e.target.files?.[0] || null;
         if (!file) return;
         
         const allowedFileTypes = [
-            'application/pdf',
-            'application/msword'
+            'image/png',
+            'image/jpeg',
+            'image/jpg'
         ];
         
         const maxSize = 1 * 1024 * 1024; // 1MB
@@ -261,11 +262,11 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
                                             <Select
                                                 isMulti
                                                 defaultValue={formData?.category}
-                                                name="category"
+                                                name="categories"
                                                 options={categoryOption}
                                                 className="fs-9"
                                                 classNamePrefix="select"
-                                                onChange={(e) => updateSelection(e, 'category')}
+                                                onChange={(e) => updateSelection(e, 'categories')}
                                             />
                                         </Form.Group>
                                     </Col>
@@ -276,11 +277,11 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
                                             <Select
                                                 isMulti
                                                 defaultValue={formData?.brand_label}
-                                                name="brand_label"
+                                                name="brand_labels"
                                                 options={brandLabelOption}
                                                 className="fs-9"
                                                 classNamePrefix="select"
-                                                onChange={(e) => updateSelection(e, 'brand_label')}
+                                                onChange={(e) => updateSelection(e, 'brand_labels')}
                                             />
                                         </Form.Group>
                                     </Col>
@@ -321,7 +322,7 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
                                             <Select
                                                 isMulti
                                                 defaultValue={formData?.countries}
-                                                name="countries"
+                                                name="countries "
                                                 options={countryOption}
                                                 className="fs-9"
                                                 classNamePrefix="select"

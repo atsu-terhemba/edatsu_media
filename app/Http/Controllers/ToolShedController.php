@@ -15,6 +15,7 @@ use App\Models\ProductPricing;
 use App\Models\Bookmark;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Inertia\Inertia;
 
 
 class ToolShedController extends Controller
@@ -22,25 +23,30 @@ class ToolShedController extends Controller
     //
 
     public function initToolShedPage(){
-        $categories = ProductCategory::all();
-        $regions = Region::all();
-        $countries = Country::all();
-        $continents = Continent::all();
-        $tags = Tag::all();
-        $brand_label = BrandLabel::all();
-        $pricing = ProductPricing::all();
-        $product_functionality  = ProductFunctionality::all();
+        // $categories = ProductCategory::all();
+        // $regions = Region::all();
+        // $countries = Country::all();
+        // $continents = Continent::all();
+        // $tags = Tag::all();
+        // $brand_label = BrandLabel::all();
+        // $pricing = ProductPricing::all();
+        // $product_functionality  = ProductFunctionality::all();
 
-        return view("toolshed", [
-            "categories" => $categories, 
-            "regions" => $regions,
-            "countries" => $countries,
-            "continents" => $continents, 
-            "tags" => $tags,
-            "brand_label" => $brand_label, 
-            "pricing" => $pricing, 
-            "product_functionality" => $product_functionality
+        return Inertia::render("Toolshed", [
+            // "categories" => $categories, 
+            // "regions" => $regions,
+            // "countries" => $countries,
+            // "continents" => $continents, 
+            // "tags" => $tags,
+            // "brand_label" => $brand_label, 
+            // "pricing" => $pricing, 
+            // "product_functionality" => $product_functionality
         ]);
+    }
+
+
+    function initMoneyGuidePage(){
+        return Inertia::render("MoneyGuide");
     }
 
 

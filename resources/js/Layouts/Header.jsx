@@ -18,7 +18,7 @@ function toggleMode(){
 
 return(
 <Fragment>
-<Navbar expand="lg" className="header border-0 m-0 fs-9 custom-title align-middle" bg="dark" variant="dark">
+<Navbar expand="lg" className="header border-0 m-0 fs-9 custom-title align-middle"  bg="dark" variant="dark">
 <Container className="align-middle">
 {/* Logo */}
 <Link href="/">
@@ -31,13 +31,28 @@ return(
     </form>
     <Nav className="m-0 p-0 d-flex align-items-center">
         <Nav.Item>
-        <Link href="sponsorship" className="nav-link text-light me-3 text-decoration-none">
-            Sponsorship
+            <Button className="btn bg-transparent border-0 me-3" onClick={toggleMode}>
+                <span className="material-symbols-outlined align-middle">search</span>
+            </Button>
+        </Nav.Item>
+        {/* <Nav.Item>
+        <Link href="toolshed" className="nav-link text-light me-3 text-decoration-none">
+            Pricing
+        </Link>
+        </Nav.Item> */}
+        <Nav.Item>
+        <Link href="/" className="nav-link text-light me-3 text-decoration-none lead">
+            Opportunities
         </Link>
         </Nav.Item>
         <Nav.Item>
-        <Link href="/" className="nav-link text-light me-3 text-decoration-none">
-            Opportunities
+        <Link href="money-guide" className="nav-link text-light me-3 text-decoration-none">
+            Money Guide
+        </Link>
+        </Nav.Item>
+        <Nav.Item>
+        <Link href="toolshed" className="nav-link text-light me-3 text-decoration-none">
+            Toolshed
         </Link>
         </Nav.Item>
         {/* Dark Mode Toggle */}
