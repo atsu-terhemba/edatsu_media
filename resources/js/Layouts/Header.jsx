@@ -2,27 +2,23 @@ import { Fragment } from "react"
 import { Navbar, Nav, Container, Button, NavDropdown, Image } from 'react-bootstrap';
 import { Link } from "@inertiajs/react";
 import { useEffect } from "react";
-import { truncateText } from "@/utils";
-
+import { truncateText } from "@/utils/Index";
+import { Images } from "@/utils/Images";
 
 
 export default function Header({auth}){
 
-// useEffect(()=>{
-//     console.log(auth?.id);
-// })
 
 function toggleMode(){
-    
 }
 
 return(
 <Fragment>
-<Navbar expand="lg" className="header border-0 m-0 fs-9 custom-title align-middle"  bg="dark" variant="dark">
+<Navbar expand="lg" className="header border-0 fs-9 custom-title align-middle"  bg="dark" variant="dark">
 <Container className="align-middle">
 {/* Logo */}
 <Link href="/">
-    <Image src="img/logo/trans/logo_trans_4.png" width={50} className="img-fluid" alt="logo" />
+    <Image src={Images.app_logo_trans} width={50} className="img-fluid" alt="logo" />
 </Link>
 {/* Navbar Collapse */}
 <Navbar.Collapse id="navbarSupportedContent">
@@ -30,11 +26,11 @@ return(
     <form class="d-flex" role="search">
     </form>
     <Nav className="m-0 p-0 d-flex align-items-center">
-        <Nav.Item>
+        {/* <Nav.Item>
             <Button className="btn bg-transparent border-0 me-3" onClick={toggleMode}>
                 <span className="material-symbols-outlined align-middle">search</span>
             </Button>
-        </Nav.Item>
+        </Nav.Item> */}
         {/* <Nav.Item>
         <Link href="toolshed" className="nav-link text-light me-3 text-decoration-none">
             Pricing
@@ -45,20 +41,25 @@ return(
             Opportunities
         </Link>
         </Nav.Item>
-        <Nav.Item>
+        {/* <Nav.Item>
         <Link href="money-guide" className="nav-link text-light me-3 text-decoration-none">
             Money Guide
         </Link>
-        </Nav.Item>
-        <Nav.Item>
+        </Nav.Item> */}
+        {/* <Nav.Item>
         <Link href="toolshed" className="nav-link text-light me-3 text-decoration-none">
             Toolshed
         </Link>
-        </Nav.Item>
+        </Nav.Item> */}
+        {/* <Nav.Item>
+        <Link href="toolshed" className="nav-link text-light me-3 text-decoration-none">
+            Groups(FB)
+        </Link>
+        </Nav.Item> */}
         {/* Dark Mode Toggle */}
-        <Button className="btn bg-transparent border-0 me-3" onClick={toggleMode}>
+        {/* <Button className="btn bg-transparent border-0 me-3" onClick={toggleMode}>
         <span className="material-symbols-outlined align-middle">dark_mode</span>
-        </Button>
+        </Button> */}
         {/* User Authenticated */}
         {(auth?.id)?
          <>
@@ -73,9 +74,9 @@ return(
             </NavDropdown.Item>
             }
 
-            <NavDropdown.Item as={Link} href={route('profile.edit')} className="fs-9">
+            {/* <NavDropdown.Item as={Link} href={route('profile.edit')} className="fs-9">
                 Settings
-            </NavDropdown.Item>
+            </NavDropdown.Item> */}
             <NavDropdown.Item as={Link} method="post" href={route('logout')} className="fs-9" >
                 Logout
             </NavDropdown.Item>

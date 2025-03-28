@@ -1,4 +1,3 @@
-import React, { useEffect } from 'react';
 import Container from 'react-bootstrap/Container';
 import Metadata from '@/Components/Metadata';
 import Row from 'react-bootstrap/Row';
@@ -7,10 +6,104 @@ import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 // import MailchimpSubscriptionForm from '@/Components/MailchimpSubscriptionForm';
 import OppSearchFilter from '@/Components/OppSearchFilter';
+import axios from 'axios';
+// import DisplayOpportunities from '@/Components/DisplayOpportunities';
+import DefaultPagination from '@/Components/DefaultPagination';
+import React,  { useEffect, useCallback, useMemo, useState, Suspense } from "react";
+import ThreadLoader from '@/Components/TheadLoader';
+import { useRef } from 'react';
+import FilterLabels from '@/Components/FilterSearchLabels';
+
+const DisplayOpportunities = React.lazy(() => import('@/Components/DisplayOpportunities'));
 
 const Opportunities = () => {
+    const paginationContainerRef = useRef(null);
+    const [data, setData] = useState([]); // Set Data
+    const [pagination, setPagination] = useState([]);
+    const [rootURL, setRootURL] = useState("search-opportunities");
+    const [search_keyword, setSearchKeyword] = useState('');
+    const [isloading, setIsLoading] = useState('');
+
+    const [filter_data, setFilterData] = useState({
+        categories: [],
+        continents: [],
+        countries: [],
+        brands:[],
+        datePosted:'',
+        month: '',
+        year: '',
+        program_status:'',
+    });
 
     const props = usePage().props;
+
+    useEffect(() => {
+        axios.get('search-opportunities') // Fetch Opportunities
+        .then(function (response) {
+            setData(response.data?.data);
+            setPagination(response.data?.links);
+        })
+        .catch(function (error) {
+            // handle error
+        });
+    }
+    , []);
+
+    useEffect(()=>{
+        initSearch();
+    }, [filter_data])
+
+
+    const initSearch = useCallback((e) => {
+        e?.preventDefault(); // Only prevent default if `e` exists
+        if (!rootURL) {
+            setIsLoading('');
+            return;
+        }
+        const loadingId = e?.target?.id || ''; // Prevent errors if `e` is undefined
+        setIsLoading(loadingId);
+        axios.get(rootURL, { params: {
+            ...filter_data, // Include all filters
+            search_keyword: search_keyword // Add the search keyword separately
+            } })
+            .then((res) => {
+                setData(res.data.data);
+                setPagination(res.data.links);
+            })
+            .catch((error) => {
+                //console.error("Error fetching jobs:", error);
+            })
+            .finally(() => {
+                setIsLoading('');
+            });
+    },[rootURL, filter_data, search_keyword, setIsLoading, setData, setPagination]); // Ensure dependencies are correct
+    
+
+    // Then in your triggerPagination function:
+    function triggerPagination(url) {
+        // Store the current position of the pagination container
+        const container = paginationContainerRef.current;
+        const containerPosition = container ? container.getBoundingClientRect().top + window.scrollY : 0;
+        setIsLoading(true);
+        axios.get(url)
+        .then((response) => {
+            setData(response.data.data);
+            setPagination(response.data.links);
+            // Scroll to the container's previous position
+            setTimeout(() => {
+                window.scrollTo({
+                    top: containerPosition,
+                    behavior: 'instant'
+                });
+            }, 100);
+        })
+        .catch((error) => {
+            // Handle error
+        })
+        .finally(() => {
+            setIsLoading(false);
+        });
+    }
 
     return (
         <GuestLayout>
@@ -32,12 +125,36 @@ const Opportunities = () => {
                 <Col sm={8} xs={12}>
                     <div className='mt-3'>
                         <OppSearchFilter
+                        isloading={isloading}
+                        filter_data={filter_data}
+                        search_keyword={search_keyword}
+                        setSearchKeyword={setSearchKeyword}
+                        setFilterData={setFilterData}
                         categories={props.categories}
                         continents={props.continents}
                         countries={props.countries}
                         brands={props.brands}
+                        initSearch={initSearch}
                         />
                     </div>
+
+                    {/* <Container fluid={true} className='border rounded'>
+                        <Row>
+                            <Col sm={6}>
+                                <div className='poppins-semibold fs-9 py-3'>
+                                    <span>Explore</span>
+                                </div>
+                            </Col>
+                            <Col sm={6}>
+                                <div className='poppins-semibold fs-9 py-3'>
+                                    <span>For You</span>
+                                </div>
+                            </Col>
+                        </Row>
+                    </Container> */}
+
+                    <FilterLabels filter_data={filter_data} setFilterData={setFilterData}/>
+
                     <div className='my-3'>
                         <h3 className="m-0 p-0 dm-serif-display-regular mb-1 mt-3" style={{ fontSize: '1.5em' }}>
                         Opportunities
@@ -45,10 +162,13 @@ const Opportunities = () => {
                         <p className="m-0 p-0 text-secondary mb-3 fs-9">
                         No. 1 Destination for Startups, Business Growth, Funding, Grants, International Markets and Investment Opportunities
                         </p>
-                        <span id="search-result"></span>
-                        <span id="filter-entries"></span>
-                        <div id="opportunity-feeds"></div>
-                        <div id="pagination" className="pagination_holder"></div>
+                        <Suspense fallback={<ThreadLoader />}>
+                            <DisplayOpportunities data={data} />
+                            <div className="my-3">
+                            <DefaultPagination pagination={pagination} triggerPagination={triggerPagination}/>
+                            </div>
+                        </Suspense>
+
                     </div>
                 </Col>
                 <Col sm={4} xs={12} className="col-sm-4 col-12">
@@ -96,33 +216,6 @@ const Opportunities = () => {
                         </a>
                     </div>
                 </div>
-                {/* Podcast */} 
-                {/* <Link href={route('podcast')} className='text-decoration-none text-dark'>
-                <div className='border rounded py-3 mb-3'>
-                <Container>
-                    <Row>
-                        <Col sm={4} xs={12}>
-                            <div className="">
-                                    <img 
-                                    src='/img/main/podcast.jpg'
-                                    width="400"
-                                    className="img-fluid rounded" 
-                                    alt="Telegram banner"
-                                    />
-                            </div>
-                        </Col>
-                        <Col sm={8} xs={12}>
-                            <div className='d-none d-sm-block d-md-block d-lg-block'>
-                                <span className="fs-9">
-                                    Join our  Podcast
-                                    for the latest insights on technology, business, and finance
-                                </span>
-                            </div>
-                        </Col>
-                    </Row>
-                    </Container>
-                </div>
-                </Link> */}
                 {/* <div className='my-3'>
                     <MailchimpSubscriptionForm />
                 </div> */}

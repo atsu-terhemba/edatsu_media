@@ -6,7 +6,7 @@ import { Head } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 import Select from 'react-select'
 import axios from 'axios';
-import { swalConfig } from '@/utils';
+import { swalConfig } from '@/utils/Index';
 
 
 
@@ -65,22 +65,6 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
         }
     }
 
-    // function getFilteredOptions(data, prevData) {
-    //     if (!prevData || prevData.length === 0 || prevData === null) {
-    //         return null;
-    //     }
-    
-    //     const options = data.map((item) => ({
-    //         value: item.id || item.value,
-    //         label: item.name || item.label
-    //     }));
-    
-    //     if (prevData) {
-    //         return options.find((item) => prevData === item.value) || null;
-    //     }
-    
-    //     return options;
-    // }
 
     /**update selection**/
     function updateSelection( selectedOption, fieldName){
@@ -124,6 +108,8 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
             return;
         }
 
+        console.log(file);
+
         setFormData({...formData, cover_img: file});
     };
 
@@ -132,7 +118,11 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
     
         // Send the combined data to the server
         try {
-            const response = await axios.post('/admin-store-opportunity', formData);
+            const response = await axios.post('/admin-store-opportunity', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                }
+            });
             console.log(response.data);
     
             // Handle success response
@@ -188,67 +178,68 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
                             </Alert>
                         )}
 
-                            <Form id="mainForm" onSubmit={handleSubmit} encType="multipart/form-data">
-                                {/**begin details section */}
-                                {(section == 'details') && 
-                                <div id="jobDetailsSection" className="px-3 bg-white mb-3 py-3 rounded border">
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Image:</Form.Label>
-                                        <Form.Control type="file" name="cover_img" onChange={handleFileUpload} />
-                                    </Form.Group>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Title</Form.Label>
-                                        <Form.Control type="text" name="title" placeholder="Enter title" value={formData.title} onChange={handleChange} />
-                                        <Form.Text id="seo_title_feedback"></Form.Text>
-                                    </Form.Group>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Description</Form.Label>
-                                        <span className="d-block text-secondary mb-2 fs-9">Provide detailed description for this opportunity</span>
-                                        <Form.Control as="textarea" name="description" rows={3} value={formData.description} onChange={handleChange} />
-                                    </Form.Group>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Deadline</Form.Label>
-                                        <span className="d-block text-secondary mb-2 fs-9">Add a deadline for this opportunity *</span>
-                                        <Form.Control type="date" name="deadline" value={formData.deadline} onChange={handleChange} />
-                                    </Form.Group>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>URL/Reference Link</Form.Label>
-                                        <span className="d-block text-secondary mb-2 fs-9">Provide a link to learn more or apply for this opportunity</span>
-                                        <Form.Control type="text" name="source_url" placeholder="Enter source url" value={formData.source_url} onChange={handleChange} />
-                                    </Form.Group>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Link to Apply Directly</Form.Label>
-                                        <Form.Control type="text" name="direct_link" placeholder="Enter source url" value={formData.direct_link} onChange={handleChange} />
-                                    </Form.Group>
-                                </div>
-                                }
-                                {/* End Job Details Section */}
+                        <Form id="mainForm" onSubmit={handleSubmit} encType="multipart/form-data">
+                            {/**begin details section */}
+                            {(section == 'details') && 
+                            <div id="jobDetailsSection" className="px-3 bg-white mb-3 py-3 rounded border">
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Image:</Form.Label>
+                                    <Form.Control type="file" name="cover_img" onChange={handleFileUpload} />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Title</Form.Label>
+                                    <Form.Control type="text" name="title" placeholder="Enter title" value={formData.title} onChange={handleChange} />
+                                    <Form.Text id="seo_title_feedback"></Form.Text>
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Description</Form.Label>
+                                    <span className="d-block text-secondary mb-2 fs-9">Provide detailed description for this opportunity</span>
+                                    <Form.Control as="textarea" name="description" rows={3} value={formData.description} onChange={handleChange} />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Deadline</Form.Label>
+                                    <span className="d-block text-secondary mb-2 fs-9">Add a deadline for this opportunity *</span>
+                                    <Form.Control type="date" name="deadline" value={formData.deadline} onChange={handleChange} />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>URL/Reference Link</Form.Label>
+                                    <span className="d-block text-secondary mb-2 fs-9">Provide a link to learn more or apply for this opportunity</span>
+                                    <Form.Control type="text" name="source_url" placeholder="Enter source url" value={formData.source_url} onChange={handleChange} />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Link to Apply Directly</Form.Label>
+                                    <Form.Control type="text" name="direct_link" placeholder="Enter source url" value={formData.direct_link} onChange={handleChange} />
+                                </Form.Group>
+                            </div>
+                            }
 
-                                {/* SEO Optimization Section */}
-                                {(section == 'seo') && 
-                                <div id="seoSection" className="border px-3 py-3 rounded mb-3">
-                                    <h3 className="poppins-semibold">Seo Optimization</h3>
-                                    <p className="text-secondary m-0 p-0 fs-9">Add meta data and description for seo optimization and keywords</p>
+                            {/* End Job Details Section */}
 
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Focus Keyphrase</Form.Label>
-                                        <Form.Control type="text" name="meta_keywords" value={formData.meta_keywords} onChange={handleChange} />
-                                    </Form.Group>
+                            {/* SEO Optimization Section */}
+                            {(section == 'seo') && 
+                            <div id="seoSection" className="border px-3 py-3 rounded mb-3">
+                                <h3 className="poppins-semibold">Seo Optimization</h3>
+                                <p className="text-secondary m-0 p-0 fs-9">Add meta data and description for seo optimization and keywords</p>
 
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Meta Description</Form.Label>
-                                        <Form.Control as="textarea" name="meta_description" rows={3} value={formData.meta_description} onChange={handleChange} />
-                                    </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Focus Keyphrase</Form.Label>
+                                    <Form.Control type="text" name="meta_keywords" value={formData.meta_keywords} onChange={handleChange} />
+                                </Form.Group>
 
-                                    <Row className="">
-                                        <Form.Control type="text" name="post_id" value={formData.post_id} />
-                                        <Form.Control type="text" name="signature" value={formData.signature} />
-                                    </Row>
-                                </div>
-                                }
-                                {/* End SEO Optimization Section */}
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Meta Description</Form.Label>
+                                    <Form.Control as="textarea" name="meta_description" rows={3} value={formData.meta_description} onChange={handleChange} />
+                                </Form.Group>
 
-                                <Button variant="dark" type="submit" className="btn py-3 w-100 d-block poppins-semibold mb-3">Create</Button>
+                                <Row className="">
+                                    <Form.Control type="text" name="post_id" value={formData.post_id} />
+                                    <Form.Control type="text" name="signature" value={formData.signature} />
+                                </Row>
+                            </div>
+                            }
+                            {/* End SEO Optimization Section */}
+
+                            <Button variant="dark" type="submit" className="btn py-3 w-100 d-block poppins-semibold mb-3">Create</Button>
                             </Form>
                         </Col>
                         <Col sm={4}>

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import Select from 'react-select'
+import ClickEffectButton from './ClickEffectButton';
 
 
-const OppSearchFilter = ({ categories, continents, countries, brands}) => {
-    const [searchKeyword, setSearchKeyword] = useState('');
+const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_data, setFilterData, categories, continents, countries, brands, initSearch}) => {
+    
     const [isFilterVisible, setIsFilterVisible] = useState(false);
     const [categoryOptions, setCategoryOptions] = useState('');
     const [continentOptions, setContinentOptions] = useState('');
@@ -21,7 +22,6 @@ const OppSearchFilter = ({ categories, continents, countries, brands}) => {
     }
 
     useEffect(() => {
-        console.log(categories);
         setStateFromData(categories, setCategoryOptions);
         setStateFromData(continents, setContinentOptions);
         setStateFromData(countries, setCountryOptions);
@@ -29,12 +29,10 @@ const OppSearchFilter = ({ categories, continents, countries, brands}) => {
     }, []);
 
      const programStatus = [
-        { value: '', label: 'All Opportunities' },
         { value: 'up_coming', label: 'Earliest Deadline' }
       ];
 
       const monthOptions = [
-        { value: '', label: 'Select Month' },
         { value: 'january', label: 'January' },
         { value: 'february', label: 'February' },
         { value: 'march', label: 'March' },
@@ -50,33 +48,18 @@ const OppSearchFilter = ({ categories, continents, countries, brands}) => {
       ];
 
       const dateOptions = [
-        { value: '', label: 'Date Posted' },
         { value: 'one_day', label: '24 hours Ago' },
         { value: 'one_week', label: '1 Week Ago' },
         { value: 'two_weeks', label: '2 Weeks Ago' },
         { value: 'one_month', label: '1 Month Ago' }
       ];
-      
 
     const yearOptions = [
-        { value: '', label: 'Select Year' },
         ...Array.from({ length: 6 }, (_, i) => {
             const year = new Date().getFullYear() + i;
             return { value: year.toString(), label: year.toString() };
         })
     ];
-
-    const [formData, setFormData] = useState({
-        searchKeyword: searchKeyword,
-        categories: '',
-        continents: '',
-        countries: '',
-        brands: '',
-        datePosted: '',
-        month: '',
-        year: '',
-        program_status: '',
-    });
 
     const toggleFilterPanel = () => {
         setIsFilterVisible(!isFilterVisible);
@@ -85,18 +68,22 @@ const OppSearchFilter = ({ categories, continents, countries, brands}) => {
     /**update selection**/
     function updateSelection( selectedOption, fieldName){
         if (selectedOption) {
-            let updatedData = { ...formData, [fieldName]: selectedOption };
-            setFormData(updatedData);
+            setFilterData((prevData) => (
+                { ...prevData, [fieldName]: selectedOption }
+            ));
         }
     }
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        // Handle form submission
-    };
+    function updateInput(e){
+        e.preventDefault();
+        const {name, value} = e.target;
+        setSearchKeyword((prevData)=>{
+            return value
+        });
+    }
 
     return (
-        <form onSubmit={handleSubmit} id="search_keyword">
+        <form onSubmit={initSearch} id="search_keyword">
             <div className="row">
                 <div className="col-sm-9 col-12">
                     <div className='mb-3'>
@@ -106,14 +93,19 @@ const OppSearchFilter = ({ categories, continents, countries, brands}) => {
                             name="search_keyword"
                             placeholder="Search Keywords"
                             id="keyword"
-                            value={searchKeyword}
-                            onChange={(e) => setSearchKeyword(e.target.value)}
+                            value={search_keyword}
+                            onChange={(e) => updateInput(e)}
                         />
                     </div>
                 </div>
                 <div className="col-sm-3 col-12">
                     <div className='mb-3'>
-                        <button type="submit" className="text-decoration-none poppins-semibold btn btn-dark border-0 px-4 py-3 shadow-sm w-100">Search</button>
+                        <ClickEffectButton id="search-btn" 
+                        type="submit"
+                        className='w-100 h-50 bg-dark border-0 h-50 py-3 poppins-semibold' 
+                        onClick={initSearch}>
+                        {isloading == 'search-btn' ? 'Searching..' : 'Search'}
+                        </ClickEffectButton>
                     </div>
                 </div>
             </div>
@@ -124,7 +116,7 @@ const OppSearchFilter = ({ categories, continents, countries, brands}) => {
                         filter_alt
                     </span>
                     <span className="fs-9 text-dark px-3">
-                        Use filters to improve search
+                        Search filters
                     </span>
                 </div>
                 <span
@@ -141,22 +133,26 @@ const OppSearchFilter = ({ categories, continents, countries, brands}) => {
                 <div id="filter-panel" className="bg-white border rounded px-3 py-3 mb-3">
                     <div className="row">
                         <div className="col-sm-6">
+                            {/* <label className='poppins-semibold fs-9 mb-2'>Program Status</label> */}
                             <Select
-                                defaultValue={formData?.program_status}
+                                placeholder="Select Program Status"
+                                value={filter_data?.program_status}
                                 name="program_status"
                                 options={programStatus}
-                                className="fs-9"
-                                classNamePrefix="select"
+                                className="fs-9 mb-3"
+                                classNamePrefix="Select"
                                 onChange={(e) => updateSelection(e, 'program_status')}
                             />
                         </div>
                         <div className="col-sm-6">
+                            {/* <label className='poppins-semibold fs-9 mb-2'>Categories</label> */}
                             <Select
                                 isMulti
-                                defaultValue={formData?.categories}
+                                placeholder="Select Categories"
+                                value={filter_data?.categories}
                                 name="categories"
                                 options={categoryOptions}
-                                className="fs-9"
+                                className="fs-9 mb-3"
                                 classNamePrefix="select"
                                 onChange={(e) => updateSelection(e, 'categories')}
                             />
@@ -165,23 +161,27 @@ const OppSearchFilter = ({ categories, continents, countries, brands}) => {
 
                     <div className="row">
                         <div className="col-sm-6">
+                            {/* <label className='poppins-semibold fs-9 mb-2'>Continents</label> */}
                             <Select
                                 isMulti
-                                defaultValue={formData?.continents}
+                                placeholder="Select Continents"
+                                value={filter_data?.continents}
                                 name="continents"
                                 options={continentOptions}
-                                className="fs-9"
+                                className="fs-9 mb-3"
                                 classNamePrefix="select"
                                 onChange={(e) => updateSelection(e, 'continents')}
                             />
                         </div>
                         <div className="col-sm-6">
+                            {/* <label className='poppins-semibold fs-9 mb-2'>Countries</label> */}
                             <Select
                                 isMulti
-                                defaultValue={formData?.countries}
+                                value={filter_data?.countries}
+                                placeholder="Select Countries"
                                 name="countries"
                                 options={countryOptions}
-                                className="fs-9"
+                                className="fs-9 mb-3"
                                 classNamePrefix="select"
                                 onChange={(e) => updateSelection(e, 'countries')}
                             />
@@ -190,22 +190,26 @@ const OppSearchFilter = ({ categories, continents, countries, brands}) => {
 
                     <div className="row">
                         <div className="col-sm-6">
-                        <Select
+                                {/* <label className='poppins-semibold fs-9 mb-2'>Brands</label> */}
+                                <Select
                                 isMulti
-                                defaultValue={formData?.brands}
+                                value={filter_data?.brands}
+                                placeholder="Select Brands"
                                 name="brands"
                                 options={brandOptions}
-                                className="fs-9"
+                                className="fs-9 mb-3"
                                 classNamePrefix="select"
                                 onChange={(e) => updateSelection(e, 'brands')}
                             />
                         </div>
                         <div className="col-sm-6">
-                        <Select
-                                defaultValue={formData?.datePosted}
+                            {/* <label className='poppins-semibold fs-9 mb-2'>Published</label> */}
+                            <Select
+                                value={filter_data?.datePosted}
+                                placeholder="Date Posted"
                                 name="datePosted"
                                 options={dateOptions}
-                                className="fs-9"
+                                className="fs-9 mb-3"
                                 classNamePrefix="select"
                                 onChange={(e) => updateSelection(e, 'datePosted')}
                             />
@@ -214,27 +218,36 @@ const OppSearchFilter = ({ categories, continents, countries, brands}) => {
 
                     <div className="row">
                         <div className="col-sm-6">
+                            {/* <label className='poppins-semibold fs-9 mb-2'>Month</label> */}
                             <Select
-                                defaultValue={formData?.month}
+                                value={filter_data?.month}
+                                placeholder="Select Month"
                                 name="month"
                                 options={monthOptions}
-                                className="fs-9"
+                                className="fs-9 mb-3"
                                 classNamePrefix="select"
                                 onChange={(e) => updateSelection(e, 'month')}
                             />
                         </div>
                         <div className="col-sm-6">
+                            {/* <label className='poppins-semibold fs-9 mb-2'>Year</label> */}
                             <Select
-                                defaultValue={formData?.year}
+                                value={filter_data?.year}
+                                placeholder="Select Year"
                                 name="year"
                                 options={yearOptions}
-                                className="fs-9"
+                                className="fs-9 mb-3"
                                 classNamePrefix="select"
                                 onChange={(e) => updateSelection(e, 'year')}
                             />
                         </div>
                     </div>
-                    <button type="submit" className="text-decoration-none btn btn-dark border-0 px-4 py-3 shadow-sm w-100 poppins-semibold">Filter</button>
+                    <ClickEffectButton id="filter-btn" 
+                    type="submit"
+                    className='w-100 h-50 bg-dark border-0 h-50 py-3 poppins-semibold' 
+                    onClick={initSearch}>
+                    {isloading == 'filter-btn' ? 'Filtering...' : 'Filter'}
+                    </ClickEffectButton>
                 </div>
             )}
         </form>

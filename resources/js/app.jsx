@@ -2,7 +2,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../css/app.css';
 import '../css/style.css';
 import './bootstrap';
-
+import "sweetalert2/dist/sweetalert2.min.css";
 
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';

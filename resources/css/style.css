@@ -149,6 +149,15 @@ h1, h2, h3 {
     font-size:1.1em !important;
 }
 
+.search-filter-labels{
+    padding:5px 15px;
+    font-size:.8em;
+    border-radius: 15px !important;
+    display:inline-block; 
+    text-align:center;
+  }
+  
+
 /* HTML: <div class="loader"></div> */
 #loader {
     width: 25px;
@@ -914,7 +923,7 @@ SKELETAL LOADER
       opacity: 1;
     }
   }
-  
+
 
   /**ui for comment threads**/
   .comment-thread {

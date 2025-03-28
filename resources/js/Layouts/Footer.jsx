@@ -4,6 +4,7 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import { Button, Image } from "react-bootstrap";
+import { Images } from "@/utils/Images";
 
 
 
@@ -22,7 +23,7 @@ function handleCopyRSS(){
         <Col sm={3}>
         <div className="mb-3">
             <Image
-            src="img/logo/trans/logo_trans_4.png"
+            src={Images.app_logo_trans}
             width="80"
             className="img-fluid d-block"
             alt="logo"

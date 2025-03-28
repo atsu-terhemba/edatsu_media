@@ -18,16 +18,41 @@ use App\Models\Continent;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Redis;
+
 
 class OpportunityController extends Controller
 {
     //...
 
+    public function __construct(Type $var = null) {
+        $ttl = 86400; // 24 hours in seconds
+        Cache::remember('categories', $ttl, function () {
+            return Category::all();
+        });
+
+        // Cache countries
+        Cache::remember('countries', $ttl, function () {
+            return Country::all();
+        });
+
+        // Cache continents
+        Cache::remember('continents', $ttl, function () {
+            return Continent::all();
+        });
+
+        // Cache brands
+        Cache::remember('brands', $ttl, function () {
+            return BrandLabel::all();
+        });
+    }
+
     function initOpportunitiesPage(){
-        $categories = Category::all();
-        $countries = Country::all();
-        $continents = Continent::all();
-        $brands = BrandLabel::all();
+  
+        $categories = Cache::get('categories');
+        $countries = Cache::get('countries');
+        $continents = Cache::get('continents');
+        $brands = Cache::get('brands');
 
         return Inertia::render("Opportunities", [
             "categories" => $categories, 
@@ -75,6 +100,211 @@ class OpportunityController extends Controller
     return Inertia::render("Admin/CreateOpportunity", $data);
 
     }
+
+
+    function readOpportunity(Request $request, $id)
+    {
+        $user_id = null;
+        if(Auth::check()){
+            $user_id = Auth::id();
+        }
+    
+        /**
+         * @var mixed
+         * show all data associated with this opportunites.
+         */
+        $opp_posts = DB::table('opportunities')
+        ->where('opportunities.id', $id)
+        ->leftJoin('category_selections', 'category_selections.post_id', '=', 'opportunities.id')
+        ->leftJoin('categories', 'categories.id', '=', 'category_selections.category_id')
+        ->leftJoin('brand_labels_selections', 'brand_labels_selections.post_id', '=', 'opportunities.id')
+        ->leftJoin('brand_labels', 'brand_labels.id', '=', 'brand_labels_selections.brand_label_id')
+        ->leftJoin('continent_selections', 'continent_selections.post_id', '=', 'opportunities.id')
+        ->leftJoin('continents', 'continents.id', '=', 'continent_selections.continent_id')
+        ->leftJoin('country_selections', 'country_selections.post_id', '=', 'opportunities.id')
+        ->leftJoin('countries', 'countries.id', '=', 'country_selections.country_id')
+        ->leftJoin('region_selections', 'region_selections.post_id', '=', 'opportunities.id')
+        ->leftJoin('regions', 'regions.id', '=', 'region_selections.region_id')
+        ->leftJoin('tags_selections', 'tags_selections.post_id', '=', 'opportunities.id')
+        ->leftJoin('tags', 'tags.id', '=', 'tags_selections.tag_id')
+        ->leftJoin('bookmarks', function($join) use ($id, $user_id) {
+            $join->on('bookmarks.post_id', '=', DB::raw($id))
+                ->where('bookmarks.user_id', '=', $user_id)
+                ->where('bookmarks.post_type', '=', 'opp')
+                ->where('bookmarks.removed', '!=', 1);
+        })
+        ->select('opportunities.id', 
+                'opportunities.title', 
+                'opportunities.deadline',
+                'opportunities.slug',
+                'opportunities.description',
+                'opportunities.meta_description',
+                'opportunities.meta_keywords',
+                'opportunities.cover_img', 
+                'opportunities.created_at',
+                'opportunities.source_url',
+                'opportunities.direct_link',
+                DB::raw('GROUP_CONCAT(DISTINCT categories.id) as category_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT categories.name) as categories'),
+                DB::raw('GROUP_CONCAT(DISTINCT categories.slug) as category_slugs'),
+                DB::raw('GROUP_CONCAT(DISTINCT brand_labels.id) as brand_label_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT brand_labels.name) as brand_labels'),
+                DB::raw('GROUP_CONCAT(DISTINCT brand_labels.slug) as brand_label_slugs'),
+                DB::raw('GROUP_CONCAT(DISTINCT continents.id) as continent_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT continents.name) as continents'),
+                DB::raw('GROUP_CONCAT(DISTINCT continents.slug) as continent_slugs'),
+                DB::raw('GROUP_CONCAT(DISTINCT countries.id) as country_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT countries.name) as countries'),
+                DB::raw('GROUP_CONCAT(DISTINCT countries.slug) as country_slugs'),
+                DB::raw('GROUP_CONCAT(DISTINCT regions.id) as region_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT regions.name) as regions'),
+                DB::raw('GROUP_CONCAT(DISTINCT regions.slug) as region_slugs'),
+                DB::raw('GROUP_CONCAT(DISTINCT tags.id) as tag_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT tags.name) as tags'),
+                DB::raw('GROUP_CONCAT(DISTINCT tags.slug) as tag_slugs'),
+                DB::raw('CASE WHEN bookmarks.post_type = \'opp\' THEN 1 ELSE 0 END as is_bookmarked'))
+        ->groupBy('opportunities.id', 
+                'opportunities.title', 
+                'opportunities.deadline',
+                'opportunities.slug',
+                'opportunities.description',
+                'opportunities.meta_description',
+                'opportunities.meta_keywords',
+                'opportunities.cover_img', 
+                'opportunities.created_at', 
+                'opportunities.source_url',
+                'opportunities.direct_link', 
+                'bookmarks.post_type')
+        ->first();
+
+
+    
+        /**
+         * @var mixed
+         * show category count that have not expired
+         */
+    //     $categoriesWithCounts = DB::table('category_selections')
+    //     ->join('opportunities', 'opportunities.id', '=', 'category_selections.post_id')
+    //     ->join('categories', 'categories.id', '=', 'category_selections.category_id')
+    //     ->where('opportunities.deadline', '>', now())
+    //     ->select(
+    //         'categories.id as category_id',
+    //         'categories.name as category_name',
+    //         'categories.slug as category_slug',
+    //         DB::raw('COUNT(DISTINCT opportunities.id) as future_opportunity_count')
+    //     )
+    //     ->groupBy('categories.id', 'categories.name', 'categories.slug')
+    //     ->orderByDesc('future_opportunity_count')
+    //     ->orderBy('category_name')
+    //     ->get();
+    
+    // The ID of the post the user is currently viewing
+    $current_post_id = $id; 
+    
+    function prepareIdList($idString) {
+        $ids = array_filter(explode(',', $idString)); // Remove empty values
+        return !empty($ids) ? implode(',', $ids) : 'NULL';
+    }
+    
+    $category_ids = prepareIdList($opp_posts->category_ids);
+    $brand_label_ids = prepareIdList($opp_posts->brand_label_ids);
+    $continent_ids = prepareIdList($opp_posts->continent_ids);
+    $country_ids = prepareIdList($opp_posts->country_ids);
+    $region_ids = prepareIdList($opp_posts->region_ids);
+    $tag_ids = prepareIdList($opp_posts->tag_ids);
+    
+    $similarPosts = DB::table('opportunities as o')
+        ->leftJoin('category_selections as cs', 'cs.post_id', '=', 'o.id')
+        ->leftJoin('categories as c', 'c.id', '=', 'cs.category_id')
+        ->leftJoin('brand_labels_selections as bls', 'bls.post_id', '=', 'o.id')
+        ->leftJoin('continent_selections as cts', 'cts.post_id', '=', 'o.id')
+        ->leftJoin('continents as cont', 'cont.id', '=', 'cts.continent_id')
+        ->leftJoin('country_selections as cos', 'cos.post_id', '=', 'o.id')
+        ->leftJoin('countries as cou', 'cou.id', '=', 'cos.country_id')
+        ->leftJoin('region_selections as rs', 'rs.post_id', '=', 'o.id')
+        ->leftJoin('regions as r', 'r.id', '=', 'rs.region_id')
+        ->leftJoin('tags_selections as ts', 'ts.post_id', '=', 'o.id')
+        ->where('o.id', '!=', $current_post_id) // Exclude the current post
+        ->where('o.deadline', '>', now()) 
+        ->where(function ($query) use ($category_ids, $brand_label_ids, $continent_ids, $country_ids, $region_ids, $tag_ids) {
+            if ($category_ids !== 'NULL') $query->orWhereIn('cs.category_id', explode(',', $category_ids));
+            if ($brand_label_ids !== 'NULL') $query->orWhereIn('bls.brand_label_id', explode(',', $brand_label_ids));
+            if ($continent_ids !== 'NULL') $query->orWhereIn('cts.continent_id', explode(',', $continent_ids));
+            if ($country_ids !== 'NULL') $query->orWhereIn('cos.country_id', explode(',', $country_ids));
+            if ($region_ids !== 'NULL') $query->orWhereIn('rs.region_id', explode(',', $region_ids));
+            if ($tag_ids !== 'NULL') $query->orWhereIn('ts.tag_id', explode(',', $tag_ids));
+        })
+        ->select('o.id', 
+                    'o.title',
+                    'o.deadline',
+                    'o.slug',
+                    'o.cover_img',
+                    'o.description',
+                    'o.created_at', 
+                    'o.updated_at',
+            DB::raw("SUM(
+                CASE 
+                    WHEN " . ($category_ids !== 'NULL' ? "cs.category_id IN ($category_ids)" : "FALSE") . " THEN 2
+                    WHEN " . ($brand_label_ids !== 'NULL' ? "bls.brand_label_id IN ($brand_label_ids)" : "FALSE") . " THEN 2
+                    WHEN " . ($continent_ids !== 'NULL' ? "cts.continent_id IN ($continent_ids)" : "FALSE") . " THEN 1
+                    WHEN " . ($country_ids !== 'NULL' ? "cos.country_id IN ($country_ids)" : "FALSE") . " THEN 2
+                    WHEN " . ($region_ids !== 'NULL' ? "rs.region_id IN ($region_ids)" : "FALSE") . " THEN 1
+                    WHEN " . ($tag_ids !== 'NULL' ? "ts.tag_id IN ($tag_ids)" : "FALSE") . " THEN 1
+                    ELSE 0
+                END
+            ) as similarity_score"),
+            DB::raw('GROUP_CONCAT(DISTINCT c.name) as categories'),
+            DB::raw('GROUP_CONCAT(DISTINCT r.name) as regions'),
+            DB::raw('GROUP_CONCAT(DISTINCT cou.name) as countries'),
+            DB::raw('GROUP_CONCAT(DISTINCT cont.name) as continents')
+        )
+        ->groupBy('o.id', 'o.title', 
+        'o.deadline', 
+        'o.slug',
+        'o.cover_img',
+        'o.description', 
+        'o.created_at', 
+        'o.updated_at') // Add all non-aggregated columns from 'o.*'
+        ->orderByDesc('similarity_score')
+        ->orderByDesc('o.created_at')
+        ->limit(6)
+        ->get();
+    
+        /***count comments from this id*/
+        $total_comments = DB::table('comments')
+        ->where('comments.commentable_id', '=', $current_post_id)
+        ->count();
+    
+        if (!$opp_posts) {
+            abort(404);
+        }
+    
+        // Check if the user has already viewed this post in the current session
+        $viewedPosts = $request->session()->get('viewed_posts', []);
+    
+        if (!in_array($id, $viewedPosts)) {
+            // Increment views if not previously viewed
+            DB::table('opportunities')->where('id', $id)->increment('views');
+            
+            // Store the post ID in the session
+            $request->session()->push('viewed_posts', $id);
+        }
+    
+        // return Inertia::render("Opp-view", [
+        //     'opp_posts' => $opp_posts,
+        //     'categoriesWithCounts' => $categoriesWithCounts,
+        //     'similarPosts' => $similarPosts,
+        //     'total_comments' => $total_comments,
+        // ]);
+
+        return Inertia::render("Opp-view", [
+            'opp_posts' => $opp_posts,
+            'similarPosts' => $similarPosts,
+            'total_comments' => $total_comments,
+        ]);
+        
+    }
+
 
     // function edit(Request $request, $id){
     //     $categories = Category::all();
@@ -255,12 +485,6 @@ class OpportunityController extends Controller
 
 function store(Request $request)
 {
-
-    //dd($request->input());
-
-    // $categories = extractSelectData($request->category);
-
-    //dd($categories);
     
     // Define custom validation rules
     $rules = [
@@ -307,7 +531,7 @@ function store(Request $request)
     if ($request->hasFile('cover_img') && $request->file('cover_img')->isValid()) {
         $file = $request->file('cover_img');
         $hashedFileName = $this->generateUniqueFileName($file);
-        $file->storeAs('public/uploads/channels', $hashedFileName);
+        $file->storeAs('public/uploads/opp', $hashedFileName, 'public');
         $op->cover_img = $hashedFileName;
     }
 
@@ -422,6 +646,7 @@ function store(Request $request)
      * bookmark opportunity
      */
     public function bookmarkOpportunity(Request $request){
+       // dd($request->input());
         if(Auth::check()){
             $opp_id = $request->post('id'); 
             $user_id = $request->user()->id;
@@ -439,29 +664,43 @@ function store(Request $request)
             //init bookmark
             $bookmark = new Bookmark;
 
-            //check if post_id already exist in database. 
-            if($bookmark->where('post_id', $opp_id)
+            $bookmarked = $bookmark->where('post_id', $opp_id)
             ->where('user_id', $user_id)
             ->where('post_type', '=', 'opp')
-            ->exists()){
+            ->exists();
+
+            //check if post_id already exist in database. 
+            if($bookmarked){
                 //check if its removed, if removed, update deleted to 0 to add it back
-                $is_deleted = $bookmark->where('post_id', $opp_id)
+                $is_removed = $bookmark->where('post_id', $opp_id)
                 ->where('user_id', $user_id)
                 ->where('post_type', '=', 'opp')
-                ->where('deleted', 1);
+                ->where('removed', 1);
 
-                if($is_deleted->count() > 0){
+                if($is_removed->count() > 0){
                     //update record
                     $restore_bookmark = $bookmark->where('post_id', $opp_id)
                     ->where('user_id', $user_id)
                     ->where('post_type', '=', 'opp')
-                    ->update(['deleted' => 0]);
+                    ->update(['removed' => 0]);
 
                     if($restore_bookmark > 0){
                         return response()->json(['status' => 'success', 'message' => "Bookmarked"]);
                     }
                 }
-                return response()->json(['status' => 'error', 'message'=> 'Already Bookmarked']);
+
+                $remove_bookmark = $bookmark->where('post_id', $opp_id)
+                ->where('user_id', $user_id)
+                ->where('post_type', '=', 'opp')
+                ->update(['removed' => 1]);
+                
+                if($remove_bookmark > 0){
+                    return response()->json(['status' => 'warning', 'message' => 'Bookmark Removed']);
+                }else{
+                    return response()->json(['status' => 'error', 'message' => 'Oops! Something went wrong']);
+                }
+
+               // return response()->json(['status' => 'error', 'message'=> 'Already Bookmarked']);
             }
 
             //save data...

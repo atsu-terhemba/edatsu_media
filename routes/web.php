@@ -93,7 +93,7 @@ Route::get('/event-feeds', [App::class, 'getEventFeed']);
 Route::get('/events', [App::class, 'displayEvents'])->name("events");
 Route::get('/feeds', [FeedsController::class, 'fetchFeeds'])->name("find.feeds");
 Route::get('/news-feed', [FeedsController::class, 'displayFeeds'])->name("daily.feeds");
-Route::get('op/{id}/{title}', [App::class, 'readOpportunity'])->name('read.blog');
+Route::get('op/{id}/{title}', [OpportunityController::class, 'readOpportunity'])->name('read.blog');
 Route::get('ts/{id}/{product_name}', [App::class, 'readProductData'])->name('read.product_blog');
 Route::get('ev/{id}/{title}', [App::class, 'readEvent'])->name('read.ev');
 Route::get('/search-opportunities', [App::class, 'searchOpportunities']);
@@ -102,7 +102,7 @@ Route::get('/search-opportunities-categories/{id}', [App::class, 'searchCategori
 Route::get('/search-events', [App::class, 'searchEvents']);
 Route::get('/business-wiki', function(){return view('business-wiki');})->name("business-wiki");
 Route::post('/bookmark-feed', [SubscriberController::class, 'bookmarkFeed']);
-Route::post('/bookmark-opportunity', [Opportunity::class, 'bookmarkOpportunity']);
+Route::post('/bookmark-opportunity', [OpportunityController::class, 'bookmarkOpportunity']);
 Route::post('/bookmark-tools', [ToolShedController::class, 'bookmarkTools']);
 Route::post('/bookmark-event', [Event::class, 'bookmarkEvent']);
 Route::get('/podcast', function(){return Inertia::render('podcasts');})->name('podcast');
