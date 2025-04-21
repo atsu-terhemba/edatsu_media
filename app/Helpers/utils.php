@@ -55,6 +55,8 @@ function getHighlightClass($targetPath, $active_style, $default_style) {
     return ($currentPath === $targetPath) ? $active_style : $default_style;
 }
 
+
+
 //format to readable text
 function convertToTitleCase($inputString) {
     // Split the input string by underscores

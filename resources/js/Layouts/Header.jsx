@@ -2,19 +2,15 @@ import { Fragment } from "react"
 import { Navbar, Nav, Container, Button, NavDropdown, Image } from 'react-bootstrap';
 import { Link } from "@inertiajs/react";
 import { useEffect } from "react";
-import { truncateText } from "@/utils/Index";
+import { truncateText, ActiveLink } from "@/utils/Index";
 import { Images } from "@/utils/Images";
 
 
 export default function Header({auth}){
 
-
-function toggleMode(){
-}
-
 return(
 <Fragment>
-<Navbar expand="lg" className="header border-0 fs-9 custom-title align-middle"  bg="dark" variant="dark">
+<Navbar expand="lg" className="header border-0 custom-title align-middle"  bg="dark" variant="dark">
 <Container className="align-middle">
 {/* Logo */}
 <Link href="/">
@@ -25,7 +21,7 @@ return(
     <div className="d-flex justify-content-between w-100">
     <form class="d-flex" role="search">
     </form>
-    <Nav className="m-0 p-0 d-flex align-items-center">
+    <Nav className="m-0 p-0 d-flex align-items-center fs-9">
         {/* <Nav.Item>
             <Button className="btn bg-transparent border-0 me-3" onClick={toggleMode}>
                 <span className="material-symbols-outlined align-middle">search</span>
@@ -36,18 +32,23 @@ return(
             Pricing
         </Link>
         </Nav.Item> */}
+        {/* <Nav.Item>
+        <Link href="news" className="nav-link text-light me-3 text-decoration-none">
+        News
+        </Link>
+        </Nav.Item> */}
         <Nav.Item>
-        <Link href="/" className="nav-link text-light me-3 text-decoration-none lead">
-            Opportunities
+        <Link href="/" className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/opportunities')}`}> 
+        Opportunities
         </Link>
         </Nav.Item>
         {/* <Nav.Item>
-        <Link href="money-guide" className="nav-link text-light me-3 text-decoration-none">
+        <Link href="/money-guide"  className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/money-guide')}`}>
             Money Guide
         </Link>
         </Nav.Item> */}
         {/* <Nav.Item>
-        <Link href="toolshed" className="nav-link text-light me-3 text-decoration-none">
+        <Link href="/toolshed"  className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/toolshed')}`}>
             Toolshed
         </Link>
         </Nav.Item> */}
@@ -81,15 +82,15 @@ return(
                 Logout
             </NavDropdown.Item>
             <NavDropdown.Divider />
-            <NavDropdown.Item href="#" className="fs-8 text-secondary">&copy; edatsu inc</NavDropdown.Item>
+            <NavDropdown.Item href="#" className="fs-8 text-secondary text-decoration-none">&copy; edatsu inc</NavDropdown.Item>
         </NavDropdown>
         </>
         :
         <>
-        <Link href="/login" className="btn text-decoration-none fs-9 poppins-semibold custom-bg-highlight text-light border-0 shadow-sm py-2 px-4 me-3">
+        <Link href="/login" className="btn text-decoration-none fs-9 poppins-regular custom-bg-highlight text-light border-0 shadow-sm py-2 px-4 me-3">
             Login
         </Link>
-        <Link href="/sign-up" className="btn text-decoration-none fs-9 poppins-semibold custom-bg-highlight text-light border-0 shadow-sm py-2 px-4">
+        <Link href="/sign-up" className="btn text-decoration-none fs-9 poppins-regular custom-bg-highlight text-light border-0 shadow-sm py-2 px-4">
             Sign Up
         </Link>
         </>

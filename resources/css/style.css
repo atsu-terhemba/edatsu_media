@@ -14,6 +14,11 @@ body {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+.active-link {
+    color: #FFC107 !important;
+    /* font-weight: 600 !important; */
+}
+
 .dm-serif-text-regular {
     font-family: "DM Serif Text", serif;
     font-weight: 400;
@@ -157,6 +162,39 @@ h1, h2, h3 {
     text-align:center;
   }
   
+.blog-carousel .slick-dots {
+    bottom: -40px;
+  }
+  
+  .blog-carousel .slick-dots li button:before {
+    font-size: 12px;
+  }
+  
+  .blog-carousel .slick-prev,
+  .blog-carousel .slick-next {
+    z-index: 1;
+  }
+  
+  /* .blog-carousel {
+    padding-bottom: 50px;
+  } */
+  
+  .blog-carousel .card {
+    transition: transform 0.3s ease;
+  }
+  
+  .blog-carousel .card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .carousel-arrow {
+    background-color: white !important;
+    opacity: 0.9;
+  }
+  
+  .carousel-arrow:hover {
+    opacity: 1;
+  }
 
 /* HTML: <div class="loader"></div> */
 #loader {

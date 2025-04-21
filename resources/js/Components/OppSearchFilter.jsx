@@ -85,7 +85,7 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
     return (
         <form onSubmit={initSearch} id="search_keyword">
             <div className="row">
-                <div className="col-sm-9 col-12">
+                <div className="col-sm-12 col-12">
                     <div className='mb-3'>
                         <input
                             type='text'
@@ -98,11 +98,11 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
                         />
                     </div>
                 </div>
-                <div className="col-sm-3 col-12">
+                <div className="col-sm-12 col-12">
                     <div className='mb-3'>
                         <ClickEffectButton id="search-btn" 
                         type="submit"
-                        className='w-100 h-50 bg-dark border-0 h-50 py-3 poppins-semibold' 
+                        className='w-100 h-50 bg-dark border-0 h-50 py-3' 
                         onClick={initSearch}>
                         {isloading == 'search-btn' ? 'Searching..' : 'Search'}
                         </ClickEffectButton>
@@ -132,7 +132,7 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
             {isFilterVisible && (
                 <div id="filter-panel" className="bg-white border rounded px-3 py-3 mb-3">
                     <div className="row">
-                        <div className="col-sm-6">
+                        <div className="col-sm-12">
                             {/* <label className='poppins-semibold fs-9 mb-2'>Program Status</label> */}
                             <Select
                                 placeholder="Select Program Status"
@@ -144,7 +144,7 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
                                 onChange={(e) => updateSelection(e, 'program_status')}
                             />
                         </div>
-                        <div className="col-sm-6">
+                        <div className="col-sm-12">
                             {/* <label className='poppins-semibold fs-9 mb-2'>Categories</label> */}
                             <Select
                                 isMulti
@@ -160,7 +160,7 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
                     </div>
 
                     <div className="row">
-                        <div className="col-sm-6">
+                        <div className="col-sm-12">
                             {/* <label className='poppins-semibold fs-9 mb-2'>Continents</label> */}
                             <Select
                                 isMulti
@@ -173,7 +173,7 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
                                 onChange={(e) => updateSelection(e, 'continents')}
                             />
                         </div>
-                        <div className="col-sm-6">
+                        <div className="col-sm-12">
                             {/* <label className='poppins-semibold fs-9 mb-2'>Countries</label> */}
                             <Select
                                 isMulti
@@ -189,7 +189,7 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
                     </div>
 
                     <div className="row">
-                        <div className="col-sm-6">
+                        <div className="col-sm-12">
                                 {/* <label className='poppins-semibold fs-9 mb-2'>Brands</label> */}
                                 <Select
                                 isMulti
@@ -202,7 +202,7 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
                                 onChange={(e) => updateSelection(e, 'brands')}
                             />
                         </div>
-                        <div className="col-sm-6">
+                        <div className="col-sm-12">
                             {/* <label className='poppins-semibold fs-9 mb-2'>Published</label> */}
                             <Select
                                 value={filter_data?.datePosted}
@@ -217,7 +217,7 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
                     </div>
 
                     <div className="row">
-                        <div className="col-sm-6">
+                        <div className="col-sm-12">
                             {/* <label className='poppins-semibold fs-9 mb-2'>Month</label> */}
                             <Select
                                 value={filter_data?.month}
@@ -229,7 +229,7 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
                                 onChange={(e) => updateSelection(e, 'month')}
                             />
                         </div>
-                        <div className="col-sm-6">
+                        <div className="col-sm-12">
                             {/* <label className='poppins-semibold fs-9 mb-2'>Year</label> */}
                             <Select
                                 value={filter_data?.year}
@@ -244,7 +244,7 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
                     </div>
                     <ClickEffectButton id="filter-btn" 
                     type="submit"
-                    className='w-100 h-50 bg-dark border-0 h-50 py-3 poppins-semibold' 
+                    className='w-100 h-50 bg-dark border-0 h-50 py-3' 
                     onClick={initSearch}>
                     {isloading == 'filter-btn' ? 'Filtering...' : 'Filter'}
                     </ClickEffectButton>

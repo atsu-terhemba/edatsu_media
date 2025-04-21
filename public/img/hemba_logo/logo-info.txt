@@ -1,0 +1,8 @@
+Hemba Logo Background Color
+#fccd29
+#000000
+
+Edatsu Logo Color
+#FA8A26
+#000000
+#FFFFFF

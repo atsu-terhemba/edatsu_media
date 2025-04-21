@@ -63,7 +63,49 @@ class OpportunityController extends Controller
     }
 
 
+    function publish($id){
+        // Check if the user is authenticated
+        if(!Auth::check()){
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized']);
+        }
+        $op = Oppty::find($id);
+        if($op){
+            $op->status = 'published';
+            $op->save();
+            return response()->json(['status' => 'success', 'message' => 'Published']);
+        }else{
+            return response()->json(['status' => 'error', 'message' => 'Opportunity Not Found']);
+        }
+    }
 
+    function draft($id){
+        // Check if the user is authenticated
+        if(!Auth::check()){
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized']);
+        }
+        $op = Oppty::find($id);
+        if($op){
+            $op->status= 'draft';
+            $op->save();
+            return response()->json(['status' => 'success', 'message' => 'Saved to Draft']);
+        }else{
+            return response()->json(['status' => 'error', 'message' => 'Opportunity Not Found']);
+        }
+    }
+
+    function archive($id){
+        if(!Auth::check()){
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized']);
+        }
+        $op = Oppty::find($id);
+        if($op){
+            $op->status = 'archived';
+            $op->save();
+            return response()->json(['status' => 'success', 'message' => 'Archived']);
+        }else{
+            return response()->json(['status' => 'error', 'message' => 'Opportunity Not Found']);
+        }
+    }
 
 
     function show(){
@@ -226,6 +268,7 @@ class OpportunityController extends Controller
         ->leftJoin('tags_selections as ts', 'ts.post_id', '=', 'o.id')
         ->where('o.id', '!=', $current_post_id) // Exclude the current post
         ->where('o.deadline', '>', now()) 
+        ->where('o.deleted', '!=', 1)
         ->where(function ($query) use ($category_ids, $brand_label_ids, $continent_ids, $country_ids, $region_ids, $tag_ids) {
             if ($category_ids !== 'NULL') $query->orWhereIn('cs.category_id', explode(',', $category_ids));
             if ($brand_label_ids !== 'NULL') $query->orWhereIn('bls.brand_label_id', explode(',', $brand_label_ids));
@@ -389,6 +432,7 @@ class OpportunityController extends Controller
     
 
     function edit(Request $request, $id) {
+        // Fetch all cached categories, brand labels, tags, regions, countries, and continents
         $categories = Category::all();
         $brand_label = BrandLabel::all();
         $tags = Tag::all();
@@ -441,17 +485,28 @@ class OpportunityController extends Controller
             ->get();
     
         // Prepare selected data in the required format
-        $selectedData = (Object) [
-            'category' => $selectedCategories->toJson(),
-            'brand_labels' => $selectedBrandLabels->toJson(),
-            'tags' => $selectedTags->toJson(),
-            'region' => $selectedRegions->toJson(),
-            'country' => $selectedCountries->toJson(),
-            'continent' => $selectedContinents->toJson(),
+        // $selectedData = (Object) [
+        //     'category' => $selectedCategories->toJson(),
+        //     'brand_labels' => $selectedBrandLabels->toJson(),
+        //     'tags' => $selectedTags->toJson(),
+        //     'region' => $selectedRegions->toJson(),
+        //     'country' => $selectedCountries->toJson(),
+        //     'continent' => $selectedContinents->toJson(),
+        // ];
+
+        $selectedData = (object) [
+            'category' => $selectedCategories,
+            'brand_labels' => $selectedBrandLabels,
+            'tags' => $selectedTags,
+            'region' => $selectedRegions,
+            'country' => $selectedCountries,
+            'continent' => $selectedContinents,
         ];
+        
+
     
         // Pass data to the view
-        return view("admin.opportunity_page", [
+        return Inertia::render("Admin/CreateOpportunity", [
             // "opp_posts" => Oppty::where('deleted', 0)->orderByDesc('id')->paginate(10),
             "edits" => $opportunity,
             "categories" => $categories,
@@ -462,7 +517,7 @@ class OpportunityController extends Controller
             "continents" => $continents,
             "selectedData" => $selectedData, // Pass the selected data
         ]);
-    }
+    }   
     
 
     function createSlug($title) {
@@ -631,15 +686,29 @@ function store(Request $request)
    
    
    
-    function delete(Request $request, $id){
-        Oppty::where('id', $id)
-        ->where('u_id', $request->user()->id)
-        ->update
-        ([
-            'deleted' => 1
-        ]);
+    // function delete(Request $request, $id){
+    //     Oppty::where('id', $id)
+    //     ->where('u_id', $request->user()->id)
+    //     ->update
+    //     ([
+    //         'deleted' => 1
+    //     ]);
+    //     return response()->json(['status' => 'success', 'message' => 'Deleted']); 
+    // }
 
-        return redirect('admin-post-opportunity')->with('status', 'Post Deleted!');
+    function delete($id){
+        // Check if the user is authenticated
+        if(!Auth::check()){
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized']);
+        }
+        $op = Oppty::find($id);
+        if($op){
+            $op->deleted = 1; 
+            $op->save();
+            return response()->json(['status' => 'success', 'message' => 'Deleted']);
+        }else{
+            return response()->json(['status' => 'error', 'message' => 'Opportunity Not Found']);
+        }
     }
 
     /***
@@ -721,30 +790,34 @@ function store(Request $request)
       */
     public function fetchAllOpportunities()
     {
-        $allOppty = Oppty::orderBy('id', 'desc')
-            ->get()
-            ->map(function($oppty) {
-                $current_date = Carbon::now();
-                $status = ($current_date > $oppty->deadline) ? 'Expired' : 'Active';
+        // $allOppty = Oppty::orderBy('id', 'desc')
+        //     ->get()
+        //     ->map(function($oppty) {
+        //         $current_date = Carbon::now();
+        //         $status = ($current_date > $oppty->deadline) ? 'Expired' : 'Active';
                 
-                return [
-                    'id' => $oppty->id,
-                    'title' => $oppty->title,
-                    'views' => $oppty->views,
-                    'created_at' => $oppty->created_at->format('Y-m-d'),
-                    'deadline' => $oppty->deadline,
-                    'status' => $status,
-                    // Add any other fields you need
-                ];
-            });
+        //         return [
+        //             'id' => $oppty->id,
+        //             'title' => $oppty->title,
+        //             'views' => $oppty->views,
+        //             'created_at' => $oppty->created_at->format('Y-m-d'),
+        //             'deadline' => $oppty->deadline,
+        //             'status' => $status,
+        //             // Add any other fields you need
+        //         ];
+        //     });
     
-        return response()->json(['data' => $allOppty]);
+        // return response()->json(['data' => $allOppty]);
+        $current_date = Carbon::now();
+        $opportunities = Oppty::orderBy('id', 'desc')
+        ->paginate(20);
+        
+        return response()->json($opportunities);
+
     }
 
-
     public function showOpportunities(){
-      
-        return view('admin.allOppty'); 
+       return Inertia::render("Admin/AllOppty");
     }
 
 

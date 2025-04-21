@@ -13,17 +13,18 @@ import React,  { useEffect, useCallback, useMemo, useState, Suspense } from "rea
 import ThreadLoader from '@/Components/TheadLoader';
 import { useRef } from 'react';
 import FilterLabels from '@/Components/FilterSearchLabels';
+import FeedbackPanel from '@/Components/FeedbackInfo';
 
 const DisplayOpportunities = React.lazy(() => import('@/Components/DisplayOpportunities'));
 
 const Opportunities = () => {
-    const paginationContainerRef = useRef(null);
     const [data, setData] = useState([]); // Set Data
     const [pagination, setPagination] = useState([]);
     const [rootURL, setRootURL] = useState("search-opportunities");
     const [search_keyword, setSearchKeyword] = useState('');
     const [isloading, setIsLoading] = useState('');
-
+    const paginationContainerRef = useRef(null);
+    
     const [filter_data, setFilterData] = useState({
         categories: [],
         continents: [],
@@ -79,17 +80,19 @@ const Opportunities = () => {
     },[rootURL, filter_data, search_keyword, setIsLoading, setData, setPagination]); // Ensure dependencies are correct
     
 
-    // Then in your triggerPagination function:
-    function triggerPagination(url) {
+       // Then in your triggerPagination function:
+      function triggerPagination(url) {
         // Store the current position of the pagination container
         const container = paginationContainerRef.current;
         const containerPosition = container ? container.getBoundingClientRect().top + window.scrollY : 0;
         setIsLoading(true);
         axios.get(url)
         .then((response) => {
-            setData(response.data.data);
-            setPagination(response.data.links);
-            // Scroll to the container's previous position
+            const  {data, links, current_page, total, per_page, last_page} = response.data;
+            setData(data); 
+            setPagination(links);
+            setCurrentPage(current_page); 
+            setPerPage(per_page);
             setTimeout(() => {
                 window.scrollTo({
                     top: containerPosition,
@@ -104,6 +107,7 @@ const Opportunities = () => {
             setIsLoading(false);
         });
     }
+    
 
     return (
         <GuestLayout>
@@ -122,8 +126,8 @@ const Opportunities = () => {
             />
         <Container fluid={true} className="container-sm">
             <Row>
-                <Col sm={8} xs={12}>
-                    <div className='mt-3'>
+                <Col sm={3} xs={12}>
+                <div className='mt-3'>
                         <OppSearchFilter
                         isloading={isloading}
                         filter_data={filter_data}
@@ -138,22 +142,22 @@ const Opportunities = () => {
                         />
                     </div>
 
-                    {/* <Container fluid={true} className='border rounded'>
-                        <Row>
-                            <Col sm={6}>
-                                <div className='poppins-semibold fs-9 py-3'>
-                                    <span>Explore</span>
-                                </div>
-                            </Col>
-                            <Col sm={6}>
-                                <div className='poppins-semibold fs-9 py-3'>
-                                    <span>For You</span>
-                                </div>
-                            </Col>
-                        </Row>
-                    </Container> */}
+                    <div className='px-3 my-3 py-3 fs-8 border rounded d-none d-sm-block d-md-block d-lg-block'>
+                        <ul className='m-0 p-0'>
+                            <li className='d-inline-block me-3'><Link href="/advertise">Adevertise</Link></li>
+                            <li className='d-inline-block me-3'><Link href="/help">Help</Link></li>
+                            <li className='d-inline-block'><Link href="/terms">Terms</Link></li>
+                        </ul>
+                    </div>
+                </Col>
+                <Col sm={6} xs={12}>
+                    <div className='my-3'>
+                    <FeedbackPanel />
+                    </div>
 
+                    <div className='mb-3'>
                     <FilterLabels filter_data={filter_data} setFilterData={setFilterData}/>
+                    </div>
 
                     <div className='my-3'>
                         <h3 className="m-0 p-0 dm-serif-display-regular mb-1 mt-3" style={{ fontSize: '1.5em' }}>
@@ -165,32 +169,36 @@ const Opportunities = () => {
                         <Suspense fallback={<ThreadLoader />}>
                             <DisplayOpportunities data={data} />
                             <div className="my-3">
-                            <DefaultPagination pagination={pagination} triggerPagination={triggerPagination}/>
+                            {(pagination.length > 0) &&
+                            <DefaultPagination 
+                                pagination={pagination} 
+                                triggerPagination={triggerPagination}
+                            />
+                            }
                             </div>
                         </Suspense>
-
                     </div>
                 </Col>
-                <Col sm={4} xs={12} className="col-sm-4 col-12">
+                <Col sm={3} xs={12}>
                 <a 
                     href="https://t.me/+66AGIA3g2dwzMjc0" 
                     target="_blank"
                     style={{ color: "#249fda" }} 
                     className="text-decoration-none text-dark"
                 >
-                <div className="my-3 d-flex align-items-center border rounded content-meta-data py-3">
+                <div className="my-3 d-flex align-items-center border rounded py-3">
                     <div className="px-2">
                         <img 
                             src='/img/defaults/telegram_icon.png'
-                            width="100"
+                            width="80"
                             className="img-fluid rounded" 
                             alt="Telegram banner"
                         />
                     </div>
-                    <div>
-                        <span className="fs-9">
-                            Join our telegram for daily opportunities straight to your inbox
-                        </span>
+                    <div className='pe-2'>
+                        <p className="fs-8 m-0 p-0">
+                        Join our telegram for daily opportunities & news updates
+                        </p>
                     </div>
                 </div>
                 </a>

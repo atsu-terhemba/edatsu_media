@@ -31,6 +31,8 @@
         "react-bootstrap": "^2.10.9",
         "react-helmet": "^6.1.0",
         "react-select": "^5.10.0",
+        "react-slick": "^0.30.3",
+        "slick-carousel": "^1.8.1",
         "sweetalert2": "^11.17.2",
         "ziggy-js": "^2.5.2"
     }

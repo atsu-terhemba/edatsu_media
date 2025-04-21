@@ -6,11 +6,10 @@ export default function SubFooter(){
 
   const user = usePage().props.auth.user;
 
-  useEffect(() => {
-    console.log(user);
-  }, [user]);
-
-
+  // useEffect(() => {
+  //   console.log(user);
+  // }, [user]);
+  
     return (
         <Fragment>
 <Container fluid={true}>
@@ -24,7 +23,7 @@ export default function SubFooter(){
                   <h4 className="text-m-0 p-0 text-light poppins-semibold" style={{ fontSize: '2.5em' }}>
                     Tailored for Entrepreneurs
                   </h4>
-                  <p className="m-0 p-0 text-light">
+                  <p className="m-0 p-0 text-light poppins-light">
                     Unlock exclusive content on technology, finance, and exciting opportunities. Don’t miss out—subscribe now!
                   </p>
                   {/* <Link

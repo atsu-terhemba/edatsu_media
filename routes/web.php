@@ -36,6 +36,7 @@ use Illuminate\Support\Facades\File;
 use App\Http\Controllers\ToolShedController;
 use App\Http\Controllers\RatingController;
 use App\Http\Middleware\Role; 
+use App\Http\Controllers\NewsFeedController;
 
 Route::get('/clean', function() {
     Artisan::call('cache:clear');
@@ -87,6 +88,8 @@ Route::middleware(['auth'])->group(function(){
     Route::post('/ratings', [RatingController::class, 'store'])->name('rating.store');
 });
 
+Route::get('news', [NewsFeedController::class, 'index'])->name('news');
+Route::get('news/{id}', [NewsFeedController::class, 'readNews'])->name('read.news');
 Route::get('feed', [RssFeedController::class, 'index']);
 Route::get('/opp-feeds', [App::class, 'getOppFeed']);
 Route::get('/event-feeds', [App::class, 'getEventFeed']);
@@ -179,8 +182,8 @@ Route::middleware(['auth', Role::class . ':admin'])->group(function(){
     Route::get('/all-products', [ProductController::class, 'showProducts'])->name('admin.all_products');
     Route::post('/admin-store-software-product', [ProductController::class, "store"]);
     // Route::get('/post-types', [Opportunity::class, 'CreatePostTypes'])->name('admin.post-types');
-    Route::get('/all-opp-post', [Opportunity::class, 'showOpportunities'])->name('admin.all_opp_post');
-    Route::get('/fetch-all-opp', [Opportunity::class, 'fetchAllOpportunities']);
+    Route::get('/all-opp-post', [OpportunityController::class, 'showOpportunities'])->name('admin.all_opp_post');
+    Route::get('/fetch-all-opp', [OpportunityController::class, 'fetchAllOpportunities']);
     // Route::get('/post-types', [Opportunity::class, 'CreatePostTypes'])->name('admin.post-types');
     // Route::get('/post-types', [Opportunity::class, 'CreatePostTypes'])->name('admin.post-types');
     //handle channels
@@ -193,6 +196,9 @@ Route::middleware(['auth', Role::class . ':admin'])->group(function(){
     Route::get('/admin-post-feeds-category', [FeedsChannel::class, "showFeedsCategory"])->name('admin.feeds.category');
     /**modify posted opportunities */
     Route::get('/admin-edit-opportunity/{id}', [OpportunityController::class, "edit"]);
+    Route::get('/admin-draft-opportunity/{id}', [OpportunityController::class, "draft"]);
+    Route::get('/admin-publish-opportunity/{id}', [OpportunityController::class, "publish"]);
+    Route::get('/admin-archive-opportunity/{id}', [OpportunityController::class, "archive"]);
     Route::post('/admin-store-opportunity', [OpportunityController::class, "store"]);
     Route::get('/admin-delete-opportunity/{id}', [OpportunityController::class, "delete"])->name('admin.delete.opp');
     //handle business directory

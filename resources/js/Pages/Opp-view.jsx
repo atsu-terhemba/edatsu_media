@@ -8,6 +8,8 @@ import Container from 'react-bootstrap/Container';
 import { getDaysLeft, toggleShare, bookmark, pageLink, renderLabels, dateStringFormat} from "@/utils/Index";
 import StarRating from "@/Components/Rating";
 import { router } from '@inertiajs/react'
+import RecommendedContent from "@/Components/RecommendedContent";
+import CommentComponent from "@/Components/CommentComponent";
 
 const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
 
@@ -39,7 +41,6 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
     twitterImage={`/storage/public/uploads/opp/${opp_posts.cover_img}`}
 />
 
-
 <Container fluid={true} className="container-fluid container-sm">
         <Row>
             <Col sm={8}>
@@ -54,27 +55,34 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                     ></ins>
                 </div>
 
-                <div className="row mt-4">
+                {/* <div className="row mt-3">
                     <div className="col-sm-3">
                         <div className="">
-                            <button className="text-primary text-decoration-none btn w-100 poppins-semibold border rounded fs-9" onClick={() => window.history.back()}>
+                            <button className="px-0 text-dark btn text-decoration-none w-100 border rounded fs-9" onClick={() => window.history.back()}>
                                 <span className="material-symbols-outlined pe-3 align-middle">arrow_back</span>
                                 Go Back
                             </button>
                         </div>
                     </div>
-                </div>
+                </div> */}
 
                 <div className="py-3 blog-detail rounded mb-3">
-                    <h1 className="m-0 mb-3 fw-bold">{opp_posts.title}</h1>
+                    <h1 className="p-0 m-0 mb-3 poppins-semibold">{opp_posts.title}</h1>
                     <p className="m-0 mb-2 text-sm fs-9 text-secondary">
                         Posted on: {new Date(opp_posts.created_at).toLocaleDateString()}
                     </p>
                     {opp_posts.cover_img && (
-                    <img
-                        src={`/storage/public/uploads/opp/${opp_posts.cover_img}`}
-                        className="img-fluid rounded main-blog-image"
-                        alt="Blog Cover"
+                   <img
+                    src={`/storage/public/uploads/opp/${opp_posts.cover_img}`}
+                    className="img-fluid rounded main-blog-image"
+                    alt="Blog Cover"
+                    onError={(e) => {
+                        if (!e.target.getAttribute('data-error-handled')) {
+                        e.target.setAttribute('data-error-handled', 'true');
+                        e.target.onerror = null;
+                        e.target.src = "/img/logo/main_2.png";
+                        }
+                    }}
                     />
                     )}
                 </div>
@@ -97,17 +105,6 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                         opp_posts[key] && renderLabels(opp_posts[key], key.charAt(0).toUpperCase() + key.slice(1))
                     )}
                 </ul>
-
-                <div className="row mt-4">
-                    <div className="col-sm-3">
-                        <div className="my-3">
-                            <button className="text-primary text-decoration-none btn w-100 poppins-semibold border rounded fs-9" onClick={() => window.history.back()}>
-                                <span className="material-symbols-outlined pe-3 align-middle">arrow_back</span>
-                                Go Back
-                            </button>
-                        </div>
-                    </div>
-                </div>
 
                 <div className="row mt-4">
                     <div className="col-sm-3">
@@ -152,7 +149,7 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                         </a>
                         </div>
                     )}
-                     {opp_posts.direct_link && (
+                    {opp_posts.direct_link && (
                         <div className="col-sm-3">
                         <a className="text-decoration-none btn w-100  border rounded fs-9" href={opp_posts.direct_link} target="_blank" rel="noopener noreferrer">
                         Apply
@@ -160,20 +157,19 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                         </div>
                     )}
                 </div>
-
-                <div className="mt-3">
+                {/* <div className="mt-3">
                 <StarRating  postID={opp_posts?.id}/>
-                </div>
+                </div> */}
 
-                <div className="comments border rounded px-3 py-3 my-3">
-                    <div className="row d-flex align-items-center">
-                    <div className="col-sm-4">
-                        <div className="fs-9">Comments <strong>{total_comments}</strong></div>
-                    </div>
-                    <div className="col-sm-4 text-end">
-                        <button className="btn btn-lg text-decoration-none px-4 py-2 fs-9">Add Comment</button>
-                    </div>
-                    </div>
+                {/* <div>
+                <CommentComponent 
+                postId={opp_posts?.id}
+                isAuthenticated={(props?.auth?.user)? true : false}
+                totalComments={total_comments}/>
+                </div> */}
+
+                <div>
+                <RecommendedContent similarPosts={similarPosts}/>
                 </div>
             </Col>
             <Col sm={4}>
@@ -183,19 +179,19 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                     style={{ color: "#249fda" }} 
                     className="text-decoration-none text-dark"
                 >
-                <div className="my-3 d-flex align-items-center border rounded content-meta-data py-3">
+                                <div className="my-3 d-flex align-items-center border rounded py-3">
                     <div className="px-2">
                         <img 
                             src='/img/defaults/telegram_icon.png'
-                            width="100"
+                            width="50"
                             className="img-fluid rounded" 
                             alt="Telegram banner"
                         />
                     </div>
-                    <div>
-                        <span className="fs-9">
-                            Join our telegram for daily opportunities straight to your inbox
-                        </span>
+                    <div className='pe-2'>
+                        <p className="fs-8 m-0 p-0">
+                            Join our telegram for daily opportunities & news updates
+                        </p>
                     </div>
                 </div>
                 </a>

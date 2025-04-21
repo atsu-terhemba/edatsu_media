@@ -3,6 +3,7 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import {Link, useForm } from '@inertiajs/react';
+import SocialLogin from '@/Components/SocialLogin';
 
 export default function RegisterForm({role, path}) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -15,7 +16,6 @@ export default function RegisterForm({role, path}) {
 
     const submit = (e) => {
         e.preventDefault();
-
         post(route(path), {
             onFinish: () => reset('password', 'password_confirmation'),
         });
@@ -117,6 +117,10 @@ export default function RegisterForm({role, path}) {
                     </button >
                 </div>
             </form>
+
+            <div className='mb-3'>
+            <SocialLogin/>
+            </div>
         </>
     );
 }

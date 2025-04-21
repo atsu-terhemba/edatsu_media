@@ -9,6 +9,7 @@ export default function AdminSideNav(){
         generalOptions: false,
         opportunityPosts: false,
         toolshedPosts: false,
+        moneyGuidePosts: false,
       });
     
       const toggleMenu = (menu) => {
@@ -94,7 +95,7 @@ export default function AdminSideNav(){
       {openMenus.opportunityPosts && (
         <ListGroup>
           <ListGroup.Item as={Link} href={route('admin.opp')} className='text-decoration-none'>
-            Post Opportunities
+            Create Post
           </ListGroup.Item>
           <ListGroup.Item as={Link} href={route('admin.all_opp_post')} className='text-decoration-none'>
             All Posts
@@ -104,6 +105,37 @@ export default function AdminSideNav(){
           </ListGroup.Item>
         </ListGroup>
       )}
+
+       {/*MoneyGuide Posts */}
+       <ListGroup.Item
+        action
+        onClick={() => toggleMenu('moneyGuidePosts')}
+        className='d-flex justify-content-between align-items-center'
+      >
+        <div>
+          <span className="material-symbols-outlined">post_add</span>
+        </div>
+        <div>
+          Money Guide <i className={`fas fa-caret-${openMenus.moneyGuidePosts ? 'down' : 'right'}`}></i>
+        </div>
+      </ListGroup.Item>
+      {openMenus.moneyGuidePosts && (
+        <ListGroup>
+          <ListGroup.Item as={Link} href={route('admin.opp')} className='text-decoration-none'>
+            Create Post
+          </ListGroup.Item>
+          <ListGroup.Item as={Link} href={route('admin.all_opp_post')} className='text-decoration-none'>
+            All Posts
+          </ListGroup.Item>
+          <ListGroup.Item as={Link} href={route('admin.categories')} className='text-decoration-none'>
+            Create Categories
+          </ListGroup.Item>
+        </ListGroup>
+      )}
+
+
+
+
 
       {/* Toolshed Posts */}
       <ListGroup.Item
@@ -121,7 +153,7 @@ export default function AdminSideNav(){
       {openMenus.toolshedPosts && (
         <ListGroup>
           <ListGroup.Item as={Link} href={route('admin.products')} className='text-decoration-none'>
-            Post Product
+            Create Product
           </ListGroup.Item>
           <ListGroup.Item as={Link} href={route('admin.all_opp_post')} className='text-decoration-none'>
             All Products

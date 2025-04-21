@@ -8,6 +8,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { Fragment } from 'react';
 import Metadata from '@/Components/Metadata';
 import { Container, Row, Col, Button } from 'react-bootstrap';
+import SocialLogin from '@/Components/SocialLogin';
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -115,6 +116,10 @@ export default function Login({ status, canResetPassword }) {
                     </button >
                 </div>
             </form>
+
+            <div className='mb-3'>
+            <SocialLogin/>
+            </div>
                     </Col>
                     <Col sm={4}>
                     {/**left side nav */}

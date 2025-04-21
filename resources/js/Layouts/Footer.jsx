@@ -40,31 +40,31 @@ function handleCopyRSS(){
         </Col>
         {/* Quick Links */}
         <Col sm={3} className="d-none d-sm-block">
-        <h4 className="m-0 mb-2 p-0 poppins-semibold">Quick Links</h4>
-        <div className="fs-8">
+        <h4 className="m-0 mb-2 p-0 poppins-bold">Quick Links</h4>
+        <div className="fs-9">
             <ul className="list-unstyled">
             <li>
-                <Link className="text-light text-decoration-none mb-1 d-inline-block" href="advertise">
+                <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="advertise">
                 Advertise
                 </Link>
             </li>
             <li>
-                <Link className="text-light text-decoration-none mb-1 d-inline-block" href="subscribe">
+                <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="subscribe">
                 Subscribe
                 </Link>
             </li>
             <li>
-                <Link className="text-light text-decoration-none mb-1 d-inline-block" href="/">
+                <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="/">
                 Opportunities
                 </Link>
             </li>
             <li>
-                <Link className="text-light text-decoration-none mb-1 d-inline-block" href="toolshed">
+                <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="toolshed">
                 Toolshed
                 </Link>
             </li>
             <li>
-                <Link className="text-light text-decoration-none mb-1 d-inline-block" href="sponsorship">
+                <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="sponsorship">
                 Sponsorship
                 </Link>
             </li>
@@ -73,21 +73,21 @@ function handleCopyRSS(){
         </Col>
     {/* Site Info */}
     <Col sm={3} className="d-none d-sm-block">
-    <h4 className="m-0 mb-2 p-0 poppins-semibold">Site Info</h4>
-    <div className="fs-8">
+    <h4 className="m-0 mb-2 p-0 poppins-bold">Site Info</h4>
+    <div className="fs-9">
         <ul className="list-unstyled">
         <li>
-            <Link className="text-light text-decoration-none mb-1 d-inline-block" href="about-us">
+            <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="about-us">
             About
             </Link>
         </li>
         <li>
-            <Link className="text-light text-decoration-none mb-1 d-inline-block" href="terms">
+            <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="terms">
             Terms Of Use
             </Link>
         </li>
         <li>
-            <a target="_blank" className="text-light text-decoration-none mb-1 d-inline-block" href="sitemap.xml">
+            <a target="_blank" className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="sitemap.xml">
             Sitemap
             </a>
         </li>
@@ -99,7 +99,7 @@ function handleCopyRSS(){
         <li>
             <Button
             variant="dark"
-            className="fs-8 rounded mt-2"
+            className="fs-9 poppins-light rounded mt-2 border-0"
             id="copy-rss-btn"
             style={{ border: '1px solid #495057' }}
             onClick={handleCopyRSS}
@@ -117,16 +117,16 @@ function handleCopyRSS(){
 
           {/* Support */}
           <Col sm={3} className="d-none d-sm-block">
-            <h4 className="m-0 mb-2 p-0 poppins-semibold">Support</h4>
-            <div className="fs-8">
+            <h4 className="m-0 mb-2 p-0 poppins-bold">Support</h4>
+            <div className="fs-9">
               <ul className="list-unstyled">
                 <li>
-                  <Link className="text-light text-decoration-none mb-1 d-inline-block" href="help">
+                  <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="help">
                     Help Center
                   </Link>
                 </li>
                 <li>
-                  <a className="text-light text-decoration-none d-inline-block mb-1" href="mailto:info@edatsu.com">
+                  <a className="text-light text-decoration-none d-inline-block mb-1 poppins-light" href="mailto:info@edatsu.com">
                     info@edatsu.com
                   </a>
                 </li>

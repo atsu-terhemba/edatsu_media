@@ -1,6 +1,6 @@
 import Swal from 'sweetalert2';
 
-const Toast = Swal.mixin({
+export const Toast = Swal.mixin({
   toast: true,
   position: "top-end",
   showConfirmButton: false,
@@ -183,4 +183,13 @@ export function dateStringFormat(dateString) {
   const year = date.getFullYear();
 
   return `${day}, ${month} ${year}`;
+}
+
+
+export function ActiveLink(path = '') {
+  const currentUrl = new URL(window.location.href);
+  const currentPath = currentUrl.pathname;
+  if (path == currentPath) {
+    return "active-link";
+  }
 }

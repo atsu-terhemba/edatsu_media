@@ -37,7 +37,7 @@ const FeedbackComponent = ({ onSubmitFeedback, postID}) => {
 
   const StarRating = () => {
     return (
-      <div className="d-flex justify-content-center mb-3">
+      <div className="d-flex justify-content-center">
         {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}
@@ -58,7 +58,7 @@ const FeedbackComponent = ({ onSubmitFeedback, postID}) => {
       <Card className="text-center">
         <Card.Body className="py-3">
           <Card.Text className="text-secondary">
-            <a href="/login" className="poppins-semibold">Login</a> to rate this content
+            <Link href="/login" className="text-primary">Login</Link> to rate this content
           </Card.Text>
         </Card.Body>
       </Card>
@@ -67,26 +67,36 @@ const FeedbackComponent = ({ onSubmitFeedback, postID}) => {
 
   return (
     <Card>
-      <Card.Body className="p-4">
+      <Card.Body className="p-3">
         <div className="text-center">
           <StarRating />
           
           {rating > 0 && showFeedbackForm && (
             <Form onSubmit={handleSubmit} className="mt-4">
+              <p className='fs-8 m-0 p-0 my-2'>
+                We’d love to hear your thoughts on this post! 📢 Let us know what you think—what you liked, what could be better, or any insights you’d like to share. Your feedback helps us improve and create better content for you.</p>
               <Form.Group className="mb-3">
                 <Form.Control
                   as="textarea"
-                  placeholder="Leave a comment here"
+                  className='border-0 outline-none shadow-none'
+                  placeholder="Leave a comment..."
+                  rows={3}
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   style={{height: '100px'}}
                 />
               </Form.Group>
-              
+              <Button 
+                type="submit" 
+                variant="danger" 
+                className="fs-9 border-0 me-1 px-3"
+              >
+              Close
+              </Button>
               <Button 
                 type="submit" 
                 variant="dark" 
-                className="fs-9 poppins-semibold"
+                className="fs-9 border-0 px-3"
               >
                 Submit Feedback
               </Button>

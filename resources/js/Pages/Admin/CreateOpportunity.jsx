@@ -7,10 +7,36 @@ import Swal from 'sweetalert2';
 import Select from 'react-select'
 import axios from 'axios';
 import { swalConfig } from '@/utils/Index';
+import { Toast } from '@/utils/Index';
 
 
 
-export default function CreateOpportunity({ edits, categories, brand_label, tags, regions, countries, continents }) {
+export default function CreateOpportunity({ edits, categories, brand_label, countries, continents, selectedData}) {
+   
+    const [section, setSection] = useState('details'); 
+    const [categoryOption, setCategoryOptions] = useState([]);
+    const [brandLabelOption, setBrandLabelOptions] = useState([]);
+    const [countryOption, setCountryOptions] = useState([]);
+    const [continentOption, setContinentOptions] = useState([]);
+
+    //..................................................
+    // const [categoryEditOption, setEditCategoryOptions] = useState([]);
+    // const [brandLabelEditOption, setEditBrandLabelOptions] = useState([]);
+    // const [countryEditOption, setEditCountryOptions] = useState([]);
+    // const [continentEditOption, setEditContinentOptions] = useState([]);
+
+    useEffect(()=>{
+        setStateFromData(categories, setCategoryOptions);
+        setStateFromData(brand_label, setBrandLabelOptions);
+        setStateFromData(countries, setCountryOptions);
+        setStateFromData(continents, setContinentOptions);
+        //..................................................
+        setEditFromData(selectedData?.category, 'categories');
+        setEditFromData(selectedData?.brand_labels, 'brand_labels');
+        setEditFromData(selectedData?.continent, 'continents');
+        setEditFromData(selectedData?.country, 'countries');
+    }, []);
+
     const [formData, setFormData] = useState({
         cover_img: null,
         title: edits?.title || '',
@@ -21,31 +47,12 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
         meta_keywords: edits?.meta_keywords || '',
         meta_description: edits?.meta_description || '',
         post_id: edits?.id || '',
-        categories: edits?.category || [],
-        brand_labels: edits?.brand_labels || [],
-        tags: edits?.tags || [],
-        regions: edits?.regions || [],
-        countries: edits?.countries || [],
-        continents: edits?.continents || [],
+        categories: [],
+        brand_labels: [],
+        countries: [],
+        continents: [],
         signature: '',
     });
-
-   const [section, setSection] = useState('details'); 
-   const [categoryOption, setCategoryOptions] = useState([]);
-   const [brandLabelOption, setBrandLabelOptions] = useState([]);
-   const [tagOption, setTagOptions] = useState([]);
-   const [regionOption, setRegionOptions] = useState([]);
-   const [countryOption, setCountryOptions] = useState([]);
-   const [continentOption, setContinentOptions] = useState([]);
-
-    useEffect(()=>{
-        setStateFromData(categories, setCategoryOptions);
-        setStateFromData(brand_label, setBrandLabelOptions);
-        setStateFromData(tags, setTagOptions);
-        setStateFromData(regions, setRegionOptions);
-        setStateFromData(countries, setCountryOptions);
-        setStateFromData(continents, setContinentOptions);
-    }, []);
 
     const handleChange = (e) => {
         const { name, value, files } = e.target;
@@ -65,8 +72,19 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
         }
     }
 
+    function setEditFromData(data, fieldName){
+        if (data) {
+            const options = data.map((item) => ({
+                value: item.id,
+                label: item.name,
+            }));
+           // let updatedData = { ...formData, [fieldName]: options };
+            setFormData((prevData)=>{
+                return { ...prevData, [fieldName]: options };
+            });
+        }
+    }
 
-    /**update selection**/
     function updateSelection( selectedOption, fieldName){
         if (selectedOption) {
             let updatedData = { ...formData, [fieldName]: selectedOption };
@@ -88,7 +106,7 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
         
         // Check file size
         if (file.size > maxSize) {
-            Swal.fire({
+            Toast.fire({
                 icon: 'warning',
                 title: 'File size exceeds 1MB limit',
                 swalConfig
@@ -99,7 +117,7 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
         
         // Check file type
         if (!allowedFileTypes.includes(file.type)) {
-            Swal.fire({
+            Toast.fire({
                 icon: 'warning',
                 title: 'Invalid file type',
                 swalConfig
@@ -107,8 +125,6 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
             e.target.value = '';
             return;
         }
-
-        console.log(file);
 
         setFormData({...formData, cover_img: file});
     };
@@ -127,13 +143,13 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
     
             // Handle success response
             if (response.data.success) {
-                Swal.fire({
+                Toast.fire({
                     icon: 'success',
                     title: response.data.message,
                     swalConfig, 
                 });
             } else {
-                Swal.fire({
+                Toast.fire({
                     icon: 'warning',
                     title: response.data.message,
                     swalConfig
@@ -141,7 +157,7 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
             }
         } catch (error) {
             console.error(error);
-            Swal.fire({
+            Toast.fire({
                 icon: 'error',
                 title: 'An error occurred',
                 swalConfig
@@ -151,7 +167,7 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
 
     return (
         <>
-            <Head title="Publish Opportunities" />
+            <Head title="Opportunities" />
             <AuthenticatedLayout>
                 <Container>
                     <Row>
@@ -252,7 +268,7 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
                                             <span className="d-block text-secondary mb-2 fs-9">Add categories</span>
                                             <Select
                                                 isMulti
-                                                defaultValue={formData?.category}
+                                                value={formData?.categories}
                                                 name="categories"
                                                 options={categoryOption}
                                                 className="fs-9"
@@ -267,7 +283,7 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
                                             <span className="d-block text-secondary mb-2 fs-9">Add Brand Labels</span>
                                             <Select
                                                 isMulti
-                                                defaultValue={formData?.brand_label}
+                                                value={formData?.brand_labels}
                                                 name="brand_labels"
                                                 options={brandLabelOption}
                                                 className="fs-9"
@@ -278,41 +294,11 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
                                     </Col>
                                     <Col sm={12}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Tags</Form.Label>
-                                            <span className="d-block text-secondary mb-2 fs-9">Add Tags</span>
-                                            <Select
-                                                isMulti
-                                                defaultValue={formData?.tags}
-                                                name="tags"
-                                                options={tagOption}
-                                                className="fs-9"
-                                                classNamePrefix="select"
-                                                onChange={(e) => updateSelection(e, 'tags')}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col sm={12}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>Region</Form.Label>
-                                            <span className="d-block text-secondary mb-2 fs-9">Select a region</span>
-                                            <Select
-                                                isMulti
-                                                defaultValue={formData?.regions}
-                                                name="regions"
-                                                options={regionOption}
-                                                className="fs-9"
-                                                classNamePrefix="select"
-                                                onChange={(e) => updateSelection(e, 'regions')}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col sm={12}>
-                                        <Form.Group className="mb-3">
                                             <Form.Label>Country</Form.Label>
                                             <span className="d-block text-secondary mb-2 fs-9">Select a country</span>
                                             <Select
                                                 isMulti
-                                                defaultValue={formData?.countries}
+                                                value={formData?.countries} 
                                                 name="countries "
                                                 options={countryOption}
                                                 className="fs-9"
@@ -327,7 +313,7 @@ export default function CreateOpportunity({ edits, categories, brand_label, tags
                                             <span className="d-block text-secondary mb-2 fs-9">Select a continent</span>
                                             <Select
                                                 isMulti
-                                                defaultValue={formData?.continents}
+                                                value={formData?.continents}
                                                 name="continents"
                                                 options={continentOption}
                                                 className="fs-9"

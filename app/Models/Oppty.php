@@ -26,6 +26,7 @@ class Oppty extends Model
         'deadline',
         'source_url',
         'direct_link',
+        'status',
     ];
 
       /**

@@ -1,6 +1,9 @@
 import { Button } from "react-bootstrap";
 
-const DefaultPagination = ({ pagination, triggerPagination }) => {
+
+const DefaultPagination = ({pagination, triggerPagination}) => {
+
+
   function modifyPaginationLabel(label) {
     return label
       .replace(/&laquo;\s*Previous/g, '«')

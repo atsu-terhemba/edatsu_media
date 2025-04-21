@@ -16,10 +16,24 @@ class CommentController extends Controller
         public function store(Request $request)
     {
 
-        // dd($request->input());
+        // dd($request->all());
+        // Check if the user is authenticated
+        if (!Auth::check()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'You must be logged in to post a comment.'
+            ], 401);
+        }
+        // Check if the user has permission to comment
+        // if (!Auth::user()->can('comment')) {
+        //     return response()->json([
+        //         'status' => 'error',
+        //         'message' => 'You do not have permission to comment.'
+        //     ], 403);
+        // }
+
         // Validation rules
         $validator = Validator::make($request->all(), [
-            'guest' => 'nullable|string|max:255',
             'comment' => 'required|string|min:5|max:1000',
         ], [
             'comment.required' => 'Comment field is required.',
@@ -42,7 +56,7 @@ class CommentController extends Controller
                 'guest_name' => auth()->guest() ? $request->guest_name : null,
                 'commentable_id' => $request->input('commentable_id'),
                 'commentable_type' => 'App\\Models\\Oppty',
-                'content' => clean($request->input('comment'))
+                'comment' => $request->input('comment')
             ]);
 
             // Return success response
@@ -53,9 +67,10 @@ class CommentController extends Controller
 
         } catch (\Exception $e) {
             // Return server error in case of failure
+            report($e); // Log the error for debugging
             return response()->json([
                 'status' => 'error',
-                'message' => 'There was an error posting the comment.'
+                'message' => 'Oops! something went wrong.'
             ], 500);
         }
     }
@@ -176,17 +191,17 @@ class CommentController extends Controller
 public function getComments(Request $request, $postId)
 {
     $perPage = 5;
-    
     // Get paginated comments
     $comments = DB::table('comments')
         ->leftJoin('users', 'users.id', '=', 'comments.user_id')
         ->select([
             'comments.*',
-            DB::raw('COALESCE(users.name, comments.guest_name) as commenter_name')
+            DB::raw('COALESCE(users.name) as commenter_name')
         ])
         ->where([
             ['comments.commentable_id', '=', $postId],
-            ['comments.commentable_type', '=', 'App\\Models\\Oppty']
+            ['comments.commentable_type', '=', 'App\\Models\\Oppty'],
+            ['comments.deleted_at', '=', null]
         ])
         ->orderByDesc('comments.created_at')
         ->paginate($perPage);

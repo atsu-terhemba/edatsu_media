@@ -1,8 +1,6 @@
 import React, { useEffect, useCallback, useMemo, useState, Suspense } from "react";
 import { Image } from "react-bootstrap";
-import axios from "axios";
 import Swal from 'sweetalert2';
-import { Link } from "@inertiajs/react";
 import { getDaysLeft,  toggleShare, createSharingLinks, bookmark, pageLink } from "@/utils/Index";
 import { router } from '@inertiajs/react'
 
@@ -13,7 +11,6 @@ const DisplayOpportunities = ({ data }) => {
   const fallbackImageUrl = "img/logo/main_2.png"; 
 
   const handleImageError = (e) => {
-    // console.log(e);
     e.target.src = fallbackImageUrl;
   };
 
@@ -171,7 +168,7 @@ const DisplayOpportunities = ({ data }) => {
                       })
                     }}
                   className="text-decoration-none text-dark" href={pageLink(o.slug, o.id)}>
-                    <h2 className="inline-block page-title m-0 p-0 poppins-semibold mb-2">
+                    <h2 className="inline-block page-title m-0 p-0 poppins-semibold mb-2 fs-9">
                       {escapeHTML(o.title)}
                     </h2>
                   </a>
@@ -183,18 +180,30 @@ const DisplayOpportunities = ({ data }) => {
                   )}
                   
                   <div className="overflow-hidden truncate d-none d-sm-block">
-                    <p className="p-0 m-0 text-secondary d-block fs-9">
+                    <p className="p-0 m-0 text-secondary d-block fs-8">
                       {truncateText(o.description, 150)}
                     </p>
                   </div>
                   
                   <div className="d-flex justify-content-end align-items-center">
                     <div className="px-3">
-                      <p className="m-0 fs-9 poppins-semibold p-0">
+                      <p className="m-0 fs-8 poppins-semibold p-0">
                         {getDaysLeft(o.deadline)}
                       </p>
                     </div>
                     
+                    {/* <div className="content-btn-holder">
+                      <div className="position-relative">
+                        <div className="position-absolute share-panel border rounded fs-8 d-none"></div>
+                        <Link href="" className="btn text-decoration-none">
+                          <span className="fs-8 text-secondary me-1">3</span>
+                          <span className="material-symbols-outlined align-middle">
+                          mode_comment
+                          </span>
+                        </Link>
+                      </div>
+                    </div> */}
+
                     <div className="content-btn-holder">
                       <div className="position-relative">
                         <div className="position-absolute share-panel border rounded fs-8 d-none"></div>
