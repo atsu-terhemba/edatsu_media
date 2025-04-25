@@ -18,14 +18,16 @@ const SocialLogin = ({ className='' }) => {
           textColor: '#757575',
           id: 'my-signin2',
           url: '/auth/redirect/google'
-        }, {
-          name: 'Linkedin',
-          icon: Images.linkedin_logo,
-          backgroundColor: '#fff',
-          textColor: '#737373',
-          id: 'linkedin-signin',
-          url: '/auth/redirect/linkedin-openid'
-        }].map((provider) => (
+        }, 
+        // {
+        //   name: 'Linkedin',
+        //   icon: Images.linkedin_logo,
+        //   backgroundColor: '#fff',
+        //   textColor: '#737373',
+        //   id: 'linkedin-signin',
+        //   url: '/auth/redirect/linkedin-openid'
+        // }
+      ].map((provider) => (
           <a
             href={provider.url}
             key={provider.name}

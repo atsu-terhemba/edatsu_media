@@ -117,9 +117,10 @@ export default function Login({ status, canResetPassword }) {
                 </div>
             </form>
 
-            <div className='mb-3'>
+            {/* <div className='mb-3'>
             <SocialLogin/>
-            </div>
+            </div> */}
+            
                     </Col>
                     <Col sm={4}>
                     {/**left side nav */}

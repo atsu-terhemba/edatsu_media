@@ -29,11 +29,19 @@
     <meta name="msapplication-TileImage" content="img/icons/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
     <script type="text/javascript">
-        (function(c,l,a,r,i,t,y){
-            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-        })(window, document, "clarity", "script", "lpdlomf74u");
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "lpdlomf74u");
+    </script>
+    <!--Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1Z7BZW1CTX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-1Z7BZW1CTX');
     </script>
     <script>
     //--update page manifest-->
@@ -55,14 +63,6 @@
 </head>
     <body class="font-sans antialiased">
         @inertia
-        <script async src="https://static.sppopups.com/assets/loader.js" data-chats-widget-id="44b6013b-cef7-48ae-9b44-4d2fce1ee18d"></script>
-        <script type="text/javascript">
-        spPopupsScript = document.createElement('script')
-        spPopupsScript.src = 'https://static.sppopups.com/assets/loader.js';
-        spPopupsScript.async = true;
-        spPopupsScript.setAttribute("data-chats-widget-id",'44b6013b-cef7-48ae-9b44-4d2fce1ee18d');
-        document.head.appendChild(spPopupsScript);
-        </script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     </body>
 </html>

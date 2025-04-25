@@ -118,9 +118,9 @@ export default function RegisterForm({role, path}) {
                 </div>
             </form>
 
-            <div className='mb-3'>
+            {/* <div className='mb-3'>
             <SocialLogin/>
-            </div>
+            </div> */}
         </>
     );
 }

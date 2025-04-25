@@ -40,9 +40,9 @@ const FeedbackPanel = ({ isActive }) => {
             className="px-3 py-2 position-absolute end-0 top-0 cursor-pointer" 
             onClick={hideFeedBackPanel}
           >
-            <span className="material-symbols-outlined  align-middle mx-1 fw-bold text-danger">
+            {/* <span className="material-symbols-outlined  align-middle mx-1 fw-bold text-danger">
               close
-            </span>
+            </span> */}
           </div>
           <p className="poppins-semibold m-0 p-0 mb-2">
             Hi,
@@ -54,12 +54,13 @@ const FeedbackPanel = ({ isActive }) => {
           It’s that time of the month when we pop up for feedback. Tell us what you love, what could be better, and any cool features you’d like to see. 
           Let’s make Edatsu Media even more awesome together!
           </p>
-          <Link 
-            href="/feedback" 
+          <a 
+            href="https://docs.google.com/forms/d/e/1FAIpQLScxI0lzMomnkHklK2Yi3i_9BsqK8BQcQ0Dt3JA-K6fruNsKSQ/viewform?usp=sf_link" 
             className=" border-0 btn btn-dark fs-8 px-4 text-decoration-none"
+            target="_blank"
           >
             Feedback
-          </Link>
+          </a>
         </div>
       )}
     </>

@@ -71,6 +71,11 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                     <p className="m-0 mb-2 text-sm fs-9 text-secondary">
                         Posted on: {new Date(opp_posts.created_at).toLocaleDateString()}
                     </p>
+                    <ul className="m-0 p-0 list-unstyled my-3">
+                    {
+                         renderLabels(opp_posts.categories)
+                    }
+                    </ul>
                     {opp_posts.cover_img && (
                    <img
                     src={`/storage/public/uploads/opp/${opp_posts.cover_img}`}
@@ -101,7 +106,7 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                 <div className="default-font-style" dangerouslySetInnerHTML={{ __html: opp_posts.description }}></div>
 
                 <ul className="m-0 p-0 list-unstyled py-3">
-                    {["continents", "countries", "categories"].map((key) => 
+                    {["continents", "countries"].map((key) => 
                         opp_posts[key] && renderLabels(opp_posts[key], key.charAt(0).toUpperCase() + key.slice(1))
                     )}
                 </ul>

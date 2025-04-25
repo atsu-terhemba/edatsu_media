@@ -20,11 +20,11 @@ class Bookmark extends Model
     ];
 
     public function opportunity(){
-        return $this->belongsTo(Oppty::class, 'opportunity_id', );
+        return $this->belongsTo(Oppty::class, 'post_id', );
     }
 
     public function event(){
-        return $this->belongsTo(Events::class, 'event_id');
+        return $this->belongsTo(Events::class, 'post_id');
     }
 
     

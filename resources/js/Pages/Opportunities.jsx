@@ -14,6 +14,7 @@ import ThreadLoader from '@/Components/TheadLoader';
 import { useRef } from 'react';
 import FilterLabels from '@/Components/FilterSearchLabels';
 import FeedbackPanel from '@/Components/FeedbackInfo';
+import GoogleAdsense from '@/Components/GoogleAdsense';
 
 const DisplayOpportunities = React.lazy(() => import('@/Components/DisplayOpportunities'));
 
@@ -224,6 +225,11 @@ const Opportunities = () => {
                         </a>
                     </div>
                 </div>
+
+               <div className="my-3">
+                <GoogleAdsense/>
+               </div>
+
                 {/* <div className='my-3'>
                     <MailchimpSubscriptionForm />
                 </div> */}

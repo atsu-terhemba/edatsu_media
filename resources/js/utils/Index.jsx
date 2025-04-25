@@ -159,16 +159,11 @@ export const pageLink = (slug, id) => {
 export const renderLabels = (data, title) => {
   if (!data) return null;
   const items = data.split(',').map((item, index) => (
-    <span key={index} className="data-labels poppins-regular text-secondary">
+    <span key={index} className="data-labels poppins-regular text-secondary me-1">
       {item}
     </span>
   ));
-  return (
-    <div className="w-100">
-      <p className="fs-8 text-secondary poppins-semibold p-0 mb-2">{title}</p>
-      {items}
-    </div>
-  );
+  return items;
 };
 
 export function dateStringFormat(dateString) {

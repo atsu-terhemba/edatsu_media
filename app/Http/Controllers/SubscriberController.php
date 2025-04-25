@@ -181,7 +181,7 @@ class SubscriberController extends Controller
             ->where('opportunity_id', '<>', null)
             ->orderBy('id', 'desc')->paginate('5');
   
-            return response()->json(['data_feeds' => $opportunities]);
+            return response()->json($opportunities);
         }
 
 
@@ -208,8 +208,9 @@ class SubscriberController extends Controller
             /**ELOQUENT DB QUERY**/
             $bookmarks = Bookmark::with('opportunity', 'event')
             ->where('user_id', $user_id)
-            ->where('deleted', 0)
-            ->orderBy('id', 'desc')->paginate('5');
+            ->where('removed', 0)
+            ->orderBy('id', 'desc')
+            ->paginate('5');
 
             // Fetch bookmarked opportunities
             // $opportunities = DB::table('bookmarks')
@@ -241,7 +242,7 @@ class SubscriberController extends Controller
             //     ['path' => request()->url()]
             // );
 
-            return response()->json(['data_feeds' => $bookmarks]);
+            return response()->json($bookmarks);
         }
 
         /**remove bookmark */

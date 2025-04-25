@@ -13,14 +13,14 @@ export default function SubscriberSideNav(){
                     </div>
                     <div>Dashboard</div>
             </ListGroup.Item>
-            <ListGroup.Item as={Link} href={route('subscriber.notifications')} className='d-flex justify-content-between align-items-center'>
+            {/* <ListGroup.Item as={Link} href={route('subscriber.notifications')} className='d-flex justify-content-between align-items-center'>
                     <div>
                         <span class="material-symbols-outlined">
                         notifications
                         </span>
                     </div>
                     <div>Notifications</div>
-            </ListGroup.Item>
+            </ListGroup.Item> */}
             <ListGroup.Item as={Link} href={route('subscriber.bookmarks')} className='d-flex justify-content-between align-items-center'>
                     <div>
                         <span class="material-symbols-outlined">
@@ -30,14 +30,14 @@ export default function SubscriberSideNav(){
                     <div>Bookmarks</div>
             </ListGroup.Item>
             {/* <ListGroup.Item>Feeds</ListGroup.Item> */}
-            <ListGroup.Item as={Link} href={route('subscriber.notification_settings')} className='d-flex justify-content-between align-items-center'>
+            {/* <ListGroup.Item as={Link} href={route('subscriber.notification_settings')} className='d-flex justify-content-between align-items-center'>
                     <div>
                         <span class="material-symbols-outlined">
                         notification_add
                         </span>
                     </div>
                     <div>Notification Settings</div>
-            </ListGroup.Item>
+            </ListGroup.Item> */}
         </ListGroup>
         </>
     )
