@@ -38,6 +38,14 @@ export default function SubscriberSideNav(){
                     </div>
                     <div>Notification Settings</div>
             </ListGroup.Item> */}
+            <ListGroup.Item as={Link} method="post"  href={route('logout')} className='d-flex justify-content-between align-items-center'>
+                    <div>
+                        <span class="material-symbols-outlined">
+                        logout
+                        </span>
+                    </div>
+                    <div>Logout</div>
+            </ListGroup.Item>
         </ListGroup>
         </>
     )

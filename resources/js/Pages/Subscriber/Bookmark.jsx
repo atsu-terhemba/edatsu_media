@@ -13,6 +13,7 @@ export default function Bookmark() {
     const [data, setData] = useState([]);
     const [pagination, setPagination] = useState([]);
     const paginationContainerRef = useRef(null);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     useEffect(()=>{
         setIsloading(true)
@@ -28,7 +29,7 @@ export default function Bookmark() {
        }).finally(()=>{
         setIsloading(false);
        })
-    },[])
+    },[refreshTrigger])
 
           // Then in your triggerPagination function:
   function triggerPagination(url) {
@@ -100,50 +101,41 @@ export default function Bookmark() {
     }
 
     // Function to remove a bookmark
-    async function removeBookmark(obj) {
-        obj.parentNode.classList.toggle("d-none");
-        let id = obj.id;
-        let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        fetch('/remove-bookmark-feed', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': csrfToken // Set the content type to JSON
-            },
-            // If you need to send data in the request body, use the body property
-            body: JSON.stringify({ id: id }) // Example: JSON.stringify({id: id})
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log(data);
-                // Handle the response data
-                if (data.status == 'success') {
-                    Toast.fire({
-                        icon: "info",
-                        title: data.message
-                    });
-                } else if (data.status == 'warning') {
-                    Toast.fire({
-                        icon: "warning",
-                        title: data.message
-                    });
-                } else {
-                    Toast.fire({
-                        icon: "error",
-                        title: data.message
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('There was a problem with the fetch operation:', error);
+    async function removeBookmark(post_id) {
+        const newData = data.filter((d) => d.id != post_id);
+        
+        try {
+            const response = await axios.put('/remove-bookmark-feed', {id: post_id}); // Also fixed to use post_id
+            
+            // Axios automatically parses JSON, so response.data is already the data
+            const responseData = response.data;
+            
+            if (responseData.status == 'success') {
+                Toast.fire({
+                    icon: "info",
+                    title: responseData.message
+                });
+                setData(newData);
+                setRefreshTrigger(prev => prev + 1);
+            } else if (responseData.status == 'warning') {
+                Toast.fire({
+                    icon: "warning",
+                    title: responseData.message
+                });
+            } else {
+                Toast.fire({
+                    icon: "error",
+                    title: responseData.message
+                });
+            }
+        } catch (error) {
+            Toast.fire({
+                icon: "error",
+                title: "Error removing bookmark"
             });
+            console.error('There was a problem with the request:', error);
+        }
     }
-
     return (
         <AuthenticatedLayout>
             <Head title="Bookmark" />
@@ -171,9 +163,9 @@ export default function Bookmark() {
                                     let title, post_id, slug, deadline, bookmark_id;
                                     
                                     if (isOpportunity) {
-                                    ({ title, id: post_id, slug, deadline, bookmark_id } = data.opportunity);
+                                        ({ title, id: post_id, slug, deadline, bookmark_id } = data.opportunity);
                                     } else if (isEvent) {
-                                    ({ title, id: post_id, slug, deadline, bookmark_id } = data.event);
+                                        ({ title, id: post_id, slug, deadline, bookmark_id } = data.event);
                                     } else {
                                     // Fallback if neither opportunity nor event is present
                                     return null;
@@ -203,14 +195,13 @@ export default function Bookmark() {
                                         onClick={() => removeBookmark(data.id)}
                                         >
                                         <span className="material-symbols-outlined align-middle text-danger">
-                                            cancel
+                                        cancel
                                         </span>
                                         </div>
                                     </div>
                                     );
                                 })
                                 }
-
 
                                 {(pagination.length > 0) &&
                                     <DefaultPagination 

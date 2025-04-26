@@ -204,7 +204,6 @@ class SubscriberController extends Controller
 
         public function fetchAllBookmark(){
             $user_id = Auth::user()->id;
-
             /**ELOQUENT DB QUERY**/
             $bookmarks = Bookmark::with('opportunity', 'event')
             ->where('user_id', $user_id)
@@ -247,11 +246,11 @@ class SubscriberController extends Controller
 
         /**remove bookmark */
         public function removeBookmark(Request $request){
-            $id = $request->post('id'); 
+            $id = $request->input('id'); 
             $user_id = Auth::user()->id;
-            $delete_bookmark = Bookmark::where('id', $id)
-            ->where('user_id', $user_id)->update(['deleted' => 1]);
-            if($delete_bookmark > 0){
+            $remove_bookmark = Bookmark::where('id', $id)
+            ->where('user_id', $user_id)->update(['removed' => 1]);
+            if($remove_bookmark > 0){
                 return response()->json(['status' => 'success', 'message' => 'Bookmark Removed']);
             }else{
                 return response()->json(['status' => 'error', 'message' => 'Oops! Something went wrong']);

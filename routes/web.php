@@ -217,7 +217,7 @@ Route::middleware(['auth', 'verified', Role::class . ':subscriber'])->group(func
     Route::get('/fetch-opportunity-bookmark', [SubscriberController::class, 'listBookmarkedOpportunites'] );
     Route::get('/fetch-event-bookmark', [SubscriberController::class, 'listBookmarkedEvents']);
     Route::get('/fetch-bookmark', [SubscriberController::class, 'fetchAllBookmark']);
-    Route::post('/remove-bookmark-feed', [SubscriberController::class, 'removeBookmark']);
+    Route::put('/remove-bookmark-feed', [SubscriberController::class, 'removeBookmark']);
     Route::get('/profile', [SubscriberController::class, 'initProfile'])->name('subscriber.profile');
     Route::post('/subscriber/update-profile', [SubscriberController::class, 'updateProfile'])->name('subscriber.update-profile');
 });
