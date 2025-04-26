@@ -204,7 +204,7 @@ class App extends Controller
     }
     
 
-    return $query->distinct()->orderByDesc('opportunities.id')->paginate($request->input('per_page', 2))->withQueryString();
+    return $query->distinct()->orderByDesc('opportunities.id')->paginate($request->input('per_page', 20))->withQueryString();
 }
 
 
