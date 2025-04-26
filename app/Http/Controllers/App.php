@@ -68,6 +68,8 @@ class App extends Controller
             'opportunities.slug',
             'opportunities.description',
             'opportunities.cover_img',
+            'bookmarks.id',
+            'bookmarks.removed',
             \DB::raw('CASE WHEN bookmarks.id IS NOT NULL AND bookmarks.removed != 1 THEN 1 ELSE 0 END')
     );
 
