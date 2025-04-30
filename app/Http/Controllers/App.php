@@ -203,8 +203,11 @@ class App extends Controller
         }
     }
     
+    // return $query->orderByDesc('opportunities.id')->paginate($request->input('per_page', 20))->withQueryString();
 
-    return $query->distinct()->orderByDesc('opportunities.id')->paginate($request->input('per_page', 20))->withQueryString();
+    $subQuery = $query->distinct()->select('opportunities.id');
+    $mainQuery = Oppty::whereIn('id', $subQuery)->orderByDesc('id');
+    return $mainQuery->paginate($request->input('per_page', 20))->withQueryString();
 }
 
 

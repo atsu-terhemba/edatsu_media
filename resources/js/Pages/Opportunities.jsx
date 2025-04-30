@@ -15,6 +15,8 @@ import { useRef } from 'react';
 import FilterLabels from '@/Components/FilterSearchLabels';
 import FeedbackPanel from '@/Components/FeedbackInfo';
 import GoogleAdsense from '@/Components/GoogleAdsense';
+import { useContext } from 'react';
+import { AuthContext } from '@/Layouts/GuestLayout';
 
 const DisplayOpportunities = React.lazy(() => import('@/Components/DisplayOpportunities'));
 
@@ -25,6 +27,11 @@ const Opportunities = () => {
     const [search_keyword, setSearchKeyword] = useState('');
     const [isloading, setIsLoading] = useState('');
     const paginationContainerRef = useRef(null);
+    const authUser = useContext(AuthContext);
+
+    useEffect(()=>{
+        console.log(`OPP USER ${authUser}`);
+    },[])
     
     const [filter_data, setFilterData] = useState({
         categories: [],
@@ -128,7 +135,7 @@ const Opportunities = () => {
         <Container fluid={true} className="container-sm">
             <Row>
                 <Col sm={3} xs={12}>
-                <div className='mt-3'>
+                    <div className='mt-3'>
                         <OppSearchFilter
                         isloading={isloading}
                         filter_data={filter_data}

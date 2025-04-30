@@ -8,6 +8,9 @@ import Select from 'react-select'
 import axios from 'axios';
 import { swalConfig } from '@/utils/Index';
 import { Toast } from '@/utils/Index';
+import LexicalTextEditor from '@/Components/LexicalTextEditorComponent';
+import EditorJS from '@editorjs/editorjs';
+import QuillEditor from '@/Components/QuillEditorComponent';
 
 
 
@@ -210,9 +213,15 @@ export default function CreateOpportunity({ edits, categories, brand_label, coun
                                 <Form.Group className="mb-3">
                                     <Form.Label>Description</Form.Label>
                                     <span className="d-block text-secondary mb-2 fs-9">Provide detailed description for this opportunity</span>
-                                    <Form.Control as="textarea" name="description" rows={3} value={formData.description} onChange={handleChange} />
+                                    {/* <Form.Control as="textarea" name="description" rows={3} value={formData.description} onChange={handleChange} /> */}
+                                    <QuillEditor 
+                                        formData={formData} 
+                                        setFormData={setFormData}  
+                                        name='description'
+                                    />
+                                    <br/>
                                 </Form.Group>
-                                <Form.Group className="mb-3">
+                                <Form.Group className="my-3">
                                     <Form.Label>Deadline</Form.Label>
                                     <span className="d-block text-secondary mb-2 fs-9">Add a deadline for this opportunity *</span>
                                     <Form.Control type="date" name="deadline" value={formData.deadline} onChange={handleChange} />
