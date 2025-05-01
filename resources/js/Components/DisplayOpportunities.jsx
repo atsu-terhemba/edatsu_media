@@ -181,7 +181,7 @@ const DisplayOpportunities = ({ data }) => {
                   
                   <div className="overflow-hidden truncate d-none d-sm-block">
                     <p className="p-0 m-0 text-secondary d-block fs-8"
-                     dangerouslySetInnerHTML={{ __html: truncateText(o.description, 1000) }}>
+                    dangerouslySetInnerHTML={{ __html: truncateText(o.description, 150) }}>
                     </p>
                   </div>
                   
