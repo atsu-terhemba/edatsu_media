@@ -219,6 +219,7 @@ class App extends Controller
 function searchOpportunities(Request $request)
 {
     // Get authenticated user ID if available
+    //authentication
     $user_id = Auth::check() ? Auth::id() : null;
 
     // Validate incoming request data
