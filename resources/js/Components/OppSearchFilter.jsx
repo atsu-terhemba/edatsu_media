@@ -110,7 +110,7 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
                 </div>
             </div>
 
-            <div className="py-3 px-3 border bg-white rounded d-flex justify-content-between mb-3">
+            <div className="py-3 px-3 border bg-white rounded d-flex justify-content-between">
                 <div>
                     <span className="material-symbols-outlined align-middle">
                         filter_alt

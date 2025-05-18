@@ -17,6 +17,7 @@ import FeedbackPanel from '@/Components/FeedbackInfo';
 import GoogleAdsense from '@/Components/GoogleAdsense';
 import { useContext } from 'react';
 import { AuthContext } from '@/Layouts/GuestLayout';
+import FixedMobileNav from '@/Components/FixedMobileNav';
 
 const DisplayOpportunities = React.lazy(() => import('@/Components/DisplayOpportunities'));
 
@@ -132,7 +133,7 @@ const Opportunities = () => {
                 twitterDescription="Explore global business opportunities, grants, and finance resources with Edatsu Media. Get the latest news, events, and tools for growth."
                 twitterImage="/img/logo/default_logo.jpg"
             />
-        <Container fluid={true} className="container-sm">
+        <Container>
             <Row>
                 <Col sm={3} xs={12}>
                     <div className='mt-3'>
@@ -243,6 +244,7 @@ const Opportunities = () => {
                 </Col>
             </Row>
         </Container>
+           <FixedMobileNav/>
     </GuestLayout>
     );
 };

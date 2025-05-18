@@ -7,8 +7,11 @@ import SubFooter from './SubFooter';
 import { createContext, useEffect } from 'react';
 
 
+// Create the context at the top level
+export const AuthContext = createContext(null);
+
 export default function GuestLayout({ children }) {
-    const user = usePage().props.auth.user;
+    const user = usePage().props.auth.user || {};
 
     return (
         <div className="">
@@ -22,5 +25,3 @@ export default function GuestLayout({ children }) {
         </div>
     );
 }
-
-export const AuthContext = createContext(null);
