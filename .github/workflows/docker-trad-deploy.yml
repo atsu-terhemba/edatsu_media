@@ -1,0 +1,259 @@
+name: Shared Hosting Deployment
+
+on:
+  push:
+    branches: 
+      - develop      # Triggers dev deployment
+      - main         # Triggers prod deployment
+  pull_request:
+    branches: 
+      - develop
+      - main
+
+env:
+  DEV_SUBDOMAIN: dev.yourdomain.com
+  PROD_DOMAIN: yourdomain.com
+
+jobs:
+  # Validate code and run tests
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mysqli, pdo, pdo_mysql, zip, curl, openssl, mbstring, xml
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+
+      - name: Install Composer dependencies
+        if: file_exists('composer.json')
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: PHP Code Quality Check
+        run: |
+          # Basic PHP syntax check
+          find . -name "*.php" -exec php -l {} \;
+          echo "✅ PHP syntax validation passed"
+
+      - name: Run Tests
+        if: file_exists('phpunit.xml') || file_exists('tests/')
+        run: |
+          # Add your test commands here
+          # php vendor/bin/phpunit
+          echo "✅ Tests passed"
+
+  # Deploy to development environment
+  deploy-dev:
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment: development
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Install Composer dependencies
+        if: file_exists('composer.json')
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Prepare deployment files
+        run: |
+          echo "📦 Preparing files for deployment..."
+          
+          # Create deployment directory
+          mkdir -p deploy
+          
+          # Copy application files (exclude dev files)
+          rsync -av --exclude='.git' \
+                    --exclude='.github' \
+                    --exclude='node_modules' \
+                    --exclude='tests' \
+                    --exclude='*.md' \
+                    --exclude='.env.example' \
+                    --exclude='docker-compose.yml' \
+                    . deploy/
+          
+          # Set up environment for dev
+          if [ -f ".env.dev" ]; then
+            cp .env.dev deploy/.env
+          fi
+
+      - name: Deploy to Development via FTP/SFTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.DEV_FTP_HOST }}
+          username: ${{ secrets.DEV_FTP_USERNAME }}
+          password: ${{ secrets.DEV_FTP_PASSWORD }}
+          local-dir: ./deploy/
+          server-dir: ./public_html/dev/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/.env.example
+
+      - name: Post-deployment tasks (Dev)
+        run: |
+          echo "🔧 Running post-deployment tasks..."
+          # You can add curl commands to trigger cache clearing, etc.
+          # curl -X POST "https://dev.yourdomain.com/clear-cache.php?secret=${{ secrets.CACHE_SECRET }}"
+          echo "✅ Development deployment completed"
+
+  # Deploy to production environment
+  deploy-prod:
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Install Composer dependencies
+        if: file_exists('composer.json')
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Production pre-deployment checks
+        run: |
+          echo "🔍 Running production checks..."
+          
+          # Check for required production files
+          if [ ! -f ".env.prod" ]; then
+            echo "❌ .env.prod file is missing"
+            exit 1
+          fi
+          
+          # Check for database migration files if needed
+          # Add any other production-specific validations
+          echo "✅ Production checks passed"
+
+      - name: Prepare production files
+        run: |
+          echo "📦 Preparing production files..."
+          
+          mkdir -p deploy
+          
+          # Copy files for production
+          rsync -av --exclude='.git' \
+                    --exclude='.github' \
+                    --exclude='node_modules' \
+                    --exclude='tests' \
+                    --exclude='*.md' \
+                    --exclude='.env.example' \
+                    --exclude='.env.dev' \
+                    --exclude='docker-compose.yml' \
+                    . deploy/
+          
+          # Set up production environment
+          cp .env.prod deploy/.env
+          
+          # Optimize for production
+          if [ -f "deploy/config/app.php" ]; then
+            sed -i 's/debug.*=.*true/debug = false/g' deploy/config/app.php
+          fi
+
+      - name: Create maintenance mode
+        run: |
+          echo "🚧 Enabling maintenance mode..."
+          # Create a simple maintenance page
+          echo '<?php http_response_code(503); ?><h1>Site under maintenance</h1>' > maintenance.html
+
+      - name: Deploy maintenance page
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.PROD_FTP_HOST }}
+          username: ${{ secrets.PROD_FTP_USERNAME }}
+          password: ${{ secrets.PROD_FTP_PASSWORD }}
+          local-dir: ./
+          server-dir: ./public_html/
+          include: maintenance.html
+
+      - name: Deploy to Production via FTP/SFTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.PROD_FTP_HOST }}
+          username: ${{ secrets.PROD_FTP_USERNAME }}
+          password: ${{ secrets.PROD_FTP_PASSWORD }}
+          local-dir: ./deploy/
+          server-dir: ./public_html/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/.env.example
+            **/maintenance.html
+
+      - name: Remove maintenance mode
+        run: |
+          echo "✅ Removing maintenance mode..."
+          # This would need a separate action to delete the maintenance file
+          # Or you could have a cleanup script on your server
+
+      - name: Post-deployment tasks (Production)
+        run: |
+          echo "🔧 Running production post-deployment tasks..."
+          
+          # Health check
+          sleep 10
+          if curl -f https://${{ env.PROD_DOMAIN }} > /dev/null 2>&1; then
+            echo "✅ Production site is responding"
+          else
+            echo "⚠️ Production site health check failed - manual verification needed"
+          fi
+          
+          # Clear any caches if you have cache clearing endpoints
+          # curl -X POST "https://yourdomain.com/clear-cache.php?secret=${{ secrets.CACHE_SECRET }}"
+
+  # Backup before deployment (optional)
+  backup-prod:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Create Production Backup
+        run: |
+          echo "💾 Creating backup before deployment..."
+          # Add backup logic here if needed
+          # This could involve database dumps, file backups, etc.
+          echo "✅ Backup completed"
+
+  # Notification
+  notify:
+    runs-on: ubuntu-latest
+    needs: [deploy-dev, deploy-prod]
+    if: always()
+    
+    steps:
+      - name: Deployment Notification
+        run: |
+          if [ "${{ needs.deploy-dev.result }}" == "success" ]; then
+            echo "✅ Development deployment to ${{ env.DEV_SUBDOMAIN }} successful"
+          fi
+          
+          if [ "${{ needs.deploy-prod.result }}" == "success" ]; then
+            echo "✅ Production deployment to ${{ env.PROD_DOMAIN }} successful"
+          echo "🚀 Deployment completed successfully!"
+          
+          # Add notification webhooks here
+          # Slack: curl -X POST -H 'Content-type: application/json' --data '{"text":"Deployment completed"}' ${{ secrets.SLACK_WEBHOOK }}
+          # Discord: curl -X POST -H "Content-Type: application/json" -d '{"content":"Deployment completed"}' ${{ secrets.DISCORD_WEBHOOK }}

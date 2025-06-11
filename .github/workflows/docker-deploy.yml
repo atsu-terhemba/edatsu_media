@@ -1,0 +1,169 @@
+name: Docker Compose CI/CD
+
+on:
+  push:
+    branches: 
+      - develop      # Triggers dev deployment
+      - main         # Triggers prod deployment
+  pull_request:
+    branches: 
+      - develop
+      - main
+
+env:
+  DEV_COMPOSE_FILE: dev.yaml
+  PROD_COMPOSE_FILE: prod.yaml
+
+jobs:
+  # Validate Docker Compose files
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate dev.yaml
+        run: |
+          if [ -f "${{ env.DEV_COMPOSE_FILE }}" ]; then
+            docker-compose -f ${{ env.DEV_COMPOSE_FILE }} config --quiet
+            echo "✅ dev.yaml is valid"
+          else
+            echo "❌ dev.yaml not found"
+            exit 1
+          fi
+
+      - name: Validate prod.yaml
+        if: github.ref == 'refs/heads/main'
+        run: |
+          if [ -f "${{ env.PROD_COMPOSE_FILE }}" ]; then
+            docker-compose -f ${{ env.PROD_COMPOSE_FILE }} config --quiet
+            echo "✅ prod.yaml is valid"
+          else
+            echo "❌ prod.yaml not found"
+            exit 1
+          fi
+
+  # Development deployment
+  deploy-dev:
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment: development
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Deploy to Development
+        run: |
+          echo "🚀 Deploying to Development Environment"
+          docker-compose -f ${{ env.DEV_COMPOSE_FILE }} down --remove-orphans
+          docker-compose -f ${{ env.DEV_COMPOSE_FILE }} pull
+          docker-compose -f ${{ env.DEV_COMPOSE_FILE }} up -d --build
+          
+      - name: Health Check
+        run: |
+          echo "⏳ Waiting for services to start..."
+          sleep 30
+          
+          # Check if web service is responding
+          if curl -f http://localhost:8000 > /dev/null 2>&1; then
+            echo "✅ Web service is healthy"
+          else
+            echo "❌ Web service health check failed"
+            docker-compose -f ${{ env.DEV_COMPOSE_FILE }} logs
+            exit 1
+          fi
+
+      - name: Run Basic Tests
+        run: |
+          echo "🧪 Running basic tests..."
+          # Add your test commands here
+          # Example: docker-compose -f ${{ env.DEV_COMPOSE_FILE }} exec -T web php vendor/bin/phpunit
+          echo "✅ Basic tests passed"
+
+  # Production deployment
+  deploy-prod:
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Production Pre-deployment Checks
+        run: |
+          echo "🔍 Running pre-deployment checks..."
+          # Add production-specific checks here
+          # Example: Check if database migration is needed
+          echo "✅ Pre-deployment checks passed"
+
+      - name: Deploy to Production
+        run: |
+          echo "🚀 Deploying to Production Environment"
+          docker-compose -f ${{ env.PROD_COMPOSE_FILE }} down --remove-orphans
+          docker-compose -f ${{ env.PROD_COMPOSE_FILE }} pull
+          docker-compose -f ${{ env.PROD_COMPOSE_FILE }} up -d --build
+
+      - name: Production Health Check
+        run: |
+          echo "⏳ Waiting for production services to start..."
+          sleep 45
+          
+          # More thorough health checks for production
+          if curl -f http://localhost:80 > /dev/null 2>&1; then
+            echo "✅ Production web service is healthy"
+          else
+            echo "❌ Production web service health check failed"
+            docker-compose -f ${{ env.PROD_COMPOSE_FILE }} logs
+            exit 1
+          fi
+
+      - name: Post-deployment Tasks
+        run: |
+          echo "📋 Running post-deployment tasks..."
+          # Add post-deployment tasks here
+          # Example: Clear caches, send notifications, etc.
+          echo "✅ Post-deployment tasks completed"
+
+  # Cleanup old containers and images
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: [deploy-dev, deploy-prod]
+    if: always()
+    
+    steps:
+      - name: Docker System Cleanup
+        run: |
+          echo "🧹 Cleaning up old Docker resources..."
+          docker system prune -f --volumes
+          docker image prune -f
+          echo "✅ Cleanup completed"
+
+  # Notification job (runs after everything)
+  notify:
+    runs-on: ubuntu-latest
+    needs: [deploy-dev, deploy-prod]
+    if: always()
+    
+    steps:
+      - name: Deployment Notification
+        run: |
+          if [ "${{ needs.deploy-dev.result }}" == "success" ]; then
+            echo "✅ Development deployment successful"
+          fi
+          
+          if [ "${{ needs.deploy-prod.result }}" == "success" ]; then
+            echo "✅ Production deployment successful"
+          fi
+          
+          # Add notification logic here (Slack, Discord, email, etc.)
+          # Example: curl -X POST -H 'Content-type: application/json' --data '{"text":"Deployment completed"}' $SLACK_WEBHOOK

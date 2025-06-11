@@ -10,6 +10,7 @@ import StarRating from "@/Components/Rating";
 import { router } from '@inertiajs/react'
 import RecommendedContent from "@/Components/RecommendedContent";
 import CommentComponent from "@/Components/CommentComponent";
+import GoogleAdsense from '@/Components/GoogleAdsense';
 
 const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
 
@@ -179,27 +180,27 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                 </div>
             </Col>
             <Col sm={4}>
-            <a 
-                    href="https://t.me/+66AGIA3g2dwzMjc0" 
-                    target="_blank"
-                    style={{ color: "#249fda" }} 
-                    className="text-decoration-none text-dark"
-                >
-                                <div className="my-3 d-flex align-items-center border rounded py-3">
-                    <div className="px-2">
-                        <img 
-                            src='/img/defaults/telegram_icon.png'
-                            width="50"
-                            className="img-fluid rounded" 
-                            alt="Telegram banner"
-                        />
+                <a 
+                        href="https://t.me/+66AGIA3g2dwzMjc0" 
+                        target="_blank"
+                        style={{ color: "#249fda" }} 
+                        className="text-decoration-none text-dark"
+                    >
+                                    <div className="my-3 d-flex align-items-center border rounded py-3">
+                        <div className="px-2">
+                            <img 
+                                src='/img/defaults/telegram_icon.png'
+                                width="50"
+                                className="img-fluid rounded" 
+                                alt="Telegram banner"
+                            />
+                        </div>
+                        <div className='pe-2'>
+                            <p className="fs-8 m-0 p-0">
+                                Join our telegram for daily opportunities & news updates
+                            </p>
+                        </div>
                     </div>
-                    <div className='pe-2'>
-                        <p className="fs-8 m-0 p-0">
-                            Join our telegram for daily opportunities & news updates
-                        </p>
-                    </div>
-                </div>
                 </a>
 
                  {/* Custom Ads */}
@@ -222,6 +223,10 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                         />
                         </a>
                     </div>
+                </div>
+
+                <div className="my-3">
+                <GoogleAdsense/>
                 </div>
             </Col>
         </Row>

@@ -406,11 +406,11 @@ ul.menu-list li:last-child {
 }
 
 .banner {
-    background-image: url('../img/defaults/banner_6.jpg');
+    background-image: url('/public/img/defaults/banner_6.jpg');
 }
 
 .footer-banner {
-    background-image: url('../img/defaults/banner_5.jpg');
+    background-image: url('/public/img/defaults/banner_5.jpg');
 }
 
 .admin-side-menu li > a {
@@ -501,10 +501,37 @@ ul.label-list li {
     background-color: #252422;
     color: #ced4da;
     position: fixed;
-    bottom: 15px;
-    padding:5px;
-    left: 15px;
-    right: 15px;
+    bottom: 0px;
+    /* padding:15px; */
+    left: 0px;
+    right: 0px;
+    z-index: 10;
+    opacity: 0.9;
+}
+
+.fixed-footer-bar span{
+  /* font-weight: bold; */
+  font-size:1.7em !important;
+}
+
+.login-access-status {
+    width: 10px;
+    height: 10px;
+    position: absolute;
+    right: 20px;
+    border-radius: 50%;
+    top:10px;
+    background-color: #00FF00;
+}
+
+.logout-access-status {
+    width: 10px;
+    height: 10px;
+    position: absolute;
+    right: 20px;
+    border-radius: 50%;
+    top:10px;
+    background-color: #FF0000;
 }
 
 .subscription-alert {
@@ -596,6 +623,23 @@ ul.label-list li {
     height: 12px;
     margin-bottom: 8px;
     width: 80%;
+}
+
+
+/**
+search toggle effect**/
+.mobile-fixed-toggle{
+  position:fixed;
+  background-color:black;
+  left:0; 
+  right:0;
+  z-index: 5;
+  top:0;
+  padding:15px;
+  overflow-y: scroll !important;
+  height: 100vh;
+  margin-top: 0px !important;
+  
 }
 
 /* Dark Mode Styles */

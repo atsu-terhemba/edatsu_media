@@ -130,7 +130,7 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
             </div>
 
             {isFilterVisible && (
-                <div id="filter-panel" className="bg-white border rounded px-3 py-3 mb-3">
+                <div id="filter-panel" className="bg-white border rounded px-3 py-3 my-3">
                     <div className="row">
                         <div className="col-sm-12">
                             {/* <label className='poppins-semibold fs-9 mb-2'>Program Status</label> */}

@@ -1,0 +1,97 @@
+name: edatsu-media
+
+services:
+  # Apache + PHP Service
+  web:
+    image: php:8.2-apache
+    container_name: wamp_apache_php
+    ports:
+      - "8000:80"
+      - "8443:443"
+    volumes:
+      - ./www:/var/www/html
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html
+    depends_on:
+      - mysql
+    networks:
+      - wamp_network
+    restart: unless-stopped
+    command: >
+      bash -c "
+      apt-get update &&
+      apt-get install -y libzip-dev zip unzip &&
+      docker-php-ext-install mysqli pdo pdo_mysql zip &&
+      a2enmod rewrite ssl &&
+      apache2-foreground
+      "
+
+  # MySQL Database Service
+  mysql:
+    image: mysql:8.0
+    container_name: wamp_mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: test_db
+      MYSQL_USER: wamp_user
+      MYSQL_PASSWORD: wamp_password
+    networks:
+      - wamp_network
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+
+  # phpMyAdmin Service
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: wamp_phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
+    depends_on:
+      - mysql
+    networks:
+      - wamp_network
+    restart: unless-stopped
+
+  # MailHog (Email testing service, similar to WAMP's mail features)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: wamp_mailhog
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:8025"  # Web UI port
+    networks:
+      - wamp_network
+    restart: unless-stopped
+
+  # Redis (Optional caching service)
+  redis:
+    image: redis:7-alpine
+    container_name: wamp_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - wamp_network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  wamp_network:
+    driver: bridge

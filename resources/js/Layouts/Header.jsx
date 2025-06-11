@@ -38,7 +38,7 @@ return(
         </Link>
         </Nav.Item> */}
         <Nav.Item>
-        <Link href={route('oppty')} className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/opportunities')}`}> 
+        <Link href={route('oppty')} className={`nav-link me-3 text-decoration-none ${ActiveLink('/opportunities')}`}> 
         Opportunities
         </Link>
         </Nav.Item>

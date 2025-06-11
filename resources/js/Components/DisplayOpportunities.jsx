@@ -14,10 +14,22 @@ const DisplayOpportunities = ({ data }) => {
     e.target.src = fallbackImageUrl;
   };
 
+  // Reset loaded images when data changes (pagination)
   useEffect(() => {
-    // Small timeout to ensure DOM is fully rendered with new data
-    const timer = setTimeout(() => {
-      const observer = new IntersectionObserver(
+    setLoadedImages({});
+  }, [data]);
+
+  useEffect(() => {
+    let observer;
+    let timer;
+
+    const setupObserver = () => {
+      // Clean up previous observer if it exists
+      if (observer) {
+        observer.disconnect();
+      }
+
+      observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
@@ -42,20 +54,31 @@ const DisplayOpportunities = ({ data }) => {
             }
           });
         },
-        { rootMargin: "200px" } // Increased margin to start loading earlier
+        { rootMargin: "200px" }
       );
-  
-      // Get all lazy-load images
+
+      // Get all lazy-load images and observe them
       const lazyImages = document.querySelectorAll(".lazy-load");
-      lazyImages.forEach(img => observer.observe(img));
-  
-      return () => {
-        observer.disconnect();
-      };
-    }, 50); // Small delay to ensure DOM is ready
-    
-    return () => clearTimeout(timer);
-  }, [data]);
+      lazyImages.forEach(img => {
+        // Reset image src to placeholder if it's not already
+        if (!img.src.includes('data:image') && !img.src.includes('R0lGODlh')) {
+          img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+        }
+        observer.observe(img);
+      });
+    };
+
+    // Use a timeout to ensure DOM is ready with new data
+    timer = setTimeout(() => {
+      setupObserver();
+    }, 100); // Slightly increased delay
+
+    // Cleanup function
+    return () => {
+      if (timer) clearTimeout(timer);
+      if (observer) observer.disconnect();
+    };
+  }, [data]); // This effect runs whenever data changes
 
   const Toast = Swal.mixin({
     toast: true,
@@ -69,26 +92,14 @@ const DisplayOpportunities = ({ data }) => {
     }
   });
 
-
   const isValidImage = (img) => {
     return img && typeof img === 'string' && img.trim() !== '';
-  };
-
-  const escapeHTML = (text) => {
-    if (!text) return '';
-    return text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
   };
 
   const truncateText = (text, length) => {
     if (!text) return '';
     return text.length > length ? text.substring(0, length) + '...' : text;
   };
-
 
   function convertToProperNoun(input) {
     // Check if input is null, undefined, or not a string
@@ -119,10 +130,20 @@ const DisplayOpportunities = ({ data }) => {
     });
 
     return badges;
-}
+  }
 
 
-  // Function to handle image loading manually instead of using the IntersectionObserver
+const stripAndTruncate = (html, maxLength = 150) => {
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  const plainText = tempDiv.textContent || tempDiv.innerText || '';
+  return plainText.length > maxLength
+    ? plainText.slice(0, maxLength).trim() + '...'
+    : plainText;
+};
+
+
+  // Function to handle image loading manually
   const handleImageLoad = useCallback((imageId, imageSrc) => {
     return () => {
       setLoadedImages(prev => ({
@@ -138,10 +159,11 @@ const DisplayOpportunities = ({ data }) => {
         const hasImage = o.cover_img && isValidImage(o.cover_img);
         const imageCol = hasImage ? 'col-sm-2 col-4' : '';
         const bodyCol = hasImage ? 'col-sm-10 col-8' : 'col-sm-12 col-12';
-        const imageId = `img-${o.id || index}`;
+        // Use unique ID that includes the opportunity ID to ensure uniqueness across pagination
+        const imageId = `img-${o.id}-${index}`;
         
         return (
-          <div key={index} className="feed-panel text-wrap w-100 position-relative border-bottom">
+          <div key={`${o.id}-${index}`} className="feed-panel text-wrap w-100 position-relative border-bottom">
             <div className="row">
               {hasImage && (
                 <div className={imageCol}>
@@ -160,16 +182,19 @@ const DisplayOpportunities = ({ data }) => {
               )}
               <div className={bodyCol}>
                 <div className="py-3">
-                  <a onClick={(e) => {
-                      e.preventDefault()
-                      router.visit(`${pageLink(o.slug, o.id)}`, {
-                        preserveState: true,
-                        preserveScroll: true,
-                      })
-                    }}
-                  className="text-decoration-none text-dark" href={pageLink(o.slug, o.id)}>
+                  <a 
+                  // onClick={(e) => {
+                  //     e.preventDefault()
+                  //     router.visit(`${pageLink(o.slug, o.id)}`, {
+                  //       preserveState: true,
+                  //       preserveScroll: true,
+                  //     })
+                  //   }}
+                  target="_blank"
+                  className="text-decoration-none text-dark" 
+                  href={pageLink(o.slug, o.id)}>
                     <h2 className="inline-block page-title m-0 p-0 poppins-semibold mb-2 fs-9">
-                      {escapeHTML(o.title)}
+                      {o.title}
                     </h2>
                   </a>
                   
@@ -180,8 +205,11 @@ const DisplayOpportunities = ({ data }) => {
                   )}
                   
                   <div className="overflow-hidden truncate d-none d-sm-block">
-                    <p className="p-0 m-0 text-secondary d-block fs-8"
+                    {/* <p className="p-0 m-0 text-secondary d-block fs-8"
                     dangerouslySetInnerHTML={{ __html: truncateText(o.description, 150) }}>
+                    </p> */}
+                    <p className="p-0 m-0 text-secondary d-block fs-8">
+                      {stripAndTruncate(o.description, 150)}
                     </p>
                   </div>
                   
@@ -191,18 +219,6 @@ const DisplayOpportunities = ({ data }) => {
                         {getDaysLeft(o.deadline)}
                       </p>
                     </div>
-                    
-                    {/* <div className="content-btn-holder">
-                      <div className="position-relative">
-                        <div className="position-absolute share-panel border rounded fs-8 d-none"></div>
-                        <Link href="" className="btn text-decoration-none">
-                          <span className="fs-8 text-secondary me-1">3</span>
-                          <span className="material-symbols-outlined align-middle">
-                          mode_comment
-                          </span>
-                        </Link>
-                      </div>
-                    </div> */}
 
                     <div className="content-btn-holder">
                       <div className="position-relative">

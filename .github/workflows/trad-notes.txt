@@ -1,0 +1,70 @@
+Ah, that changes everything! Shared hosting like Hostinger doesn't support Docker containers. Let me create a workflow that's designed for traditional shared hosting deployment.Perfect! I've completely rewritten the workflow for shared hosting deployment. Here's what this new workflow does:
+
+## Key Features for Shared Hosting:
+
+### **File-based Deployment:**
+- Uses FTP/SFTP to upload files directly to your Hostinger account
+- No Docker containers needed
+- Works with standard shared hosting
+
+### **Environment Management:**
+- **Dev branch** → Deploys to subdomain (like `dev.yourdomain.com`)
+- **Main branch** → Deploys to production domain
+- Separate `.env` files for each environment
+
+### **Production Safety:**
+- Maintenance mode during deployment
+- Pre-deployment validation
+- Health checks after deployment
+- Backup capabilities (optional)
+
+## Required GitHub Secrets:
+
+Go to your repo → Settings → Secrets and add:
+
+```
+DEV_FTP_HOST=your-hostinger-ftp-host
+DEV_FTP_USERNAME=your-dev-ftp-username  
+DEV_FTP_PASSWORD=your-dev-ftp-password
+
+PROD_FTP_HOST=your-hostinger-ftp-host
+PROD_FTP_USERNAME=your-prod-ftp-username
+PROD_FTP_PASSWORD=your-prod-ftp-password
+
+CACHE_SECRET=your-secret-for-cache-clearing (optional)
+```
+
+## File Structure You'll Need:
+```
+your-repo/
+├── .env.dev          # Development environment config
+├── .env.prod         # Production environment config
+├── .env.example      # Template (not deployed)
+└── your-php-files/
+```
+
+## Hostinger Setup:
+- **Development**: Upload to `/public_html/dev/` subdirectory
+- **Production**: Upload to `/public_html/` root directory
+
+Now your Docker Compose file becomes useful for **local development only** - you can run your dev environment locally with all the services, then deploy the PHP files to Hostinger when ready!
+
+Would you like me to adjust anything specific for your Hostinger setup?
+
+
+DIGITAL OCEAN SETUP.
+# SSH into your droplet
+ssh root@your-server-ip
+
+# Install Docker & Docker Compose (if not pre-installed)
+curl -fsSL https://get.docker.com -o get-docker.sh
+sh get-docker.sh
+
+# Clone your repo
+git clone https://github.com/yourusername/your-repo.git
+cd your-repo
+
+# Run your containers
+docker-compose up -d
+
+# Set up domain/SSL with nginx-proxy or Caddy
