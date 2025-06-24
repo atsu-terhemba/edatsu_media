@@ -151,21 +151,14 @@ const DisplayToolshed = ({ data }) => {
 
                 <div className="content-container">
                   <div className="py-3">
-                    <a onClick={(e) => {
-                        e.preventDefault()
-                        router.visit(`${pageLink(o.slug, o.id)}`, {
-                          preserveState: true,
-                          preserveScroll: true,
-                        })
-                      }}
-                      className="text-decoration-none text-dark" href={pageLink(o.slug, o.id)}>
-                      <h2 className="inline-block page-title m-0 p-0 poppins-semibold mb-2 fs-9">
-                        {truncateText(o.title, 15)}
-                      </h2>
-                    </a>
-
                     {hasImage && (
-                    <div className="image-container py-3">
+                    <div className="image-container position-relative">
+                         <div className="px-3 position-absolute bg-danger top-0 start-0">
+                        <p className="m-0 fs-8 poppins-semibold p-0 text-light">
+                          8.5
+                        </p>
+                      </div>
+
                       <Image
                         src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
                         data-src={`storage/public/uploads/opp/${o.cover_img}`}
@@ -177,12 +170,25 @@ const DisplayToolshed = ({ data }) => {
                       />
                     </div>
                     )} 
+
+                    <a onClick={(e) => {
+                        e.preventDefault()
+                        router.visit(`${pageLink(o.slug, o.id)}`, {
+                          preserveState: true,
+                          preserveScroll: true,
+                        })
+                      }}
+                      className="text-decoration-none text-darks" href={pageLink(o.slug, o.id)}>
+                      <h2 className="inline-block page-title text-dark p-0 poppins-semibold my-2 mx-0 fs-9">
+                        {truncateText(o.title, 30)}
+                      </h2>
+                    </a>
                     
-                    {o.continent_name && (
+                    {/* {o.continent_name && (
                       <div className="mb-2">
                         {convertToProperNoun(o.continent_name)}
                       </div>
-                    )}
+                    )} */}
                     
                     {/* <div className="overflow-hidden truncate d-none d-sm-block">
                       <p className="p-0 m-0 text-secondary d-block fs-8">
@@ -191,13 +197,9 @@ const DisplayToolshed = ({ data }) => {
                     </div> */}
                     
                     <div className="d-flex justify-content-end align-items-center">
-                      <div className="px-3">
-                        <p className="m-0 fs-8 poppins-semibold p-0">
-                          8.5
-                        </p>
-                      </div>
+                   
   
-                      <div className="content-btn-holder">
+                      {/* <div className="content-btn-holder">
                         <div className="position-relative">
                           <div className="position-absolute share-panel border rounded fs-8 d-none"></div>
                           <button 
@@ -211,7 +213,7 @@ const DisplayToolshed = ({ data }) => {
                             </span>
                           </button>
                         </div>
-                      </div>
+                      </div> */}
   
                       <div className="content-btn-holder">
                         <div className="position-relative">

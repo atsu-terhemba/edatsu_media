@@ -177,10 +177,12 @@ Route::middleware(['auth', Role::class . ':admin'])->group(function(){
     Route::get('/country', [CountryController::class, "country"])->name('admin.countries');
     Route::get('/edit-country/{id}', [CountryController::class, "editCountry"]);
     Route::post('/delete-country', [CountryController::class, "deleteCountry"]);
+    
     //handle products 
     Route::get('/post-product', [ProductController::class, 'show'])->name('admin.products');
     Route::get('/all-products', [ProductController::class, 'showProducts'])->name('admin.all_products');
-    Route::post('/admin-store-software-product', [ProductController::class, "store"]);
+    Route::post('/admin-store-product', [ProductController::class, "store"]);
+
     // Route::get('/post-types', [Opportunity::class, 'CreatePostTypes'])->name('admin.post-types');
     Route::get('/all-opp-post', [OpportunityController::class, 'showOpportunities'])->name('admin.all_opp_post');
     Route::get('/fetch-all-opp', [OpportunityController::class, 'fetchAllOpportunities']);

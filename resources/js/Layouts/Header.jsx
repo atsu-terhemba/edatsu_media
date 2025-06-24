@@ -39,7 +39,7 @@ return(
         </Nav.Item> */}
         <Nav.Item>
         <Link href={route('oppty')} className={`nav-link me-3 text-decoration-none ${ActiveLink('/opportunities')}`}> 
-        Opportunities
+        Opportunities <strong className="text-danger">*</strong>
         </Link>
         </Nav.Item>
         {/* <Nav.Item>
@@ -47,11 +47,11 @@ return(
             Money Guide
         </Link>
         </Nav.Item> */}
-        {/* <Nav.Item>
+        <Nav.Item>
         <Link href="/toolshed"  className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/toolshed')}`}>
             Toolshed
         </Link>
-        </Nav.Item> */}
+        </Nav.Item>
         {/* <Nav.Item>
         <Link href="toolshed" className="nav-link text-light me-3 text-decoration-none">
             Groups(FB)
