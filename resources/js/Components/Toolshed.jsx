@@ -13,7 +13,6 @@ const DisplayToolshed = ({ data }) => {
   const fallbackImageUrl = "img/logo/main_2.png"; 
 
   const handleImageError = (e) => {
-    // console.log(e);
     e.target.src = fallbackImageUrl;
   };
 

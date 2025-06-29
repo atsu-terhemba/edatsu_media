@@ -230,10 +230,6 @@ export default function CreateProduct({ edits, categories, brand_label, countrie
                                     <span className="d-block text-secondary mb-2 fs-9">Provide a link to learn more or apply for this opportunity</span>
                                     <Form.Control type="text" name="source_url" placeholder="Enter source url" value={formData.source_url} onChange={handleChange} />
                                 </Form.Group>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Link to Apply Directly</Form.Label>
-                                    <Form.Control type="text" name="direct_link" placeholder="Enter source url" value={formData.direct_link} onChange={handleChange} />
-                                </Form.Group>
                             </div>
                             }
 

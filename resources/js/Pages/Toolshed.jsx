@@ -39,7 +39,7 @@ const Toolshed = () => {
     const props = usePage().props;
 
     useEffect(() => {
-        axios.get('search-opportunities') // Fetch Opportunities
+        axios.get('search-products') // Fetch Opportunities
         .then(function (response) {
             setData(response.data?.data);
             setPagination(response.data?.links);
