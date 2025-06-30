@@ -100,16 +100,14 @@ private function buildBaseQuery($user_id)
     return Product::query()
         ->select([
             'products.id', 
-            'products.title', 
-            'products.deadline',
+            'products.product_name', 
             'products.slug',
-            'products.description',
+            'products.product_description',
             'products.cover_img',
             \DB::raw('GROUP_CONCAT(DISTINCT continents.name SEPARATOR ", ") as continent_name'),
             \DB::raw('CASE WHEN bookmarks.id IS NOT NULL AND bookmarks.removed != 1 THEN 1 ELSE 0 END as is_bookmarked')
         ])
         ->where('products.deleted', '!=', 1)
-        ->where('products.deadline', '>', Carbon::today())
         ->leftJoin('continent_selections', 'continent_selections.post_id', '=', 'products.id')
         ->leftJoin('continents', 'continents.id', '=', 'continent_selections.continent_id')
         ->leftJoin('bookmarks', function ($join) use ($user_id) {
@@ -119,10 +117,10 @@ private function buildBaseQuery($user_id)
         })
         ->groupBy([
             'products.id', 
-            'products.title', 
-            'products.deadline',
+            'products.product_name', 
+            // 'products.deadline',
             'products.slug',
-            'products.description',
+            'products.product_description',
             'products.cover_img',
             'bookmarks.id',
             'bookmarks.removed',
@@ -148,9 +146,9 @@ private function applySearchKeywordFilter($query, $searchKeyword)
     // Strategy 1: Full-text search
     $fullTextQuery = clone $query;
     $fullTextQuery->where(function ($q) use ($searchKeyword, $words) {
-        $q->whereRaw("MATCH(products.title, products.description) AGAINST(? IN BOOLEAN MODE)", [$searchKeyword . '*']);
+        $q->whereRaw("MATCH(products.product_name, products.product_description) AGAINST(? IN BOOLEAN MODE)", [$searchKeyword . '*']);
         foreach ($words as $word) {
-            $q->orWhereRaw("MATCH(products.title, products.description) AGAINST(? IN BOOLEAN MODE)", [$word . '*']);
+            $q->orWhereRaw("MATCH(products.product_name, products.product_description) AGAINST(? IN BOOLEAN MODE)", [$word . '*']);
         }
     });
     
@@ -163,12 +161,12 @@ private function applySearchKeywordFilter($query, $searchKeyword)
     // Strategy 2: LIKE search
     $likeQuery = clone $query;
     $likeQuery->where(function ($q) use ($searchKeyword, $words) {
-        $q->where('products.title', 'LIKE', "%$searchKeyword%")
-          ->orWhere('products.description', 'LIKE', "%$searchKeyword%");
+        $q->where('products.product_name', 'LIKE', "%$searchKeyword%")
+          ->orWhere('products.product_description', 'LIKE', "%$searchKeyword%");
           
         foreach ($words as $word) {
-            $q->orWhere('products.title', 'LIKE', "%$word%")
-              ->orWhere('products.description', 'LIKE', "%$word%");
+            $q->orWhere('products.product_name', 'LIKE', "%$word%")
+              ->orWhere('products.product_description', 'LIKE', "%$word%");
         }
     });
     
@@ -181,12 +179,12 @@ private function applySearchKeywordFilter($query, $searchKeyword)
     // Strategy 3: SOUNDEX search
     $soundexQuery = clone $query;
     $soundexQuery->where(function ($q) use ($searchKeyword, $words) {
-        $q->whereRaw('SOUNDEX(products.title) = SOUNDEX(?)', [$searchKeyword])
-          ->orWhereRaw('SOUNDEX(products.description) = SOUNDEX(?)', [$searchKeyword]);
+        $q->whereRaw('SOUNDEX(products.product_name) = SOUNDEX(?)', [$searchKeyword])
+          ->orWhereRaw('SOUNDEX(products.product_description) = SOUNDEX(?)', [$searchKeyword]);
           
         foreach ($words as $word) {
-            $q->orWhereRaw('SOUNDEX(products.title) = SOUNDEX(?)', [$word])
-              ->orWhereRaw('SOUNDEX(products.description) = SOUNDEX(?)', [$word]);
+            $q->orWhereRaw('SOUNDEX(products.product_name) = SOUNDEX(?)', [$word])
+              ->orWhereRaw('SOUNDEX(products.product_description) = SOUNDEX(?)', [$word]);
         }
     });
     
@@ -280,12 +278,12 @@ private function applyDateFilters($query, $filters)
     }
     
     // Apply program status filter
-    if ($filters['program_status'] === 'on_going') {
-        $query->whereDate('products.deadline', '>=', now());
-    } elseif ($filters['program_status'] === 'up_coming') {
-        $query->whereDate('products.deadline', '>', now())
-              ->orderBy('products.deadline', 'asc');
-    }
+    // if ($filters['program_status'] === 'on_going') {
+    //     $query->whereDate('products.deadline', '>=', now());
+    // } elseif ($filters['program_status'] === 'up_coming') {
+    //     $query->whereDate('products.deadline', '>', now())
+    //           ->orderBy('products.deadline', 'asc');
+    // }
     
     // Apply date posted filter
     if (!empty($filters['date_posted'])) {
@@ -445,6 +443,8 @@ private function applyDateFilters($query, $filters)
     
 function store(Request $request)
 {
+
+    //return response()->json($request);
     
     // Define custom validation rules...
     $rules = [
@@ -537,7 +537,7 @@ function store(Request $request)
                 $insertData[] = [
                     'user_id' => $request->user()->id,
                     'post_id' => $postId,
-                    $columnName => $id, // Use 'id' from the new format
+                    $columnName => $id, // for column id Use 'id' from the new format
                     'post_type' => 'products',
                     'created_at' => now(),
                     'updated_at' => now(),

@@ -162,7 +162,7 @@ const DisplayToolshed = ({ data }) => {
                         src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
                         data-src={`storage/public/uploads/opp/${o.cover_img}`}
                         data-id={imageId}
-                        alt={`Cover image for ${o.title}`}
+                        alt={`Cover image for ${o.product_name}`}
                         className="img-fluid w-100 h-100 object-fit-cover lazy-load rounded border"
                         onError={handleImageError}
                         onLoad={handleImageLoad(imageId, o.cover_img)}
@@ -179,7 +179,7 @@ const DisplayToolshed = ({ data }) => {
                       }}
                       className="text-decoration-none text-darks" href={pageLink(o.slug, o.id)}>
                       <h2 className="inline-block page-title text-dark p-0 poppins-semibold my-2 mx-0 fs-9">
-                        {truncateText(o.title, 30)}
+                        {truncateText(o.product_name, 30)}
                       </h2>
                     </a>
                     
@@ -219,7 +219,7 @@ const DisplayToolshed = ({ data }) => {
                           <div className="position-absolute share-panel border rounded fs-8 d-none"></div>
                           <button 
                             className="btn" 
-                            data-title={o.title} 
+                            data-title={o.product_name} 
                             data-id={o.id} 
                             onClick={(e) => toggleShare(e.currentTarget)}
                           >
@@ -234,9 +234,9 @@ const DisplayToolshed = ({ data }) => {
                         <button 
                           className="btn"
                           data-id={o.id}
-                          data-title={o.title}
+                          data-title={o.product_name}
                           data-type="oppo-type"
-                          data-url={pageLink(o.title, o.id)}
+                          data-url={pageLink(o.product_name, o.id)}
                           onClick={(e) => bookmark(e.currentTarget)}
                         >
                           <div>
