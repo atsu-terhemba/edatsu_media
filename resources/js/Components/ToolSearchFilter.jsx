@@ -3,7 +3,7 @@ import Select from 'react-select'
 import ClickEffectButton from './ClickEffectButton';
 
 
-const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_data, setFilterData, categories, continents, countries, brands, initSearch}) => {
+const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_data, setFilterData, categories, continents, countries, brands, initSearch}) => {
     
     const [isFilterVisible, setIsFilterVisible] = useState(false);
     const [categoryOptions, setCategoryOptions] = useState('');
@@ -254,4 +254,4 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
     );
 };
 
-export default ToolSearchFilter;
+export default ToolshedFilter;
