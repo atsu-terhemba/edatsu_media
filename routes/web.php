@@ -46,6 +46,7 @@ Route::get('/clean', function() {
     Artisan::call('storage:link');
     dd('CACHE-CLEARED, VIEW-CLEARED, ROUTE-CLEARED & CONFIG-CACHED SUCCESSFUL!');
 });
+
 Route::get('/', function () {
     return redirect()->intended(route('oppty', absolute: false));
 });
@@ -120,9 +121,8 @@ Route::post('/upvote-post', [PostController::class, 'upvote']);
 Route::get('/report/{id}',  [PostController::class, 'report']);
 /**admin routes */
 Route::middleware(['auth', Role::class . ':admin'])->group(function(){
-    //generic routes
+    //generic routes...
     Route::get('/admin-dashboard', [Dashboard::class, "accessControl"])->name('admin.dashboard');
-    
     Route::get('/all-users', [Dashboard::class, "allUsers"])->name('admin.users');
     Route::get('/categories', [CategoryController::class, "categories"])->name('admin.categories');
     Route::get('/product-categories', [ProductCategoryController::class, "ProductCategory"])->name('admin.product_categories');
@@ -130,39 +130,47 @@ Route::middleware(['auth', Role::class . ':admin'])->group(function(){
     Route::get('/product-pricing', [ProductPricingController::class, "ProductPricing"])->name('admin.product_pricing');
     Route::get('/brand-labels', [BrandLabelController::class, "brandLabels"])->name('admin.brand-labels');
     Route::get('/tags', [TagController::class, "tags"])->name('admin.tags');
-    //handle event
+
+    //handle events...
     Route::get('/admin-post-event', [Event::class, "show"])->name('admin.ev');
     Route::get('/admin-edit-event/{id}', [Event::class, "edit"])->name('admin.edit.ev');
     Route::post('/admin-update-event/{id}', [Event::class, "update"])->name('admin.update.ev');
     Route::post('/admin-store-event', [Event::class, "store"])->name('admin.store.ev');
     Route::get('/admin-delete-event/{id}', [Event::class, "delete"])->name('admin.delete.ev');
+
     //post categories
     Route::post('/admin-store-category', [CategoryController::class, 'store']);
     Route::get('/categories', [CategoryController::class, "categories"])->name('admin.categories');
     Route::get('/edit-category/{id}', [CategoryController::class, "editCategory"]);
     Route::post('/delete-category', [CategoryController::class, "deleteCategory"]);
+
     //product category
     Route::post('/admin-store-product-category', [ProductCategoryController::class, 'store']);
     Route::get('/edit-product-category/{id}', [ProductCategoryController::class, "editProductCategory"]);
     Route::post('/delete-product-category', [ProductCategoryController::class, "deleteProductCategory"]);
+
     //post functionality
     Route::post('/admin-store-product-functionality', [ProductFunctionalityController::class, 'store']);
     Route::get('/edit-product-functionality/{id}', [ProductFunctionalityController::class, "editProductFunctionality"]);
     Route::post('/delete-product-functionality', [ProductFunctionalityController::class, "deleteProductFunctionality"]);
+    
     //post pricing
     Route::post('/admin-store-product-pricing', [ProductPricingController::class, 'store']);
     Route::get('/edit-product-pricing/{id}', [ProductPricingController::class, "editProductPricing"]);
     Route::post('/delete-product-pricing', [ProductPricingController::class, "deleteProductPricing"]);
+    
     //post Tags
     Route::post('/admin-store-tag', [TagController::class, 'store']);
     Route::get('/tags', [TagController::class, "tags"])->name('admin.tag');
     Route::get('/edit-tag/{id}', [TagController::class, "editTag"]);
     Route::post('/delete-tag', [TagController::class, "deleteTag"]);
+    
     //post Brand Label
     Route::post('/admin-store-label', [BrandLabelController::class, 'store']);
     Route::get('/label', [BrandLabelController::class, "label"])->name('admin.label');
     Route::get('/edit-label/{id}', [BrandLabelController::class, "editLabel"]);
     Route::post('/delete-label', [BrandLabelController::class, "deleteLabel"]);
+    
     //post Brand Region
     Route::post('/admin-store-region', [RegionController::class, 'store']);
     Route::get('/regions', [RegionController::class, "regions"])->name('admin.regions');
@@ -182,7 +190,7 @@ Route::middleware(['auth', Role::class . ':admin'])->group(function(){
     Route::get('/all-products', [ProductController::class, 'showProducts'])->name('admin.all_products');
     Route::post('/admin-store-software-product', [ProductController::class, "store"]);
     // Route::get('/post-types', [Opportunity::class, 'CreatePostTypes'])->name('admin.post-types');
-    Route::get('/all-opp-post', [OpportunityController::class, 'showOpportunities'])->name('admin.all_opp_post');
+    Route::get('/all-opp-post',  [OpportunityController::class, 'showOpportunities'])->name('admin.all_opp_post');
     Route::get('/fetch-all-opp', [OpportunityController::class, 'fetchAllOpportunities']);
     // Route::get('/post-types', [Opportunity::class, 'CreatePostTypes'])->name('admin.post-types');
     // Route::get('/post-types', [Opportunity::class, 'CreatePostTypes'])->name('admin.post-types');
