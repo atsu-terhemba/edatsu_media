@@ -14,6 +14,7 @@ import ThreadLoader from '@/Components/TheadLoader';
 import { useRef } from 'react';
 import FilterLabels from '@/Components/FilterSearchLabels';
 import FeedbackPanel from '@/Components/FeedbackInfo';
+import ToolshedFilter from '@/Components/ToolSearchFilter'
 
 const DisplayToolshed = React.lazy(() => import('@/Components/Toolshed'));
 
@@ -21,7 +22,7 @@ const Toolshed = () => {
     const paginationContainerRef = useRef(null);
     const [data, setData] = useState([]); // Set Data
     const [pagination, setPagination] = useState([]);
-    const [rootURL, setRootURL] = useState("search-opportunities");
+    const [rootURL, setRootURL] = useState("search-products");
     const [search_keyword, setSearchKeyword] = useState('');
     const [isloading, setIsLoading] = useState('');
 
@@ -39,7 +40,7 @@ const Toolshed = () => {
     const props = usePage().props;
 
     useEffect(() => {
-        axios.get('search-opportunities') // Fetch Opportunities
+        axios.get('search-products') // Fetch Opportunities
         .then(function (response) {
             setData(response.data?.data);
             setPagination(response.data?.links);
@@ -125,7 +126,7 @@ const Toolshed = () => {
             <Row>
                 <Col sm={3} xs={12}>
                 <div className='mt-3'>
-                        <OppSearchFilter
+                        <ToolshedFilter
                         isloading={isloading}
                         filter_data={filter_data}
                         search_keyword={search_keyword}

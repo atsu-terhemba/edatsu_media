@@ -1,38 +1,91 @@
-import React, { useState } from 'react';
-import ToolSearchFilter from '@/Components/ToolSearchFilter';
+import React, { useEffect, useState } from 'react';
+import Select from 'react-select'
+import ClickEffectButton from './ClickEffectButton';
 
-const OppSearchFilter = ({ categories, continents, countries }) => {
+
+const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_data, setFilterData, categories, continents, countries, brands, initSearch}) => {
+    
     const [isFilterVisible, setIsFilterVisible] = useState(false);
-    const [searchKeyword, setSearchKeyword] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState('');
-    const [selectedContinent, setSelectedContinent] = useState('');
-    const [selectedCountry, setSelectedCountry] = useState('');
-    const [datePosted, setDatePosted] = useState('');
-    const [selectedMonth, setSelectedMonth] = useState('');
-    const [selectedYear, setSelectedYear] = useState('');
+    const [categoryOptions, setCategoryOptions] = useState('');
+    const [continentOptions, setContinentOptions] = useState('');
+    const [countryOptions, setCountryOptions] = useState('');
+    const [brandOptions, setBrandOptions] = useState('');   
+
+    function setStateFromData(data, setOptions){
+        if (data) {
+            const options = data.map((item) => ({
+                value: item.id,
+                label: item.name,
+            }));
+            setOptions(options);
+        }
+    }
+
+    useEffect(() => {
+        setStateFromData(categories, setCategoryOptions);
+        setStateFromData(continents, setContinentOptions);
+        setStateFromData(countries, setCountryOptions);
+        setStateFromData(brands, setBrandOptions);
+    }, []);
+
+     const programStatus = [
+        { value: 'up_coming', label: 'Earliest Deadline' }
+      ];
+
+      const monthOptions = [
+        { value: 'january', label: 'January' },
+        { value: 'february', label: 'February' },
+        { value: 'march', label: 'March' },
+        { value: 'april', label: 'April' },
+        { value: 'may', label: 'May' },
+        { value: 'june', label: 'June' },
+        { value: 'july', label: 'July' },
+        { value: 'august', label: 'August' },
+        { value: 'september', label: 'September' },
+        { value: 'october', label: 'October' },
+        { value: 'november', label: 'November' },
+        { value: 'december', label: 'December' }
+      ];
+
+      const dateOptions = [
+        { value: 'one_day', label: '24 hours Ago' },
+        { value: 'one_week', label: '1 Week Ago' },
+        { value: 'two_weeks', label: '2 Weeks Ago' },
+        { value: 'one_month', label: '1 Month Ago' }
+      ];
+
+    const yearOptions = [
+        ...Array.from({ length: 6 }, (_, i) => {
+            const year = new Date().getFullYear() + i;
+            return { value: year.toString(), label: year.toString() };
+        })
+    ];
 
     const toggleFilterPanel = () => {
         setIsFilterVisible(!isFilterVisible);
     };
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        // Handle form submission
-        console.log({
-            searchKeyword,
-            selectedCategory,
-            selectedContinent,
-            selectedCountry,
-            datePosted,
-            selectedMonth,
-            selectedYear
+    /**update selection**/
+    function updateSelection( selectedOption, fieldName){
+        if (selectedOption) {
+            setFilterData((prevData) => (
+                { ...prevData, [fieldName]: selectedOption }
+            ));
+        }
+    }
+
+    function updateInput(e){
+        e.preventDefault();
+        const {name, value} = e.target;
+        setSearchKeyword((prevData)=>{
+            return value
         });
-    };
+    }
 
     return (
-        <form onSubmit={handleSubmit} id="search_keyword">
+        <form onSubmit={initSearch} id="search_keyword">
             <div className="row">
-                <div className="col-sm-9 col-12">
+                <div className="col-sm-12 col-12">
                     <div className='mb-3'>
                         <input
                             type='text'
@@ -40,25 +93,30 @@ const OppSearchFilter = ({ categories, continents, countries }) => {
                             name="search_keyword"
                             placeholder="Search Keywords"
                             id="keyword"
-                            value={searchKeyword}
-                            onChange={(e) => setSearchKeyword(e.target.value)}
+                            value={search_keyword}
+                            onChange={(e) => updateInput(e)}
                         />
                     </div>
                 </div>
-                <div className="col-sm-3 col-12">
+                <div className="col-sm-12 col-12">
                     <div className='mb-3'>
-                        <button type="submit" className="text-decoration-none poppins-semibold btn btn-dark border-0 px-4 py-3 shadow-sm w-100">Search</button>
+                        <ClickEffectButton id="search-btn" 
+                        type="submit"
+                        className='w-100 h-50 bg-dark border-0 h-50 py-3' 
+                        onClick={initSearch}>
+                        {isloading == 'search-btn' ? 'Searching..' : 'Search'}
+                        </ClickEffectButton>
                     </div>
                 </div>
             </div>
 
-            <div className="py-3 px-3 border bg-white rounded d-flex justify-content-between mb-3">
+            <div className="py-3 px-3 border bg-white rounded d-flex justify-content-between">
                 <div>
                     <span className="material-symbols-outlined align-middle">
                         filter_alt
                     </span>
                     <span className="fs-9 text-dark px-3">
-                        Use filters to improve search
+                        Search filters
                     </span>
                 </div>
                 <span
@@ -72,124 +130,128 @@ const OppSearchFilter = ({ categories, continents, countries }) => {
             </div>
 
             {isFilterVisible && (
-                <div id="filter-panel" className="bg-white border rounded px-3 py-3 mb-3">
+                <div id="filter-panel" className="bg-white border rounded px-3 py-3 my-3">
                     <div className="row">
-                        <div className="col-sm-6">
-                            <select
-                                className="form-select py-3 mb-3 text-secondary fs-9"
-                                id="event_status"
-                                name="event_status"
-                                value={datePosted}
-                                onChange={(e) => setDatePosted(e.target.value)}
-                            >
-                                <option value="">All Opportunities</option>
-                                <option value="up_coming">Earliest Deadline</option>
-                            </select>
+                        <div className="col-sm-12">
+                            {/* <label className='poppins-semibold fs-9 mb-2'>Program Status</label> */}
+                            <Select
+                                placeholder="Select Program Status"
+                                value={filter_data?.program_status}
+                                name="program_status"
+                                options={programStatus}
+                                className="fs-9 mb-3"
+                                classNamePrefix="Select"
+                                onChange={(e) => updateSelection(e, 'program_status')}
+                            />
                         </div>
-                        <div className="col-sm-6">
-                            <select
-                                className="form-select py-3 mb-3 text-secondary fs-9"
-                                id="category"
-                                value={selectedCategory}
-                                onChange={(e) => setSelectedCategory(e.target.value)}
-                            >
-                                <option value="">Select Category</option>
-                                {categories.map(cat => (
-                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                ))}
-                            </select>
+                        <div className="col-sm-12">
+                            {/* <label className='poppins-semibold fs-9 mb-2'>Categories</label> */}
+                            <Select
+                                isMulti
+                                placeholder="Select Categories"
+                                value={filter_data?.categories}
+                                name="categories"
+                                options={categoryOptions}
+                                className="fs-9 mb-3"
+                                classNamePrefix="select"
+                                onChange={(e) => updateSelection(e, 'categories')}
+                            />
                         </div>
                     </div>
 
                     <div className="row">
-                        <div className="col-sm-6">
-                            <select
-                                className="form-select py-3 mb-3 text-secondary fs-9"
-                                id="continent"
-                                value={selectedContinent}
-                                onChange={(e) => setSelectedContinent(e.target.value)}
-                            >
-                                <option value="">Select Continent</option>
-                                {continents.map(cont => (
-                                    <option key={cont.id} value={cont.id}>{cont.name}</option>
-                                ))}
-                            </select>
+                        <div className="col-sm-12">
+                            {/* <label className='poppins-semibold fs-9 mb-2'>Continents</label> */}
+                            <Select
+                                isMulti
+                                placeholder="Select Continents"
+                                value={filter_data?.continents}
+                                name="continents"
+                                options={continentOptions}
+                                className="fs-9 mb-3"
+                                classNamePrefix="select"
+                                onChange={(e) => updateSelection(e, 'continents')}
+                            />
                         </div>
-                        <div className="col-sm-6">
-                            <select
-                                className="form-select py-3 mb-3 text-secondary fs-9"
-                                id="country"
-                                value={selectedCountry}
-                                onChange={(e) => setSelectedCountry(e.target.value)}
-                            >
-                                <option value="">Select Country</option>
-                                {countries.map(count => (
-                                    <option key={count.id} value={count.id}>{count.name}</option>
-                                ))}
-                            </select>
+                        <div className="col-sm-12">
+                            {/* <label className='poppins-semibold fs-9 mb-2'>Countries</label> */}
+                            <Select
+                                isMulti
+                                value={filter_data?.countries}
+                                placeholder="Select Countries"
+                                name="countries"
+                                options={countryOptions}
+                                className="fs-9 mb-3"
+                                classNamePrefix="select"
+                                onChange={(e) => updateSelection(e, 'countries')}
+                            />
                         </div>
                     </div>
 
                     <div className="row">
-                        <div className="col-sm-6">
-                            <select
-                                className="form-select py-3 mb-3 text-secondary fs-9"
-                                id="date_posted"
-                                name="date_posted"
-                                value={datePosted}
-                                onChange={(e) => setDatePosted(e.target.value)}
-                            >
-                                <option value="">Date Posted</option>
-                                <option value="one_day">24 hours Ago</option>
-                                <option value="one_week">1 Week Ago</option>
-                                <option value="two_weeks">2 Weeks Ago</option>
-                                <option value="one_month">1 Month Ago</option>
-                            </select>
+                        <div className="col-sm-12">
+                                {/* <label className='poppins-semibold fs-9 mb-2'>Brands</label> */}
+                                <Select
+                                isMulti
+                                value={filter_data?.brands}
+                                placeholder="Select Brands"
+                                name="brands"
+                                options={brandOptions}
+                                className="fs-9 mb-3"
+                                classNamePrefix="select"
+                                onChange={(e) => updateSelection(e, 'brands')}
+                            />
                         </div>
-                        <div className="col-sm-6">
-                            <select
-                                className="form-select py-3 mb-3 text-secondary fs-9"
+                        <div className="col-sm-12">
+                            {/* <label className='poppins-semibold fs-9 mb-2'>Published</label> */}
+                            <Select
+                                value={filter_data?.datePosted}
+                                placeholder="Date Posted"
+                                name="datePosted"
+                                options={dateOptions}
+                                className="fs-9 mb-3"
+                                classNamePrefix="select"
+                                onChange={(e) => updateSelection(e, 'datePosted')}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="row">
+                        <div className="col-sm-12">
+                            {/* <label className='poppins-semibold fs-9 mb-2'>Month</label> */}
+                            <Select
+                                value={filter_data?.month}
+                                placeholder="Select Month"
                                 name="month"
-                                value={selectedMonth}
-                                onChange={(e) => setSelectedMonth(e.target.value)}
-                            >
-                                <option value="">Select Month</option>
-                                <option value="january">January</option>
-                                <option value="february">February</option>
-                                <option value="march">March</option>
-                                <option value="april">April</option>
-                                <option value="may">May</option>
-                                <option value="june">June</option>
-                                <option value="july">July</option>
-                                <option value="august">August</option>
-                                <option value="september">September</option>
-                                <option value="october">October</option>
-                                <option value="november">November</option>
-                                <option value="december">December</option>
-                            </select>
+                                options={monthOptions}
+                                className="fs-9 mb-3"
+                                classNamePrefix="select"
+                                onChange={(e) => updateSelection(e, 'month')}
+                            />
                         </div>
-                    </div>
-
-                    <div className="row">
-                        <div className="col-sm-6">
-                            <select
-                                className="form-select py-3 mb-3 text-secondary fs-9"
+                        <div className="col-sm-12">
+                            {/* <label className='poppins-semibold fs-9 mb-2'>Year</label> */}
+                            <Select
+                                value={filter_data?.year}
+                                placeholder="Select Year"
                                 name="year"
-                                value={selectedYear}
-                                onChange={(e) => setSelectedYear(e.target.value)}
-                            >
-                                <option value="">Year</option>
-                                {Array.from({ length: 6 }, (_, i) => new Date().getFullYear() + i).map(year => (
-                                    <option key={year} value={year}>{year}</option>
-                                ))}
-                            </select>
+                                options={yearOptions}
+                                className="fs-9 mb-3"
+                                classNamePrefix="select"
+                                onChange={(e) => updateSelection(e, 'year')}
+                            />
                         </div>
                     </div>
-                    <button type="submit" className="text-decoration-none btn btn-dark border-0 px-4 py-3 shadow-sm w-100 poppins-semibold">Filter</button>
+                    <ClickEffectButton id="filter-btn" 
+                    type="submit"
+                    className='w-100 h-50 bg-dark border-0 h-50 py-3' 
+                    onClick={initSearch}>
+                    {isloading == 'filter-btn' ? 'Filtering...' : 'Filter'}
+                    </ClickEffectButton>
                 </div>
             )}
         </form>
     );
 };
 
-export default OppSearchFilter;
+export default ToolshedFilter;

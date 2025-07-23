@@ -30,7 +30,6 @@ const Opportunities = () => {
     const [isloading, setIsLoading] = useState('');
     const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
 
-    
     // Add missing pagination state variables
     const [currentPage, setCurrentPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
@@ -185,7 +184,7 @@ const Opportunities = () => {
             />
             <Container>
                 <Row>
-                    <Col sm={3} xs={12}>
+                    <Col sm={4} xs={12}>
                         <div  className={`${isMobileSearchVisible?   'mobile-fixed-toggle' : 'mt-3 d-none d-sm-block'}`} 
   id="searchBar">
                             <OppSearchFilter
@@ -210,7 +209,7 @@ const Opportunities = () => {
                             </ul>
                         </div>
                     </Col>
-                    <Col sm={6} xs={12}>
+                    <Col sm={8} xs={12}>
                         <div className='my-3'>
                             <FeedbackPanel />
                         </div>
@@ -248,8 +247,8 @@ const Opportunities = () => {
                             </div>
                         </div>
                     </Col>
-                    <Col sm={3} xs={12}>
-                        <a 
+                    {/* <Col sm={3} xs={12}> */}
+                        {/* <a 
                             href="https://t.me/+66AGIA3g2dwzMjc0" 
                             target="_blank"
                             style={{ color: "#249fda" }} 
@@ -270,7 +269,7 @@ const Opportunities = () => {
                                     </p>
                                 </div>
                             </div>
-                        </a>
+                        </a> */}
 
                         {/* Custom Ads */}
                         {/* <div className="border rounded px-3 py-3 my-3">
@@ -294,14 +293,14 @@ const Opportunities = () => {
                             </div>
                         </div> */}
 
-                        <div className="my-3">
+                        {/* <div className="my-3">
                             <GoogleAdsense/>
-                        </div>
+                        </div> */}
 
                         {/* <div className='my-3'>
                             <MailchimpSubscriptionForm />
                         </div> */}
-                    </Col>
+                    {/* </Col> */}
                 </Row>
             </Container>
             <FixedMobileNav isAuthenticated={(props.auth.user)? true : false} toggleSearch={toggleSearch} />
