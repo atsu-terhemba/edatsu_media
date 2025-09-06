@@ -8,8 +8,6 @@ use Illuminate\Http\Request;
 
 class ProductCategoryController extends Controller
 {
-    //
-
     //edit category
     public function editProductCategory(Request $request, $id){
         $edits = ProductCategory::where('id', $id)->first();

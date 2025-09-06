@@ -4,63 +4,55 @@ import { Link } from "@inertiajs/react";
 import { useEffect } from "react";
 import { truncateText, ActiveLink } from "@/utils/Index";
 import { Images } from "@/utils/Images";
+import { Moon, Sun } from 'lucide-react';
 
 
-export default function Header({auth}){
+export default function Header({auth, isDarkMode, toggleDarkMode}){
 
 return(
 <Fragment>
-<Navbar expand="lg" className="header border-0 custom-title align-middle"  bg="dark" variant="dark">
-<Container className="align-middle">
+<Navbar expand="lg" className="header border-0 custom-title align-middle" bg="dark" variant="dark">
+<Container fluid={true} className="align-middle">
 {/* Logo */}
-<Link href="/">
+<Link href={route('home')}>
     <Image src={Images.app_logo_trans} width={50} className="img-fluid" alt="logo" />
 </Link>
 {/* Navbar Collapse */}
 <Navbar.Collapse id="navbarSupportedContent">
     <div className="d-flex justify-content-between w-100">
-    <form class="d-flex" role="search">
+    <form className="d-flex" role="search">
     </form>
     <Nav className="m-0 p-0 d-flex align-items-center fs-9">
-        {/* <Nav.Item>
-            <Button className="btn bg-transparent border-0 me-3" onClick={toggleMode}>
-                <span className="material-symbols-outlined align-middle">search</span>
-            </Button>
-        </Nav.Item> */}
-        {/* <Nav.Item>
-        <Link href="toolshed" className="nav-link text-light me-3 text-decoration-none">
-            Pricing
-        </Link>
-        </Nav.Item> */}
-        {/* <Nav.Item>
-        <Link href="news" className="nav-link text-light me-3 text-decoration-none">
-        News
-        </Link>
-        </Nav.Item> */}
         <Nav.Item>
         <Link href={route('oppty')} className={`nav-link me-3 text-decoration-none ${ActiveLink('/opportunities')}`}> 
-        Opportunities <strong className="text-danger">*</strong>
+        Opportunities
         </Link>
         </Nav.Item>
-        {/* <Nav.Item>
-        <Link href="/money-guide"  className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/money-guide')}`}>
-            Money Guide
-        </Link>
-        </Nav.Item> */}
         <Nav.Item>
         <Link href={route('toolshed')}  className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/toolshed')}`}>
-            Toolshed
+        Toolshed
         </Link>
         </Nav.Item>
-        {/* <Nav.Item>
-        <Link href="toolshed" className="nav-link text-light me-3 text-decoration-none">
-            Groups(FB)
+        <Nav.Item>
+        <Link href={route('subscription')} className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/subscription')}`}>
+         Pricing
         </Link>
-        </Nav.Item> */}
+        </Nav.Item>
+        
         {/* Dark Mode Toggle */}
-        {/* <Button className="btn bg-transparent border-0 me-3" onClick={toggleMode}>
-        <span className="material-symbols-outlined align-middle">dark_mode</span>
-        </Button> */}
+        <Nav.Item>
+            <Button 
+                className="btn bg-transparent border-0 me-3" 
+                onClick={toggleDarkMode}
+                title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+                {isDarkMode ? 
+                    <Sun size={20} color="white" /> : 
+                    <Moon size={20} color="white" />
+                }
+            </Button>
+        </Nav.Item>
+        
         {/* User Authenticated */}
         {(auth?.id)?
          <>
@@ -75,9 +67,6 @@ return(
             </NavDropdown.Item>
             }
 
-            {/* <NavDropdown.Item as={Link} href={route('profile.edit')} className="fs-9">
-                Settings
-            </NavDropdown.Item> */}
             <NavDropdown.Item as={Link} method="post" href={route('logout')} className="fs-9" >
                 Logout
             </NavDropdown.Item>

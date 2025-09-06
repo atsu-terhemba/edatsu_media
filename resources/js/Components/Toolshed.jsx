@@ -1,18 +1,18 @@
 import React, { useEffect, useCallback, useMemo, useState, Suspense } from "react";
-import { Image } from "react-bootstrap";
+import { Image, Card, Badge } from "react-bootstrap";
 import axios from "axios";
 import Swal from 'sweetalert2';
 import { Link } from "@inertiajs/react";
-import { getDaysLeft,  toggleShare, createSharingLinks, bookmark, pageLink } from "@/utils/Index";
-import { router } from '@inertiajs/react'
+import { getDaysLeft, toggleShare, createSharingLinks, bookmark, pageLink } from "@/utils/Index";
+import { router } from '@inertiajs/react';
+import { ArrowRight, Star } from 'lucide-react';
 
 const DisplayToolshed = ({ data }) => {
   const [loadedImages, setLoadedImages] = useState({});
+  const [showLabels, setShowLabels] = useState(false);
 
   // Fallback image URL - replace with your actual fallback image
-  const fallbackImageUrl = "img/logo/main_2.png"; 
-
-  const handleImageError = (e) => {
+  const fallbackImageUrl = "img/logo/main_2.png";  const handleImageError = (e) => {
     e.target.src = fallbackImageUrl;
   };
 
@@ -136,124 +136,231 @@ const DisplayToolshed = ({ data }) => {
 
 
   return (
-    <div className="" id="results-container">
-      <div className="row">
-        {data?.map((o, index) => {
-          const hasImage = o.cover_img && isValidImage(o.cover_img);
-          const imageCol = hasImage ? 'col-sm-3 col-6' : '';
-          const bodyCol = hasImage ? 'col-sm-3 bg-danger col-6' : 'col-sm-3 col-6';
-          const imageId = `img-${o.id || index}`;
-          
-          return (
-            <div key={o.id || index} className="col-sm-3 col-6 mb-4">
-              <div className="item-container">
+    <div>
+      {/* Toggle Labels Button */}
+      <div className="d-flex justify-content-end mb-3">
+        <button 
+          className="btn btn-outline-secondary btn-sm"
+          onClick={() => setShowLabels(!showLabels)}
+          style={{
+            borderRadius: '8px',
+            transition: 'all 0.3s ease'
+          }}
+        >
+          <span className="material-symbols-outlined me-2" style={{ fontSize: '16px' }}>
+            {showLabels ? 'visibility_off' : 'visibility'}
+          </span>
+          {showLabels ? 'Hide Labels' : 'Show Labels'}
+        </button>
+      </div>
 
-                <div className="content-container">
-                  <div className="py-3">
-                    {hasImage && (
-                    <div className="image-container position-relative">
-                         <div className="px-3 position-absolute bg-danger top-0 start-0">
-                        <p className="m-0 fs-8 poppins-semibold p-0 text-light">
-                          8.5
-                        </p>
-                      </div>
-
+      <div className="row g-4">
+      {data?.map((tool, index) => {
+        const hasImage = tool.cover_img && isValidImage(tool.cover_img);
+        const imageId = `img-${tool.id || index}`;
+        // Add trending logic - for demo, make first tool trending
+        const isTrending = index === 0 || tool.is_trending;
+        
+        return (
+          <div key={tool.id || index} className="col-md-6 col-lg-4">
+            <Card className="h-100 border-0 shadow-sm position-relative tool-card" style={{ transition: 'transform 0.2s' }}>
+              {/* Trending Badge */}
+              {isTrending && (
+                <Badge 
+                  className="position-absolute top-0 start-50 translate-middle-x mt-3"
+                  style={{ 
+                    backgroundColor: '#007bff',
+                    fontSize: '0.75rem',
+                    fontWeight: '600',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '20px',
+                    zIndex: 2
+                  }}
+                >
+                  🔥 Trending
+                </Badge>
+              )}
+              
+              <Card.Body className="p-4 d-flex flex-column" style={{ height: '400px' }}>
+                <div className="mb-3">
+                  {hasImage ? (
+                    <div 
+                      className="rounded d-inline-flex align-items-center justify-content-center mb-3"
+                      style={{ 
+                        width: '60px', 
+                        height: '60px',
+                        overflow: 'hidden'
+                      }}
+                    >
                       <Image
                         src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
-                        data-src={`storage/public/uploads/opp/${o.cover_img}`}
+                        data-src={`storage/public/uploads/prod/${tool.cover_img}`}
                         data-id={imageId}
-                        alt={`Cover image for ${o.product_name}`}
-                        className="img-fluid w-100 h-100 object-fit-cover lazy-load rounded border"
+                        alt={`Cover image for ${tool.product_name}`}
+                        className="img-fluid w-100 h-100 object-fit-cover lazy-load rounded"
                         onError={handleImageError}
-                        onLoad={handleImageLoad(imageId, o.cover_img)}
+                        onLoad={handleImageLoad(imageId, tool.cover_img)}
+                        style={{ backgroundColor: '#f8f9fa' }}
                       />
                     </div>
-                    )} 
-
-                    <a onClick={(e) => {
-                        e.preventDefault()
-                        router.visit(`${pageLink(o.slug, o.id)}`, {
-                          preserveState: true,
-                          preserveScroll: true,
-                        })
+                  ) : (
+                    <div 
+                      className="rounded d-inline-flex align-items-center justify-content-center mb-3"
+                      style={{ 
+                        width: '60px', 
+                        height: '60px', 
+                        backgroundColor: '#3b82f6' + '20',
+                        fontSize: '24px'
                       }}
-                      className="text-decoration-none text-darks" href={pageLink(o.slug, o.id)}>
-                      <h2 className="inline-block page-title text-dark p-0 poppins-semibold my-2 mx-0 fs-9">
-                        {truncateText(o.product_name, 30)}
-                      </h2>
-                    </a>
-                    
-                    {/* {o.continent_name && (
-                      <div className="mb-2">
-                        {convertToProperNoun(o.continent_name)}
-                      </div>
-                    )} */}
-                    
-                    {/* <div className="overflow-hidden truncate d-none d-sm-block">
-                      <p className="p-0 m-0 text-secondary d-block fs-8">
-                        {truncateText(o.description, 150)}
-                      </p>
-                    </div> */}
-                    
-                    <div className="d-flex justify-content-end align-items-center">
-                   
-  
-                      {/* <div className="content-btn-holder">
-                        <div className="position-relative">
-                          <div className="position-absolute share-panel border rounded fs-8 d-none"></div>
-                          <button 
-                            className="btn" 
-                            data-title={o.title} 
-                            data-id={o.id} 
-                            onClick={(e) => toggleShare(e.currentTarget)}
-                          >
-                            <span className="material-symbols-outlined align-middle">
-                            rate_review
-                            </span>
-                          </button>
-                        </div>
-                      </div> */}
-  
-                      <div className="content-btn-holder">
-                        <div className="position-relative">
-                          <div className="position-absolute share-panel border rounded fs-8 d-none"></div>
-                          <button 
-                            className="btn" 
-                            data-title={o.product_name} 
-                            data-id={o.id} 
-                            onClick={(e) => toggleShare(e.currentTarget)}
-                          >
-                            <span className="material-symbols-outlined align-middle">
-                              share
-                            </span>
-                          </button>
-                        </div>
-                      </div>
-                      
-                      <div className="d-flex justify-content-end">
-                        <button 
-                          className="btn"
-                          data-id={o.id}
-                          data-title={o.product_name}
-                          data-type="oppo-type"
-                          data-url={pageLink(o.product_name, o.id)}
-                          onClick={(e) => bookmark(e.currentTarget)}
-                        >
-                          <div>
-                          <svg 
-                          xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" 
-                          fill={`${(o.is_bookmarked === 1)? '#FFD700' : '#B0B0B0'}`}>
-                          <path d="M200-120v-640q0-33 23.5-56.5T280-840h400q33 0 56.5 23.5T760-760v640L480-240 200-120Z"/></svg>
-                          </div>
-                        </button>
-                      </div>
+                    >
+                      🛠️
                     </div>
+                  )}
+                </div>
+                
+                <Link
+                  href={pageLink('product', tool.slug, tool.id)}
+                  className="text-decoration-none text-dark tool-title-link"
+                >
+                  <h5 className="fw-bold mb-2" style={{ fontSize: '1.1rem', transition: 'color 0.3s ease' }}>
+                    {truncateText(tool.product_name, 40)}
+                  </h5>
+                </Link>
+                
+                {/* Labels - conditionally shown */}
+                {showLabels && (
+                  <>
+                    {/* Category/Sector Labels - matching other data labels style */}
+                    {(tool.category_name || tool.categories) && (
+                      <div className="mb-2">
+                        {convertToProperNoun(tool.category_name || (tool.categories && tool.categories.length > 0 ? tool.categories[0].name : 'General'))}
+                      </div>
+                    )}
+
+                    {/* Data Labels - matching opportunities page style */}
+                    {tool.brand_labels && (
+                      <div className="mb-2">
+                        {convertToProperNoun(tool.brand_labels)}
+                      </div>
+                    )}
+                    
+                    {tool.tags && (
+                      <div className="mb-2">
+                        {convertToProperNoun(tool.tags)}
+                      </div>
+                    )}
+                  </>
+                )}
+                
+                <p className="text-muted mb-4" style={{ 
+                  fontSize: '0.9rem', 
+                  lineHeight: '1.5',
+                  height: showLabels ? 'auto' : '4.5rem',
+                  overflow: 'hidden',
+                  display: '-webkit-box',
+                  WebkitLineClamp: showLabels ? 'none' : '3',
+                  WebkitBoxOrient: 'vertical'
+                }}>
+                  {truncateText(tool.description, showLabels ? 200 : 120)}
+                </p>
+                
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <div>
+                    <div className="fw-bold text-dark mb-1" style={{ fontSize: '1.1rem' }}>
+                      {tool.pricing || 'Free'}
+                    </div>
+                    {tool.rating && (
+                      <div className="d-flex align-items-center">
+                        <Star size={14} className="text-warning me-1" fill="currentColor" />
+                        <span className="text-muted" style={{ fontSize: '0.85rem' }}>
+                          {tool.rating}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="d-flex align-items-center gap-2">
+                    {/* Share Button with Panel */}
+                    <div className="position-relative">
+                      <div className="position-absolute share-panel d-none" style={{
+                        top: 'auto',
+                        right: '0px',
+                        bottom: '45px',
+                        zIndex: 1050,
+                        minWidth: '280px'
+                      }}></div>
+                      <button 
+                        className="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center share-btn"
+                        data-title={tool.product_name} 
+                        data-id={tool.id} 
+                        onClick={(e) => toggleShare(e.currentTarget)}
+                        style={{ 
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '8px',
+                          border: '1px solid #e2e8f0',
+                          transition: 'all 0.3s ease'
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                          share
+                        </span>
+                      </button>
+                    </div>
+                    
+                    {/* Bookmark Button */}
+                    <button 
+                      className="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center bookmark-btn"
+                      data-id={tool.id}
+                      data-title={tool.product_name}
+                      data-type="ts"
+                      data-url={pageLink('product', tool.slug, tool.id)}
+                      onClick={(e) => bookmark(e.currentTarget)}
+                      style={{ 
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '8px',
+                        border: '1px solid #e2e8f0',
+                        transition: 'all 0.3s ease'
+                      }}
+                    >
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        height="16px" 
+                        viewBox="0 -960 960 960" 
+                        width="16px" 
+                        fill={`${(tool.is_bookmarked === 1)? '#FFD700' : '#6B7280'}`}
+                        style={{ transition: 'fill 0.3s ease' }}
+                      >
+                        <path d="M200-120v-640q0-33 23.5-56.5T280-840h400q33 0 56.5 23.5T760-760v640L480-240 200-120Z"/>
+                      </svg>
+                    </button>
                   </div>
                 </div>
-              </div>
-            </div>
-          );
-        })}
+                
+                {/* Spacer to push button to bottom */}
+                <div className="flex-grow-1"></div>
+                
+                {/* Try Now Button - Separate at Bottom */}
+                <Link
+                  href={tool.direct_link || pageLink('product', tool.slug, tool.id)}
+                  target={tool.direct_link ? "_blank" : "_self"}
+                  className="btn btn-dark w-100 d-flex align-items-center justify-content-center text-decoration-none"
+                  style={{ 
+                    padding: '0.75rem 1rem',
+                    borderRadius: '8px',
+                    fontWeight: '500',
+                    fontSize: '0.9rem'
+                  }}
+                >
+                  Try Now
+                  <ArrowRight size={16} className="ms-2" />
+                </Link>
+              </Card.Body>
+            </Card>
+          </div>
+        );
+      })}
       </div>
     </div>
   );

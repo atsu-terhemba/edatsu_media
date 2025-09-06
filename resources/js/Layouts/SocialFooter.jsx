@@ -9,7 +9,7 @@ import {
     faXTwitter,
     faYoutube, } from '@fortawesome/free-brands-svg-icons';
 
-export default function SocialFooter(){
+export default function SocialFooter({isDarkMode}){
     return(
     <>
 <Container fluid={true}>
@@ -17,10 +17,10 @@ export default function SocialFooter(){
     <Row className="social-footer">
         <Col sm={12} className="text-center">
         <div className="py-3 px-3">
-            <h5 className="poppins-semibold mb-3" style={{ fontSize: '2em' }}>
+            <h5 className={`poppins-semibold mb-3 ${isDarkMode ? 'text-light' : ''}`} style={{ fontSize: '2em' }}>
             Follow Us
             </h5>
-            <p className="mb-2 p-0">
+            <p className={`mb-2 p-0 ${isDarkMode ? 'text-light' : ''}`}>
             Follow Us on Your Favorite Platform to Stay Connected
             </p>
             <ul className="share-icons m-0 p-0 list-unstyled d-flex justify-content-center gap-3">
@@ -38,25 +38,18 @@ export default function SocialFooter(){
                 <span className="sr-only">Instagram</span>
                 </a>
             </li>
-            {/* TikTok */}
-            <li>
-                <a href="https://www.tiktok.com/@edatsu_inc" target="_blank" rel="noopener noreferrer">
-                <FontAwesomeIcon icon={faTiktok} className="text-info" />
-                <span className="sr-only">TikTok</span>
-                </a>
-            </li>
-            {/** x */}
-            <li>
-                <a href="#" target="_blank" rel="noopener noreferrer">
-                <FontAwesomeIcon icon={faXTwitter} className="text-info" />
-                <span className="sr-only">X (Twitter)</span>
-                </a>
-            </li> 
             {/* YouTube */}
             <li>
                 <a href="https://www.youtube.com/channel/UCwIxkgCrdzsL3ApDjVgRLCQ" target="_blank" rel="noopener noreferrer">
                 <FontAwesomeIcon icon={faYoutube} className="text-info" />
                 <span className="sr-only">YouTube</span>
+                </a>
+            </li>
+            {/**linkedin */}
+              <li>
+                <a href="https://www.linkedin.com/company/edatsu-media" target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faLinkedinIn} className="text-info" />
+                <span className="sr-only">LinkedIn</span>
                 </a>
             </li>
             </ul>

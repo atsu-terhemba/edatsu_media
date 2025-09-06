@@ -2,8 +2,8 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "dev": "vite",
-        "build": "vite build && vite build --ssr"
+        "dev": "php artisan ziggy:generate && vite",
+        "build": "php artisan ziggy:generate && vite build && vite build --ssr"
     },
     "devDependencies": {
         "@headlessui/react": "^2.0.0",

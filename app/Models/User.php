@@ -22,6 +22,14 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'role',
         'password',
+        'last_seen_at',
+        'device_type',
+        'browser',
+        'operating_system',
+        'device_name',
+        'last_ip_address',
+        'user_agent',
+        'is_online'
     ];
 
     /**
@@ -32,6 +40,8 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
+        'user_agent',
+        'last_ip_address'
     ];
 
     /**
@@ -41,5 +51,99 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'last_seen_at' => 'datetime',
+        'is_online' => 'boolean'
     ];
+
+    /**
+     * Check if user is online (active within last 5 minutes)
+     */
+    public function isOnline()
+    {
+        return $this->last_seen_at && $this->last_seen_at->gt(now()->subMinutes(5));
+    }
+
+    /**
+     * Get the device icon based on device type
+     */
+    public function getDeviceIcon()
+    {
+        switch($this->device_type) {
+            case 'mobile':
+                return 'smartphone';
+            case 'tablet':
+                return 'tablet';
+            case 'desktop':
+            default:
+                return 'computer';
+        }
+    }
+
+    /**
+     * Update user's last seen activity
+     */
+    public function updateLastSeen($request = null)
+    {
+        $this->update([
+            'last_seen_at' => now(),
+            'is_online' => true
+        ]);
+
+        if ($request) {
+            $this->updateDeviceInfo($request);
+        }
+    }
+
+    /**
+     * Update device information from request
+     */
+    public function updateDeviceInfo($request)
+    {
+        $userAgent = $request->header('User-Agent');
+        
+        // Parse device type
+        $deviceType = 'desktop';
+        if (preg_match('/Mobile|Android|iPhone|iPad/', $userAgent)) {
+            if (preg_match('/iPad/', $userAgent)) {
+                $deviceType = 'tablet';
+            } else {
+                $deviceType = 'mobile';
+            }
+        }
+
+        // Parse browser
+        $browser = 'Unknown';
+        if (preg_match('/Chrome/', $userAgent)) {
+            $browser = 'Chrome';
+        } elseif (preg_match('/Firefox/', $userAgent)) {
+            $browser = 'Firefox';
+        } elseif (preg_match('/Safari/', $userAgent)) {
+            $browser = 'Safari';
+        } elseif (preg_match('/Edge/', $userAgent)) {
+            $browser = 'Edge';
+        }
+
+        // Parse OS
+        $os = 'Unknown';
+        if (preg_match('/Windows/', $userAgent)) {
+            $os = 'Windows';
+        } elseif (preg_match('/Mac/', $userAgent)) {
+            $os = 'macOS';
+        } elseif (preg_match('/Linux/', $userAgent)) {
+            $os = 'Linux';
+        } elseif (preg_match('/Android/', $userAgent)) {
+            $os = 'Android';
+        } elseif (preg_match('/iOS/', $userAgent)) {
+            $os = 'iOS';
+        }
+
+        $this->update([
+            'device_type' => $deviceType,
+            'browser' => $browser,
+            'operating_system' => $os,
+            'last_ip_address' => $request->ip(),
+            'user_agent' => $userAgent,
+            'device_name' => $os . ' - ' . $browser
+        ]);
+    }
 }

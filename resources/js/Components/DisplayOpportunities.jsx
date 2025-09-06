@@ -192,7 +192,7 @@ const stripAndTruncate = (html, maxLength = 150) => {
                   //   }}
                   target="_blank"
                   className="text-decoration-none text-dark" 
-                  href={pageLink(o.slug, o.id)}>
+                  href={pageLink('op', o.slug, o.id)}>
                     <h2 className="inline-block page-title m-0 p-0 poppins-semibold mb-2 fs-9">
                       {o.title}
                     </h2>
@@ -213,44 +213,68 @@ const stripAndTruncate = (html, maxLength = 150) => {
                     </p>
                   </div>
                   
-                  <div className="d-flex justify-content-end align-items-center">
+                  <div className="d-flex justify-content-between align-items-center">
                     <div className="px-3">
                       <p className="m-0 fs-8 poppins-semibold p-0">
                         {getDaysLeft(o.deadline)}
                       </p>
                     </div>
 
-                    <div className="content-btn-holder">
+                    <div className="d-flex align-items-center gap-2">
+                      {/* Share Button */}
                       <div className="position-relative">
-                        <div className="position-absolute share-panel border rounded fs-8 d-none"></div>
+                        <div className="position-absolute share-panel d-none" style={{
+                          top: 'auto',
+                          right: '0px',
+                          bottom: '45px',
+                          zIndex: 1050,
+                          minWidth: '280px'
+                        }}></div>
                         <button 
-                          className="btn" 
+                          className="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center share-btn"
                           data-title={o.title} 
                           data-id={o.id} 
                           onClick={(e) => toggleShare(e.currentTarget)}
+                          style={{ 
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '8px',
+                            border: '1px solid #e2e8f0',
+                            transition: 'all 0.3s ease'
+                          }}
                         >
-                          <span className="material-symbols-outlined align-middle">
+                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
                             share
                           </span>
                         </button>
                       </div>
-                    </div>
-                    
-                    <div className="d-flex justify-content-end">
+                      
+                      {/* Bookmark Button */}
                       <button 
-                        className="btn"
+                        className="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center bookmark-btn"
                         data-id={o.id}
                         data-title={o.title}
-                        data-type="oppo-type"
+                        data-type="opp"
                         data-url={pageLink(o.title, o.id)}
                         onClick={(e) => bookmark(e.currentTarget)}
+                        style={{ 
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '8px',
+                          border: '1px solid #e2e8f0',
+                          transition: 'all 0.3s ease'
+                        }}
                       >
-                        <div>
                         <svg 
-                        xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" 
-                        fill={`${(o.is_bookmarked === 1)? '#FFD700' : '#B0B0B0'}`}>
-                        <path d="M200-120v-640q0-33 23.5-56.5T280-840h400q33 0 56.5 23.5T760-760v640L480-240 200-120Z"/></svg>
-                        </div>
+                          xmlns="http://www.w3.org/2000/svg" 
+                          height="16px" 
+                          viewBox="0 -960 960 960" 
+                          width="16px" 
+                          fill={`${(o.is_bookmarked === 1)? '#FFD700' : '#6B7280'}`}
+                          style={{ transition: 'fill 0.3s ease' }}
+                        >
+                          <path d="M200-120v-640q0-33 23.5-56.5T280-840h400q33 0 56.5 23.5T760-760v640L480-240 200-120Z"/>
+                        </svg>
                       </button>
                     </div>
                   </div>

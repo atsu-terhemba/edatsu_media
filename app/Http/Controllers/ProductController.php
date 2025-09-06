@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Category;
+use App\Models\ProductCategory;
 use App\Models\BrandLabel;
 use App\Models\Tag;
 use App\Models\Region;
 use App\Models\Continent;
 use App\Models\Country;
-use App\Models\ProductCategory;
 use App\Models\ProductFunctionality;
 use App\Models\ProductPricing;
 use Illuminate\Support\Carbon;
@@ -26,14 +25,14 @@ class ProductController extends Controller
     //
 
     public function show(Request $request){
-            $product_categories = ProductCategory::all();
+            $categories = ProductCategory::all();
             $brand_label = BrandLabel::all();
             $tags = Tag::all();
             $countries = Country::all();
             $continents = Continent::all();
 
             return Inertia::render("Admin/CreateProduct", [
-                "categories" => $product_categories,
+                "categories" => $categories,
                 "brand_label" => $brand_label,
                 "tags" => $tags,
                 "countries" => $countries,
@@ -102,29 +101,50 @@ private function buildBaseQuery($user_id)
             'products.id', 
             'products.product_name', 
             'products.slug',
-            'products.product_description',
+            'products.product_description as description',
             'products.cover_img',
-            \DB::raw('GROUP_CONCAT(DISTINCT continents.name SEPARATOR ", ") as continent_name'),
+            'products.direct_link',
+            'products.youtube_link',
+            'products.created_at',
+            'products.updated_at',
+            \DB::raw('GROUP_CONCAT(DISTINCT product_categories.name SEPARATOR ", ") as category_name'),
+            \DB::raw('GROUP_CONCAT(DISTINCT brand_labels.name SEPARATOR ", ") as brand_labels'),
+            \DB::raw('GROUP_CONCAT(DISTINCT tags.name SEPARATOR ", ") as tags'),
             \DB::raw('CASE WHEN bookmarks.id IS NOT NULL AND bookmarks.removed != 1 THEN 1 ELSE 0 END as is_bookmarked')
         ])
         ->where('products.deleted', '!=', 1)
-        ->leftJoin('continent_selections', 'continent_selections.post_id', '=', 'products.id')
-        ->leftJoin('continents', 'continents.id', '=', 'continent_selections.continent_id')
+        ->leftJoin('category_selections', function($join) {
+            $join->on('category_selections.post_id', '=', 'products.id')
+                 ->where('category_selections.post_type', '=', 'products');
+        })
+        ->leftJoin('product_categories', 'product_categories.id', '=', 'category_selections.category_id')
+        ->leftJoin('brand_labels_selections', function($join) {
+            $join->on('brand_labels_selections.post_id', '=', 'products.id')
+                 ->where('brand_labels_selections.post_type', '=', 'products');
+        })
+        ->leftJoin('brand_labels', 'brand_labels.id', '=', 'brand_labels_selections.brand_label_id')
+        ->leftJoin('tags_selections', function($join) {
+            $join->on('tags_selections.post_id', '=', 'products.id')
+                 ->where('tags_selections.post_type', '=', 'products');
+        })
+        ->leftJoin('tags', 'tags.id', '=', 'tags_selections.tag_id')
         ->leftJoin('bookmarks', function ($join) use ($user_id) {
             $join->on('bookmarks.post_id', '=', 'products.id')
-                ->where('bookmarks.post_type', '=', 'opp')
+                ->where('bookmarks.post_type', '=', 'tool')
                 ->where('bookmarks.user_id', '=', $user_id);
         })
         ->groupBy([
             'products.id', 
             'products.product_name', 
-            // 'products.deadline',
             'products.slug',
             'products.product_description',
             'products.cover_img',
+            'products.direct_link',
+            'products.youtube_link',
+            'products.created_at',
+            'products.updated_at',
             'bookmarks.id',
-            'bookmarks.removed',
-            \DB::raw('CASE WHEN bookmarks.id IS NOT NULL AND bookmarks.removed != 1 THEN 1 ELSE 0 END')
+            'bookmarks.removed'
         ]);
 }
 
@@ -200,7 +220,7 @@ private function applySearchKeywordFilter($query, $searchKeyword)
  */
 private function applyTaxonomyFilters($query, $filters)
 {
-    $post_type = 'opportunity';
+    $post_type = 'products';
     
     // Apply brands filter
     if (!empty($filters['brands'])) {
@@ -306,161 +326,234 @@ private function applyDateFilters($query, $filters)
     return $query;
 }
 
+
+
+
+
+ function readProductData(Request $request, $id)
+    {
+        $user_id = null;
+        if(Auth::check()){
+            $user_id = Auth::id();
+        }
     
-    // function store(Request $request)
-    // {
-    //     // Define custom validation rules
-    //     $rules = [
-    //         'product_name' => 'required|string|max:255',
-    //         'product_description' => 'required|string',
-    //         'source_url' => 'required|url|max:255',
-    //         'country' => 'nullable|string',
-    //         'continent' => 'nullable|string',
-    //         'category' => 'nullable|string',
-    //         'meta_description' => 'nullable|string',
-    //         'meta_keywords' => 'nullable|string',
-    //         'post_type' => 'nullable|string',
-    //         'cover_img' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-    //         'post_id' => 'nullable|integer|exists:products,id',
-    //         'signature' => 'required_with:post_id|string'
-    //     ];
-
-    //     // Validate the request
-    //     $validator = Validator::make($request->all(), $rules);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => $validator->errors()->first()
-    //         ], 422);
-    //     }
-
-    //     $postId = $request->input('post_id');
-    //     $signature = $request->input('signature');
-    //     $isEditing = false;
-
-    //     // Verify the HMAC signature if post_id is provided
-    //     if ($postId && !hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Invalid signature'
-    //         ], 422);
-    //     }
-
-    //     $op = $postId ? Product::findOrFail($postId) : new Product();
-
-    //     // Check user authorization for existing posts
-    //     if ($postId && $op->u_id !== Auth::id()) {
-    //         $isEditing = true;
-    //         return response()->json(["success" => false, "message" => "Unauthorized Access"], 403);
-    //     }
-
-    //     // Handle file upload
-    //     if ($request->hasFile('cover_img') && $request->file('cover_img')->isValid()) {
-    //         $file = $request->file('cover_img');
-    //         $hashedFileName = $this->generateUniqueFileName($file);
-    //         $file->storeAs('public/uploads/channels', $hashedFileName);
-    //         $op->cover_img = $hashedFileName;
-    //     }
-
-    //     // Populate model attributes
-    //     $op->u_id = Auth::id();
-    //     $op->user_role = Auth::user()->role;
-    //     $op->slug = $this->createSlug($request->product_name);
-
-    //     // Store the data in the database
-    //     $op->u_id = $request->user()->id;
-    //     $op->user_role = $request->user()->role;
-    //     $op->product_name = $request->product_name;
-    //     $op->product_description = $request->product_description;
-    //     $op->source_url = $request->source_url;
-    //     $op->meta_description = $request->meta_description;
-    //     $op->meta_keywords = $request->meta_keywords;
-    //     $op->post_type = $request->post_type;
-
-    //     $op->save();
-
-    //     // Get the ID of the newly created or updated post
-    //     $postId = $op->id;
-
-    //     // Helper function to delete and insert relational data
-    //     $manageRelationalData = function ($table, $columnName, $data) use ($postId, $request) {
-    //         // First, delete existing records for the post in this table
-    //         DB::table($table)->where('post_id', $postId)->delete();
-
-    //         // Insert new data
-    //         if (empty($data)) return;
-
-    //         // Decode JSON string and extract IDs
-    //         $decodedData = json_decode($data, true);
-    //         $insertData = [];
-    //         foreach ($decodedData as $item) {
-    //             if (isset($item['id']) && !empty($item['id'])) {
-    //                 $insertData[] = [
-    //                     'user_id' => $request->user()->id,
-    //                     'post_id' => $postId,
-    //                     $columnName => $item['id'], // Use 'id' from the new format
-    //                     'post_type' => 'products',
-    //                     'created_at' => now(),
-    //                     'updated_at' => now(),
-    //                 ];
-    //             }
-    //         }
-    //         if (!empty($insertData)) {
-    //             DB::table($table)->insert($insertData);
-    //         }
-    //     };
-
-    //     // Manage relational data for each attribute
-    //     $relationalData = [
-    //         'category_selections' => ['category_id', $request->input('category')],
-    //         'brand_labels_selections' => ['brand_label_id', $request->input('brand_labels')],
-    //         'tags_selections' => ['tag_id', $request->input('tags')],
-    //         'region_selections' => ['region_id', $request->input('region')],
-    //         'country_selections' => ['country_id', $request->input('country')],
-    //         'continent_selections' => ['continent_id', $request->input('continent')],
-    //         'product_func_selections' => ['product_func_id', $request->input('product-functionality')],
-    //         'product_pricing_selections' => ['pricing_id', $request->input('product-pricing')],
-    //     ];
-
-    //     // Loop through each relational data table and update it
-    //     foreach ($relationalData as $table => $data) {
-    //         $manageRelationalData($table, $data[0], $data[1]);
-    //     }
-
-    //     if($isEditing){
-    //         $post_message = "Post Updated Successful";
-    //     }else{
-    //         $post_message = "Post Successful";
-    //     }
-    //     return response()->json([
-    //         "success" => true,
-    //         "message" => $post_message,
-    //     ]);
-    // }
-
-
+        /**
+         * @var mixed
+         * show all data associated with this product/tool.
+         */
+        $tool_data = DB::table('products')
+        ->where('products.id', $id)
+        ->leftJoin('category_selections', 'category_selections.post_id', '=', 'products.id')
+        ->leftJoin('product_categories', 'product_categories.id', '=', 'category_selections.category_id')
+        ->leftJoin('brand_labels_selections', 'brand_labels_selections.post_id', '=', 'products.id')
+        ->leftJoin('brand_labels', 'brand_labels.id', '=', 'brand_labels_selections.brand_label_id')
+        ->leftJoin('continent_selections', 'continent_selections.post_id', '=', 'products.id')
+        ->leftJoin('continents', 'continents.id', '=', 'continent_selections.continent_id')
+        ->leftJoin('country_selections', 'country_selections.post_id', '=', 'products.id')
+        ->leftJoin('countries', 'countries.id', '=', 'country_selections.country_id')
+        ->leftJoin('tags_selections', 'tags_selections.post_id', '=', 'products.id')
+        ->leftJoin('tags', 'tags.id', '=', 'tags_selections.tag_id')
+        ->leftJoin('bookmarks', function($join) use ($id, $user_id) {
+            $join->on('bookmarks.post_id', '=', DB::raw($id))
+                ->where('bookmarks.user_id', '=', $user_id)
+                ->where('bookmarks.post_type', '=', 'ts')
+                ->where('bookmarks.removed', '!=', 1);
+        })
+        ->select('products.id',
+                'products.product_name as title', 
+                'products.slug',
+                'products.product_description as description',
+                'products.meta_description',
+                'products.meta_keywords',
+                'products.cover_img', 
+                'products.created_at',
+                'products.direct_link',
+                'products.source_url',
+                'products.youtube_link',
+                'products.ratings',
+                DB::raw('GROUP_CONCAT(DISTINCT product_categories.id) as category_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT product_categories.name) as categories'),
+                DB::raw('GROUP_CONCAT(DISTINCT product_categories.slug) as category_slugs'),
+                DB::raw('GROUP_CONCAT(DISTINCT brand_labels.id) as brand_label_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT brand_labels.name) as brand_labels'),
+                DB::raw('GROUP_CONCAT(DISTINCT brand_labels.slug) as brand_label_slugs'),
+                DB::raw('GROUP_CONCAT(DISTINCT continents.id) as continent_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT continents.name) as continents'),
+                DB::raw('GROUP_CONCAT(DISTINCT continents.slug) as continent_slugs'),
+                DB::raw('GROUP_CONCAT(DISTINCT countries.id) as country_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT countries.name) as countries'),
+                DB::raw('GROUP_CONCAT(DISTINCT countries.slug) as country_slugs'),
+                DB::raw('GROUP_CONCAT(DISTINCT tags.id) as tag_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT tags.name) as tags'),
+                DB::raw('GROUP_CONCAT(DISTINCT tags.slug) as tag_slugs'),
+                DB::raw('CASE WHEN bookmarks.post_type = \'ts\' THEN 1 ELSE 0 END as is_bookmarked'))
+        ->groupBy('products.id', 
+                'products.product_name', 
+                'products.slug',
+                'products.product_description',
+                'products.meta_description',
+                'products.meta_keywords',
+                'products.cover_img', 
+                'products.created_at', 
+                'products.direct_link',
+                'products.source_url',
+                'products.youtube_link',
+                'products.ratings',
+                'bookmarks.post_type')
+        ->first();
     
-function store(Request $request)
+        /**
+         * @var mixed
+         * show category count that have not expired
+         */
+    //     $categoriesWithCounts = DB::table('category_selections')
+    //     ->join('opportunities', 'opportunities.id', '=', 'category_selections.post_id')
+    //     ->join('categories', 'categories.id', '=', 'category_selections.category_id')
+    //     ->where('opportunities.deadline', '>', now())
+    //     ->select(
+    //         'categories.id as category_id',
+    //         'categories.name as category_name',
+    //         'categories.slug as category_slug',
+    //         DB::raw('COUNT(DISTINCT opportunities.id) as future_opportunity_count')
+    //     )
+    //     ->groupBy('categories.id', 'categories.name', 'categories.slug')
+    //     ->orderByDesc('future_opportunity_count')
+    //     ->orderBy('category_name')
+    //     ->get();
+    
+    // The ID of the post the user is currently viewing
+    $current_post_id = $id; 
+    
+    function prepareIdList($idString) {
+        $ids = array_filter(explode(',', $idString)); // Remove empty values
+        return !empty($ids) ? implode(',', $ids) : 'NULL';
+    }
+    
+    $category_ids = prepareIdList($tool_data->category_ids);
+    $brand_label_ids = prepareIdList($tool_data->brand_label_ids);
+    $continent_ids = prepareIdList($tool_data->continent_ids);
+    $country_ids = prepareIdList($tool_data->country_ids);
+    $tag_ids = prepareIdList($tool_data->tag_ids);
+    
+    $similarPosts = DB::table('products as p')
+        ->leftJoin('category_selections as cs', 'cs.post_id', '=', 'p.id')
+        ->leftJoin('categories as c', 'c.id', '=', 'cs.category_id')
+        ->leftJoin('brand_labels_selections as bls', 'bls.post_id', '=', 'p.id')
+        ->leftJoin('continent_selections as cts', 'cts.post_id', '=', 'p.id')
+        ->leftJoin('continents as cont', 'cont.id', '=', 'cts.continent_id')
+        ->leftJoin('country_selections as cos', 'cos.post_id', '=', 'p.id')
+        ->leftJoin('countries as cou', 'cou.id', '=', 'cos.country_id')
+        ->leftJoin('tags_selections as ts', 'ts.post_id', '=', 'p.id')
+        ->where('p.id', '!=', $current_post_id) // Exclude the current post
+        ->where('p.deleted', '!=', 1)
+        ->where(function ($query) use ($category_ids, $brand_label_ids, $continent_ids, $country_ids, $tag_ids) {
+            if ($category_ids !== 'NULL') $query->orWhereIn('cs.category_id', explode(',', $category_ids));
+            if ($brand_label_ids !== 'NULL') $query->orWhereIn('bls.brand_label_id', explode(',', $brand_label_ids));
+            if ($continent_ids !== 'NULL') $query->orWhereIn('cts.continent_id', explode(',', $continent_ids));
+            if ($country_ids !== 'NULL') $query->orWhereIn('cos.country_id', explode(',', $country_ids));
+            if ($tag_ids !== 'NULL') $query->orWhereIn('ts.tag_id', explode(',', $tag_ids));
+        })
+        ->select('p.id', 
+                    'p.product_name as title',
+                    'p.slug',
+                    'p.cover_img',
+                    'p.product_description as description',
+                    'p.created_at', 
+                    'p.updated_at',
+            DB::raw("SUM(
+                CASE 
+                    WHEN " . ($category_ids !== 'NULL' ? "cs.category_id IN ($category_ids)" : "FALSE") . " THEN 2
+                    WHEN " . ($brand_label_ids !== 'NULL' ? "bls.brand_label_id IN ($brand_label_ids)" : "FALSE") . " THEN 2
+                    WHEN " . ($continent_ids !== 'NULL' ? "cts.continent_id IN ($continent_ids)" : "FALSE") . " THEN 1
+                    WHEN " . ($country_ids !== 'NULL' ? "cos.country_id IN ($country_ids)" : "FALSE") . " THEN 2
+                    WHEN " . ($tag_ids !== 'NULL' ? "ts.tag_id IN ($tag_ids)" : "FALSE") . " THEN 1
+                    ELSE 0
+                END
+            ) as similarity_score"),
+            DB::raw('GROUP_CONCAT(DISTINCT c.name) as categories'),
+            DB::raw('GROUP_CONCAT(DISTINCT cou.name) as countries'),
+            DB::raw('GROUP_CONCAT(DISTINCT cont.name) as continents')
+        )
+        ->groupBy('p.id', 'p.product_name', 
+        'p.slug',
+        'p.cover_img',
+        'p.product_description', 
+        'p.created_at', 
+        'p.updated_at') // Add all non-aggregated columns from 'p.*'
+        ->orderByDesc('similarity_score')
+        ->orderByDesc('p.created_at')
+        ->limit(6)
+        ->get();
+    
+        /***count comments from this id*/
+        $total_comments = DB::table('comments')
+        ->where('comments.commentable_id', '=', $current_post_id)
+        ->count();
+    
+        if (!$tool_data) {
+            abort(404);
+        }
+    
+        // Check if the user has already viewed this post in the current session
+        $viewedPosts = $request->session()->get('viewed_posts', []);
+    
+        if (!in_array($id, $viewedPosts)) {
+            // Increment views if not previously viewed
+            DB::table('products')->where('id', $id)->increment('views');
+            
+            // Store the post ID in the session
+            $request->session()->push('viewed_posts', $id);
+        }
+    
+        // return Inertia::render("Opp-view", [
+        //     'opp_posts' => $opp_posts,
+        //     'categoriesWithCounts' => $categoriesWithCounts,
+        //     'similarPosts' => $similarPosts,
+        //     'total_comments' => $total_comments,
+        // ]);
+
+        return Inertia::render("Tool-view", [
+            'tool_data' => $tool_data,
+            'similarPosts' => $similarPosts,
+            'total_comments' => $total_comments,
+        ]);
+        
+    }
+
+
+
+
+/**
+ * Store or update a product
+ *
+ * @param \Illuminate\Http\Request $request
+ * @return \Illuminate\Http\JsonResponse
+ */
+
+public function store(Request $request)
 {
-
-    //return response()->json($request);
-    
     // Define custom validation rules...
     $rules = [
         'title' => 'required|string|max:255',
         'description' => 'required|string',
-        'source_url' => 'required|url|max:255',
-        'deadline' => 'nullable|date|after_or_equal:today',
+        'direct_link' => 'nullable|url|max:255',
+        'youtube_link' => 'nullable|url|max:255',
         'meta_description' => 'nullable|string',
         'meta_keywords' => 'nullable|string',
         'post_id' => 'nullable|integer|exists:products,id',
+        'signature' => 'nullable|string',
+        'cover_img' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'categories' => 'nullable',
+        'brand_labels' => 'nullable',
+        'tags' => 'nullable',
+        'countries' => 'nullable',
+        'continents' => 'nullable',
     ];
 
-    // Validate the request
+    // Validate the request...
     $validator = Validator::make($request->all(), $rules);
 
-    if ($validator->fails()) {
+    if($validator->fails()){
         return response()->json([
             'success' => false,
             'message' => $validator->errors()->first()
@@ -506,7 +599,8 @@ function store(Request $request)
     // Store the data in the database
     $op->product_name = $request->title;
     $op->product_description = $request->description;
-    $op->source_url = $request->source_url;
+    $op->direct_link = $request->direct_link;
+    $op->youtube_link = $request->youtube_link;
     $op->meta_description = $request->meta_description;
     $op->meta_keywords = $request->meta_keywords;
 
@@ -531,6 +625,7 @@ function store(Request $request)
         // Decode JSON string and extract IDs
 
         $decodedData = json_decode($data, true);
+        $insertData = []; // Initialize the array
 
         foreach ($decodedData as $id) {
             if (isset($id) && !empty($id)) {
@@ -595,6 +690,343 @@ function store(Request $request)
         // Trim hyphens from the beginning and end
         $slug = trim($slug, '-');
         return $slug;
+    }
+
+    // Display all products for admin
+    public function showProducts(Request $request){
+        $search = $request->get('search');
+        $perPage = $request->get('per_page', 12);
+        $category = $request->get('category');
+        $status = $request->get('status');
+        
+        // Build query similar to OpportunityController pattern
+        $productsQuery = DB::table('products')
+            ->leftJoin('category_selections', function($join) {
+                $join->on('category_selections.post_id', '=', 'products.id')
+                     ->where('category_selections.post_type', '=', 'products');
+            })
+            ->leftJoin('product_categories', 'product_categories.id', '=', 'category_selections.category_id')
+            ->leftJoin('brand_labels_selections', function($join) {
+                $join->on('brand_labels_selections.post_id', '=', 'products.id')
+                     ->where('brand_labels_selections.post_type', '=', 'products');
+            })
+            ->leftJoin('brand_labels', 'brand_labels.id', '=', 'brand_labels_selections.brand_label_id')
+            ->leftJoin('continent_selections', function($join) {
+                $join->on('continent_selections.post_id', '=', 'products.id')
+                     ->where('continent_selections.post_type', '=', 'products');
+            })
+            ->leftJoin('continents', 'continents.id', '=', 'continent_selections.continent_id')
+            ->leftJoin('country_selections', function($join) {
+                $join->on('country_selections.post_id', '=', 'products.id')
+                     ->where('country_selections.post_type', '=', 'products');
+            })
+            ->leftJoin('countries', 'countries.id', '=', 'country_selections.country_id')
+            ->leftJoin('tags_selections', function($join) {
+                $join->on('tags_selections.post_id', '=', 'products.id')
+                     ->where('tags_selections.post_type', '=', 'products');
+            })
+            ->leftJoin('tags', 'tags.id', '=', 'tags_selections.tag_id')
+            ->leftJoin('users', 'users.id', '=', 'products.u_id')
+            ->select([
+                'products.id', 
+                'products.u_id', 
+                'products.user_role', 
+                'products.product_name', 
+                'products.product_description', 
+                'products.cover_img', 
+                'products.source_url', 
+                'products.direct_link', 
+                'products.slug', 
+                'products.views', 
+                'products.comments', 
+                'products.ratings', 
+                'products.deleted', 
+                'products.created_at', 
+                'products.updated_at', 
+                'products.deleted_at',
+                'users.name as user_name',
+                'users.email as user_email',
+                DB::raw('GROUP_CONCAT(DISTINCT product_categories.id) as category_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT product_categories.name) as categories'),
+                DB::raw('GROUP_CONCAT(DISTINCT product_categories.slug) as category_slugs'),
+                DB::raw('GROUP_CONCAT(DISTINCT brand_labels.id) as brand_label_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT brand_labels.name) as brand_labels'),
+                DB::raw('GROUP_CONCAT(DISTINCT brand_labels.slug) as brand_label_slugs'),
+                DB::raw('GROUP_CONCAT(DISTINCT continents.id) as continent_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT continents.name) as continents'),
+                DB::raw('GROUP_CONCAT(DISTINCT continents.slug) as continent_slugs'),
+                DB::raw('GROUP_CONCAT(DISTINCT countries.id) as country_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT countries.name) as countries'),
+                DB::raw('GROUP_CONCAT(DISTINCT countries.slug) as country_slugs'),
+                DB::raw('GROUP_CONCAT(DISTINCT tags.id) as tag_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT tags.name) as tags'),
+                DB::raw('GROUP_CONCAT(DISTINCT tags.slug) as tag_slugs')
+            ])
+            ->groupBy([
+                'products.id', 
+                'products.u_id', 
+                'products.user_role', 
+                'products.product_name', 
+                'products.product_description', 
+                'products.cover_img', 
+                'products.source_url', 
+                'products.direct_link', 
+                'products.slug', 
+                'products.views', 
+                'products.comments', 
+                'products.ratings', 
+                'products.deleted', 
+                'products.created_at', 
+                'products.updated_at', 
+                'products.deleted_at',
+                'users.name',
+                'users.email'
+            ]);
+            
+        // Apply search filter (following OpportunityController pattern)
+        if ($search) {
+            $productsQuery->where(function($query) use ($search) {
+                $query->where('products.product_name', 'LIKE', "%{$search}%")
+                      ->orWhere('products.product_description', 'LIKE', "%{$search}%")
+                      ->orWhere('users.name', 'LIKE', "%{$search}%");
+            });
+        }
+        
+        // Apply category filter (following polymorphic pattern)
+        if ($category) {
+            $productsQuery->whereIn('product_categories.id', explode(',', $category));
+        }
+        
+        // Apply status filter (handle dual deletion system like opportunities)
+        if ($status) {
+            if ($status === 'active') {
+                $productsQuery->where('products.deleted', '!=', 1)
+                             ->whereNull('products.deleted_at');
+            } elseif ($status === 'deleted') {
+                $productsQuery->where(function($query) {
+                    $query->where('products.deleted', '=', 1)
+                          ->orWhereNotNull('products.deleted_at');
+                });
+            }
+        }
+        
+        $products = $productsQuery->orderBy('products.created_at', 'desc')
+                                 ->paginate($perPage);
+        
+        // Get statistics using the same dual deletion approach
+        $statistics = [
+            'total_products' => DB::table('products')->count(),
+            'active_products' => DB::table('products')
+                                   ->where('deleted', '!=', 1)
+                                   ->whereNull('deleted_at')
+                                   ->count(),
+            'deleted_products' => DB::table('products')
+                                    ->where(function($query) {
+                                        $query->where('deleted', '=', 1)
+                                              ->orWhereNotNull('deleted_at');
+                                    })
+                                    ->count(),
+            'total_views' => DB::table('products')->sum('views') ?: 0,
+            'recent_products' => Product::where('created_at', '>=', now()->subDays(30))
+                                      ->where('deleted', 0)
+                                      ->whereNull('deleted_at')
+                                      ->count(),
+            'today_products' => Product::whereDate('created_at', today())
+                                     ->where('deleted', 0)
+                                     ->whereNull('deleted_at')
+                                     ->count(),
+        ];
+        
+        // Get categories for filtering (using ProductCategory model)
+        $categories = ProductCategory::select('id', 'name')->get();
+        
+        return Inertia::render('Admin/AllProducts', [
+            'products' => $products,
+            'statistics' => $statistics,
+            'categories' => $categories,
+            'filters' => [
+                'search' => $search,
+                'per_page' => $perPage,
+                'category' => $category,
+                'status' => $status
+            ]
+        ]);
+    }
+
+    /**
+     * Fetch all products for AJAX requests (similar to fetchAllOpportunities)
+     */
+    public function fetchAllProducts(Request $request)
+    {
+        $search = $request->get('search');
+        $perPage = $request->get('per_page', 20);
+        $category = $request->get('category');
+        $status = $request->get('status');
+        
+        // Build query similar to showProducts but for API response
+        $productsQuery = DB::table('products')
+            ->leftJoin('category_selections', function($join) {
+                $join->on('category_selections.post_id', '=', 'products.id')
+                     ->where('category_selections.post_type', '=', 'products');
+            })
+            ->leftJoin('product_categories', 'product_categories.id', '=', 'category_selections.category_id')
+            ->leftJoin('users', 'users.id', '=', 'products.u_id')
+            ->select([
+                'products.id', 
+                'products.u_id', 
+                'products.product_name', 
+                'products.product_description', 
+                'products.cover_img', 
+                'products.source_url', 
+                'products.direct_link', 
+                'products.slug', 
+                'products.views', 
+                'products.deleted', 
+                'products.created_at', 
+                'products.updated_at', 
+                'products.deleted_at',
+                'users.name as user_name',
+                'users.email as user_email',
+                DB::raw('GROUP_CONCAT(DISTINCT product_categories.name) as categories')
+            ])
+            ->groupBy([
+                'products.id', 'products.u_id', 'products.product_name', 
+                'products.product_description', 'products.cover_img', 
+                'products.source_url', 'products.direct_link', 'products.slug', 
+                'products.views', 'products.deleted', 'products.created_at', 
+                'products.updated_at', 'products.deleted_at', 'users.name', 'users.email'
+            ]);
+            
+        // Apply search filter
+        if ($search) {
+            $productsQuery->where(function($query) use ($search) {
+                $query->where('products.product_name', 'LIKE', "%{$search}%")
+                      ->orWhere('products.product_description', 'LIKE', "%{$search}%")
+                      ->orWhere('users.name', 'LIKE', "%{$search}%");
+            });
+        }
+        
+        // Apply category filter
+        if ($category) {
+            $productsQuery->whereIn('product_categories.id', explode(',', $category));
+        }
+        
+        // Apply status filter
+        if ($status) {
+            if ($status === 'active') {
+                $productsQuery->where('products.deleted', '!=', 1)
+                             ->whereNull('products.deleted_at');
+            } elseif ($status === 'deleted') {
+                $productsQuery->where(function($query) {
+                    $query->where('products.deleted', '=', 1)
+                          ->orWhereNotNull('products.deleted_at');
+                });
+            }
+        }
+        
+        $products = $productsQuery->orderBy('products.created_at', 'desc')
+                                 ->paginate($perPage);
+        
+        return response()->json($products);
+    }
+
+    /**
+     * Show the product edit form
+     *
+     * @param int $id
+     * @return \Inertia\Response
+     */
+    public function edit($id)
+    {
+        try {
+            // Find the product
+            $product = Product::findOrFail($id);
+            
+            // Check if user has permission to edit this product
+            if ($product->u_id !== Auth::id() && Auth::user()->role !== 'admin') {
+                abort(403, 'Unauthorized');
+            }
+
+            // Get all the necessary data for the form
+            $categories = ProductCategory::all();
+            $brand_label = BrandLabel::all();
+            $tags = Tag::all();
+            $countries = Country::all();
+            $continents = Continent::all();
+
+            // Get selected data for the product
+            $selectedData = $this->getSelectedDataForProduct($id);
+
+            return Inertia::render("Admin/CreateProduct", [
+                "edits" => $product,
+                "categories" => $categories,
+                "brand_label" => $brand_label,
+                "tags" => $tags,
+                "countries" => $countries,
+                "continents" => $continents,
+                "selectedData" => $selectedData,
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->route('admin.all_products')->with('error', 'Product not found');
+        }
+    }
+
+    /**
+     * Get selected taxonomies for a product
+     *
+     * @param int $productId
+     * @return array
+     */
+    private function getSelectedDataForProduct($productId)
+    {
+        $selectedData = [];
+
+        // Get categories
+        $categories = DB::table('category_selections')
+            ->join('product_categories', 'product_categories.id', '=', 'category_selections.category_id')
+            ->where('category_selections.post_id', $productId)
+            ->where('category_selections.post_type', 'products')
+            ->select('product_categories.id', 'product_categories.name')
+            ->get();
+        $selectedData['category'] = $categories->toArray();
+
+        // Get brand labels
+        $brandLabels = DB::table('brand_labels_selections')
+            ->join('brand_labels', 'brand_labels.id', '=', 'brand_labels_selections.brand_label_id')
+            ->where('brand_labels_selections.post_id', $productId)
+            ->where('brand_labels_selections.post_type', 'products')
+            ->select('brand_labels.id', 'brand_labels.name')
+            ->get();
+        $selectedData['brand_labels'] = $brandLabels->toArray();
+
+        // Get tags
+        $tags = DB::table('tag_selections')
+            ->join('tags', 'tags.id', '=', 'tag_selections.tag_id')
+            ->where('tag_selections.post_id', $productId)
+            ->where('tag_selections.post_type', 'products')
+            ->select('tags.id', 'tags.name')
+            ->get();
+        $selectedData['tags'] = $tags->toArray();
+
+        // Get countries
+        $countries = DB::table('country_selections')
+            ->join('countries', 'countries.id', '=', 'country_selections.country_id')
+            ->where('country_selections.post_id', $productId)
+            ->where('country_selections.post_type', 'products')
+            ->select('countries.id', 'countries.name')
+            ->get();
+        $selectedData['country'] = $countries->toArray();
+
+        // Get continents
+        $continents = DB::table('continent_selections')
+            ->join('continents', 'continents.id', '=', 'continent_selections.continent_id')
+            ->where('continent_selections.post_id', $productId)
+            ->where('continent_selections.post_type', 'products')
+            ->select('continents.id', 'continents.name')
+            ->get();
+        $selectedData['continent'] = $continents->toArray();
+
+        return $selectedData;
     }
 
    

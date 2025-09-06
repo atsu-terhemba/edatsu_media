@@ -3,7 +3,7 @@ import Select from 'react-select'
 import ClickEffectButton from './ClickEffectButton';
 
 
-const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_data, setFilterData, categories, continents, countries, brands, initSearch}) => {
+const OppSearchFilter = ({isloading, searchKeyword, filter_data, setFilterData, categories, continents, countries, brands, initSearch}) => {
     
     const [isFilterVisible, setIsFilterVisible] = useState(false);
     const [categoryOptions, setCategoryOptions] = useState('');
@@ -29,10 +29,12 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
     }, []);
 
      const programStatus = [
+        { value: '', label: 'All Program Status' },
         { value: 'up_coming', label: 'Earliest Deadline' }
       ];
 
       const monthOptions = [
+        { value: '', label: 'All Months' },
         { value: 'january', label: 'January' },
         { value: 'february', label: 'February' },
         { value: 'march', label: 'March' },
@@ -48,6 +50,7 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
       ];
 
       const dateOptions = [
+        { value: '', label: 'Any Time' },
         { value: 'one_day', label: '24 hours Ago' },
         { value: 'one_week', label: '1 Week Ago' },
         { value: 'two_weeks', label: '2 Weeks Ago' },
@@ -55,6 +58,7 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
       ];
 
     const yearOptions = [
+        { value: '', label: 'All Years' },
         ...Array.from({ length: 6 }, (_, i) => {
             const year = new Date().getFullYear() + i;
             return { value: year.toString(), label: year.toString() };
@@ -67,11 +71,13 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
 
     /**update selection**/
     function updateSelection( selectedOption, fieldName){
-        if (selectedOption) {
-            setFilterData((prevData) => (
-                { ...prevData, [fieldName]: selectedOption }
-            ));
-        }
+        setFilterData((prevData) => {
+            // If selectedOption is null/undefined or has empty value, reset the field
+            if (!selectedOption || selectedOption.value === '') {
+                return { ...prevData, [fieldName]: null };
+            }
+            return { ...prevData, [fieldName]: selectedOption };
+        });
     }
 
     function updateInput(e){
@@ -80,6 +86,19 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
         setSearchKeyword((prevData)=>{
             return value
         });
+    }
+
+    function handleSearchClick(e) {
+        // Call the original search function
+        initSearch(e);
+        
+        // Scroll to top smoothly
+        setTimeout(() => {
+            window.scrollTo({ 
+                top: 0, 
+                behavior: 'smooth' 
+            });
+        }, 100);
     }
 
     return (
@@ -93,7 +112,7 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
                             name="search_keyword"
                             placeholder="Search Keywords"
                             id="keyword"
-                            value={search_keyword}
+                            value={searchKeyword}
                             onChange={(e) => updateInput(e)}
                         />
                     </div>
@@ -103,7 +122,7 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
                         <ClickEffectButton id="search-btn" 
                         type="submit"
                         className='w-100 h-50 bg-dark border-0 h-50 py-3' 
-                        onClick={initSearch}>
+                        onClick={handleSearchClick}>
                         {isloading == 'search-btn' ? 'Searching..' : 'Search'}
                         </ClickEffectButton>
                     </div>
@@ -130,7 +149,7 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
             </div>
 
             {isFilterVisible && (
-                <div id="filter-panel" className="bg-white border rounded px-3 py-3 my-3">
+                <div id="filter-panel" className="bg-white border rounded px-3 py-3 my-3" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                     <div className="row">
                         <div className="col-sm-12">
                             {/* <label className='poppins-semibold fs-9 mb-2'>Program Status</label> */}
@@ -242,12 +261,12 @@ const OppSearchFilter = ({isloading, search_keyword, setSearchKeyword, filter_da
                             />
                         </div>
                     </div>
-                    <ClickEffectButton id="filter-btn" 
+                    {/* <ClickEffectButton id="filter-btn" 
                     type="submit"
                     className='w-100 h-50 bg-dark border-0 h-50 py-3' 
                     onClick={initSearch}>
                     {isloading == 'filter-btn' ? 'Filtering...' : 'Filter'}
-                    </ClickEffectButton>
+                    </ClickEffectButton> */}
                 </div>
             )}
         </form>

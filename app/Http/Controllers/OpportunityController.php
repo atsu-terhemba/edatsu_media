@@ -328,7 +328,6 @@ class OpportunityController extends Controller
         if (!in_array($id, $viewedPosts)) {
             // Increment views if not previously viewed
             DB::table('opportunities')->where('id', $id)->increment('views');
-            
             // Store the post ID in the session
             $request->session()->push('viewed_posts', $id);
         }
@@ -714,75 +713,75 @@ function store(Request $request)
     /***
      * bookmark opportunity
      */
-    public function bookmarkOpportunity(Request $request){
-       // dd($request->input());
-        if(Auth::check()){
-            $opp_id = $request->post('id'); 
-            $user_id = $request->user()->id;
-            //validate entries 
-            $validator = Validator::make($request->all(), [
-                'id' => 'required|integer', 
-                "type" => "required",
-            ]);
-            //handle validation errors
-            if($validator->fails()){
-                return response()->json(
-                    ['status' => 'error', 'message'=> 'Oops! Something went wrong']
-                );
-            }
-            //init bookmark
-            $bookmark = new Bookmark;
+    // public function bookmarkOpportunity(Request $request){
+    //    // dd($request->input());
+    //     if(Auth::check()){
+    //         $opp_id = $request->post('id'); 
+    //         $user_id = $request->user()->id;
+    //         //validate entries 
+    //         $validator = Validator::make($request->all(), [
+    //             'id' => 'required|integer', 
+    //             "type" => "required",
+    //         ]);
+    //         //handle validation errors
+    //         if($validator->fails()){
+    //             return response()->json(
+    //                 ['status' => 'error', 'message'=> 'Oops! Something went wrong']
+    //             );
+    //         }
+    //         //init bookmark
+    //         $bookmark = new Bookmark;
 
-            $bookmarked = $bookmark->where('post_id', $opp_id)
-            ->where('user_id', $user_id)
-            ->where('post_type', '=', 'opp')
-            ->exists();
+    //         $bookmarked = $bookmark->where('post_id', $opp_id)
+    //         ->where('user_id', $user_id)
+    //         ->where('post_type', '=', 'opp')
+    //         ->exists();
 
-            //check if post_id already exist in database. 
-            if($bookmarked){
-                //check if its removed, if removed, update deleted to 0 to add it back
-                $is_removed = $bookmark->where('post_id', $opp_id)
-                ->where('user_id', $user_id)
-                ->where('post_type', '=', 'opp')
-                ->where('removed', 1);
+    //         //check if post_id already exist in database. 
+    //         if($bookmarked){
+    //             //check if its removed, if removed, update deleted to 0 to add it back
+    //             $is_removed = $bookmark->where('post_id', $opp_id)
+    //             ->where('user_id', $user_id)
+    //             ->where('post_type', '=', 'opp')
+    //             ->where('removed', 1);
 
-                if($is_removed->count() > 0){
-                    //update record
-                    $restore_bookmark = $bookmark->where('post_id', $opp_id)
-                    ->where('user_id', $user_id)
-                    ->where('post_type', '=', 'opp')
-                    ->update(['removed' => 0]);
+    //             if($is_removed->count() > 0){
+    //                 //update record
+    //                 $restore_bookmark = $bookmark->where('post_id', $opp_id)
+    //                 ->where('user_id', $user_id)
+    //                 ->where('post_type', '=', 'opp')
+    //                 ->update(['removed' => 0]);
 
-                    if($restore_bookmark > 0){
-                        return response()->json(['status' => 'success', 'message' => "Bookmarked"]);
-                    }
-                }
+    //                 if($restore_bookmark > 0){
+    //                     return response()->json(['status' => 'success', 'message' => "Bookmarked"]);
+    //                 }
+    //             }
 
-                $remove_bookmark = $bookmark->where('post_id', $opp_id)
-                ->where('user_id', $user_id)
-                ->where('post_type', '=', 'opp')
-                ->update(['removed' => 1]);
+    //             $remove_bookmark = $bookmark->where('post_id', $opp_id)
+    //             ->where('user_id', $user_id)
+    //             ->where('post_type', '=', 'opp')
+    //             ->update(['removed' => 1]);
                 
-                if($remove_bookmark > 0){
-                    return response()->json(['status' => 'warning', 'message' => 'Bookmark Removed']);
-                }else{
-                    return response()->json(['status' => 'error', 'message' => 'Oops! Something went wrong']);
-                }
+    //             if($remove_bookmark > 0){
+    //                 return response()->json(['status' => 'warning', 'message' => 'Bookmark Removed']);
+    //             }else{
+    //                 return response()->json(['status' => 'error', 'message' => 'Oops! Something went wrong']);
+    //             }
 
-               // return response()->json(['status' => 'error', 'message'=> 'Already Bookmarked']);
-            }
+    //            // return response()->json(['status' => 'error', 'message'=> 'Already Bookmarked']);
+    //         }
 
-            //save data...
-            $bookmark->user_id = $user_id;
-            $bookmark->post_id = $opp_id;
-            $bookmark->post_type = 'opp';
-            $bookmark->save();
+    //         //save data...
+    //         $bookmark->user_id = $user_id;
+    //         $bookmark->post_id = $opp_id;
+    //         $bookmark->post_type = 'opp';
+    //         $bookmark->save();
 
-            return response()->json(['status' => 'success', 'message' => "Bookmarked"]);
-        }else{
-            return response()->json(['status' => 'warning', 'message' => "Login to Bookmark"]);
-        }
-     }
+    //         return response()->json(['status' => 'success', 'message' => "Bookmarked"]);
+    //     }else{
+    //         return response()->json(['status' => 'warning', 'message' => "Login to Bookmark"]);
+    //     }
+    //  }
 
 
      /**

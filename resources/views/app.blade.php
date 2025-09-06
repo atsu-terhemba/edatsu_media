@@ -28,6 +28,46 @@
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="img/icons/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- Laravel 12 Font - Instrument Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+    
+    <!-- Laravel 12 Typography Styles -->
+    <style>
+        * {
+            font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        }
+        
+        body {
+            font-size: 0.875rem; /* 14px */
+            line-height: 1.5;
+            font-weight: 400;
+            letter-spacing: -0.011em;
+        }
+        
+        h1 { font-size: 2.25rem; font-weight: 800; line-height: 1.2; letter-spacing: -0.025em; }
+        h2 { font-size: 1.875rem; font-weight: 700; line-height: 1.3; letter-spacing: -0.025em; }
+        h3 { font-size: 1.5rem; font-weight: 600; line-height: 1.4; letter-spacing: -0.025em; }
+        h4 { font-size: 1.25rem; font-weight: 600; line-height: 1.4; letter-spacing: -0.025em; }
+        h5 { font-size: 1.125rem; font-weight: 600; line-height: 1.4; letter-spacing: -0.025em; }
+        h6 { font-size: 1rem; font-weight: 600; line-height: 1.4; letter-spacing: -0.025em; }
+        
+        small { font-size: 0.75rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-base { font-size: 1rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; }
+    </style>
+    
+    <!-- Original Font (Commented Out)
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    -->
+    
     <script type="text/javascript">
     (function(c,l,a,r,i,t,y){
         c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};

@@ -49,9 +49,9 @@ const FeedbackPanel = ({ isActive }) => {
             className="px-3 py-2 position-absolute end-0 top-0 cursor-pointer" 
             onClick={hideFeedBackPanel}
           >
-            <span className="material-symbols-outlined  align-middle mx-1 fw-bold text-danger">
+            {/* <span className="material-symbols-outlined  align-middle mx-1 fw-bold text-danger">
               close
-            </span>
+            </span> */}
           </div>
           <p className="poppins-semibold m-0 p-0 mb-2">
             Hi,

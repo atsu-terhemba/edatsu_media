@@ -8,7 +8,7 @@ import { Images } from "@/utils/Images";
 
 
 
-export default function Footer({auth}){
+export default function Footer({auth, isDarkMode}){
 
 function handleCopyRSS(){
 
@@ -54,7 +54,12 @@ function handleCopyRSS(){
                 </Link>
             </li>
             <li>
-                <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="/">
+                <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="/subscription">
+                Pricing
+                </Link>
+            </li>
+            <li>
+                <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="/opportunities">
                 Opportunities
                 </Link>
             </li>

@@ -1,4 +1,5 @@
 import Swal from 'sweetalert2';
+import axios from 'axios';
 
 export const Toast = Swal.mixin({
   toast: true,
@@ -54,78 +55,323 @@ export const swalConfig = {
     }
   };
 
+  // Helper function to get days left as text (for conditional checks)
+  export const getDaysLeftText = (deadline) => {
+    if (!deadline) return 'Unspecified';
+  
+    let diffDays;
+  
+    // Assuming deadline is in days or can be parsed as a date
+    if (isNaN(deadline)) {
+      const deadlineDate = new Date(deadline);
+      const today = new Date();
+      const diffTime = deadlineDate - today;
+      diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    } else {
+      diffDays = parseInt(deadline, 10);
+    }
+  
+    if (diffDays <= 0) {
+      return 'Expired';
+    } else if (diffDays <= 7) {
+      return `${diffDays} days left`;
+    } else {
+      return `${diffDays} days left`;
+    }
+  };
+
 
   export function createSharingLinks(postId, postTitle) {
     const sluggedTitle = postTitle.toLowerCase().replace(/[^\w ]+/g, '').replace(/ +/g, '-');
-    const postUrl = encodeURIComponent(`https://media.edatsu.com/op/${postId}/${sluggedTitle}`);
+    
+    // Determine the URL based on current path or context
+    let postUrl;
+    const currentPath = window.location.pathname;
+    
+    if (currentPath.includes('/product/') || currentPath.includes('/toolshed')) {
+        // Tool/Product sharing
+        postUrl = encodeURIComponent(`https://media.edatsu.com/product/${postId}/${sluggedTitle}`);
+    } else {
+        // Opportunity sharing (default)
+        postUrl = encodeURIComponent(`https://media.edatsu.com/op/${postId}/${sluggedTitle}`);
+    }
 
     const sharingPlatforms = [
         {
             name: 'WhatsApp',
             url: `https://api.whatsapp.com/send?text=${postUrl}`,
-            icon: '/img/gif/icons8-whatsapp-50.png'
+            icon: '/img/gif/icons8-whatsapp-50.png',
+            color: '#25D366'
         },
         {
             name: 'Telegram',
             url: `https://t.me/share/url?url=${postUrl}`,
-            icon: '/img/gif/icons8-telegram-50.png'
+            icon: '/img/gif/icons8-telegram-50.png',
+            color: '#0088cc'
         },
         {
             name: 'LinkedIn',
             url: `https://www.linkedin.com/sharing/share-offsite/?url=${postUrl}`,
-            icon: '/img/gif/icons8-linkedin-50.png'
+            icon: '/img/gif/icons8-linkedin-50.png',
+            color: '#0077b5'
         },
         {
             name: 'Twitter',
             url: `https://twitter.com/intent/tweet?url=${postUrl}`,
-            icon: '/img/gif/icons8-twitter-50.png'
+            icon: '/img/gif/icons8-twitter-50.png',
+            color: '#1da1f2'
         },
         {
           name: 'Facebook',
           url: `https://www.facebook.com/sharer/sharer.php?u=${postUrl}`,
-          icon: '/img/gif/icons8-facebook-50.png'
+          icon: '/img/gif/icons8-facebook-50.png',
+          color: '#1877f2'
       }
     ];
     
-      const ul = document.createElement('ul');
-      sharingPlatforms.forEach(platform => {
-          const li = document.createElement('li');
-          const a = document.createElement('a');
-          a.className = 'text-decoration-none text-dark';
-          a.href = platform.url;
-          a.target = '_blank';
+    const container = document.createElement('div');
+    container.className = 'share-modal animate__animated animate__fadeInUp';
+    container.style.cssText = `
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        border: 1px solid #e2e8f0;
+        min-width: 280px;
+        position: relative;
+        z-index: 1050;
+    `;
 
-          const img = document.createElement('img');
-          img.width = 30;
-          img.src = platform.icon;
-          img.alt = platform.name.toLowerCase();
+    // Header
+    const header = document.createElement('div');
+    header.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f1f5f9;
+    `;
+    
+    const title = document.createElement('h6');
+    title.textContent = 'Share this opportunity';
+    title.style.cssText = `
+        margin: 0;
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 14px;
+    `;
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '×';
+    closeBtn.style.cssText = `
+        background: none;
+        border: none;
+        font-size: 20px;
+        color: #64748b;
+        cursor: pointer;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    `;
+    closeBtn.onmouseover = () => {
+        closeBtn.style.backgroundColor = '#f1f5f9';
+        closeBtn.style.color = '#374151';
+    };
+    closeBtn.onmouseout = () => {
+        closeBtn.style.backgroundColor = 'transparent';
+        closeBtn.style.color = '#64748b';
+    };
+    closeBtn.onclick = (e) => {
+        e.stopPropagation();
+        container.classList.remove('animate__fadeInUp');
+        container.classList.add('animate__fadeOutDown');
+        setTimeout(() => {
+            if (container.parentNode) {
+                container.parentNode.classList.add('d-none');
+                container.remove();
+                // Remove the click outside handler
+                if (container._clickHandler) {
+                    document.removeEventListener('click', container._clickHandler);
+                }
+            }
+        }, 300);
+    };
+    
+    header.appendChild(title);
+    header.appendChild(closeBtn);
 
-          a.appendChild(img);
-          a.appendChild(document.createTextNode(` ${platform.name}`));
-          li.appendChild(a);
-          ul.appendChild(li);
-      });
+    // Social platforms grid
+    const grid = document.createElement('div');
+    grid.style.cssText = `
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+        gap: 12px;
+    `;
 
-      return ul;
+    sharingPlatforms.forEach((platform, index) => {
+        const item = document.createElement('a');
+        item.href = platform.url;
+        item.target = '_blank';
+        item.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            padding: 12px 8px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            animation-delay: ${index * 50}ms;
+        `;
+        item.className = 'animate__animated animate__zoomIn';
+        
+        item.onmouseover = () => {
+            item.style.transform = 'translateY(-2px) scale(1.02)';
+            item.style.boxShadow = `0 8px 25px ${platform.color}20`;
+            item.style.borderColor = platform.color;
+            item.style.backgroundColor = `${platform.color}08`;
+        };
+        item.onmouseout = () => {
+            item.style.transform = 'translateY(0) scale(1)';
+            item.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+            item.style.borderColor = '#e2e8f0';
+            item.style.backgroundColor = '#f8fafc';
+        };
+
+        const iconContainer = document.createElement('div');
+        iconContainer.style.cssText = `
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 6px;
+            background: ${platform.color}15;
+        `;
+
+        const icon = document.createElement('img');
+        icon.src = platform.icon;
+        icon.alt = platform.name.toLowerCase();
+        icon.style.cssText = `
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        `;
+
+        const label = document.createElement('span');
+        label.textContent = platform.name;
+        label.style.cssText = `
+            font-size: 11px;
+            font-weight: 500;
+            color: #374151;
+            text-align: center;
+            line-height: 1.2;
+        `;
+
+        iconContainer.appendChild(icon);
+        item.appendChild(iconContainer);
+        item.appendChild(label);
+        grid.appendChild(item);
+    });
+
+    container.appendChild(header);
+    container.appendChild(grid);
+
+    // Add click outside handler
+    setTimeout(() => {
+        const handleClickOutside = (e) => {
+            if (container.parentNode && !container.contains(e.target)) {
+                // Find the share button that triggered this modal
+                const shareButton = container.parentNode.nextElementSibling;
+                if (shareButton && !shareButton.contains(e.target)) {
+                    container.classList.remove('animate__fadeInUp');
+                    container.classList.add('animate__fadeOutDown');
+                    setTimeout(() => {
+                        if (container.parentNode) {
+                            container.parentNode.classList.add('d-none');
+                            container.remove();
+                            document.removeEventListener('click', handleClickOutside);
+                        }
+                    }, 300);
+                }
+            }
+        };
+        document.addEventListener('click', handleClickOutside);
+        
+        // Store the handler for cleanup
+        container._clickHandler = handleClickOutside;
+    }, 100);
+
+    return container;
   }
 
 
-    // Toggle share function as provided
+    // Toggle share function with modern modal
    export const toggleShare = (obj) => {
       const title = obj.dataset.title;
       const id = obj.dataset.id;
-      obj.previousElementSibling.classList.toggle('d-none');
-      const sharingLinksContainer = obj.previousElementSibling;
-      sharingLinksContainer.innerHTML = '';
-      const sharingLinks = createSharingLinks(id, title);
-      sharingLinksContainer.appendChild(sharingLinks);
+      const sharingContainer = obj.previousElementSibling;
+      
+      // Check if modal is currently visible
+      const isVisible = !sharingContainer.classList.contains('d-none');
+      
+      if (isVisible) {
+        // Hide modal with animation
+        const modal = sharingContainer.querySelector('.share-modal');
+        if (modal) {
+          modal.classList.remove('animate__fadeInUp');
+          modal.classList.add('animate__fadeOutDown');
+          setTimeout(() => {
+            sharingContainer.classList.add('d-none');
+            sharingContainer.innerHTML = '';
+          }, 300);
+        }
+      } else {
+        // Show modal with animation
+        sharingContainer.classList.remove('d-none');
+        sharingContainer.innerHTML = '';
+        
+        const sharingLinks = createSharingLinks(id, title);
+        sharingContainer.appendChild(sharingLinks);
+        
+        // Add click outside functionality using a global listener
+        const closeModal = () => {
+          const modal = sharingContainer.querySelector('.share-modal');
+          if (modal && !sharingContainer.classList.contains('d-none')) {
+            modal.classList.remove('animate__fadeInUp');
+            modal.classList.add('animate__fadeOutDown');
+            setTimeout(() => {
+              sharingContainer.classList.add('d-none');
+              sharingContainer.innerHTML = '';
+            }, 300);
+          }
+        };
+        
+        // Store the close function on the container for easy access
+        sharingContainer._closeModal = closeModal;
+        
+        // Auto-hide after 10 seconds
+        setTimeout(() => {
+          if (!sharingContainer.classList.contains('d-none')) {
+            closeModal();
+          }
+        }, 10000);
+      }
     };
 
   export function bookmark(obj){
     let id      = obj.dataset.id;
     let type    = obj.dataset.type;
     let url     = obj.dataset.url;
-    axios.post('/bookmark-opportunity',  {
+    axios.post('/bookmark',  {
       id: id,
       type: type,
       url: url
@@ -148,11 +394,104 @@ export const swalConfig = {
             }); 
         }
     })
-    .catch((e)=> console.log(e));
+    .catch((error)=> {
+        console.log(error);
+        // Handle authentication error
+        if (error.response?.status === 401 || error.response?.data?.message === "Unauthenticated.") {
+            showAuthModal();
+        } else {
+            Toast.fire({
+                icon: "error",
+                title: "Failed to bookmark. Please try again."
+            });
+        }
+    });
 }
 
-export const pageLink = (slug, id) => {
-  return `/op/${id}/${slug}`;
+// Function to show authentication modal
+function showAuthModal() {
+    Swal.fire({
+        title: 'Unlock Your Intelligence Platform',
+        html: `
+            <div style="text-align: center; padding: 20px;">
+                <p style="margin-bottom: 20px; color: #374151; font-size: 16px; font-weight: 500;">
+                    Join thousands of entrepreneurs accessing exclusive features
+                </p>
+                            
+                <div style="display: flex; flex-direction: column; gap: 12px; max-width: 320px; margin: 0 auto;">
+                    <a href="/auth/google" 
+                       style="display: flex; align-items: center; justify-content: center; gap: 12px; 
+                              padding: 14px 20px; background: #4285f4; color: white; text-decoration: none; 
+                              border-radius: 10px; font-weight: 600; font-size: 15px; transition: all 0.3s ease;
+                              box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);"
+                       onmouseover="this.style.background='#3367d6'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(66, 133, 244, 0.4)'" 
+                       onmouseout="this.style.background='#4285f4'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(66, 133, 244, 0.3)'">
+                        <img src="https://developers.google.com/identity/images/g-logo.png" 
+                             width="22" height="22" style="background: white; padding: 3px; border-radius: 3px;">
+                        Continue with Google
+                    </a>
+                    
+                    <a href="/auth/linkedin" 
+                       style="display: flex; align-items: center; justify-content: center; gap: 12px; 
+                              padding: 14px 20px; background: #0077b5; color: white; text-decoration: none; 
+                              border-radius: 10px; font-weight: 600; font-size: 15px; transition: all 0.3s ease;
+                              box-shadow: 0 2px 8px rgba(0, 119, 181, 0.3);"
+                       onmouseover="this.style.background='#005885'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(0, 119, 181, 0.4)'" 
+                       onmouseout="this.style.background='#0077b5'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 119, 181, 0.3)'">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                        </svg>
+                        Continue with LinkedIn
+                    </a>
+                    
+                    <div style="margin: 15px 0; color: #9ca3af; font-size: 14px; font-weight: 500;">or use email</div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <a href="/login" 
+                           style="display: flex; align-items: center; justify-content: center; gap: 8px; 
+                                  padding: 12px 16px; background: transparent; color: #374151; text-decoration: none; 
+                                  border: 2px solid #e5e7eb; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease;"
+                           onmouseover="this.style.borderColor='#9ca3af'; this.style.backgroundColor='#f9fafb'; this.style.transform='translateY(-1px)'" 
+                           onmouseout="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='transparent'; this.style.transform='translateY(0)'">
+                            Login
+                        </a>
+                        
+                        <a href="/register" 
+                           style="display: flex; align-items: center; justify-content: center; gap: 8px; 
+                                  padding: 12px 16px; background: #059669; color: white; text-decoration: none; 
+                                  border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease;
+                                  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);"
+                           onmouseover="this.style.background='#047857'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(5, 150, 105, 0.4)'" 
+                           onmouseout="this.style.background='#059669'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(5, 150, 105, 0.3)'">
+                            Sign Up
+                        </a>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+                    <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                        🔒 Secure • 🚀 Free Forever • ⚡ Instant Access
+                    </p>
+                    <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0 0;">
+                        By continuing, you agree to our Terms of Service and Privacy Policy
+                    </p>
+                </div>
+            </div>
+        `,
+        showConfirmButton: false,
+        showCloseButton: true,
+        width: '480px',
+        padding: '0',
+        background: 'white',
+        customClass: {
+            popup: 'auth-modal-popup',
+            closeButton: 'auth-modal-close'
+        }
+    });
+}
+
+export const pageLink = (path, slug, id) => {
+  return `/${path}/${id}/${slug}`;
 };
 
 

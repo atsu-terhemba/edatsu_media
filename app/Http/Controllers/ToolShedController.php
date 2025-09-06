@@ -4,11 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\ProductFunctionality;
 use Illuminate\Http\Request;
-use App\Models\Category;
+use App\Models\ProductCategory;
 use App\Models\BrandLabel;
 use App\Models\Region;
 use App\Models\Continent;
-use App\Models\ProductCategory;
 use App\Models\Tag;
 use App\Models\Country;
 use App\Models\ProductPricing;
@@ -23,24 +22,24 @@ class ToolShedController extends Controller
     //
 
     public function initToolShedPage(){
-        // $categories = ProductCategory::all();
-        // $regions = Region::all();
-        // $countries = Country::all();
-        // $continents = Continent::all();
-        // $tags = Tag::all();
-        // $brand_label = BrandLabel::all();
-        // $pricing = ProductPricing::all();
-        // $product_functionality  = ProductFunctionality::all();
+        $categories = ProductCategory::all();
+        $regions = Region::all();
+        $countries = Country::all();
+        $continents = Continent::all();
+        $tags = Tag::all();
+        $brand_label = BrandLabel::all();
+        $pricing = ProductPricing::all();
+        $product_functionality  = ProductFunctionality::all();
 
         return Inertia::render("Toolshed", [
-            // "categories" => $categories, 
-            // "regions" => $regions,
-            // "countries" => $countries,
-            // "continents" => $continents, 
-            // "tags" => $tags,
-            // "brand_label" => $brand_label, 
-            // "pricing" => $pricing, 
-            // "product_functionality" => $product_functionality
+            "categories" => $categories, 
+            "regions" => $regions,
+            "countries" => $countries,
+            "continents" => $continents, 
+            "tags" => $tags,
+            "brands" => $brand_label, 
+            "pricing" => $pricing, 
+            "product_functionality" => $product_functionality
         ]);
     }
 

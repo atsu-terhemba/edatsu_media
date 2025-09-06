@@ -136,10 +136,6 @@ class SubscriberController extends Controller
         }
 
 
-
-
-
-
         //bookmarking
         public function bookmarkFeed(Request $request){
             //check if user is authenticated if not 

@@ -3,13 +3,13 @@ import { Form, Button, Container, Row, Col, ListGroup, Alert } from 'react-boots
 import AdminSideNav from './Components/SideNav';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
-import Swal from 'sweetalert2';
+// import Swal from 'sweetalert2';
 import Select from 'react-select'
 import axios from 'axios';
 import { swalConfig } from '@/utils/Index';
 import { Toast } from '@/utils/Index';
-import LexicalTextEditor from '@/Components/LexicalTextEditorComponent';
-import EditorJS from '@editorjs/editorjs';
+// import LexicalTextEditor from '@/Components/LexicalTextEditorComponent';
+// import EditorJS from '@editorjs/editorjs';
 import QuillEditor from '@/Components/QuillEditorComponent';
 
 
@@ -18,7 +18,7 @@ export default function CreateProduct({ edits, categories, brand_label, countrie
    
     const [section, setSection] = useState('details'); 
     const [categoryOption, setCategoryOptions] = useState([]);
-        const [tagOption, setTagOptions] = useState([]);
+    const [tagOption, setTagOptions] = useState([]);
     const [brandLabelOption, setBrandLabelOptions] = useState([]);
     const [countryOption, setCountryOptions] = useState([]);
     const [continentOption, setContinentOptions] = useState([]);
@@ -45,11 +45,11 @@ export default function CreateProduct({ edits, categories, brand_label, countrie
 
     const [formData, setFormData] = useState({
         cover_img: null,
-        product_name: edits?.product_name || '',
-        product_description: edits?.product_description || '',
-        deadline: edits?.deadline || '',
+        title: edits?.product_name || '',
+        description: edits?.product_description || '',
         source_url: edits?.source_url || '',
         direct_link: edits?.direct_link || '',
+        youtube_link: edits?.youtube_link || '',
         meta_keywords: edits?.meta_keywords || '',
         meta_description: edits?.meta_description || '',
         post_id: edits?.id || '',
@@ -132,22 +132,19 @@ export default function CreateProduct({ edits, categories, brand_label, countrie
             e.target.value = '';
             return;
         }
-
         setFormData({...formData, cover_img: file});
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
         // Send the combined data to the server
         try {
-            const response = await axios.post('/admin-store-product', formData, {
+            const response = await axios.post('/admin-store-software-product', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 }
             });
             console.log(response.data);
-    
             // Handle success response
             if (response.data.success) {
                 Toast.fire({
@@ -226,9 +223,14 @@ export default function CreateProduct({ edits, categories, brand_label, countrie
                                     <br/>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>URL/Reference Link</Form.Label>
-                                    <span className="d-block text-secondary mb-2 fs-9">Provide a link to learn more or apply for this opportunity</span>
-                                    <Form.Control type="text" name="source_url" placeholder="Enter source url" value={formData.source_url} onChange={handleChange} />
+                                    <Form.Label>Direct Link</Form.Label>
+                                    <span className="d-block text-secondary mb-2 fs-9">Provide a direct link to the product (optional)</span>
+                                    <Form.Control type="text" name="direct_link" placeholder="Enter direct link" value={formData.direct_link} onChange={handleChange} />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>YouTube Link</Form.Label>
+                                    <span className="d-block text-secondary mb-2 fs-9">Provide a YouTube video link for the product (optional)</span>
+                                    <Form.Control type="url" name="youtube_link" placeholder="https://www.youtube.com/watch?v=..." value={formData.youtube_link} onChange={handleChange} />
                                 </Form.Group>
                             </div>
                             }
@@ -258,7 +260,6 @@ export default function CreateProduct({ edits, categories, brand_label, countrie
                             </div>
                             }
                             {/* End SEO Optimization Section */}
-
                             <Button variant="dark" type="submit" className="btn py-3 w-100 d-block poppins-semibold mb-3">Create</Button>
                             </Form>
                         </Col>

@@ -38,13 +38,13 @@ export default function AdminSideNav(){
         <div>Users</div>
       </ListGroup.Item>
 
-      {/* RSS Feed */}
-      <ListGroup.Item as={Link} href="#" className='d-flex justify-content-between align-items-center'>
+      {/* RSS Feed - COMMENTED: No page exists yet */}
+      {/* <ListGroup.Item as={Link} href="#" className='d-flex justify-content-between align-items-center'>
         <div>
           <span className="material-symbols-outlined">rss_feed</span>
         </div>
         <div>RSS Feed</div>
-      </ListGroup.Item>
+      </ListGroup.Item> */}
 
       {/* General Options */}
       <ListGroup.Item
@@ -106,8 +106,8 @@ export default function AdminSideNav(){
         </ListGroup>
       )}
 
-       {/*MoneyGuide Posts */}
-       <ListGroup.Item
+       {/*MoneyGuide Posts - COMMENTED: Routes not properly implemented yet */}
+       {/* <ListGroup.Item
         action
         onClick={() => toggleMenu('moneyGuidePosts')}
         className='d-flex justify-content-between align-items-center'
@@ -131,7 +131,7 @@ export default function AdminSideNav(){
             Create Categories
           </ListGroup.Item>
         </ListGroup>
-      )}
+      )} */}
 
 
 
@@ -155,7 +155,7 @@ export default function AdminSideNav(){
           <ListGroup.Item as={Link} href={route('admin.products')} className='text-decoration-none'>
             Create Product
           </ListGroup.Item>
-          <ListGroup.Item as={Link} href={route('admin.all_opp_post')} className='text-decoration-none'>
+          <ListGroup.Item as={Link} href={route('admin.all_products')} className='text-decoration-none'>
             All Products
           </ListGroup.Item>
           <ListGroup.Item as={Link} href={route('admin.product_categories')} className='text-decoration-none'>

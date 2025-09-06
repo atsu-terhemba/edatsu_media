@@ -30,10 +30,10 @@ const FilterLabels = ({filter_data, setFilterData}) => {
             if (value.label && (value.value !== '')) {
                 console.log(key);
                 return (
-                    <span className='search-filter-labels mb-3 me-2 bg-dark text-light shadow-sm' key={key}>
+                    <span className='search-filter-labels mb-3 me-2 bg-light text-dark shadow-sm border' key={key}>
                         {value.label.trim().replace(/_/g, ' ').replace(/&amp;/g, "&")}
                         <span
-                        className="material-symbols-outlined text-light align-middle ms-2"
+                        className="material-symbols-outlined text-dark align-middle ms-2"
                         onClick={() => updateFilter(key, '')}
                         >
                         close
@@ -44,10 +44,10 @@ const FilterLabels = ({filter_data, setFilterData}) => {
 
             if (Array.isArray(value)) {
                 return value.map((item, index) => (
-                    <span className='search-filter-labels mb-3 me-2 bg-dark text-light shadow-sm' key={`${key}-${index}`}>
+                    <span className='search-filter-labels mb-3 me-2 bg-light text-dark shadow-sm border' key={`${key}-${index}`}>
                         {item.label.trim().replace(/_/g, ' ').replace(/&amp;/g, "&")}
                         <span
-                            className="material-symbols-outlined text-light align-middle ms-2"
+                            className="material-symbols-outlined text-dark align-middle ms-2"
                             onClick={() => updateFilter(key, item.value)}
                         >
                         close
