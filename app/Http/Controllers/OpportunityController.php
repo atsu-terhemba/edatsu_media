@@ -8,6 +8,7 @@ use App\Models\Oppty;
 use Illuminate\Support\Carbon;
 use App\Models\Bookmark;
 use Illuminate\Support\Facades\Auth;
+use App\Services\PreferenceNotificationService;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use App\Models\Category;
@@ -144,13 +145,13 @@ class OpportunityController extends Controller
     }
 
 
-    function readOpportunity(Request $request, $id)
+    public function readOpportunity(Request $request, $id, $title = null)
     {
         $user_id = null;
         if(Auth::check()){
             $user_id = Auth::id();
         }
-    
+
         /**
          * @var mixed
          * show all data associated with this opportunites.
@@ -169,8 +170,8 @@ class OpportunityController extends Controller
         ->leftJoin('regions', 'regions.id', '=', 'region_selections.region_id')
         ->leftJoin('tags_selections', 'tags_selections.post_id', '=', 'opportunities.id')
         ->leftJoin('tags', 'tags.id', '=', 'tags_selections.tag_id')
-        ->leftJoin('bookmarks', function($join) use ($id, $user_id) {
-            $join->on('bookmarks.post_id', '=', DB::raw($id))
+        ->leftJoin('bookmarks', function($join) use ($user_id) {
+            $join->on('bookmarks.post_id', '=', 'opportunities.id')
                 ->where('bookmarks.user_id', '=', $user_id)
                 ->where('bookmarks.post_type', '=', 'opp')
                 ->where('bookmarks.removed', '!=', 1);
@@ -219,6 +220,16 @@ class OpportunityController extends Controller
                 'bookmarks.post_type')
         ->first();
 
+    // Debug: Check what we got from the query
+    if (!$opp_posts) {
+        // Try a simpler query to see if the opportunity exists
+        $simple_opp = DB::table('opportunities')->where('id', $id)->first();
+        if ($simple_opp) {
+            return response()->json(['debug' => 'Complex query failed but simple query works', 'simple_opp' => $simple_opp]);
+        } else {
+            abort(404, 'Opportunity not found');
+        }
+    }
 
     
         /**
@@ -660,6 +671,25 @@ function store(Request $request)
         $manageRelationalData($table, $data[0], $data[1]);
     }
 
+    // Send notifications for new opportunities (not for updates)
+    if (!$isEditing) {
+        try {
+            $notificationService = new PreferenceNotificationService();
+            
+            // Extract IDs from the saved data
+            $categoryIds = $notificationService->extractIds(null, 'category_selections', 'category_id', $postId);
+            $countryIds = $notificationService->extractIds(null, 'country_selections', 'country_id', $postId);
+            $regionIds = $notificationService->extractIds(null, 'region_selections', 'region_id', $postId);
+            $brandIds = $notificationService->extractIds(null, 'brand_labels_selections', 'brand_label_id', $postId);
+            
+            // Send notifications to users with matching preferences
+            $notificationService->notifyOpportunityMatch($op, $categoryIds, $countryIds, $regionIds, $brandIds);
+        } catch (\Exception $e) {
+            // Log error but don't break the opportunity creation flow
+            \Log::error("Error sending opportunity notifications: " . $e->getMessage());
+        }
+    }
+
     if($isEditing){
         $post_message = "Post Updated Successful";
     }else{
@@ -817,6 +847,50 @@ function store(Request $request)
 
     public function showOpportunities(){
        return Inertia::render("Admin/AllOppty");
+    }
+
+    public function getLatestOpportunities()
+    {
+        $currentDate = Carbon::now();
+        
+        $opportunities = Oppty::select('id', 'title', 'description', 'deadline', 'created_at')
+            ->where('status', 'published')
+            ->where('deadline', '>', $currentDate) // Only active opportunities
+            ->orderBy('created_at', 'desc')
+            ->limit(3)
+            ->get()
+            ->map(function($oppty) use ($currentDate) {
+                $deadline = Carbon::parse($oppty->deadline);
+                $daysLeft = $currentDate->diffInDays($deadline);
+                
+                // Determine region based on opportunity (you may need to adjust this logic)
+                $region = 'Global'; // Default region
+                $regionColor = '#26A69A';
+                $regionIcon = 'Globe';
+                
+                // You can add logic here to determine region based on title or other fields
+                if (str_contains(strtolower($oppty->title), 'africa') || str_contains(strtolower($oppty->title), 'nigerian')) {
+                    $region = 'Africa';
+                    $regionColor = '#FF9800';
+                    $regionIcon = 'MapPin';
+                } elseif (str_contains(strtolower($oppty->title), 'canada') || str_contains(strtolower($oppty->title), 'north america')) {
+                    $region = 'North America';
+                    $regionColor = '#43A047';
+                    $regionIcon = 'Users';
+                }
+                
+                return [
+                    'id' => $oppty->id,
+                    'title' => $oppty->title,
+                    'description' => substr($oppty->description, 0, 120) . '...',
+                    'daysLeft' => $daysLeft,
+                    'region' => $region,
+                    'regionColor' => $regionColor,
+                    'regionIcon' => $regionIcon,
+                ];
+            });
+            
+        return response()->json($opportunities);
     }
 
 

@@ -13,38 +13,24 @@ export default function HomeBanner() {
                                 <Col sm={2}></Col>
                                 <Col sm={8}>
                                     <div className="text-center">
-                                        <h4 className="text-m-0 p-0 text-light poppins-semibold" style={{ fontSize: '2.5em' }}>
-                                            Intelligence-Driven Opportunity Discovery
+                                        <h4 className="text-m-0 p-0 text-light fw-bold" style={{ fontSize: '2.5em' }}>
+                                        Opportunity Intelligence for Entrepreneurs
                                         </h4>
-                                        <p className="m-0 p-0 text-light poppins-light">
-                                        Advanced intelligence platform that analyzes global funding ecosystems, startup trends, and market patterns to surface hidden opportunities before your competition discovers them.
+                                        <p className="m-0 p-0 text-light">
+                                            From funding and grants to software and market insights, we help entrepreneurs uncover strategic opportunities that fuel 10x growth
                                         </p>
-                                        <div className="d-flex justify-content-center gap-3 flex-wrap mb-4">
-                                            <div className="d-flex align-items-center text-white">
-                                                <span className="badge  bg-success me-2">🎯</span>
-                                                99.7% opportunity match accuracy
-                                            </div>
-                                            <div className="d-flex align-items-center text-white">
-                                                <span className="badge  bg-success me-2">📊</span>
-                                                Real-time market intelligence
-                                            </div>
-                                            <div className="d-flex align-items-center text-white">
-                                                <span className="badge  bg-success me-2">🧠</span>
-                                                Predictive analytics engine
-                                            </div>
-                                        </div>
-                                        <div className="mt-4 d-flex justify-content-center gap-3 flex-wrap">
+                                        <div className="mt-4 mx-auto">
                                             <Link
                                                 href="/opportunities"
-                                                className="btn text-decoration-none shadow-sm btn-lg custom-bg-highlight text-light poppins-semibold px-4 border-0 py-3"
+                                                className="me-2 btn text-decoration-none fw-bold shadow-sm custom-bg-highlight text-light px-4 border-0"
                                             >
-                                                Access Intelligence Platform
+                                               Find Opportunities
                                             </Link>
                                             <Link
                                                 href="/toolshed"
-                                                className="btn text-decoration-none shadow-sm btn-lg btn-outline-light text-light poppins-semibold px-4 border-light py-3"
+                                                className="ms-2 btn text-decoration-none fw-bold shadow-sm  btn-outline-light text-light px-4 border-light"
                                             >
-                                                Explore Arsenal
+                                                Explore Tools
                                             </Link>
                                         </div>
                                     </div>

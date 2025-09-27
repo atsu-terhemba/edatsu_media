@@ -34,8 +34,8 @@ class ToolShedController extends Controller
         return Inertia::render("Toolshed", [
             "categories" => $categories, 
             "regions" => $regions,
-            "countries" => $countries,
-            "continents" => $continents, 
+            // "countries" => $countries,
+            // "continents" => $continents, 
             "tags" => $tags,
             "brands" => $brand_label, 
             "pricing" => $pricing, 
@@ -106,10 +106,6 @@ class ToolShedController extends Controller
             return response()->json(['status' => 'warning', 'message' => "Login to Bookmark"]);
         }
      }
-
-
-
-
 
 
 }

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use App\Models\BrandLabel;
+use Inertia\Inertia;
 
 
 
@@ -17,7 +18,7 @@ class BrandLabelController extends Controller
     public function editLabel(Request $request, $id){
         $edits = BrandLabel::where('id', $id)->first();
         $labels = BrandLabel::all();
-        return view("admin.brand-labels", ['edit' => $edits, 'labels' => $labels]);
+        return Inertia::render("Admin/ManageBrandLabels", ['edit' => $edits, 'labels' => $labels]);
     }
 
     public function deleteLabel(Request $request)
@@ -37,7 +38,7 @@ class BrandLabelController extends Controller
     //show category page
     public function brandLabels(){
         $labels = BrandLabel::all();
-        return view("admin.brand-labels", ['deleted'=> true, 'labels' => $labels]);
+        return Inertia::render("Admin/ManageBrandLabels", ['deleted'=> true, 'labels' => $labels]);
     }
 
     //save or update category
@@ -69,7 +70,8 @@ class BrandLabelController extends Controller
         $signature = $request->has('signature') ? $request->signature : null;
     
         // Verify the HMAC signature
-        if (!hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
+        // Verify the HMAC signature only if we're editing an existing brand label
+        if ($postId && !hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
             return response()->json([
                 'success' => false,
                 'message' => 'Oops! Try again'

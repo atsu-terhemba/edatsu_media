@@ -44,14 +44,19 @@ const Toolshed = () => {
     const props = usePage().props;
 
     useEffect(() => {
+        console.log('Fetching products from search-products endpoint...');
         axios.get('search-products') // Fetch Products
         .then(function (response) {
-            console.log('SEARCH ENDPOINT', response.data);
+            console.log('SEARCH ENDPOINT RESPONSE:', response);
+            console.log('SEARCH ENDPOINT DATA:', response.data);
+            console.log('SEARCH ENDPOINT DATA.DATA:', response.data?.data);
+            console.log('SEARCH ENDPOINT DATA.DATA LENGTH:', response.data?.data?.length);
             setData(response.data?.data || []);
             setPagination(response.data?.links || []);
         })
         .catch(function (error) {
             console.error("Error fetching initial products:", error);
+            console.error("Error details:", error.response);
             setData([]);
             setPagination([]);
         });
@@ -288,9 +293,10 @@ const Toolshed = () => {
                                     setSearchKeyword={setSearchKeyword}
                                     setFilterData={setFilterData}
                                     categories={props.categories}
-                                    continents={props.continents}
-                                    countries={props.countries}
+                                    // continents={props.continents}
+                                    // countries={props.countries}
                                     brands={props.brands}
+                                    tags={props.tags}
                                     initSearch={initSearch}
                                 />
                             </div>

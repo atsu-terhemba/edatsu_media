@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use App\Models\Tag;
+use Inertia\Inertia;
 
 
 class TagController extends Controller
@@ -16,7 +17,7 @@ class TagController extends Controller
     public function editTag(Request $request, $id){
         $edits = Tag::where('id', $id)->first();
         $tags = Tag::all();
-        return view("admin.tags", ['edit' => $edits, 'tags' => $tags]);
+        return Inertia::render("Admin/ManageTags", ['edit' => $edits, 'tags' => $tags]);
     }
 
     public function deleteTag(Request $request)
@@ -36,7 +37,7 @@ class TagController extends Controller
     //show category page
     public function tags(){
         $tags = Tag::all();
-        return view("admin.tags", ['deleted'=> true, 'tags' => $tags]);
+        return Inertia::render("Admin/ManageTags", ['deleted'=> true, 'tags' => $tags]);
     }
 
     //save or update category
@@ -67,8 +68,8 @@ class TagController extends Controller
         $postId = $request->has('post_id') ? $request->post_id : null;
         $signature = $request->has('signature') ? $request->signature : null;
     
-        // Verify the HMAC signature
-        if (!hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
+        // Verify the HMAC signature only if we're editing an existing tag
+        if ($postId && !hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
             return response()->json([
                 'success' => false,
                 'message' => 'Oops! Try again'

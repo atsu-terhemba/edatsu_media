@@ -6,14 +6,14 @@ import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import Container from 'react-bootstrap/Container';
 import { getDaysLeft, toggleShare, bookmark, pageLink, renderLabels, dateStringFormat} from "@/utils/Index";
-import StarRating from "@/Components/Rating";
+import ProductRating from "@/Components/ProductRating";
+import ProductComments from "@/Components/ProductComments";
 import { router } from '@inertiajs/react'
 import RecommendedContent from "@/Components/RecommendedContent";
-import CommentComponent from "@/Components/CommentComponent";
 import GoogleAdsense from '@/Components/GoogleAdsense';
-import { Star, ExternalLink, Bookmark, Share2, Calendar, Tag, Globe, Wrench } from 'lucide-react';
+import { Star, ExternalLink, Bookmark, Share2, Calendar, Tag, Globe, Wrench, MessageCircle } from 'lucide-react';
 
-const ReadTool = ({tool_data, similarPosts, total_comments}) => {
+const ReadTool = ({tool_data, similarPosts}) => {
 
     const baseUrl = `${window.location.protocol}//${window.location.host}`;
     const [fullURL, setFullUrl] = useState();
@@ -298,17 +298,25 @@ const ReadTool = ({tool_data, similarPosts, total_comments}) => {
                 <div className="tool-card">
                     <h3 className="section-title">
                         <Star size={24} className="text-primary" />
-                        Rate This Product
+                        Ratings & Reviews
                     </h3>
-                    <StarRating postID={tool_data?.id}/>
+                    <ProductRating 
+                        productId={tool_data?.id}
+                        isAuthenticated={props?.auth?.user ? true : false}
+                        initialRating={tool_data?.average_rating || 0}
+                        initialCount={tool_data?.total_ratings || 0}
+                    />
                 </div>
 
                 {/* Comments Section */}
                 <div className="tool-card">
-                    <CommentComponent 
-                        postId={tool_data?.id}
-                        isAuthenticated={(props?.auth?.user)? true : false}
-                        totalComments={total_comments}
+                    <h3 className="section-title">
+                        <MessageCircle size={24} className="text-primary" />
+                        Comments & Discussion
+                    </h3>
+                    <ProductComments 
+                        productId={tool_data?.id}
+                        isAuthenticated={props?.auth?.user ? true : false}
                     />
                 </div>
 

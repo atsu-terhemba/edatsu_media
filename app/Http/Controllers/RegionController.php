@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use App\Models\Region;
+use Inertia\Inertia;
 
 
 
@@ -17,7 +18,7 @@ class RegionController extends Controller
     public function editRegion(Request $request, $id){
         $edits = Region::where('id', $id)->first();
         $regions = Region::all();
-        return view("admin.regions", ['edit' => $edits, 'regions' => $regions]);
+        return Inertia::render("Admin/ManageRegions", ['edit' => $edits, 'regions' => $regions]);
     }
 
     public function deleteRegion(Request $request)
@@ -37,7 +38,7 @@ class RegionController extends Controller
     //show category page
     public function regions(){
         $regions = Region::all();
-        return view("admin.regions", ['deleted'=> true, 'regions' => $regions]);
+        return Inertia::render("Admin/ManageRegions", ['deleted'=> true, 'regions' => $regions]);
     }
 
     //save or update category
@@ -69,7 +70,8 @@ class RegionController extends Controller
         $signature = $request->has('signature') ? $request->signature : null;
     
         // Verify the HMAC signature
-        if (!hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
+        // Verify the HMAC signature only if we're editing an existing region
+        if ($postId && !hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
             return response()->json([
                 'success' => false,
                 'message' => 'Oops! Try again'

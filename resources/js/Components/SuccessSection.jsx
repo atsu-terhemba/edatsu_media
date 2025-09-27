@@ -8,10 +8,10 @@ export default function SuccessSection() {
             <Container>
                 <Row className="mb-5">
                     <Col xs={12} className="text-center">
-                        <h2 className="display-4 fw-bold text-dark mb-4">
+                        <h3 className="display-6 fw-bold text-dark mb-4">
                             Intelligence-Powered Business Ecosystem
-                        </h2>
-                        <p className="lead text-muted mb-0" style={{ maxWidth: '600px', margin: '0 auto' }}>
+                        </h3>
+                        <p className="text-muted mb-0" style={{ maxWidth: '600px', margin: '0 auto' }}>
                             Our proprietary algorithms analyze global data streams, market patterns, and funding flows to deliver strategic intelligence that transforms how entrepreneurs discover and capture opportunities.
                         </p>
                     </Col>
@@ -21,13 +21,13 @@ export default function SuccessSection() {
                     {/* Opportunities Card */}
                     <Col md={4} sm={6}>
                         <Card className="h-100 border-0 shadow-sm">
-                            <Card.Body className="p-4 text-center">
+                            <Card.Body className="p-4 text-center position-relative">
                                 <div className="mb-4">
                                     <div 
                                         className="rounded-circle d-inline-flex align-items-center justify-content-center"
                                         style={{ 
-                                            width: '80px', 
-                                            height: '80px', 
+                                            width: '60px', 
+                                            height: '60px', 
                                             backgroundColor: '#FFF3E0' 
                                         }}
                                     >
@@ -35,32 +35,16 @@ export default function SuccessSection() {
                                     </div>
                                 </div>
                                 
-                                <h4 className="fw-bold mb-3">Opportunity Intelligence</h4>
-                                <p className="text-muted mb-4">
-                                    Our AI scans 10,000+ data sources daily to surface hidden funding opportunities with 99.7% accuracy. Get intelligence before it becomes public knowledge.
+                                <h4 className="fw-bold mb-3">Strategic market positioning</h4>
+                                <p className="text-muted mb-4 fs-9">
+                                Our bots scan 1,000+ data sources daily to surface hidden funding opportunities with 99.7% accuracy — delivering intelligence before it becomes public knowledg
                                 </p>
-                                
-                                <div className="mb-4">
-                                    <div className="d-flex align-items-center mb-2">
-                                        <Globe size={16} className="text-warning me-2" />
-                                        <span className="text-muted">Predictive funding analytics</span>
-                                    </div>
-                                    <div className="d-flex align-items-center mb-2">
-                                        <Award size={16} className="text-warning me-2" />
-                                        <span className="text-muted">Real-time opportunity scoring</span>
-                                    </div>
-                                    <div className="d-flex align-items-center">
-                                        <Users size={16} className="text-warning me-2" />
-                                        <span className="text-muted">Strategic market positioning</span>
-                                    </div>
-                                </div>
                                 
                                 <Link
                                     href="/opportunities"
-                                    className="btn btn-warning text-white fw-semibold px-4 py-2 text-decoration-none"
-                                    style={{ backgroundColor: '#FF9800', border: 'none' }}
+                                    className=" bottom-5 btn btn-dark text-white fw-bold px-4 py-2 text-decoration-none"
                                 >
-                                    Access Intelligence
+                                    Access Opportunities
                                 </Link>
                             </Card.Body>
                         </Card>
@@ -74,8 +58,8 @@ export default function SuccessSection() {
                                     <div 
                                         className="rounded-circle d-inline-flex align-items-center justify-content-center"
                                         style={{ 
-                                            width: '80px', 
-                                            height: '80px', 
+                                            width: '60px', 
+                                            height: '60px', 
                                             backgroundColor: '#E0F2F1' 
                                         }}
                                     >
@@ -83,32 +67,17 @@ export default function SuccessSection() {
                                     </div>
                                 </div>
                                 
-                                <h4 className="fw-bold mb-3">Strategic Arsenal</h4>
-                                <p className="text-muted mb-4">
-                                    Military-grade tool intelligence. Our analysts evaluate, rank, and monitor 500+ business tools across threat landscapes and operational efficiency.
+                                <h4 className="fw-bold mb-3">Productivity Tools</h4>
+                                <p className="text-muted fs-9 mb-4">
+                                  Navigate the modern age of AI with intelligence-driven business productivity. We evaluate, rank, and monitor 500+ tools to help entrepreneurs optimize efficiency and growth
                                 </p>
-                                
-                                <div className="mb-4">
-                                    <div className="d-flex align-items-center mb-2">
-                                        <Zap size={16} className="text-info me-2" />
-                                        <span className="text-muted">Mission-critical productivity stack</span>
-                                    </div>
-                                    <div className="d-flex align-items-center mb-2">
-                                        <Shield size={16} className="text-info me-2" />
-                                        <span className="text-muted">Security-first tool selection</span>
-                                    </div>
-                                    <div className="d-flex align-items-center">
-                                        <Users size={16} className="text-info me-2" />
-                                        <span className="text-muted">Operational excellence platforms</span>
-                                    </div>
-                                </div>
                                 
                                 <Link
                                     href="/toolshed"
-                                    className="btn text-white fw-semibold px-4 py-2 text-decoration-none"
+                                    className="btn text-white fw-bold px-4 py-2 text-decoration-none"
                                     style={{ backgroundColor: '#26A69A', border: 'none' }}
                                 >
-                                    Deploy Arsenal
+                                   Find Tools
                                 </Link>
                             </Card.Body>
                         </Card>

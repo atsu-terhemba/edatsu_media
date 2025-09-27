@@ -11,6 +11,11 @@ const DisplayToolshed = ({ data }) => {
   const [loadedImages, setLoadedImages] = useState({});
   const [showLabels, setShowLabels] = useState(false);
 
+  // Debug logging
+  console.log('DisplayToolshed received data:', data);
+  console.log('Data type:', typeof data);
+  console.log('Data length:', data?.length);
+
   // Fallback image URL - replace with your actual fallback image
   const fallbackImageUrl = "img/logo/main_2.png";  const handleImageError = (e) => {
     e.target.src = fallbackImageUrl;
@@ -155,11 +160,19 @@ const DisplayToolshed = ({ data }) => {
       </div>
 
       <div className="row g-4">
-      {data?.map((tool, index) => {
-        const hasImage = tool.cover_img && isValidImage(tool.cover_img);
-        const imageId = `img-${tool.id || index}`;
-        // Add trending logic - for demo, make first tool trending
-        const isTrending = index === 0 || tool.is_trending;
+      {!data || data.length === 0 ? (
+        <div className="col-12">
+          <div className="text-center py-5">
+            <h4 className="text-muted">No tools found</h4>
+            <p className="text-muted">Try adjusting your filters or check back later.</p>
+          </div>
+        </div>
+      ) : (
+        data.map((tool, index) => {
+          const hasImage = tool.cover_img && isValidImage(tool.cover_img);
+          const imageId = `img-${tool.id || index}`;
+          // Add trending logic - for demo, make first tool trending
+          const isTrending = index === 0 || tool.is_trending;
         
         return (
           <div key={tool.id || index} className="col-md-6 col-lg-4">
@@ -219,7 +232,7 @@ const DisplayToolshed = ({ data }) => {
                 </div>
                 
                 <Link
-                  href={pageLink('product', tool.slug, tool.id)}
+                  href={pageLink('product', tool.id, tool.slug)}
                   className="text-decoration-none text-dark tool-title-link"
                 >
                   <h5 className="fw-bold mb-2" style={{ fontSize: '1.1rem', transition: 'color 0.3s ease' }}>
@@ -267,16 +280,24 @@ const DisplayToolshed = ({ data }) => {
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <div>
                     <div className="fw-bold text-dark mb-1" style={{ fontSize: '1.1rem' }}>
-                      {tool.pricing || 'Free'}
+                      Free
                     </div>
-                    {tool.rating && (
-                      <div className="d-flex align-items-center">
-                        <Star size={14} className="text-warning me-1" fill="currentColor" />
-                        <span className="text-muted" style={{ fontSize: '0.85rem' }}>
-                          {tool.rating}
-                        </span>
+                    {/* Rating Display */}
+                    <div className="d-flex align-items-center">
+                      <div className="d-flex align-items-center me-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star 
+                            key={star}
+                            size={14} 
+                            className={star <= Math.round(tool.average_rating || 0) ? 'text-warning' : 'text-muted'} 
+                            fill={star <= Math.round(tool.average_rating || 0) ? 'currentColor' : 'none'}
+                          />
+                        ))}
                       </div>
-                    )}
+                      <span className="text-muted" style={{ fontSize: '0.85rem' }}>
+                        {tool.average_rating ? parseFloat(tool.average_rating).toFixed(1) : '0.0'} ({tool.total_ratings || 0})
+                      </span>
+                    </div>
                   </div>
                   
                   <div className="d-flex align-items-center gap-2">
@@ -313,8 +334,8 @@ const DisplayToolshed = ({ data }) => {
                       className="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center bookmark-btn"
                       data-id={tool.id}
                       data-title={tool.product_name}
-                      data-type="ts"
-                      data-url={pageLink('product', tool.slug, tool.id)}
+                      data-type="tool"
+                      data-url={pageLink('product', tool.id, tool.slug)}
                       onClick={(e) => bookmark(e.currentTarget)}
                       style={{ 
                         width: '36px',
@@ -343,7 +364,7 @@ const DisplayToolshed = ({ data }) => {
                 
                 {/* Try Now Button - Separate at Bottom */}
                 <Link
-                  href={tool.direct_link || pageLink('product', tool.slug, tool.id)}
+                  href={tool.direct_link || pageLink('product', tool.id, tool.slug)}
                   target={tool.direct_link ? "_blank" : "_self"}
                   className="btn btn-dark w-100 d-flex align-items-center justify-content-center text-decoration-none"
                   style={{ 
@@ -360,7 +381,8 @@ const DisplayToolshed = ({ data }) => {
             </Card>
           </div>
         );
-      })}
+      })
+      )}
       </div>
     </div>
   );

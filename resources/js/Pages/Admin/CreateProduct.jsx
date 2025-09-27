@@ -14,14 +14,14 @@ import QuillEditor from '@/Components/QuillEditorComponent';
 
 
 
-export default function CreateProduct({ edits, categories, brand_label, countries, tags, continents, selectedData}) {
+export default function CreateProduct({ edits, categories, brand_label, /* countries, */ tags, /* continents, */ selectedData}) {
    
     const [section, setSection] = useState('details'); 
     const [categoryOption, setCategoryOptions] = useState([]);
     const [tagOption, setTagOptions] = useState([]);
     const [brandLabelOption, setBrandLabelOptions] = useState([]);
-    const [countryOption, setCountryOptions] = useState([]);
-    const [continentOption, setContinentOptions] = useState([]);
+    // const [countryOption, setCountryOptions] = useState([]);
+    // const [continentOption, setContinentOptions] = useState([]);
 
     //..................................................
     // const [categoryEditOption, setEditCategoryOptions] = useState([]);
@@ -33,13 +33,13 @@ export default function CreateProduct({ edits, categories, brand_label, countrie
         setStateFromData(categories, setCategoryOptions);
         setStateFromData(brand_label, setBrandLabelOptions);
         setStateFromData(tags, setTagOptions);
-        setStateFromData(countries, setCountryOptions);
-        setStateFromData(continents, setContinentOptions);
+        // setStateFromData(countries, setCountryOptions);
+        // setStateFromData(continents, setContinentOptions);
         //..................................................
         setEditFromData(selectedData?.category, 'categories');
         setEditFromData(selectedData?.brand_labels, 'brand_labels');
-        setEditFromData(selectedData?.continent, 'continents');
-        setEditFromData(selectedData?.country, 'countries');
+        // setEditFromData(selectedData?.continent, 'continents');
+        // setEditFromData(selectedData?.country, 'countries');
         setEditFromData(selectedData?.tags, 'tags');
     }, []);
 
@@ -55,18 +55,55 @@ export default function CreateProduct({ edits, categories, brand_label, countrie
         post_id: edits?.id || '',
         categories: [],
         brand_labels: [],
-        countries: [],
-        continents: [],
+        // countries: [],
+        // continents: [],
         tags: [],
         signature: '',
     });
 
     const handleChange = (e) => {
         const { name, value, files } = e.target;
+        
+        let processedValue = value;
+        
+        // Convert YouTube URLs to embed format
+        if (name === 'youtube_link' && value) {
+            processedValue = convertToYouTubeEmbed(value);
+        }
+        
         setFormData({
             ...formData,
-            [name]: files ? files[0] : value,
+            [name]: files ? files[0] : processedValue,
         });
+    };
+
+    // Function to convert YouTube URLs to embed format
+    const convertToYouTubeEmbed = (url) => {
+        if (!url) return url;
+        
+        // If already an embed URL, return as is
+        if (url.includes('youtube.com/embed/')) {
+            return url;
+        }
+        
+        // Convert watch?v= format to embed
+        if (url.includes('watch?v=')) {
+            return url.replace('watch?v=', 'embed/');
+        }
+        
+        // Convert youtu.be/ format to embed
+        if (url.includes('youtu.be/')) {
+            return url.replace('youtu.be/', 'youtube.com/embed/');
+        }
+        
+        // Try to extract video ID from any YouTube URL using regex
+        const videoIdMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+        if (videoIdMatch && videoIdMatch[1]) {
+            return `https://www.youtube.com/embed/${videoIdMatch[1]}`;
+        }
+        
+        // If no match found, return original URL
+        return url;
     };
 
     function setStateFromData(data, setOptions){
@@ -228,9 +265,20 @@ export default function CreateProduct({ edits, categories, brand_label, countrie
                                     <Form.Control type="text" name="direct_link" placeholder="Enter direct link" value={formData.direct_link} onChange={handleChange} />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>YouTube Link</Form.Label>
-                                    <span className="d-block text-secondary mb-2 fs-9">Provide a YouTube video link for the product (optional)</span>
-                                    <Form.Control type="url" name="youtube_link" placeholder="https://www.youtube.com/watch?v=..." value={formData.youtube_link} onChange={handleChange} />
+                                    <Form.Label>YouTube Embed Link</Form.Label>
+                                    <span className="d-block text-secondary mb-2 fs-9">Provide a YouTube embed URL (e.g., https://www.youtube.com/embed/VIDEO_ID) - Regular YouTube URLs will be automatically converted</span>
+                                    <Form.Control 
+                                        type="url" 
+                                        name="youtube_link" 
+                                        placeholder="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+                                        value={formData.youtube_link} 
+                                        onChange={handleChange} 
+                                    />
+                                    {formData.youtube_link && (
+                                        <small className="text-muted d-block mt-1">
+                                            Preview: The video will be embedded as an iframe on the product page
+                                        </small>
+                                    )}
                                 </Form.Group>
                             </div>
                             }
@@ -314,7 +362,7 @@ export default function CreateProduct({ edits, categories, brand_label, countrie
                                             />
                                         </Form.Group>
                                     </Col>
-                                    <Col sm={12}>
+                                    {/* <Col sm={12}>
                                         <Form.Group className="mb-3">
                                             <Form.Label>Country</Form.Label>
                                             <span className="d-block text-secondary mb-2 fs-9">Select a country</span>
@@ -343,7 +391,7 @@ export default function CreateProduct({ edits, categories, brand_label, countrie
                                                 onChange={(e) => updateSelection(e, 'continents')}
                                             />
                                         </Form.Group>
-                                    </Col>
+                                    </Col> */}
                                     </Row>
                                 </Form>
                             </div>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ProductCategory;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ProductCategoryController extends Controller
 {
@@ -12,7 +13,7 @@ class ProductCategoryController extends Controller
     public function editProductCategory(Request $request, $id){
         $edits = ProductCategory::where('id', $id)->first();
         $categories = ProductCategory::all();
-        return view("admin.categories", ['edit' => $edits, 'categories' => $categories]);
+        return Inertia::render("Admin/ManageProductCategories", ['edit' => $edits, 'categories' => $categories]);
     }
 
     public function deleteProductCategory(Request $request)
@@ -57,8 +58,8 @@ class ProductCategoryController extends Controller
         $postId = $request->has('post_id') ? $request->post_id : null;
         $signature = $request->has('signature') ? $request->signature : null;
     
-        // Verify the HMAC signature
-        if (!hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
+        // Verify the HMAC signature only if we're editing an existing category
+        if ($postId && !hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
             return response()->json([
                 'success' => false,
                 'message' => 'Oops! Try again'
@@ -111,7 +112,7 @@ class ProductCategoryController extends Controller
     
     public function ProductCategory(){
         $categories = ProductCategory::all();
-        return view("admin.product_categories", ['deleted'=> true, 'categories' => $categories]);
+        return Inertia::render("Admin/ManageProductCategories", ['deleted'=> true, 'categories' => $categories]);
     }
 
 }

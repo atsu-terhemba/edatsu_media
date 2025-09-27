@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use App\Models\Country;
+use Inertia\Inertia;
 
 class CountryController extends Controller
 {
@@ -15,7 +16,7 @@ class CountryController extends Controller
     public function editCountry(Request $request, $id){
         $edits = Country::where('id', $id)->first();
         $country = Country::all();
-        return view("admin.countries", ['edit' => $edits, 'countries' => $country]);
+        return Inertia::render("Admin/ManageCountries", ['edit' => $edits, 'countries' => $country]);
     }
 
     public function deleteCountry(Request $request)
@@ -35,7 +36,7 @@ class CountryController extends Controller
     //show category page
     public function Country(){
         $countries = Country::all();
-        return view("admin.countries", ['deleted'=> true, 'countries' => $countries]);
+        return Inertia::render("Admin/ManageCountries", ['deleted'=> true, 'countries' => $countries]);
     }
 
     //save or update category
@@ -67,7 +68,8 @@ class CountryController extends Controller
         $signature = $request->has('signature') ? $request->signature : null;
     
         // Verify the HMAC signature
-        if (!hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
+        // Verify the HMAC signature only if we're editing an existing country
+        if ($postId && !hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
             return response()->json([
                 'success' => false,
                 'message' => 'Oops! Try again'

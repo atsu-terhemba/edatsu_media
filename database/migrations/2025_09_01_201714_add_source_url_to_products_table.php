@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->text('source_url')->nullable()->after('direct_link');
-        });
+        // This column is already included in the create_products_table migration
+        // No action needed as source_url is created with the products table
     }
 
     /**
@@ -21,8 +20,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->dropColumn('source_url');
-        });
+        // No action needed
     }
 };

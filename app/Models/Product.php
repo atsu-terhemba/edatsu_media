@@ -84,4 +84,49 @@ class Product extends Model
         });
     }
 
+    // Polymorphic relationship with ratings
+    public function ratings()
+    {
+        return $this->morphMany(Rating::class, 'rateable');
+    }
+
+    // Polymorphic relationship with comments
+    public function comments()
+    {
+        return $this->morphMany(Comment::class, 'commentable');
+    }
+
+    // Get average rating
+    public function getAverageRatingAttribute()
+    {
+        return round($this->ratings()->avg('rating'), 1);
+    }
+
+    // Get total ratings count
+    public function getTotalRatingsAttribute()
+    {
+        return $this->ratings()->count();
+    }
+
+    // Get total comments count (approved only)
+    public function getTotalCommentsAttribute()
+    {
+        return $this->comments()->where('is_approved', true)->count();
+    }
+
+    // Get rating distribution
+    public function getRatingDistribution()
+    {
+        $distribution = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $count = $this->ratings()->where('rating', $i)->count();
+            $percentage = $this->total_ratings > 0 ? ($count / $this->total_ratings) * 100 : 0;
+            $distribution[$i] = [
+                'count' => $count,
+                'percentage' => round($percentage, 1)
+            ];
+        }
+        return $distribution;
+    }
+
 }

@@ -3,13 +3,14 @@ import Select from 'react-select'
 import ClickEffectButton from './ClickEffectButton';
 
 
-const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_data, setFilterData, categories, continents, countries, brands, initSearch}) => {
+const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_data, setFilterData, categories, /* continents, countries, */ brands, tags, initSearch}) => {
     
     const [isFilterVisible, setIsFilterVisible] = useState(false);
     const [categoryOptions, setCategoryOptions] = useState('');
-    const [continentOptions, setContinentOptions] = useState('');
-    const [countryOptions, setCountryOptions] = useState('');
-    const [brandOptions, setBrandOptions] = useState('');   
+    // const [continentOptions, setContinentOptions] = useState('');
+    // const [countryOptions, setCountryOptions] = useState('');
+    const [brandOptions, setBrandOptions] = useState('');
+    const [tagOptions, setTagOptions] = useState('');   
 
     function setStateFromData(data, setOptions){
         if (data) {
@@ -23,29 +24,30 @@ const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_dat
 
     useEffect(() => {
         setStateFromData(categories, setCategoryOptions);
-        setStateFromData(continents, setContinentOptions);
-        setStateFromData(countries, setCountryOptions);
+        // setStateFromData(continents, setContinentOptions);
+        // setStateFromData(countries, setCountryOptions);
         setStateFromData(brands, setBrandOptions);
+        setStateFromData(tags, setTagOptions);
     }, []);
 
-     const programStatus = [
-        { value: 'up_coming', label: 'Earliest Deadline' }
-      ];
+     // const programStatus = [
+     //    { value: 'up_coming', label: 'Up Coming' }
+     // ];
 
-      const monthOptions = [
-        { value: 'january', label: 'January' },
-        { value: 'february', label: 'February' },
-        { value: 'march', label: 'March' },
-        { value: 'april', label: 'April' },
-        { value: 'may', label: 'May' },
-        { value: 'june', label: 'June' },
-        { value: 'july', label: 'July' },
-        { value: 'august', label: 'August' },
-        { value: 'september', label: 'September' },
-        { value: 'october', label: 'October' },
-        { value: 'november', label: 'November' },
-        { value: 'december', label: 'December' }
-      ];
+      // const monthOptions = [
+      //   { value: 'january', label: 'January' },
+      //   { value: 'february', label: 'February' },
+      //   { value: 'march', label: 'March' },
+      //   { value: 'april', label: 'April' },
+      //   { value: 'may', label: 'May' },
+      //   { value: 'june', label: 'June' },
+      //   { value: 'july', label: 'July' },
+      //   { value: 'august', label: 'August' },
+      //   { value: 'september', label: 'September' },
+      //   { value: 'october', label: 'October' },
+      //   { value: 'november', label: 'November' },
+      //   { value: 'december', label: 'December' }
+      // ];
 
       const dateOptions = [
         { value: 'one_day', label: '24 hours Ago' },
@@ -54,12 +56,12 @@ const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_dat
         { value: 'one_month', label: '1 Month Ago' }
       ];
 
-    const yearOptions = [
-        ...Array.from({ length: 6 }, (_, i) => {
-            const year = new Date().getFullYear() + i;
-            return { value: year.toString(), label: year.toString() };
-        })
-    ];
+    // const yearOptions = [
+    //     ...Array.from({ length: 6 }, (_, i) => {
+    //         const year = new Date().getFullYear() + i;
+    //         return { value: year.toString(), label: year.toString() };
+    //     })
+    // ];
 
     const toggleFilterPanel = () => {
         setIsFilterVisible(!isFilterVisible);
@@ -132,8 +134,8 @@ const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_dat
             {isFilterVisible && (
                 <div id="filter-panel" className="bg-white border rounded px-3 py-3 my-3">
                     <div className="row">
-                        <div className="col-sm-12">
-                            {/* <label className='poppins-semibold fs-9 mb-2'>Program Status</label> */}
+                        {/* <div className="col-sm-12">
+                            <label className='poppins-semibold fs-9 mb-2'>Program Status</label>
                             <Select
                                 placeholder="Select Program Status"
                                 value={filter_data?.program_status}
@@ -143,7 +145,7 @@ const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_dat
                                 classNamePrefix="Select"
                                 onChange={(e) => updateSelection(e, 'program_status')}
                             />
-                        </div>
+                        </div> */}
                         <div className="col-sm-12">
                             {/* <label className='poppins-semibold fs-9 mb-2'>Categories</label> */}
                             <Select
@@ -159,9 +161,9 @@ const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_dat
                         </div>
                     </div>
 
-                    <div className="row">
+                    {/* <div className="row">
                         <div className="col-sm-12">
-                            {/* <label className='poppins-semibold fs-9 mb-2'>Continents</label> */}
+                            <label className='poppins-semibold fs-9 mb-2'>Continents</label>
                             <Select
                                 isMulti
                                 placeholder="Select Continents"
@@ -174,7 +176,7 @@ const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_dat
                             />
                         </div>
                         <div className="col-sm-12">
-                            {/* <label className='poppins-semibold fs-9 mb-2'>Countries</label> */}
+                            <label className='poppins-semibold fs-9 mb-2'>Countries</label>
                             <Select
                                 isMulti
                                 value={filter_data?.countries}
@@ -186,7 +188,7 @@ const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_dat
                                 onChange={(e) => updateSelection(e, 'countries')}
                             />
                         </div>
-                    </div>
+                    </div> */}
 
                     <div className="row">
                         <div className="col-sm-12">
@@ -203,6 +205,22 @@ const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_dat
                             />
                         </div>
                         <div className="col-sm-12">
+                                {/* <label className='poppins-semibold fs-9 mb-2'>Tags</label> */}
+                                <Select
+                                isMulti
+                                value={filter_data?.tags}
+                                placeholder="Select Tags"
+                                name="tags"
+                                options={tagOptions}
+                                className="fs-9 mb-3"
+                                classNamePrefix="select"
+                                onChange={(e) => updateSelection(e, 'tags')}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="row">
+                        <div className="col-sm-12">
                             {/* <label className='poppins-semibold fs-9 mb-2'>Published</label> */}
                             <Select
                                 value={filter_data?.datePosted}
@@ -216,9 +234,9 @@ const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_dat
                         </div>
                     </div>
 
-                    <div className="row">
+                    {/* <div className="row">
                         <div className="col-sm-12">
-                            {/* <label className='poppins-semibold fs-9 mb-2'>Month</label> */}
+                            <label className='poppins-semibold fs-9 mb-2'>Month</label>
                             <Select
                                 value={filter_data?.month}
                                 placeholder="Select Month"
@@ -230,7 +248,7 @@ const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_dat
                             />
                         </div>
                         <div className="col-sm-12">
-                            {/* <label className='poppins-semibold fs-9 mb-2'>Year</label> */}
+                            <label className='poppins-semibold fs-9 mb-2'>Year</label>
                             <Select
                                 value={filter_data?.year}
                                 placeholder="Select Year"
@@ -241,7 +259,7 @@ const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_dat
                                 onChange={(e) => updateSelection(e, 'year')}
                             />
                         </div>
-                    </div>
+                    </div> */}
                     <ClickEffectButton id="filter-btn" 
                     type="submit"
                     className='w-100 h-50 bg-dark border-0 h-50 py-3' 

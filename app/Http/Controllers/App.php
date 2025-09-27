@@ -75,7 +75,7 @@ class App extends Controller
             //save data...
             $bookmark->user_id = $user_id;
             $bookmark->post_id = $opp_id;
-            $bookmark->post_type = 'opp';
+            $bookmark->post_type = $type; // Use the passed type instead of hardcoded 'opp'
             $bookmark->save();
 
             return response()->json(['status' => 'success', 'message' => "Bookmarked"]);
@@ -83,6 +83,36 @@ class App extends Controller
             return response()->json(['status' => 'warning', 'message' => "Login to Bookmark"]);
         }
      }
+
+    /**
+     * Initialize the home page
+     * 
+     * @return \Inertia\Response
+     */
+    public function initHomePage()
+    {
+        return Inertia::render('Home');
+    }
+
+    /**
+     * Initialize the feedback page
+     * 
+     * @return \Inertia\Response
+     */
+    public function initFeedbackPage()
+    {
+        return Inertia::render('Feedback');
+    }
+
+    /**
+     * Initialize the advertise page
+     * 
+     * @return \Inertia\Response
+     */
+    public function initAdvertisePage()
+    {
+        return Inertia::render('Advertise');
+    }
 
 /**
  * Search opportunities with various filters

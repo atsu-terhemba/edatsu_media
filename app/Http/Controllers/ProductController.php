@@ -3,14 +3,18 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Category;
 use App\Models\ProductCategory;
 use App\Models\BrandLabel;
 use App\Models\Tag;
 use App\Models\Region;
+use App\Services\PreferenceNotificationService;
 use App\Models\Continent;
 use App\Models\Country;
 use App\Models\ProductFunctionality;
 use App\Models\ProductPricing;
+use App\Models\Rating;
+use App\Models\Comment;
 use Illuminate\Support\Carbon;
 use App\Models\Bookmark;
 use Illuminate\Support\Facades\Auth;
@@ -49,27 +53,29 @@ class ProductController extends Controller
 
     // Validate incoming request data
     $validatedData = $request->validate([
-        'program_status' => 'nullable',
+        // 'program_status' => 'nullable',
         'categories' => 'nullable',
-        'continents' => 'nullable',
-        'countries' => 'nullable',
+        // 'continents' => 'nullable',
+        // 'countries' => 'nullable',
         'brands' => 'nullable',
+        'tags' => 'nullable',
         'datePosted' => 'nullable',
-        'month' => 'nullable',
-        'year' => 'nullable',
+        // 'month' => 'nullable',
+        // 'year' => 'nullable',
         'search_keyword' => 'nullable'
     ]);
     
     // Extract filter data
     $filters = [
-        'program_status' => extractSelectData($validatedData['program_status'] ?? ''),
+        // 'program_status' => extractSelectData($validatedData['program_status'] ?? ''),
         'categories' => extractSelectData($validatedData['categories'] ?? ''),
-        'continents' => extractSelectData($validatedData['continents'] ?? ''),
-        'countries' => extractSelectData($validatedData['countries'] ?? ''),
+        // 'continents' => extractSelectData($validatedData['continents'] ?? ''),
+        // 'countries' => extractSelectData($validatedData['countries'] ?? ''),
         'brands' => extractSelectData($validatedData['brands'] ?? ''),
+        'tags' => extractSelectData($validatedData['tags'] ?? ''),
         'date_posted' => extractSelectData($validatedData['datePosted'] ?? ''),
-        'month' => extractSelectData($validatedData['month'] ?? ''),
-        'year' => extractSelectData($validatedData['year'] ?? ''),
+        // 'month' => extractSelectData($validatedData['month'] ?? ''),
+        // 'year' => extractSelectData($validatedData['year'] ?? ''),
         'search_keyword' => $validatedData['search_keyword'] ?? ''
     ];
     
@@ -110,7 +116,10 @@ private function buildBaseQuery($user_id)
             \DB::raw('GROUP_CONCAT(DISTINCT product_categories.name SEPARATOR ", ") as category_name'),
             \DB::raw('GROUP_CONCAT(DISTINCT brand_labels.name SEPARATOR ", ") as brand_labels'),
             \DB::raw('GROUP_CONCAT(DISTINCT tags.name SEPARATOR ", ") as tags'),
-            \DB::raw('CASE WHEN bookmarks.id IS NOT NULL AND bookmarks.removed != 1 THEN 1 ELSE 0 END as is_bookmarked')
+            \DB::raw('CASE WHEN bookmarks.id IS NOT NULL AND bookmarks.removed != 1 THEN 1 ELSE 0 END as is_bookmarked'),
+            \DB::raw('COALESCE(AVG(ratings.rating), 0) as average_rating'),
+            \DB::raw('COUNT(DISTINCT ratings.id) as total_ratings'),
+            \DB::raw('COUNT(DISTINCT comments.id) as total_comments')
         ])
         ->where('products.deleted', '!=', 1)
         ->leftJoin('category_selections', function($join) {
@@ -132,6 +141,14 @@ private function buildBaseQuery($user_id)
             $join->on('bookmarks.post_id', '=', 'products.id')
                 ->where('bookmarks.post_type', '=', 'tool')
                 ->where('bookmarks.user_id', '=', $user_id);
+        })
+        ->leftJoin('ratings', function($join) {
+            $join->on('ratings.rateable_id', '=', 'products.id')
+                 ->where('ratings.rateable_type', '=', 'App\\Models\\Product');
+        })
+        ->leftJoin('comments', function($join) {
+            $join->on('comments.commentable_id', '=', 'products.id')
+                 ->where('comments.commentable_type', '=', 'App\\Models\\Product');
         })
         ->groupBy([
             'products.id', 
@@ -231,12 +248,12 @@ private function applyTaxonomyFilters($query, $filters)
     }
     
     // Apply countries filter
-    if (!empty($filters['countries'])) {
-        $countryIds = json_decode($filters['countries'], true);
-        if (is_array($countryIds) && count($countryIds) > 0) {
-            $query = $this->applyTaxonomyFilter($query, 'country_selections', 'country_id', $countryIds, $post_type);
-        }
-    }
+    // if (!empty($filters['countries'])) {
+    //     $countryIds = json_decode($filters['countries'], true);
+    //     if (is_array($countryIds) && count($countryIds) > 0) {
+    //         $query = $this->applyTaxonomyFilter($query, 'country_selections', 'country_id', $countryIds, $post_type);
+    //     }
+    // }
     
     // Apply categories filter
     if (!empty($filters['categories'])) {
@@ -247,10 +264,18 @@ private function applyTaxonomyFilters($query, $filters)
     }
     
     // Apply continents filter
-    if (!empty($filters['continents'])) {
-        $continentIds = json_decode($filters['continents'], true);
-        if (is_array($continentIds) && count($continentIds) > 0) {
-            $query = $this->applyTaxonomyFilter($query, 'continent_selections', 'continent_id', $continentIds, $post_type);
+    // if (!empty($filters['continents'])) {
+    //     $continentIds = json_decode($filters['continents'], true);
+    //     if (is_array($continentIds) && count($continentIds) > 0) {
+    //         $query = $this->applyTaxonomyFilter($query, 'continent_selections', 'continent_id', $continentIds, $post_type);
+    //     }
+    // }
+    
+    // Apply tags filter
+    if (!empty($filters['tags'])) {
+        $tagIds = json_decode($filters['tags'], true);
+        if (is_array($tagIds) && count($tagIds) > 0) {
+            $query = $this->applyTaxonomyFilter($query, 'tags_selections', 'tag_id', $tagIds, $post_type);
         }
     }
     
@@ -288,14 +313,14 @@ private function applyTaxonomyFilter($query, $tableName, $idColumn, $idValues, $
 private function applyDateFilters($query, $filters)
 {
     // Apply month filter
-    if (!empty($filters['month'])) {
-        $query->whereMonth('products.created_at', Carbon::parse($filters['month'])->month);
-    }
+    // if (!empty($filters['month'])) {
+    //     $query->whereMonth('products.created_at', Carbon::parse($filters['month'])->month);
+    // }
     
     // Apply year filter
-    if (!empty($filters['year'])) {
-        $query->whereYear('products.created_at', $filters['year']);
-    }
+    // if (!empty($filters['year'])) {
+    //     $query->whereYear('products.created_at', $filters['year']);
+    // }
     
     // Apply program status filter
     // if ($filters['program_status'] === 'on_going') {
@@ -330,7 +355,7 @@ private function applyDateFilters($query, $filters)
 
 
 
- function readProductData(Request $request, $id)
+ public function readProductData(Request $request, $id)
     {
         $user_id = null;
         if(Auth::check()){
@@ -343,21 +368,44 @@ private function applyDateFilters($query, $filters)
          */
         $tool_data = DB::table('products')
         ->where('products.id', $id)
-        ->leftJoin('category_selections', 'category_selections.post_id', '=', 'products.id')
+        ->leftJoin('category_selections', function($join) {
+            $join->on('category_selections.post_id', '=', 'products.id')
+                 ->where('category_selections.post_type', '=', 'products');
+        })
         ->leftJoin('product_categories', 'product_categories.id', '=', 'category_selections.category_id')
-        ->leftJoin('brand_labels_selections', 'brand_labels_selections.post_id', '=', 'products.id')
+        ->leftJoin('brand_labels_selections', function($join) {
+            $join->on('brand_labels_selections.post_id', '=', 'products.id')
+                 ->where('brand_labels_selections.post_type', '=', 'products');
+        })
         ->leftJoin('brand_labels', 'brand_labels.id', '=', 'brand_labels_selections.brand_label_id')
-        ->leftJoin('continent_selections', 'continent_selections.post_id', '=', 'products.id')
+        ->leftJoin('continent_selections', function($join) {
+            $join->on('continent_selections.post_id', '=', 'products.id')
+                 ->where('continent_selections.post_type', '=', 'products');
+        })
         ->leftJoin('continents', 'continents.id', '=', 'continent_selections.continent_id')
-        ->leftJoin('country_selections', 'country_selections.post_id', '=', 'products.id')
+        ->leftJoin('country_selections', function($join) {
+            $join->on('country_selections.post_id', '=', 'products.id')
+                 ->where('country_selections.post_type', '=', 'products');
+        })
         ->leftJoin('countries', 'countries.id', '=', 'country_selections.country_id')
-        ->leftJoin('tags_selections', 'tags_selections.post_id', '=', 'products.id')
+        ->leftJoin('tags_selections', function($join) {
+            $join->on('tags_selections.post_id', '=', 'products.id')
+                 ->where('tags_selections.post_type', '=', 'products');
+        })
         ->leftJoin('tags', 'tags.id', '=', 'tags_selections.tag_id')
-        ->leftJoin('bookmarks', function($join) use ($id, $user_id) {
-            $join->on('bookmarks.post_id', '=', DB::raw($id))
+        ->leftJoin('bookmarks', function($join) use ($user_id) {
+            $join->on('bookmarks.post_id', '=', 'products.id')
                 ->where('bookmarks.user_id', '=', $user_id)
-                ->where('bookmarks.post_type', '=', 'ts')
+                ->where('bookmarks.post_type', '=', 'tool')
                 ->where('bookmarks.removed', '!=', 1);
+        })
+        ->leftJoin('ratings', function($join) {
+            $join->on('ratings.rateable_id', '=', 'products.id')
+                 ->where('ratings.rateable_type', '=', 'App\\Models\\Product');
+        })
+        ->leftJoin('comments', function($join) {
+            $join->on('comments.commentable_id', '=', 'products.id')
+                 ->where('comments.commentable_type', '=', 'App\\Models\\Product');
         })
         ->select('products.id',
                 'products.product_name as title', 
@@ -386,7 +434,10 @@ private function applyDateFilters($query, $filters)
                 DB::raw('GROUP_CONCAT(DISTINCT tags.id) as tag_ids'),
                 DB::raw('GROUP_CONCAT(DISTINCT tags.name) as tags'),
                 DB::raw('GROUP_CONCAT(DISTINCT tags.slug) as tag_slugs'),
-                DB::raw('CASE WHEN bookmarks.post_type = \'ts\' THEN 1 ELSE 0 END as is_bookmarked'))
+                DB::raw('CASE WHEN bookmarks.post_type = \'tool\' THEN 1 ELSE 0 END as is_bookmarked'),
+                DB::raw('COALESCE(AVG(ratings.rating), 0) as average_rating'),
+                DB::raw('COUNT(DISTINCT ratings.id) as total_ratings'),
+                DB::raw('COUNT(DISTINCT comments.id) as total_comments'))
         ->groupBy('products.id', 
                 'products.product_name', 
                 'products.slug',
@@ -401,6 +452,11 @@ private function applyDateFilters($query, $filters)
                 'products.ratings',
                 'bookmarks.post_type')
         ->first();
+
+    // Check if product exists
+    if (!$tool_data) {
+        abort(404, 'Product not found');
+    }
     
         /**
          * @var mixed
@@ -485,11 +541,6 @@ private function applyDateFilters($query, $filters)
         ->limit(6)
         ->get();
     
-        /***count comments from this id*/
-        $total_comments = DB::table('comments')
-        ->where('comments.commentable_id', '=', $current_post_id)
-        ->count();
-    
         if (!$tool_data) {
             abort(404);
         }
@@ -515,7 +566,6 @@ private function applyDateFilters($query, $filters)
         return Inertia::render("Tool-view", [
             'tool_data' => $tool_data,
             'similarPosts' => $similarPosts,
-            'total_comments' => $total_comments,
         ]);
         
     }
@@ -618,29 +668,43 @@ public function store(Request $request)
 
     // Helper function to delete and insert relational data
     $manageRelationalData = function ($table, $columnName, $data) use ($postId, $request) {
-        // First, delete existing records for the post in this table
-        DB::table($table)->where('post_id', $postId)->delete();
-        // Insert new data
-        if (empty($data)) return;
-        // Decode JSON string and extract IDs
-
-        $decodedData = json_decode($data, true);
-        $insertData = []; // Initialize the array
-
-        foreach ($decodedData as $id) {
-            if (isset($id) && !empty($id)) {
-                $insertData[] = [
-                    'user_id' => $request->user()->id,
-                    'post_id' => $postId,
-                    $columnName => $id, // for column id Use 'id' from the new format
-                    'post_type' => 'products',
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
+        try {
+            // First, delete existing records for the post in this table
+            DB::table($table)->where('post_id', $postId)->delete();
+            
+            // Insert new data
+            if (empty($data)) {
+                return;
             }
-        }
-        if (!empty($insertData)) {
-            DB::table($table)->insert($insertData);
+            
+            // Decode JSON string and extract IDs
+            $decodedData = json_decode($data, true);
+            
+            if (!is_array($decodedData)) {
+                return;
+            }
+            
+            $insertData = []; // Initialize the array
+
+            foreach ($decodedData as $id) {
+                if (isset($id) && !empty($id)) {
+                    $insertData[] = [
+                        'user_id' => $request->user()->id,
+                        'post_id' => $postId,
+                        $columnName => $id, // for column id Use 'id' from the new format
+                        'post_type' => 'products',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+            }
+            
+            if (!empty($insertData)) {
+                DB::table($table)->insert($insertData);
+            }
+        } catch (\Exception $e) {
+            // Log the error but don't break the product creation
+            \Log::error("Error managing relational data for {$table}: " . $e->getMessage());
         }
     };
 
@@ -656,6 +720,24 @@ public function store(Request $request)
     // Loop through each relational data table and update it
     foreach ($relationalData as $table => $data) {
         $manageRelationalData($table, $data[0], $data[1]);
+    }
+
+    // Send notifications for new products (not for updates)
+    if (!$isEditing) {
+        try {
+            $notificationService = new PreferenceNotificationService();
+            
+            // Extract IDs from the saved data
+            $categoryIds = $notificationService->extractIds(null, 'category_selections', 'category_id', $postId);
+            $brandIds = $notificationService->extractIds(null, 'brand_labels_selections', 'brand_label_id', $postId);
+            $tagIds = $notificationService->extractIds(null, 'tags_selections', 'tag_id', $postId);
+            
+            // Send notifications to users with matching preferences
+            $notificationService->notifyProductMatch($op, $categoryIds, $brandIds, $tagIds);
+        } catch (\Exception $e) {
+            // Log error but don't break the product creation flow
+            \Log::error("Error sending product notifications: " . $e->getMessage());
+        }
     }
 
     if($isEditing){
@@ -1027,6 +1109,164 @@ public function store(Request $request)
         $selectedData['continent'] = $continents->toArray();
 
         return $selectedData;
+    }
+
+    /**
+     * Rate a product
+     */
+    public function rateProduct(Request $request, $id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['success' => false, 'message' => 'Please login to rate products']);
+        }
+
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string|max:1000'
+        ]);
+
+        $product = Product::findOrFail($id);
+        $userId = Auth::id();
+
+        // Check if user already rated this product
+        $existingRating = $product->ratings()->where('user_id', $userId)->first();
+
+        if ($existingRating) {
+            // Update existing rating
+            $existingRating->update([
+                'rating' => $request->rating,
+                'comment' => $request->comment
+            ]);
+            $message = 'Rating updated successfully';
+        } else {
+            // Create new rating
+            $product->ratings()->create([
+                'user_id' => $userId,
+                'rating' => $request->rating,
+                'comment' => $request->comment
+            ]);
+            $message = 'Rating submitted successfully';
+        }
+
+        return response()->json([
+            'success' => true, 
+            'message' => $message,
+            'average_rating' => round($product->ratings()->avg('rating'), 1),
+            'total_ratings' => $product->ratings()->count()
+        ]);
+    }
+
+    /**
+     * Comment on a product
+     */
+    public function commentProduct(Request $request, $id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['success' => false, 'message' => 'Please login to comment']);
+        }
+
+        $request->validate([
+            'comment' => 'required|string|max:2000'
+        ]);
+
+        $product = Product::findOrFail($id);
+
+        $comment = $product->comments()->create([
+            'user_id' => Auth::id(),
+            'comment' => $request->comment,
+            'is_approved' => true
+        ]);
+
+        $comment->load('user');
+
+        return response()->json([
+            'success' => true, 
+            'message' => 'Comment posted successfully',
+            'comment' => $comment
+        ]);
+    }
+
+    /**
+     * Reply to a comment
+     */
+    public function replyToComment(Request $request, $id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['success' => false, 'message' => 'Please login to reply']);
+        }
+
+        $request->validate([
+            'comment' => 'required|string|max:2000'
+        ]);
+
+        $parentComment = Comment::findOrFail($id);
+
+        $reply = Comment::create([
+            'user_id' => Auth::id(),
+            'commentable_type' => $parentComment->commentable_type,
+            'commentable_id' => $parentComment->commentable_id,
+            'parent_id' => $parentComment->id,
+            'comment' => $request->comment,
+            'is_approved' => true
+        ]);
+
+        $reply->load('user');
+
+        return response()->json([
+            'success' => true, 
+            'message' => 'Reply posted successfully',
+            'reply' => $reply
+        ]);
+    }
+
+    /**
+     * Get comments for a product
+     */
+    public function getComments($id)
+    {
+        $product = Product::findOrFail($id);
+        
+        $comments = $product->comments()
+            ->approved()
+            ->with(['user'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'comments' => $comments
+        ]);
+    }
+
+    /**
+     * Get ratings for a product
+     */
+    public function getRatings($id)
+    {
+        $product = Product::findOrFail($id);
+        
+        $ratings = $product->ratings()->with('user')->latest()->get();
+        $averageRating = $product->ratings()->avg('rating');
+        $totalRatings = $product->ratings()->count();
+        
+        // Get rating distribution
+        $distribution = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $count = $product->ratings()->where('rating', $i)->count();
+            $percentage = $totalRatings > 0 ? ($count / $totalRatings) * 100 : 0;
+            $distribution[$i] = [
+                'count' => $count,
+                'percentage' => round($percentage, 1)
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'ratings' => $ratings,
+            'average_rating' => round($averageRating, 1),
+            'total_ratings' => $totalRatings,
+            'distribution' => $distribution
+        ]);
     }
 
    

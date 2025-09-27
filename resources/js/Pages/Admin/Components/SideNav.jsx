@@ -161,12 +161,6 @@ export default function AdminSideNav(){
           <ListGroup.Item as={Link} href={route('admin.product_categories')} className='text-decoration-none'>
             Product Categories
           </ListGroup.Item>
-          <ListGroup.Item as={Link} href={route('admin.product_functionality')} className='text-decoration-none'>
-            Product Functionality
-          </ListGroup.Item>
-          <ListGroup.Item as={Link} href={route('admin.product_pricing')} className='text-decoration-none'>
-            Product Pricing
-          </ListGroup.Item>
         </ListGroup>
       )}
     </ListGroup>

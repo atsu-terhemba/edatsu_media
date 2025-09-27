@@ -49,12 +49,10 @@ const Subscription = () => {
             popular: true,
             features: [
                 'Everything in Free Explorer plus:',
-                'Access to All Opportunities Posts',
                 'Unlimited bookmarks',
-                'Priority customer support',
                 'Remove ads',
-                'Export opportunities to PDF',
-                'Real-time notifications'
+                'Add Reminders', 
+                'Integration with calendar apps',
             ],
             limitations: [],
             buttonText: 'Start Premium Trial',

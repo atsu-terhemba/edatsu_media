@@ -9,26 +9,151 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Models\Profile;
+use App\Models\Product;
+use App\Models\Oppty;
+use App\Models\Notification;
+use App\Models\Message;
+use App\Models\UserPreference;
+use App\Models\Category;
+use App\Models\Country;
+use App\Models\Region;
+use App\Models\BrandLabel;
+use App\Models\Tag;
 use Inertia\Inertia;
+use Carbon\Carbon;
 
 class SubscriberController extends Controller
 {
-        //
-        function index(){
-            return Inertia::render('Subscriber/Dashboard');
-        }
+    //
+    function index(){
+        $user_id = Auth::user()->id;
+        
+        // Get total bookmarked tools/products
+        $totalBookmarkedTools = Bookmark::where('user_id', $user_id)
+            ->where('post_type', 'tool')
+            ->where('removed', 0)
+            ->count();
+        
+        // Get upcoming opportunities from bookmarks (opportunities with deadline in future)
+        $upcomingOpportunities = Bookmark::join('opportunities', 'bookmarks.post_id', '=', 'opportunities.id')
+            ->where('bookmarks.user_id', $user_id)
+            ->where('bookmarks.post_type', 'opp')
+            ->where('bookmarks.removed', 0)
+            ->where('opportunities.deadline', '>=', Carbon::now()->toDateString())
+            ->count();
 
-        function bookmark(){
-            return Inertia::render('Subscriber/Bookmark');
-        }
+        // Get recent bookmarks for additional context
+        $recentBookmarks = Bookmark::with(['product', 'opportunity'])
+            ->where('user_id', $user_id)
+            ->where('removed', 0)
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+        
+        return Inertia::render('Subscriber/Dashboard', [
+            'dashboardStats' => [
+                'totalBookmarkedTools' => $totalBookmarkedTools,
+                'upcomingOpportunities' => $upcomingOpportunities,
+                'recentBookmarks' => $recentBookmarks
+            ]
+        ]);
+    }        
+    
+    function bookmark(){
+        return Inertia::render('Subscriber/Bookmark');
+    }
 
-        function notifications(){
-            return Inertia::render('Subscriber/Notification');
-        }
+    function bookmarkedOpportunities(){
+        $user_id = Auth::user()->id;
 
-        function notificationSettings(){
-            return Inertia::render('Subscriber/NotificationSettings');
-        }
+        $opportunities = Bookmark::with('opportunity')
+            ->where('user_id', $user_id)
+            ->where('removed', 0)
+            ->where('post_type', 'opp')
+            ->orderBy('id', 'desc')
+            ->paginate(10);
+
+        return Inertia::render('Subscriber/BookmarkedOpportunities', [
+            'opportunities' => $opportunities
+        ]);
+    }
+
+    function bookmarkedTools(){
+        $user_id = Auth::user()->id;
+
+        $tools = Bookmark::with('product')
+            ->where('user_id', $user_id)
+            ->where('removed', 0)
+            ->where('post_type', 'tool')
+            ->orderBy('id', 'desc')
+            ->paginate(10);
+
+        return Inertia::render('Subscriber/BookmarkedTools', [
+            'tools' => $tools
+        ]);
+    }
+
+    function notifications(){
+        return Inertia::render('Subscriber/Notifications');
+    }
+
+    function messages(){
+        return Inertia::render('Subscriber/Messages');
+    }
+
+    function notificationSettings(){
+        return Inertia::render('Subscriber/NotificationSettings');
+    }
+
+    function preferences(){
+        $user_id = Auth::user()->id;
+        
+        // Get user preferences or create empty ones
+        $userPreferences = UserPreference::where('user_id', $user_id)->first();
+        
+        // Get all available options
+        $categories = Category::orderBy('name')->get();
+        $countries = Country::orderBy('name')->get();
+        $regions = Region::orderBy('name')->get();
+        $brands = BrandLabel::orderBy('name')->get();
+        $tags = Tag::orderBy('name')->get();
+        
+        return Inertia::render('Subscriber/Preferences', [
+            'userPreferences' => $userPreferences,
+            'categories' => $categories,
+            'countries' => $countries,
+            'regions' => $regions,
+            'brands' => $brands,
+            'tags' => $tags,
+        ]);
+    }
+
+    function updatePreferences(Request $request){
+        $user_id = Auth::user()->id;
+        
+        $validated = $request->validate([
+            'opportunity_categories' => 'nullable|array',
+            'opportunity_countries' => 'nullable|array',
+            'opportunity_regions' => 'nullable|array', 
+            'opportunity_brands' => 'nullable|array',
+            'product_categories' => 'nullable|array',
+            'product_tags' => 'nullable|array',
+            'product_brands' => 'nullable|array',
+            'email_notifications' => 'boolean',
+            'opportunity_notifications' => 'boolean',
+            'product_notifications' => 'boolean',
+        ]);
+
+        UserPreference::updateOrCreate(
+            ['user_id' => $user_id],
+            $validated
+        );
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Preferences updated successfully!'
+        ]);
+    }
 
         /**
          * calculate profile completion percentile
@@ -172,10 +297,11 @@ class SubscriberController extends Controller
             $user_id = Auth::user()->id;
 
             $opportunities = Bookmark::with('opportunity')
-            ->where('user_id', $user_id)
-            ->where('deleted', 0)
-            ->where('opportunity_id', '<>', null)
-            ->orderBy('id', 'desc')->paginate('5');
+                ->where('user_id', $user_id)
+                ->where('removed', 0)
+                ->where('post_type', 'opp')
+                ->orderBy('id', 'desc')
+                ->paginate(10);
   
             return response()->json($opportunities);
         }
@@ -252,5 +378,331 @@ class SubscriberController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'Oops! Something went wrong']);
             }
         }
+
+        /**
+         * Get dashboard statistics via API
+         */
+        public function getDashboardStats(Request $request) {
+            $user_id = Auth::user()->id;
+            
+            // Get total bookmarked tools/products
+            $totalBookmarkedTools = Bookmark::where('user_id', $user_id)
+                ->where('post_type', 'tool')
+                ->where('removed', 0)
+                ->count();
+            
+            // Get upcoming opportunities from bookmarks
+            $upcomingOpportunities = Bookmark::join('opportunities', 'bookmarks.post_id', '=', 'opportunities.id')
+                ->where('bookmarks.user_id', $user_id)
+                ->where('bookmarks.post_type', 'opp')
+                ->where('bookmarks.removed', 0)
+                ->where('opportunities.deadline', '>=', Carbon::now()->toDateString())
+                ->count();
+
+            // Get total bookmarks count
+            $totalBookmarks = Bookmark::where('user_id', $user_id)
+                ->where('removed', 0)
+                ->count();
+
+            // Get opportunities expiring soon (within 7 days)
+            $expiringSoon = Bookmark::join('opportunities', 'bookmarks.post_id', '=', 'opportunities.id')
+                ->where('bookmarks.user_id', $user_id)
+                ->where('bookmarks.post_type', 'opp')
+                ->where('bookmarks.removed', 0)
+                ->where('opportunities.deadline', '>=', Carbon::now()->toDateString())
+                ->where('opportunities.deadline', '<=', Carbon::now()->addDays(7)->toDateString())
+                ->count();
+            
+            return response()->json([
+                'totalBookmarkedTools' => $totalBookmarkedTools,
+                'upcomingOpportunities' => $upcomingOpportunities,
+                'totalBookmarks' => $totalBookmarks,
+                'expiringSoon' => $expiringSoon
+            ]);
+        }
+
+        /**
+         * Get bookmarked tools/products
+         */
+        public function listBookmarkedTools(Request $request) {
+            $user_id = Auth::user()->id;
+
+            $tools = Bookmark::with('product')
+            ->where('user_id', $user_id)
+            ->where('post_type', 'tool')
+            ->where('removed', 0)
+            ->orderBy('id', 'desc')->paginate('5');
+  
+            return response()->json($tools);
+        }
+
+        /**
+         * Get notifications
+         */
+        public function getNotifications(Request $request) {
+            $user_id = Auth::user()->id;
+            $filter = $request->get('filter', 'all');
+
+            $query = Notification::where('user_id', $user_id)
+                ->orderBy('created_at', 'desc');
+
+            if ($filter === 'unread') {
+                $query->where('is_read', false);
+            } elseif ($filter === 'read') {
+                $query->where('is_read', true);
+            }
+
+            $notifications = $query->get();
+            return response()->json($notifications);
+        }
+
+        /**
+         * Mark notification as read
+         */
+        public function markNotificationAsRead(Request $request, $id) {
+            $user_id = Auth::user()->id;
+            
+            $notification = Notification::where('id', $id)
+                ->where('user_id', $user_id)
+                ->first();
+
+            if ($notification) {
+                $notification->markAsRead();
+                return response()->json(['status' => 'success']);
+            }
+
+            return response()->json(['status' => 'error'], 404);
+        }
+
+        /**
+         * Mark all notifications as read
+         */
+        public function markAllNotificationsAsRead(Request $request) {
+            $user_id = Auth::user()->id;
+            
+            Notification::where('user_id', $user_id)
+                ->where('is_read', false)
+                ->update([
+                    'is_read' => true,
+                    'read_at' => Carbon::now()
+                ]);
+
+            return response()->json(['status' => 'success']);
+        }
+
+        /**
+         * Get messages
+         */
+        public function getMessages(Request $request) {
+            $user_id = Auth::user()->id;
+            $type = $request->get('type', 'inbox');
+
+            if ($type === 'sent') {
+                $messages = Message::with('recipient')
+                    ->sent($user_id)
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+            } else {
+                $messages = Message::with('sender')
+                    ->inbox($user_id)
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+            }
+
+            return response()->json($messages);
+        }
+
+        /**
+         * Send message
+         */
+        public function sendMessage(Request $request) {
+            $validator = Validator::make($request->all(), [
+                'recipient_email' => 'required|email|exists:users,email',
+                'subject' => 'required|string|max:255',
+                'message' => 'required|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            $recipient = \App\Models\User::where('email', $request->recipient_email)->first();
+
+            $message = Message::create([
+                'sender_id' => Auth::user()->id,
+                'recipient_id' => $recipient->id,
+                'subject' => $request->subject,
+                'message' => $request->message,
+                'message_type' => 'user'
+            ]);
+
+            return response()->json(['status' => 'success', 'message' => $message]);
+        }
+
+        /**
+         * Mark message as read
+         */
+        public function markMessageAsRead(Request $request, $id) {
+            $user_id = Auth::user()->id;
+            
+            $message = Message::where('id', $id)
+                ->where('recipient_id', $user_id)
+                ->first();
+
+            if ($message) {
+                $message->markAsRead();
+                return response()->json(['status' => 'success']);
+            }
+
+            return response()->json(['status' => 'error'], 404);
+        }
+
+        /**
+         * Delete message
+         */
+        public function deleteMessage(Request $request, $id) {
+            $user_id = Auth::user()->id;
+            
+            $message = Message::where('id', $id)
+                ->where(function($query) use ($user_id) {
+                    $query->where('sender_id', $user_id)
+                          ->orWhere('recipient_id', $user_id);
+                })
+                ->first();
+
+            if ($message) {
+                if ($message->sender_id == $user_id) {
+                    $message->update(['is_deleted_by_sender' => true]);
+                } else {
+                    $message->update(['is_deleted_by_recipient' => true]);
+                }
+                return response()->json(['status' => 'success']);
+            }
+
+            return response()->json(['status' => 'error'], 404);
+        }
+
+        /**
+         * Set reminder for bookmark
+         */
+        public function setBookmarkReminder(Request $request)
+        {
+            $user_id = Auth::user()->id;
+            
+            $validator = Validator::make($request->all(), [
+                'bookmark_id' => 'required|integer|exists:bookmarks,id',
+                'reminder_date' => 'required|date|after:now',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error', 
+                    'message' => 'Invalid data provided'
+                ], 400);
+            }
+
+            $bookmark = Bookmark::where('id', $request->bookmark_id)
+                ->where('user_id', $user_id)
+                ->first();
+
+            if (!$bookmark) {
+                return response()->json([
+                    'status' => 'error', 
+                    'message' => 'Bookmark not found'
+                ], 404);
+            }
+
+            $bookmark->update([
+                'reminder_date' => $request->reminder_date,
+                'reminder_sent' => false
+            ]);
+
+            return response()->json([
+                'status' => 'success', 
+                'message' => 'Reminder set successfully'
+            ]);
+        }
+
+        /**
+         * Update reminder for bookmark
+         */
+        public function updateBookmarkReminder(Request $request)
+        {
+            $user_id = Auth::user()->id;
+            
+            $validator = Validator::make($request->all(), [
+                'bookmark_id' => 'required|integer|exists:bookmarks,id',
+                'reminder_date' => 'required|date|after:now',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error', 
+                    'message' => 'Invalid data provided'
+                ], 400);
+            }
+
+            $bookmark = Bookmark::where('id', $request->bookmark_id)
+                ->where('user_id', $user_id)
+                ->first();
+
+            if (!$bookmark) {
+                return response()->json([
+                    'status' => 'error', 
+                    'message' => 'Bookmark not found'
+                ], 404);
+            }
+
+            $bookmark->update([
+                'reminder_date' => $request->reminder_date,
+                'reminder_sent' => false
+            ]);
+
+            return response()->json([
+                'status' => 'success', 
+                'message' => 'Reminder updated successfully'
+            ]);
+        }
+
+        /**
+         * Remove reminder for bookmark
+         */
+        public function removeBookmarkReminder(Request $request)
+        {
+            $user_id = Auth::user()->id;
+            
+            $validator = Validator::make($request->all(), [
+                'bookmark_id' => 'required|integer|exists:bookmarks,id',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error', 
+                    'message' => 'Invalid data provided'
+                ], 400);
+            }
+
+            $bookmark = Bookmark::where('id', $request->bookmark_id)
+                ->where('user_id', $user_id)
+                ->first();
+
+            if (!$bookmark) {
+                return response()->json([
+                    'status' => 'error', 
+                    'message' => 'Bookmark not found'
+                ], 404);
+            }
+
+            $bookmark->update([
+                'reminder_date' => null,
+                'reminder_sent' => false
+            ]);
+
+            return response()->json([
+                'status' => 'success', 
+                'message' => 'Reminder removed successfully'
+            ]);
+        }
+
 
 }

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use App\Models\Continent;
+use Inertia\Inertia;
 
 class ContinentController extends Controller
 {
@@ -15,7 +16,7 @@ class ContinentController extends Controller
     public function editContinent(Request $request, $id){
         $edits = Continent::where('id', $id)->first();
         $continents = Continent::all();
-        return view("admin.continents", ['edit' => $edits, 'continents' => $continents]);
+        return Inertia::render("Admin/ManageContinents", ['edit' => $edits, 'continents' => $continents]);
     }
 
     public function deleteContinent(Request $request)
@@ -35,7 +36,7 @@ class ContinentController extends Controller
     //show category page
     public function continent(){
         $continents = Continent::all();
-        return view("admin.continents", ['deleted'=> true, 'continents' => $continents]);
+        return Inertia::render("Admin/ManageContinents", ['deleted'=> true, 'continents' => $continents]);
     }
 
     //save or update category
@@ -67,7 +68,8 @@ class ContinentController extends Controller
         $signature = $request->has('signature') ? $request->signature : null;
     
         // Verify the HMAC signature
-        if (!hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
+        // Verify the HMAC signature only if we're editing an existing continent
+        if ($postId && !hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
             return response()->json([
                 'success' => false,
                 'message' => 'Oops! Try again'

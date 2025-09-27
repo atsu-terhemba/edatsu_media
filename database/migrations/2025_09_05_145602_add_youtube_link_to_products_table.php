@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->string('youtube_link')->nullable()->after('direct_link');
-        });
+        // This column is already included in the create_products_table migration
+        // No action needed as youtube_link is created with the products table
     }
 
     /**
@@ -21,8 +20,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->dropColumn('youtube_link');
-        });
+        // No action needed
     }
 };

@@ -192,7 +192,7 @@ const stripAndTruncate = (html, maxLength = 150) => {
                   //   }}
                   target="_blank"
                   className="text-decoration-none text-dark" 
-                  href={pageLink('op', o.slug, o.id)}>
+                  href={pageLink('op', o.id, o.slug)}>
                     <h2 className="inline-block page-title m-0 p-0 poppins-semibold mb-2 fs-9">
                       {o.title}
                     </h2>
@@ -255,7 +255,7 @@ const stripAndTruncate = (html, maxLength = 150) => {
                         data-id={o.id}
                         data-title={o.title}
                         data-type="opp"
-                        data-url={pageLink(o.title, o.id)}
+                        data-url={pageLink('op', o.id, o.slug)}
                         onClick={(e) => bookmark(e.currentTarget)}
                         style={{ 
                           width: '36px',

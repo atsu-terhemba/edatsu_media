@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\Region;
 use App\Models\Continent;
 use App\Models\Country;
+use Inertia\Inertia;
 
 class CategoryController extends Controller
 {
@@ -18,7 +19,7 @@ class CategoryController extends Controller
     public function editCategory(Request $request, $id){
         $edits = Category::where('id', $id)->first();
         $categories = Category::all();
-        return view("admin.categories", ['edit' => $edits, 'categories' => $categories]);
+        return Inertia::render("Admin/ManageCategories", ['edit' => $edits, 'categories' => $categories]);
     }
 
     public function deleteCategory(Request $request)
@@ -38,7 +39,7 @@ class CategoryController extends Controller
     //show category page
     public function categories(){
         $categories = Category::all();
-        return view("admin.categories", ['deleted'=> true, 'categories' => $categories]);
+        return Inertia::render("Admin/ManageCategories", ['deleted'=> true, 'categories' => $categories]);
     }
 
     //save or update category
@@ -69,8 +70,8 @@ class CategoryController extends Controller
         $postId = $request->has('post_id') ? $request->post_id : null;
         $signature = $request->has('signature') ? $request->signature : null;
     
-        // Verify the HMAC signature
-        if (!hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
+        // Verify the HMAC signature only if we're editing an existing category
+        if ($postId && !hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
             return response()->json([
                 'success' => false,
                 'message' => 'Oops! Try again'

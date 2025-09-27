@@ -1,13 +1,37 @@
 import { Fragment } from "react"
-import { Navbar, Nav, Container, Button, NavDropdown, Image } from 'react-bootstrap';
+import { Navbar, Nav, Container, Button, NavDropdown, Image, Badge } from 'react-bootstrap';
 import { Link } from "@inertiajs/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { truncateText, ActiveLink } from "@/utils/Index";
 import { Images } from "@/utils/Images";
 import { Moon, Sun } from 'lucide-react';
+import axios from 'axios';
 
 
 export default function Header({auth, isDarkMode, toggleDarkMode}){
+    const [notificationCount, setNotificationCount] = useState(0);
+    const [messageCount, setMessageCount] = useState(0);
+
+    useEffect(() => {
+        if (auth?.id && auth?.role === 'subscriber') {
+            fetchCounts();
+        }
+    }, [auth]);
+
+    const fetchCounts = async () => {
+        try {
+            // Fetch unread notifications count
+            const notificationsResponse = await axios.get('/notifications?filter=unread');
+            setNotificationCount(notificationsResponse.data.length);
+
+            // Fetch unread messages count
+            const messagesResponse = await axios.get('/messages?type=inbox');
+            const unreadMessages = messagesResponse.data.filter(msg => !msg.is_read);
+            setMessageCount(unreadMessages.length);
+        } catch (error) {
+            console.error('Error fetching counts:', error);
+        }
+    };
 
 return(
 <Fragment>
@@ -56,6 +80,50 @@ return(
         {/* User Authenticated */}
         {(auth?.id)?
          <>
+        {/* Notification and Message Icons for Subscribers */}
+        {auth?.role === 'subscriber' && (
+            <>
+                <Nav.Item className="me-3">
+                    <Link 
+                        href={route('subscriber.notifications')} 
+                        className="nav-link text-light text-decoration-none position-relative"
+                        title="Notifications"
+                    >
+                        <i className="bi bi-bell" style={{fontSize: '1.2rem'}}></i>
+                        {notificationCount > 0 && (
+                            <Badge 
+                                bg="danger" 
+                                pill 
+                                className="position-absolute top-0 start-100 translate-middle"
+                                style={{fontSize: '0.7rem'}}
+                            >
+                                {notificationCount > 9 ? '9+' : notificationCount}
+                            </Badge>
+                        )}
+                    </Link>
+                </Nav.Item>
+                <Nav.Item className="me-3">
+                    <Link 
+                        href={route('subscriber.messages')} 
+                        className="nav-link text-light text-decoration-none position-relative"
+                        title="Messages"
+                    >
+                        <i className="bi bi-envelope" style={{fontSize: '1.2rem'}}></i>
+                        {messageCount > 0 && (
+                            <Badge 
+                                bg="danger" 
+                                pill 
+                                className="position-absolute top-0 start-100 translate-middle"
+                                style={{fontSize: '0.7rem'}}
+                            >
+                                {messageCount > 9 ? '9+' : messageCount}
+                            </Badge>
+                        )}
+                    </Link>
+                </Nav.Item>
+            </>
+        )}
+        
         <NavDropdown title={truncateText(auth?.name, 10)}>
             {(auth?.role == 'subscriber')?
             <NavDropdown.Item as={Link} href={route('subscriber.dashboard')} className="fs-9">     
