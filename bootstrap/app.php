@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
+        
+        // Register role middleware as an alias for use in routes
+        $middleware->alias([
+            'role' => \App\Http\Middleware\Role::class,
+        ]);
         //...
     })
     ->withExceptions(function (Exceptions $exceptions) {
