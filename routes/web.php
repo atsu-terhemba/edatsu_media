@@ -55,9 +55,9 @@ Route::get('/feedback', [App::class, 'initFeedbackPage'])->name('feedback');
 Route::get('/advertise', [App::class, 'initAdvertisePage'])->name('advertise');
 Route::get('/platforms', [App::class, 'initPlatformsPage'])->name('platforms');
 Route::get('/about-us', [App::class, 'initAboutPage'])->name('about');
-Route::get('/terms', [App::class, 'initTermsPage'])->name('terms');
+Route::get('/terms', fn()=> Inertia::render('Terms'))->name('terms');
 Route::get('/privacy-policy', [App::class, 'initPrivacyPage'])->name('privacy');
-Route::get('/help', [App::class, 'initHelpPage'])->name('help');
+Route::get('/help', fn()=>Inertia::render('Help'))->name('help');
 Route::get('/sponsorship', [App::class, 'initSponsorshipPage'])->name('sponsorship');
 Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription');
 

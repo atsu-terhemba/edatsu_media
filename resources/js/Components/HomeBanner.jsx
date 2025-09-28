@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import { Link } from '@inertiajs/react';
+import FlatButton from './FlatButton';
 
 export default function HomeBanner() {
     return (
@@ -10,32 +11,34 @@ export default function HomeBanner() {
                     <div className="overlay d-flex align-items-center">
                         <Container>
                             <Row>
-                                <Col sm={2}></Col>
-                                <Col sm={8}>
-                                    <div className="text-center">
-                                        <h4 className="text-m-0 p-0 text-light fw-bold" style={{ fontSize: '2.5em' }}>
-                                        Opportunity Intelligence for Entrepreneurs
-                                        </h4>
-                                        <p className="m-0 p-0 text-light">
+                                <Col sm={12}>
+                                    <div className="text-center bg-red-500">
+                                        <h1 className="text-m-0 mb-3 p-0 text-light fw-bold" style={{ fontSize: '2.5em' }}>
+                                        Opportunity for Entrepreneurs
+                                        </h1 >  
+                                        <p className="banner-subtitle text-light mb-4">
                                             From funding and grants to software and market insights, we help entrepreneurs uncover strategic opportunities that fuel 10x growth
                                         </p>
-                                        <div className="mt-4 mx-auto">
-                                            <Link
+                                        <div className="banner-buttons d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3">
+                                            <FlatButton
                                                 href="/opportunities"
-                                                className="me-2 btn text-decoration-none fw-bold shadow-sm custom-bg-highlight text-light px-4 border-0"
+                                                variant="primary"
+                                                size="lg"
+                                                className="banner-btn-primary"
                                             >
                                                Find Opportunities
-                                            </Link>
-                                            <Link
+                                            </FlatButton>
+                                            <FlatButton
                                                 href="/toolshed"
-                                                className="ms-2 btn text-decoration-none fw-bold shadow-sm  btn-outline-light text-light px-4 border-light"
+                                                variant="outline-primary"
+                                                size="lg"
+                                                className="banner-btn-secondary"
                                             >
                                                 Explore Tools
-                                            </Link>
+                                            </FlatButton>
                                         </div>
                                     </div>
                                 </Col>
-                                <Col sm={2}></Col>
                             </Row>
                         </Container>
                     </div>

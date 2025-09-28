@@ -14,6 +14,7 @@ import GoogleAdsense from '@/Components/GoogleAdsense';
 import FeedbackPanel from '@/Components/FeedbackInfo';
 import FixedMobileNav from '@/Components/FixedMobileNav';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
 
@@ -30,12 +31,136 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Check if user is authenticated
+    const isAuthenticated = props?.auth?.user ? true : false;
+
+    // Floating bookmark state
+    const [showFloatingBookmark, setShowFloatingBookmark] = useState(false);
+    const [scrollProgress, setScrollProgress] = useState(0);
+    const [isFloatingBookmarkVisible, setIsFloatingBookmarkVisible] = useState(false);
+
     useEffect(()=>{
         console.log(props);
         const fullURL = window.location.href;
         setFullUrl(fullURL);
         // console.log(opp_posts);
+
+        // Scroll tracking for floating bookmark
+        const handleScroll = () => {
+            const scrollTop = window.pageYOffset;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollPercent = (scrollTop / docHeight) * 100;
+            
+            setScrollProgress(scrollPercent);
+            
+            // Show floating bookmark after scrolling 20% and before reaching 95%
+            const shouldShow = scrollPercent > 20 && scrollPercent < 95;
+            setShowFloatingBookmark(shouldShow);
+            
+            // Add slight delay for smooth appearance
+            setTimeout(() => {
+                setIsFloatingBookmarkVisible(shouldShow);
+            }, 100);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
     },[])
+
+    // Function to show authentication modal
+    const showAuthModal = () => {
+        Swal.fire({
+            title: '',
+            html: `
+                <div style="text-align: center; padding: 20px;">
+                    <p style="margin-bottom: 20px; color: #374151; font-size: 16px; font-weight: 500;">
+                        Join thousands of entrepreneurs accessing exclusive features
+                    </p>
+                                
+                    <div style="display: flex; flex-direction: column; gap: 12px; max-width: 320px; margin: 0 auto;">
+                        <a href="/auth/google" 
+                           style="display: flex; align-items: center; justify-content: center; gap: 12px; 
+                                  padding: 14px 20px; background: #4285f4; color: white; text-decoration: none; 
+                                  border-radius: 4px; font-weight: 600; font-size: 15px; transition: all 0.2s ease;
+                                  border: 1px solid #4285f4;"
+                           onmouseover="this.style.background='#3367d6'; this.style.borderColor='#3367d6'" 
+                           onmouseout="this.style.background='#4285f4'; this.style.borderColor='#4285f4'">
+                            <img src="https://developers.google.com/identity/images/g-logo.png" 
+                                 width="22" height="22" style="background: white; padding: 3px; border-radius: 3px;">
+                            Continue with Google
+                        </a>
+                        
+                        <a href="/auth/linkedin" 
+                           style="display: flex; align-items: center; justify-content: center; gap: 12px; 
+                                  padding: 14px 20px; background: #0077b5; color: white; text-decoration: none; 
+                                  border-radius: 4px; font-weight: 600; font-size: 15px; transition: all 0.2s ease;
+                                  border: 1px solid #0077b5;"
+                           onmouseover="this.style.background='#005885'; this.style.borderColor='#005885'" 
+                           onmouseout="this.style.background='#0077b5'; this.style.borderColor='#0077b5'">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+                                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                            </svg>
+                            Continue with LinkedIn
+                        </a>
+                        
+                        <div style="margin: 15px 0; color: #9ca3af; font-size: 14px; font-weight: 500;">or use email</div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <a href="/login" 
+                               style="display: flex; align-items: center; justify-content: center; gap: 8px; 
+                                      padding: 12px 16px; background: transparent; color: #374151; text-decoration: none; 
+                                      border: 1px solid #e5e7eb; border-radius: 4px; font-weight: 500; font-size: 14px; transition: all 0.2s ease;"
+                               onmouseover="this.style.borderColor='#9ca3af'; this.style.backgroundColor='#f9fafb'" 
+                               onmouseout="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='transparent'">
+                                Login
+                            </a>
+                            
+                            <a href="/register" 
+                               style="display: flex; align-items: center; justify-content: center; gap: 8px; 
+                                      padding: 12px 16px; background: #107c10; color: white; text-decoration: none; 
+                                      border-radius: 4px; font-weight: 500; font-size: 14px; transition: all 0.2s ease;
+                                      border: 1px solid #107c10;"
+                               onmouseover="this.style.background='#0e6b0e'; this.style.borderColor='#0e6b0e'" 
+                               onmouseout="this.style.background='#107c10'; this.style.borderColor='#107c10'">
+                                Sign Up
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+                        <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                        Secure • Free Forever • Instant Access
+                        </p>
+                        <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0 0;">
+                            By continuing, you agree to our Terms of Service and Privacy Policy
+                        </p>
+                    </div>
+                </div>
+            `,
+            showConfirmButton: false,
+            showCloseButton: true,
+            width: '480px',
+            padding: '0',
+            background: 'white',
+            customClass: {
+                popup: 'auth-modal-popup',
+                closeButton: 'auth-modal-close'
+            }
+        });
+    };
+
+    // Custom bookmark handler that checks authentication first
+    const handleBookmark = (e) => {
+        if (!isAuthenticated) {
+            e.preventDefault();
+            showAuthModal();
+            return;
+        }
+        bookmark(e.currentTarget);
+    };
 
     // Subscription modal functions
     const handleSubscriptionSubmit = async (e) => {
@@ -43,21 +168,72 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
         setIsSubmitting(true);
 
         try {
-            const response = await axios.post('/api/subscribe', {
+            const response = await axios.post('subscribe', {
                 first_name: subscriptionForm.firstName,
                 last_name: subscriptionForm.lastName,
                 email: subscriptionForm.email
             });
 
             if (response.data.success) {
-                // Success notification
-                alert('Thank you for subscribing! You will receive our latest opportunities.');
+                // Success with SweetAlert
+                Swal.fire({
+                    title: 'Subscribed!',
+                    text: 'You\'ve been successfully subscribed to our newsletter. You\'ll receive the latest opportunities directly in your inbox.',
+                    icon: 'success',
+                    confirmButtonText: 'Great!',
+                    confirmButtonColor: '#0078d4',
+                    showClass: {
+                        popup: 'animate__animated animate__zoomIn animate__faster'
+                    },
+                    hideClass: {
+                        popup: 'animate__animated animate__zoomOut animate__faster'
+                    },
+                    customClass: {
+                        popup: 'swal-modern-popup',
+                        title: 'swal-modern-title',
+                        content: 'swal-modern-content',
+                        confirmButton: 'swal-modern-confirm'
+                    }
+                });
+
                 setShowSubscriptionModal(false);
                 setSubscriptionForm({ firstName: '', lastName: '', email: '' });
             }
         } catch (error) {
             console.error('Subscription error:', error);
-            alert('There was an error processing your subscription. Please try again.');
+            
+            let errorMessage = 'An unexpected error occurred. Please try again.';
+            
+            if (error.response && error.response.status === 422) {
+                const validationErrors = error.response.data.errors;
+                if (validationErrors && validationErrors.email) {
+                    errorMessage = validationErrors.email[0];
+                } else if (error.response.data.message) {
+                    errorMessage = error.response.data.message;
+                }
+            } else if (error.response && error.response.data && error.response.data.message) {
+                errorMessage = error.response.data.message || 'This email is already subscribed.';
+            }
+
+            Swal.fire({
+                title: 'Subscription Failed',
+                text: errorMessage,
+                icon: 'error',
+                confirmButtonText: 'Try Again',
+                confirmButtonColor: '#d13438',
+                showClass: {
+                    popup: 'animate__animated animate__shakeX animate__faster'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__fadeOut animate__faster'
+                },
+                customClass: {
+                    popup: 'swal-modern-popup',
+                    title: 'swal-modern-title',
+                    content: 'swal-modern-content',
+                    confirmButton: 'swal-modern-confirm'
+                }
+            });
         } finally {
             setIsSubmitting(false);
         }
@@ -83,319 +259,7 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
     return(
         <>
 <GuestLayout>
-<style>{`
-    .modern-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border: 1px solid #f1f5f9;
-        transition: all 0.3s ease;
-    }
-    
-    .modern-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-    }
-    
-    .hero-section {
-        background: white;
-        color: #2d3748;
-        border: 2px solid #e2e8f0;
-        border-radius: 16px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-    }
-    
-    .deadline-badge {
-        background: #f56565;
-        color: white;
-        border-radius: 50px;
-        padding: 8px 16px;
-        font-weight: 600;
-        font-size: 0.875rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        margin: 0 8px 8px 0;
-    }
-    
-    .deadline-badge.expired {
-        background: #6c757d;
-    }
-    
-    .deadline-badge.soon {
-        background: #e53e3e;
-        animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-    }
-    
-    .action-button {
-        border-radius: 12px;
-        padding: 12px 20px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        border: 2px solid transparent;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        text-decoration: none !important;
-    }
-    
-    .action-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    }
-    
-    .btn-primary-modern {
-        background: #3182ce;
-        color: white;
-        border: 2px solid #3182ce;
-        margin: 4px;
-    }
-    
-    .btn-primary-modern:hover {
-        background: #2c5282;
-        border-color: #2c5282;
-        color: white;
-    }
-    
-    .btn-success-modern {
-        background: #38a169;
-        color: white;
-        border: 2px solid #38a169;
-        margin: 4px;
-    }
-    
-    .btn-success-modern:hover {
-        background: #2f855a;
-        border-color: #2f855a;
-        color: white;
-    }
-    
-    .btn-warning-modern {
-        background: #dd6b20;
-        color: white;
-        border: 2px solid #dd6b20;
-        margin: 4px;
-    }
-    
-    .btn-warning-modern:hover {
-        background: #c05621;
-        border-color: #c05621;
-        color: white;
-    }
-    
-    .btn-outline-modern {
-        background: white;
-        color: #4a5568;
-        border: 2px solid #e2e8f0;
-        margin: 4px;
-    }
-    
-    .btn-outline-modern:hover {
-        background: #f7fafc;
-        border-color: #cbd5e0;
-        color: #2d3748;
-    }
-    
-    .info-pill {
-        background: #f7fafc;
-        color: #4a5568;
-        border: 1px solid #e2e8f0;
-        border-radius: 20px;
-        padding: 6px 12px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        margin: 4px 8px 4px 0;
-    }
-    
-    .content-section {
-        background: white;
-        border-radius: 16px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        border: 1px solid #f1f5f9;
-    }
-    
-    .meta-info {
-        background: #f8fafc;
-        border-radius: 12px;
-        padding: 1.5rem;
-        border-left: 4px solid #3182ce;
-        margin-bottom: 1.5rem;
-    }
-    
-    .sidebar-card {
-        background: white;
-        border-radius: 16px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        border: 1px solid #f1f5f9;
-        transition: all 0.3s ease;
-    }
-    
-    .sidebar-card:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    /* Responsive Design Improvements */
-    @media (max-width: 576px) {
-        .content-section {
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 12px;
-        }
-        
-        .sidebar-card {
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            border-radius: 12px;
-        }
-        
-        .meta-info {
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-        
-        .action-button {
-            padding: 0.75rem 0.5rem;
-            font-size: 0.875rem;
-        }
-        
-        .subscription-card {
-            text-align: center;
-            padding: 1.5rem 1rem;
-        }
-        
-        .subscription-card .material-symbols-outlined {
-            font-size: 36px !important;
-        }
-        
-        .info-pill {
-            font-size: 0.75rem;
-            padding: 4px 8px;
-            margin: 2px 4px 2px 0;
-        }
-    }
-    
-    @media (min-width: 577px) and (max-width: 768px) {
-        .content-section {
-            padding: 1.5rem;
-        }
-        
-        .sidebar-card {
-            padding: 1.75rem;
-        }
-    }
-    
-    @media (min-width: 1200px) {
-        .content-section {
-            padding: 2.5rem;
-        }
-        
-        .sidebar-card {
-            padding: 2.5rem;
-        }
-    }
-    
-    /* Modal Responsive Improvements */
-    @media (max-width: 576px) {
-        .modal-content {
-            padding: 1.5rem !important;
-            border-radius: 16px !important;
-            margin: 1rem !important;
-            width: calc(100% - 2rem) !important;
-        }
-        
-        .modal-content h2 {
-            font-size: 1.5rem !important;
-        }
-        
-        .modal-content .form-control {
-            padding: 0.5rem 0.75rem !important;
-        }
-    }
-    
-    .telegram-card {
-        background: #0088cc;
-        color: white;
-        border: 2px solid #0088cc;
-    }
-    
-    .telegram-card:hover {
-        background: #006bb3;
-        border-color: #006bb3;
-    }
-    
-    .hostinger-card {
-        background: #673ab7;
-        color: white;
-        border: 2px solid #673ab7;
-    }
-    
-    .hostinger-card:hover {
-        background: #5e35b1;
-        border-color: #5e35b1;
-    }
-    
-    .image-container {
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        margin: 2rem 0;
-        border: 1px solid #e2e8f0;
-    }
-    
-    .image-container img {
-        width: 100%;
-        height: auto;
-        transition: transform 0.3s ease;
-    }
-    
-    .image-container:hover img {
-        transform: scale(1.02);
-    }
-    
-    .tag-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin: 1.5rem 0;
-    }
-    
-    .modern-tag {
-        background: #f7fafc;
-        color: #4a5568;
-        border: 1px solid #e2e8f0;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        margin: 4px 8px 4px 0;
-    }
-    
-    .page-header {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 16px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-    }
-`}</style>
+
 <Metadata
     title={opp_posts?.title}
     description={opp_posts?.meta_description}
@@ -410,25 +274,75 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
     twitterImage={`/storage/public/uploads/opp/${opp_posts.cover_img}`}
 />
 
+{/* Floating Bookmark Button */}
+<div className={`floating-bookmark-container ${showFloatingBookmark ? 'visible' : 'hidden'} ${isFloatingBookmarkVisible ? 'animate-in' : 'animate-out'}`}>
+    <div className="floating-bookmark-wrapper">
+        {/* Progress Ring */}
+        <div className="progress-ring">
+            <svg className="progress-ring-svg" width="60" height="60">
+                <circle
+                    className="progress-ring-circle-bg"
+                    cx="30"
+                    cy="30"
+                    r="25"
+                />
+                <circle
+                    className="progress-ring-circle"
+                    cx="30"
+                    cy="30"
+                    r="25"
+                    style={{
+                        strokeDasharray: `${scrollProgress * 1.57}, 157`,
+                        transform: 'rotate(-90deg)',
+                        transformOrigin: '30px 30px'
+                    }}
+                />
+            </svg>
+            
+            {/* Bookmark Button */}
+            <button
+                className="floating-bookmark-btn"
+                onClick={handleBookmark}
+                data-product-id={opp_posts.id}
+                data-bookmarked={opp_posts.is_bookmarked === 1}
+                title={opp_posts.is_bookmarked === 1 ? 'Remove from bookmarks' : 'Add to bookmarks'}
+            >
+                <span className="material-symbols-outlined bookmark-icon">
+                    {opp_posts.is_bookmarked === 1 ? 'bookmark' : 'bookmark_border'}
+                </span>
+            </button>
+        </div>
+        
+        {/* Floating Tooltip */}
+        <div className="floating-tooltip">
+            <span className="tooltip-text">
+                {opp_posts.is_bookmarked === 1 ? 'Bookmarked!' : 'Save for later'}
+            </span>
+            <div className="tooltip-progress">{Math.round(scrollProgress)}% read</div>
+        </div>
+    </div>
+</div>
+
 <Container fluid={true} className="container-fluid container-lg">
         <Row className="g-4">
             <Col lg={8} md={12} sm={12}>
                 {/* Hero Section */}
-                <div className="hero-section">
+                <div className="border-0 mt-3">
                     <div className="d-flex align-items-center mb-3">
-                        <span className="material-symbols-outlined me-2 text-primary">target</span>
-                        <span className="badge bg-primary text-white rounded-pill px-3 py-2">
+                        <span className="badge bg-dark text-white rounded-pill px-3 py-2">
                             Opportunity
                         </span>
                     </div>
-                    <h1 className="h2 fw-bold mb-3 lh-base text-dark">{opp_posts.title}</h1>
+                    <h1 className="text-m-0 p-0 fw-bold" style={{ fontSize: '2.5em' }}>
+                        {opp_posts.title}
+                    </h1>
                     <div className="d-flex flex-wrap align-items-center gap-3">
                         <div className="info-pill">
                             <span className="material-symbols-outlined" style={{fontSize: '14px'}}>calendar_month</span>
                             Posted {new Date(opp_posts.created_at).toLocaleDateString()}
                         </div>
                         {opp_posts.deadline && (
-                            <div className={`deadline-badge ${getDaysLeftText(opp_posts.deadline).includes('Expired') ? 'expired' : getDaysLeftText(opp_posts.deadline).includes('day') && parseInt(getDaysLeftText(opp_posts.deadline)) <= 7 ? 'soon' : ''}`}>
+                            <div className={`info-pill ${getDaysLeftText(opp_posts.deadline).includes('Expired') ? 'expired' : 'active'}`}>
                                 <span className="material-symbols-outlined" style={{fontSize: '14px'}}>schedule</span>
                                 {getDaysLeft(opp_posts.deadline)}
                             </div>
@@ -473,12 +387,12 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                 )}
 
                 {/* Content Section */}
-                <div className="content-section">
+                <div className="">
                     <div className="default-font-style" dangerouslySetInnerHTML={{ __html: opp_posts.description }}></div>
                 </div>
 
                 {/* Tags Section */}
-                <div className="content-section">
+                <div className="mb-3">
                     <h5 className="fw-bold mb-3 d-flex align-items-center">
                         <span className="material-symbols-outlined me-2 text-primary" style={{fontSize: '20px'}}>tag</span>
                         Categories & Locations
@@ -491,479 +405,134 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="content-section">
-                    <h5 className="fw-bold mb-4">Take Action</h5>
-                    <Row className="g-3">
-                        <Col md={3} sm={6}>
-                            <div className="content-btn-holder">
+                <div className="mb-3">
+                    {/* <h5 className="fw-bold mb-4 text-center text-md-start">Take Action</h5> */}
+                    <div className="">
+                        <Row className="">
+                            {/* Share Button */}
+                            <Col lg={3} md={6} sm={6} xs={6}>
                                 <div className="position-relative">
                                     <div className="position-absolute share-panel border rounded fs-8 d-none"></div>
                                     <button 
-                                        className="action-button btn-outline-modern w-100"
+                                        className="action-button btn-outline-modern w-100 d-flex align-items-center justify-content-center gap-2 py-3"
                                         data-title={opp_posts.title} 
                                         data-id={opp_posts.id} 
                                         onClick={(e) => toggleShare(e.currentTarget)}
                                     >
-                                        <span className="material-symbols-outlined" style={{fontSize: '18px'}}>share</span>
-                                        Share
+                                        <span className="material-symbols-outlined" style={{fontSize: '18px'}}>
+                                            share
+                                        </span>
+                                        <span className="d-none d-lg-inline">Share</span>
                                     </button>
                                 </div>
-                            </div>
-                        </Col>
-                        <Col md={3} sm={6}>
-                            <button 
-                                className="action-button btn-outline-modern w-100"
-                                data-id={opp_posts.id}
-                                data-title={opp_posts.title}
-                                data-type="opp"
-                                data-url={pageLink(opp_posts.title, opp_posts.id)}
-                                onClick={(e) => bookmark(e.currentTarget)}
-                            >
-                                <span className="material-symbols-outlined" style={{fontSize: '18px', color: opp_posts.is_bookmarked === 1 ? '#FFD700' : 'currentColor'}}>
-                                    {opp_posts.is_bookmarked === 1 ? 'bookmark' : 'bookmark_border'}
-                                </span>
-                                Bookmark
-                            </button>
-                        </Col>
-                        {opp_posts.source_url && (
-                            <Col md={3} sm={6}>
-                                <a className="action-button btn-primary-modern w-100" href={opp_posts.source_url} target="_blank" rel="noopener noreferrer">
-                                    <span className="material-symbols-outlined" style={{fontSize: '18px'}}>open_in_new</span>
-                                    Read More
-                                </a>
                             </Col>
-                        )}
-                        {opp_posts.direct_link && (
-                            <Col md={3} sm={6}>
-                                <a className="action-button btn-success-modern w-100" href={opp_posts.direct_link} target="_blank" rel="noopener noreferrer">
-                                    <span className="material-symbols-outlined" style={{fontSize: '18px'}}>target</span>
-                                    Apply Now
-                                </a>
+                            
+                            {/* Bookmark Button */}
+                            <Col lg={3} md={6} sm={6} xs={6}>
+                                <button 
+                                    className="action-button btn-outline-modern w-100 d-flex align-items-center justify-content-center gap-2 py-3"
+                                    data-id={opp_posts.id}
+                                    data-title={opp_posts.title}
+                                    data-type="opp"
+                                    data-url={pageLink(opp_posts.title, opp_posts.id)}
+                                    onClick={handleBookmark}
+                                >
+                                    <span className="material-symbols-outlined" style={{fontSize: '18px', color: opp_posts.is_bookmarked === 1 ? '#FFD700' : 'currentColor'}}>
+                                        {opp_posts.is_bookmarked === 1 ? 'bookmark' : 'bookmark_border'}
+                                    </span>
+                                    <span className="d-none d-lg-inline">
+                                        {opp_posts.is_bookmarked === 1 ? 'Saved' : 'Bookmark'}
+                                    </span>
+                                </button>
                             </Col>
-                        )}
-                    </Row>
+                            
+                            {/* Read More Button (if available) */}
+                            {opp_posts.source_url && (
+                                <Col lg={3} md={6} sm={6} xs={6}>
+                                    <a 
+                                        className="action-button btn-primary-modern w-100 d-flex align-items-center justify-content-center gap-2 py-3"
+                                        href={opp_posts.source_url} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                    >
+                                        <span className="material-symbols-outlined" style={{fontSize: '18px'}}>
+                                            open_in_new
+                                        </span>
+                                        <span className="d-none d-lg-inline">Read More</span>
+                                    </a>
+                                </Col>
+                            )}
+                            
+                            {/* Apply Now Button (if available) */}
+                            {opp_posts.direct_link && (
+                                <Col lg={3} md={6} sm={6} xs={6}>
+                                    <a 
+                                        className="action-button btn-success-modern w-100 d-flex align-items-center justify-content-center gap-2 py-3"
+                                        href={opp_posts.direct_link} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                    >
+                                        <span className="material-symbols-outlined" style={{fontSize: '18px'}}>
+                                            target
+                                        </span>
+                                        <span className="d-none d-lg-inline">Apply Now</span>
+                                    </a>
+                                </Col>
+                            )}
+                        </Row>
+                    </div>
                 </div>
 
-                {/* Feedback Section */}
-                <div className="content-section">
-                    <FeedbackPanel />
-                </div>
+                
+                {/* <FeedbackPanel /> */}
+          
 
                 {/* Recommended Content */}
-                <div className="content-section">
+                <div className="mt-5">
                     <RecommendedContent similarPosts={similarPosts}/>
                 </div>
             </Col>
             <Col lg={4} md={12} sm={12}>
-                {/* Telegram Card */}
-                <div className="sidebar-card telegram-card">
-                    <a 
-                        href="https://t.me/+66AGIA3g2dwzMjc0" 
-                        target="_blank"
-                        className="text-decoration-none text-white d-flex align-items-center"
-                    >
-                        <div className="me-3">
-                            <img 
-                                src='/img/defaults/telegram_icon.png'
-                                width="60"
-                                className="img-fluid rounded-circle" 
-                                alt="Telegram"
-                                style={{ border: '3px solid rgba(255,255,255,0.3)' }}
-                            />
+                {/* Telegram Community - Cool Message Button */}
+                <div className="telegram-community-container border-0">
+                    <div className="telegram-message-bubble border-0">
+                        <div className="message-header">
+                            <div className="avatar-container">
+                                <img 
+                                    src='/img/defaults/telegram_icon.png'
+                                    className="telegram-avatar" 
+                                    alt="Edatsu Community"
+                                />
+                                <div className="online-indicator"></div>
+                            </div>
+                            <div className="message-info">
+                                <h6 className="username">Edatsu Community</h6>
+                                <span className="status">🔥 Active now</span>
+                            </div>
                         </div>
-                        <div className="flex-grow-1">
-                            <h6 className="fw-bold mb-1 text-white">
-                                <span className="material-symbols-outlined me-2" style={{fontSize: '16px'}}>groups</span>
-                                Join Our Community
-                            </h6>
-                            <p className="small mb-0 opacity-90">
-                                Get daily opportunities & news updates on Telegram
-                            </p>
+                        
+                        <div className="message-content">      
+                            <a 
+                                href="https://t.me/+66AGIA3g2dwzMjc0" 
+                                target="_blank"
+                                className="telegram-join-btn"
+                            >
+                                <span className="btn-text">Join Community Now</span>
+                                <span className="btn-arrow">→</span>
+                            </a>
                         </div>
-                    </a>
-                </div>
-
-                {/* Subscription Card */}
-                <div className="sidebar-card subscription-card">
-                    <div className="text-center">
-                        <div className="mb-3">
-                            <span className="material-symbols-outlined text-primary" style={{fontSize: '48px'}}>
-                                mail
-                            </span>
-                        </div>
-                        <h5 className="fw-bold mb-2 text-dark">
-                            Get Daily Opportunities
-                        </h5>
-                        <p className="text-muted small mb-3">
-                            Never miss out on new opportunities. Get them delivered straight to your inbox every day.
-                        </p>
-                        <button 
-                            className="btn btn-primary w-100 fw-bold"
-                            onClick={handleSubscribeClick}
-                        >
-                            <span className="material-symbols-outlined me-2" style={{fontSize: '16px'}}>
-                                notifications
-                            </span>
-                            Subscribe Now
-                        </button>
                     </div>
                 </div>
 
-                {/* Hostinger Ad Card */}
-                <div className="sidebar-card hostinger-card">
-                    <a 
-                        target="_blank" 
-                        className='text-decoration-none text-white'
-                        href="https://www.hostinger.com/cart?product=hosting%3Acloud_professional&period=12&referral_type=cart_link&REFERRALCODE=1ATSUDOMINI21&referral_id=0194e7a3-6593-739b-9f80-916a5e15e60c"
-                    >
-                        <div className="mb-3">
-                            <span className="badge bg-warning text-dark rounded-pill px-3 py-2 fw-bold">
-                                LIMITED OFFER - 20% OFF
-                            </span>
-                        </div>
-                        <h5 className="fw-bold mb-3 text-white">
-                            Build a Powerful Business Website
-                        </h5>
-                        <div className="d-flex align-items-center mb-3">
-                            <span className="material-symbols-outlined me-2" style={{fontSize: '20px'}}>language</span>
-                            <span className="h6 mb-0">Hostinger Cloud Professional</span>
-                        </div>
-                        <div className="mb-3">
-                            <span className="h4 fw-bold text-warning">$16.99/mo</span>
-                        </div>
-                        <img 
-                            src='/img/main/hostinger.webp'
-                            className="img-fluid rounded" 
-                            alt="Hostinger"
-                            style={{ borderRadius: '12px' }}
-                        />
-                    </a>
-                </div>
-
-                {/* Google Adsense */}
-                <div className="sidebar-card">
+                {/* Google Adsense - Commented out for clean design */}
+                {/* <div className="sidebar-card">
                     <GoogleAdsense/>
-                </div>
+                </div> */}
             </Col>
         </Row>
 </Container>
-
-            <FixedMobileNav isAuthenticated={(props.auth.user)? true : false} />
-
-            {/* Subscription Modal */}
-            {showSubscriptionModal && (
-                <div 
-                    className="modal-backdrop"
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                        zIndex: 1055,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        animation: 'fadeIn 0.3s ease-in-out'
-                    }}
-                    onClick={closeSubscriptionModal}
-                >
-                    <div 
-                        className="modal-content"
-                        style={{
-                            backgroundColor: 'white',
-                            borderRadius: '20px',
-                            padding: '2.5rem',
-                            maxWidth: '500px',
-                            width: '90%',
-                            maxHeight: '90vh',
-                            overflow: 'auto',
-                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-                            transform: 'scale(1)',
-                            animation: 'modalSlideIn 0.4s ease-out',
-                            position: 'relative'
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {/* Close Button */}
-                        <button
-                            onClick={closeSubscriptionModal}
-                            style={{
-                                position: 'absolute',
-                                top: '1rem',
-                                right: '1rem',
-                                background: 'none',
-                                border: 'none',
-                                fontSize: '1.5rem',
-                                cursor: 'pointer',
-                                color: '#6b7280',
-                                padding: '0.5rem',
-                                borderRadius: '50%',
-                                width: '40px',
-                                height: '40px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                transition: 'all 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.target.style.backgroundColor = '#f3f4f6';
-                                e.target.style.color = '#374151';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.target.style.backgroundColor = 'transparent';
-                                e.target.style.color = '#6b7280';
-                            }}
-                        >
-                            ×
-                        </button>
-
-                        {/* Header */}
-                        <div className="text-center mb-4">
-                            <div 
-                                style={{
-                                    width: '80px',
-                                    height: '80px',
-                                    backgroundColor: '#3b82f6',
-                                    borderRadius: '50%',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    margin: '0 auto 1.5rem',
-                                    boxShadow: '0 10px 30px rgba(59, 130, 246, 0.3)'
-                                }}
-                            >
-                                <span className="material-symbols-outlined text-white" style={{ fontSize: '32px' }}>
-                                    notifications_active
-                                </span>
-                            </div>
-                            <h2 className="fw-bold mb-2" style={{ color: '#1f2937', fontSize: '1.75rem' }}>
-                                Stay Updated
-                            </h2>
-                            <p className="text-muted mb-0" style={{ fontSize: '1.1rem', lineHeight: '1.6' }}>
-                                Get the latest opportunities delivered directly to your inbox
-                            </p>
-                        </div>
-
-                        {/* Form */}
-                        <form onSubmit={handleSubscriptionSubmit}>
-                            <div className="row g-3">
-                                <div className="col-md-6">
-                                    <label className="form-label fw-semibold" style={{ color: '#374151' }}>
-                                        First Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="firstName"
-                                        className="form-control"
-                                        value={subscriptionForm.firstName}
-                                        onChange={handleInputChange}
-                                        required
-                                        style={{
-                                            border: '2px solid #e5e7eb',
-                                            borderRadius: '12px',
-                                            padding: '0.75rem 1rem',
-                                            fontSize: '1rem',
-                                            transition: 'all 0.2s ease'
-                                        }}
-                                        onFocus={(e) => {
-                                            e.target.style.borderColor = '#3b82f6';
-                                            e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-                                        }}
-                                        onBlur={(e) => {
-                                            e.target.style.borderColor = '#e5e7eb';
-                                            e.target.style.boxShadow = 'none';
-                                        }}
-                                        placeholder="John"
-                                    />
-                                </div>
-                                <div className="col-md-6">
-                                    <label className="form-label fw-semibold" style={{ color: '#374151' }}>
-                                        Last Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="lastName"
-                                        className="form-control"
-                                        value={subscriptionForm.lastName}
-                                        onChange={handleInputChange}
-                                        required
-                                        style={{
-                                            border: '2px solid #e5e7eb',
-                                            borderRadius: '12px',
-                                            padding: '0.75rem 1rem',
-                                            fontSize: '1rem',
-                                            transition: 'all 0.2s ease'
-                                        }}
-                                        onFocus={(e) => {
-                                            e.target.style.borderColor = '#3b82f6';
-                                            e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-                                        }}
-                                        onBlur={(e) => {
-                                            e.target.style.borderColor = '#e5e7eb';
-                                            e.target.style.boxShadow = 'none';
-                                        }}
-                                        placeholder="Doe"
-                                    />
-                                </div>
-                            </div>
-                            
-                            <div className="mb-4 mt-3">
-                                <label className="form-label fw-semibold" style={{ color: '#374151' }}>
-                                    Email Address
-                                </label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    className="form-control"
-                                    value={subscriptionForm.email}
-                                    onChange={handleInputChange}
-                                    required
-                                    style={{
-                                        border: '2px solid #e5e7eb',
-                                        borderRadius: '12px',
-                                        padding: '0.75rem 1rem',
-                                        fontSize: '1rem',
-                                        transition: 'all 0.2s ease'
-                                    }}
-                                    onFocus={(e) => {
-                                        e.target.style.borderColor = '#3b82f6';
-                                        e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-                                    }}
-                                    onBlur={(e) => {
-                                        e.target.style.borderColor = '#e5e7eb';
-                                        e.target.style.boxShadow = 'none';
-                                    }}
-                                    placeholder="john.doe@example.com"
-                                />
-                            </div>
-
-                            {/* Benefits */}
-                            <div className="mb-4 p-3" style={{ backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                                <h6 className="fw-semibold mb-2" style={{ color: '#374151' }}>What you'll receive:</h6>
-                                <div className="d-flex flex-column gap-2">
-                                    <div className="d-flex align-items-center">
-                                        <span className="material-symbols-outlined text-success me-2" style={{ fontSize: '16px' }}>
-                                            check_circle
-                                        </span>
-                                        <small className="text-muted">Weekly opportunities digest</small>
-                                    </div>
-                                    <div className="d-flex align-items-center">
-                                        <span className="material-symbols-outlined text-success me-2" style={{ fontSize: '16px' }}>
-                                            check_circle
-                                        </span>
-                                        <small className="text-muted">Early access to new listings</small>
-                                    </div>
-                                    <div className="d-flex align-items-center">
-                                        <span className="material-symbols-outlined text-success me-2" style={{ fontSize: '16px' }}>
-                                            check_circle
-                                        </span>
-                                        <small className="text-muted">Exclusive funding alerts</small>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Buttons */}
-                            <div className="d-flex gap-3">
-                                <button
-                                    type="button"
-                                    onClick={closeSubscriptionModal}
-                                    className="btn flex-fill"
-                                    style={{
-                                        backgroundColor: '#f3f4f6',
-                                        color: '#6b7280',
-                                        border: '2px solid #e5e7eb',
-                                        borderRadius: '12px',
-                                        padding: '0.75rem 1.5rem',
-                                        fontWeight: '600',
-                                        transition: 'all 0.2s ease'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.target.style.backgroundColor = '#e5e7eb';
-                                        e.target.style.color = '#374151';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.target.style.backgroundColor = '#f3f4f6';
-                                        e.target.style.color = '#6b7280';
-                                    }}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className="btn flex-fill"
-                                    style={{
-                                        backgroundColor: '#3b82f6',
-                                        color: 'white',
-                                        border: '2px solid #3b82f6',
-                                        borderRadius: '12px',
-                                        padding: '0.75rem 1.5rem',
-                                        fontWeight: '600',
-                                        transition: 'all 0.2s ease',
-                                        opacity: isSubmitting ? 0.7 : 1
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        if (!isSubmitting) {
-                                            e.target.style.backgroundColor = '#2563eb';
-                                            e.target.style.borderColor = '#2563eb';
-                                            e.target.style.transform = 'translateY(-1px)';
-                                            e.target.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.4)';
-                                        }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        if (!isSubmitting) {
-                                            e.target.style.backgroundColor = '#3b82f6';
-                                            e.target.style.borderColor = '#3b82f6';
-                                            e.target.style.transform = 'translateY(0)';
-                                            e.target.style.boxShadow = 'none';
-                                        }
-                                    }}
-                                >
-                                    {isSubmitting ? (
-                                        <div className="d-flex align-items-center justify-content-center">
-                                            <div 
-                                                className="spinner-border spinner-border-sm me-2"
-                                                style={{ width: '16px', height: '16px' }}
-                                            ></div>
-                                            Subscribing...
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <span className="material-symbols-outlined me-2" style={{ fontSize: '18px' }}>
-                                                send
-                                            </span>
-                                            Subscribe Now
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            <style>{`
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-                
-                @keyframes modalSlideIn {
-                    from { 
-                        opacity: 0;
-                        transform: scale(0.9) translateY(-20px);
-                    }
-                    to { 
-                        opacity: 1;
-                        transform: scale(1) translateY(0);
-                    }
-                }
-            `}</style>
-
-            </GuestLayout>
-        
+<FixedMobileNav isAuthenticated={(props.auth.user)? true : false} />
+</GuestLayout>
         </>
     )
 }

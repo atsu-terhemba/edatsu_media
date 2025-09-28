@@ -371,6 +371,7 @@ export const swalConfig = {
     let id      = obj.dataset.id;
     let type    = obj.dataset.type;
     let url     = obj.dataset.url;
+    
     axios.post('/bookmark',  {
       id: id,
       type: type,
@@ -395,9 +396,18 @@ export const swalConfig = {
         }
     })
     .catch((error)=> {
-        console.log(error);
-        // Handle authentication error
-        if (error.response?.status === 401 || error.response?.data?.message === "Unauthenticated.") {
+        console.log('Bookmark error:', error);
+        console.log('Error status:', error.response?.status);
+        console.log('Error message:', error.response?.data?.message);
+        
+        // Handle authentication error - check multiple conditions
+        if (error.response?.status === 401 || 
+            error.response?.data?.message === "Unauthenticated." ||
+            error.response?.data?.message?.toLowerCase().includes('unauthenticated') ||
+            error.response?.statusText === 'Unauthorized') {
+            showAuthModal();
+        } else if (error.response?.status === 419) {
+            // CSRF token mismatch - also require authentication
             showAuthModal();
         } else {
             Toast.fire({

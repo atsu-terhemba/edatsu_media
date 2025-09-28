@@ -1,6 +1,7 @@
 import { Fragment } from "react"
 import { Navbar, Nav, Container, Button, NavDropdown, Image, Badge } from 'react-bootstrap';
 import { Link } from "@inertiajs/react";
+import FlatButton from '@/Components/FlatButton';
 import { useEffect, useState } from "react";
 import { truncateText, ActiveLink } from "@/utils/Index";
 import { Images } from "@/utils/Images";
@@ -52,19 +53,19 @@ return(
         Opportunities
         </Link>
         </Nav.Item>
-        <Nav.Item>
+        {/* <Nav.Item>
         <Link href={route('toolshed')}  className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/toolshed')}`}>
         Toolshed
         </Link>
-        </Nav.Item>
+        </Nav.Item> */}
         <Nav.Item>
-        <Link href={route('subscription')} className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/subscription')}`}>
+        {/* <Link href={route('subscription')} className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/subscription')}`}>
          Pricing
-        </Link>
+        </Link> */}
         </Nav.Item>
         
         {/* Dark Mode Toggle */}
-        <Nav.Item>
+        {/* <Nav.Item>
             <Button 
                 className="btn bg-transparent border-0 me-3" 
                 onClick={toggleDarkMode}
@@ -75,7 +76,7 @@ return(
                     <Moon size={20} color="white" />
                 }
             </Button>
-        </Nav.Item>
+        </Nav.Item> */}
         
         {/* User Authenticated */}
         {(auth?.id)?
@@ -144,12 +145,12 @@ return(
         </>
         :
         <>
-        <Link href="/login" className="poppins-semibold btn text-decoration-none fs-9 poppins-regular custom-bg-highlight text-light border-0 shadow-sm py-2 px-4 me-3">
+        <FlatButton href="/login" variant="primary" size="sm" className="me-3">
             Login
-        </Link>
-        <Link href="/sign-up" className="poppins-semibold btn text-decoration-none fs-9 poppins-regular custom-bg-highlight text-light border-0 shadow-sm py-2 px-4">
+        </FlatButton>
+        <FlatButton href="/sign-up" variant="success" size="sm">
             Sign Up
-        </Link>
+        </FlatButton>
         </>
         }
     </Nav>

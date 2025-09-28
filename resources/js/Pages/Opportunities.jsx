@@ -31,14 +31,7 @@ const Opportunities = () => {
     const [isloading, setIsLoading] = useState('initial'); // Set initial loading state
     const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
 
-    // Subscription modal state
-    const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-    const [subscriptionForm, setSubscriptionForm] = useState({
-        firstName: '',
-        lastName: '',
-        email: ''
-    });
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    // Remove old subscription modal state - now using SweetAlert2
 
     // Add missing pagination state variables
     const [currentPage, setCurrentPage] = useState(1);
@@ -189,99 +182,137 @@ const Opportunities = () => {
     setIsMobileSearchVisible(!isMobileSearchVisible);
     }
 
-    // Subscription modal functions
-    const handleSubscriptionSubmit = async (e) => {
-        e.preventDefault();
-        setIsSubmitting(true);
+    // SweetAlert2 subscription modal function
+    const showSubscriptionModal = () => {
+        Swal.fire({
+            title: '',
+            html: `
+                <div style="text-align: center; padding: 20px;">
+                    <h3 style="font-weight: bold; margin-bottom: 0.5rem; color: #1f2937; font-size: 1.25rem;">Subscribe</h3>
+                    <p style="margin-bottom: 20px; color: #6b7280; font-size: 14px; line-height: 1.4;">
+                        Get opportunities delivered to your inbox
+                    </p>
+                                
+                    <form id="subscription-form" style="display: flex; flex-direction: column; gap: 12px; max-width: 320px; margin: 0 auto;">
+                        <input type="text" id="firstName" name="firstName" placeholder="First name" required
+                               style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.625rem 0.875rem; font-size: 0.875rem; background: #fafbfc; transition: all 0.2s ease;"
+                               onfocus="this.style.borderColor='#3b82f6'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.08)'"
+                               onblur="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='#fafbfc'; this.style.boxShadow='none'">
+                        
+                        <input type="text" id="lastName" name="lastName" placeholder="Last name" required
+                               style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.625rem 0.875rem; font-size: 0.875rem; background: #fafbfc; transition: all 0.2s ease;"
+                               onfocus="this.style.borderColor='#3b82f6'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.08)'"
+                               onblur="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='#fafbfc'; this.style.boxShadow='none'">
+                        
+                        <input type="email" id="email" name="email" placeholder="your@email.com" required
+                               style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.625rem 0.875rem; font-size: 0.875rem; background: #fafbfc; transition: all 0.2s ease;"
+                               onfocus="this.style.borderColor='#3b82f6'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.08)'"
+                               onblur="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='#fafbfc'; this.style.boxShadow='none'">
+                        
+                        <button type="submit" id="subscribe-btn"
+                                style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; border: none; border-radius: 8px; padding: 0.625rem 1rem; font-weight: 600; font-size: 0.875rem; transition: all 0.2s ease; cursor: pointer;"
+                                onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(59, 130, 246, 0.4)'"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                            Subscribe
+                        </button>
+                    </form>
+                    
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+                        <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                            Secure •  Free Forever • Instant Access
+                        </p>
+                        <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0 0;">
+                            By subscribing, you agree to our Terms of Service and Privacy Policy
+                        </p>
+                    </div>
+                </div>
+            `,
+            showConfirmButton: false,
+            showCloseButton: true,
+            width: '480px',
+            padding: '0',
+            background: 'white',
+            customClass: {
+                popup: 'auth-modal-popup',
+                closeButton: 'auth-modal-close'
+            },
+            didOpen: () => {
+                const form = document.getElementById('subscription-form');
+                const subscribeBtn = document.getElementById('subscribe-btn');
+                
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const firstName = document.getElementById('firstName').value;
+                    const lastName = document.getElementById('lastName').value;
+                    const email = document.getElementById('email').value;
+                    
+                    // Disable button and show loading state
+                    subscribeBtn.disabled = true;
+                    subscribeBtn.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; gap: 8px;"><div style="width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite;"></div>Subscribing...</div>';
+                    
+                    try {
+                        const response = await axios.post('subscribe', {
+                            first_name: firstName,
+                            last_name: lastName,
+                            email: email
+                        });
 
-        try {
-            const response = await axios.post('subscribe', {
-                first_name: subscriptionForm.firstName,
-                last_name: subscriptionForm.lastName,
-                email: subscriptionForm.email
-            });
-
-            if (response.data.success) {
-                // Success notification
-                Swal.fire({
-                    title: 'Subscribed!',
-                    text: 'You\'ll receive opportunities in your inbox',
-                    iconHtml: '<div style="width: 32px; height: 32px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; font-weight: bold; margin: 0;">✓</div>',
-                    confirmButtonText: 'Perfect!',
-                    confirmButtonColor: '#10b981',
-                    buttonsStyling: false,
-                    customClass: {
-                        popup: 'compact-swal-popup',
-                        title: 'compact-swal-title',
-                        content: 'compact-swal-content',
-                        confirmButton: 'compact-swal-button'
-                    },
-                    showClass: {
-                        popup: 'animate__animated animate__zoomIn animate__faster'
-                    },
-                    hideClass: {
-                        popup: 'animate__animated animate__zoomOut animate__faster'
-                    },
-                    timer: 3000,
-                    timerProgressBar: true
+                        if (response.data.success) {
+                            Swal.fire({
+                                title: 'Subscribed!',
+                                text: "You'll receive opportunities in your inbox",
+                                iconHtml: '<div style="width: 32px; height: 32px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; font-weight: bold; margin: 0;">✓</div>',
+                                confirmButtonText: 'Perfect!',
+                                confirmButtonColor: '#10b981',
+                                buttonsStyling: false,
+                                customClass: {
+                                    popup: 'compact-swal-popup',
+                                    title: 'compact-swal-title',
+                                    content: 'compact-swal-content',
+                                    confirmButton: 'compact-swal-button'
+                                },
+                                timer: 3000,
+                                timerProgressBar: true
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Subscription error:', error);
+                        
+                        let errorMessage = 'Something went wrong. Please try again.';
+                        
+                        if (error.response && error.response.status === 422) {
+                            const errors = error.response.data.errors;
+                            if (errors) {
+                                errorMessage = error.response.data.first_error || Object.values(errors)[0][0];
+                            }
+                        } else if (error.response && error.response.status === 409) {
+                            errorMessage = error.response.data.message || 'This email is already subscribed.';
+                        } else if (error.response && error.response.data && error.response.data.message) {
+                            errorMessage = error.response.data.message;
+                        }
+                        
+                        Swal.fire({
+                            text: errorMessage,
+                            iconHtml: '<div style="width: 32px; height: 32px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; font-weight: bold; margin: 0;">✕</div>',
+                            confirmButtonText: 'Retry',
+                            confirmButtonColor: '#ef4444',
+                            buttonsStyling: false,
+                            customClass: {
+                                popup: 'compact-swal-popup',
+                                title: 'compact-swal-title',
+                                content: 'compact-swal-content',
+                                confirmButton: 'compact-swal-button compact-swal-button-error'
+                            }
+                        });
+                        
+                        // Reset button
+                        subscribeBtn.disabled = false;
+                        subscribeBtn.innerHTML = 'Subscribe';
+                    }
                 });
-                setShowSubscriptionModal(false);
-                setSubscriptionForm({ firstName: '', lastName: '', email: '' });
             }
-        } catch (error) {
-            console.error('Subscription error:', error);
-            
-            let errorMessage = 'Something went wrong. Please try again.';
-            
-            // Handle validation errors
-            if (error.response && error.response.status === 422) {
-                const errors = error.response.data.errors;
-                if (errors) {
-                    // Get the first error message
-                    errorMessage = error.response.data.first_error || Object.values(errors)[0][0];
-                }
-            } else if (error.response && error.response.status === 409) {
-                // Handle duplicate email
-                errorMessage = error.response.data.message || 'This email is already subscribed.';
-            } else if (error.response && error.response.data && error.response.data.message) {
-                errorMessage = error.response.data.message;
-            }
-            
-            Swal.fire({
-                text: errorMessage,
-                iconHtml: '<div style="width: 32px; height: 32px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; font-weight: bold; margin: 0;">✕</div>',
-                confirmButtonText: 'Retry',
-                confirmButtonColor: '#ef4444',
-                buttonsStyling: false,
-                customClass: {
-                    popup: 'compact-swal-popup',
-                    title: 'compact-swal-title',
-                    content: 'compact-swal-content',
-                    confirmButton: 'compact-swal-button compact-swal-button-error'
-                },
-                showClass: {
-                    popup: 'animate__animated animate__shakeX animate__faster'
-                },
-                hideClass: {
-                    popup: 'animate__animated animate__zoomOut animate__faster'
-                }
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setSubscriptionForm(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    const closeSubscriptionModal = () => {
-        setShowSubscriptionModal(false);
-        setSubscriptionForm({ firstName: '', lastName: '', email: '' });
+        });
     };
     
 
@@ -320,10 +351,10 @@ const Opportunities = () => {
                                 </div> */}
                                 <div>
                                     <h1 className="h3 fw-bold text-dark mb-1">
-                                        Opportunity Intelligence Platform
+                                        Opportunities
                                     </h1>
                                     <p className="text-muted mb-0">
-                                        Discover funding, grants & accelerators
+                                       Discover funding, grants & accelerators to launch and scale your vision
                                     </p>
                                 </div>
                             </div>
@@ -395,41 +426,41 @@ const Opportunities = () => {
                                     className="p-3 rounded-3"
                                     style={{ backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0' }}
                                 >
-                                    <h6 className="fw-semibold mb-3 text-dark">Quick Access</h6>
                                     <div className="d-flex flex-column gap-2">
-                                        <button
-                                            onClick={() => setShowSubscriptionModal(true)}
-                                            className="btn btn-primary w-100 mb-3 d-flex align-items-center justify-content-center"
-                                            style={{ borderRadius: '12px', fontWeight: '600', fontSize: '0.9rem' }}
-                                        >
-                                            <span className="material-symbols-outlined me-2" style={{ fontSize: '18px' }}>
-                                                notifications
-                                            </span>
-                                            Subscribe to Updates
-                                        </button>
                                         <Link 
                                             href="/advertise" 
-                                            className="text-decoration-none text-muted small fw-medium hover-primary"
+                                            className="text-decoration-none fs-8 text-muted small fw-medium hover-primary"
                                             style={{ transition: 'color 0.2s' }}
                                         >
-                                            📢 Advertise Opportunity
+                                        Advertise Opportunity
                                         </Link>
                                         <Link 
                                             href="/help" 
-                                            className="text-decoration-none text-muted small fw-medium hover-primary"
+                                            className="text-decoration-none fs-8 text-muted small fw-medium hover-primary"
                                             style={{ transition: 'color 0.2s' }}
                                         >
-                                            ❓ Get Help
+                                        Get Help
                                         </Link>
                                         <Link 
                                             href="/terms" 
-                                            className="text-decoration-none text-muted small fw-medium hover-primary"
+                                            className="text-decoration-none fs-8 text-muted small fw-medium hover-primary"
                                             style={{ transition: 'color 0.2s' }}
                                         >
-                                            📋 Terms & Conditions
+                                        Terms & Conditions
                                         </Link>
                                     </div>
                                 </div>
+
+                         <button
+                            onClick={showSubscriptionModal}
+                            className="btn py-3 btn-primary w-100 my-3 d-flex align-items-center justify-content-center"
+                            style={{ borderRadius: '12px', fontWeight: '600', fontSize: '0.9rem' }}
+                            >
+                            {/* <span className="material-symbols-outlined me-2" style={{ fontSize: '18px' }}>
+                                notifications
+                            </span> */}
+                            Subscribe to Updates
+                            </button>
                             </div>
                         </div>
                     </Col>
@@ -456,7 +487,7 @@ const Opportunities = () => {
                                 <div className="d-flex align-items-center justify-content-between mb-3">
                                     <div>
                                         <h2 className="h4 fw-bold text-dark mb-1">
-                                        Opportunity Feed
+                                        Latest Feeds
                                         </h2>
                                         <p className="text-muted small mb-0">
                                            AI powered data aggregation feeds
@@ -469,12 +500,11 @@ const Opportunities = () => {
                                         >
                                             <div className="d-flex align-items-center">
                                                 <div 
-                                                    className="rounded-circle me-2"
+                                                    className="rounded-circle me-2 live-updates-pulse"
                                                     style={{ 
                                                         width: '6px', 
                                                         height: '6px', 
-                                                        backgroundColor: '#22c55e',
-                                                        animation: 'pulse 2s infinite' 
+                                                        backgroundColor: '#22c55e'
                                                     }}
                                                 ></div>
                                                 Live Updates
@@ -496,7 +526,10 @@ const Opportunities = () => {
                                             <p className="text-muted mt-3">Loading intelligence data...</p>
                                         </div>
                                     }>
-                                        <DisplayOpportunities data={data} />
+                                        <DisplayOpportunities 
+                                            data={data} 
+                                            isAuthenticated={!!authUser || !!props.auth.user}
+                                        />
                                     </Suspense>
                                 )}
                                 
@@ -571,269 +604,7 @@ const Opportunities = () => {
                     {/* </Col> */}
             
             <FixedMobileNav isAuthenticated={(props.auth.user)? true : false} toggleSearch={toggleSearch} />
-            
-            {/* Modern Subscription Modal */}
-            {showSubscriptionModal && (
-                <div 
-                    className="modal-backdrop"
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                        zIndex: 1055,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        animation: 'fadeIn 0.3s ease-in-out'
-                    }}
-                    onClick={closeSubscriptionModal}
-                >
-                    <div 
-                        className="modal-content"
-                        style={{
-                            backgroundColor: 'white',
-                            borderRadius: '16px',
-                            padding: '1.5rem',
-                            maxWidth: '380px',
-                            width: '95%',
-                            maxHeight: '85vh',
-                            overflow: 'auto',
-                            boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
-                            transform: 'scale(1)',
-                            animation: 'modalSlideIn 0.3s ease-out',
-                            position: 'relative',
-                            border: '1px solid rgba(255, 255, 255, 0.18)'
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {/* Close Button */}
-                        <button
-                            onClick={closeSubscriptionModal}
-                            style={{
-                                position: 'absolute',
-                                top: '0.75rem',
-                                right: '0.75rem',
-                                background: 'rgba(107, 114, 128, 0.1)',
-                                border: 'none',
-                                fontSize: '1.25rem',
-                                cursor: 'pointer',
-                                color: '#6b7280',
-                                padding: '0.375rem',
-                                borderRadius: '8px',
-                                width: '32px',
-                                height: '32px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                transition: 'all 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.target.style.backgroundColor = 'rgba(107, 114, 128, 0.2)';
-                                e.target.style.color = '#374151';
-                                e.target.style.transform = 'scale(1.1)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.target.style.backgroundColor = 'rgba(107, 114, 128, 0.1)';
-                                e.target.style.color = '#6b7280';
-                                e.target.style.transform = 'scale(1)';
-                            }}
-                        >
-                            ×
-                        </button>
 
-                        {/* Header */}
-                        <div className="text-center mb-3">
-                            <div 
-                                style={{
-                                    width: '50px',
-                                    height: '50px',
-                                    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                                    borderRadius: '12px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    margin: '0 auto 1rem',
-                                    boxShadow: '0 8px 25px rgba(59, 130, 246, 0.25)'
-                                }}
-                            >
-                                <span className="material-symbols-outlined text-white" style={{ fontSize: '24px' }}>
-                                    notifications_active
-                                </span>
-                            </div>
-                            <h3 className="fw-bold mb-1" style={{ color: '#1f2937', fontSize: '1.25rem' }}>
-                                Stay Updated
-                            </h3>
-                            <p className="text-muted mb-0" style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
-                                Get opportunities in your inbox
-                            </p>
-                        </div>
-
-                        {/* Form */}
-                        <form onSubmit={handleSubscriptionSubmit}>
-                            <div className="mb-3">
-                                <input
-                                    type="text"
-                                    name="firstName"
-                                    className="form-control"
-                                    value={subscriptionForm.firstName}
-                                    onChange={handleInputChange}
-                                    required
-                                    style={{
-                                        border: '1px solid #e5e7eb',
-                                        borderRadius: '8px',
-                                        padding: '0.625rem 0.875rem',
-                                        fontSize: '0.875rem',
-                                        transition: 'all 0.2s ease',
-                                        backgroundColor: '#fafbfc'
-                                    }}
-                                    onFocus={(e) => {
-                                        e.target.style.borderColor = '#3b82f6';
-                                        e.target.style.backgroundColor = 'white';
-                                        e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.08)';
-                                    }}
-                                    onBlur={(e) => {
-                                        e.target.style.borderColor = '#e5e7eb';
-                                        e.target.style.backgroundColor = '#fafbfc';
-                                        e.target.style.boxShadow = 'none';
-                                    }}
-                                    placeholder="First name"
-                                />
-                            </div>
-                            <div className="mb-3">
-                                <input
-                                    type="text"
-                                    name="lastName"
-                                    className="form-control"
-                                    value={subscriptionForm.lastName}
-                                    onChange={handleInputChange}
-                                    required
-                                    style={{
-                                        border: '1px solid #e5e7eb',
-                                        borderRadius: '8px',
-                                        padding: '0.625rem 0.875rem',
-                                        fontSize: '0.875rem',
-                                        transition: 'all 0.2s ease',
-                                        backgroundColor: '#fafbfc'
-                                    }}
-                                    onFocus={(e) => {
-                                        e.target.style.borderColor = '#3b82f6';
-                                        e.target.style.backgroundColor = 'white';
-                                        e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.08)';
-                                    }}
-                                    onBlur={(e) => {
-                                        e.target.style.borderColor = '#e5e7eb';
-                                        e.target.style.backgroundColor = '#fafbfc';
-                                        e.target.style.boxShadow = 'none';
-                                    }}
-                                    placeholder="Last name"
-                                />
-                            </div>
-                            <div className="mb-3">
-                                <input
-                                    type="email"
-                                    name="email"
-                                    className="form-control"
-                                    value={subscriptionForm.email}
-                                    onChange={handleInputChange}
-                                    required
-                                    style={{
-                                        border: '1px solid #e5e7eb',
-                                        borderRadius: '8px',
-                                        padding: '0.625rem 0.875rem',
-                                        fontSize: '0.875rem',
-                                        transition: 'all 0.2s ease',
-                                        backgroundColor: '#fafbfc'
-                                    }}
-                                    onFocus={(e) => {
-                                        e.target.style.borderColor = '#3b82f6';
-                                        e.target.style.backgroundColor = 'white';
-                                        e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.08)';
-                                    }}
-                                    onBlur={(e) => {
-                                        e.target.style.borderColor = '#e5e7eb';
-                                        e.target.style.backgroundColor = '#fafbfc';
-                                        e.target.style.boxShadow = 'none';
-                                    }}
-                                    placeholder="your@email.com"
-                                />
-                            </div>
-
-                            {/* Buttons */}
-                            <div className="d-flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={closeSubscriptionModal}
-                                    className="btn"
-                                    style={{
-                                        backgroundColor: 'transparent',
-                                        color: '#6b7280',
-                                        border: '1px solid #e5e7eb',
-                                        borderRadius: '8px',
-                                        padding: '0.625rem 1rem',
-                                        fontWeight: '500',
-                                        fontSize: '0.875rem',
-                                        transition: 'all 0.2s ease',
-                                        flex: '0 0 auto'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.target.style.backgroundColor = '#f9fafb';
-                                        e.target.style.borderColor = '#d1d5db';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.target.style.backgroundColor = 'transparent';
-                                        e.target.style.borderColor = '#e5e7eb';
-                                    }}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className="btn flex-fill"
-                                    style={{
-                                        background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        padding: '0.625rem 1rem',
-                                        fontWeight: '600',
-                                        fontSize: '0.875rem',
-                                        transition: 'all 0.2s ease',
-                                        opacity: isSubmitting ? 0.7 : 1
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        if (!isSubmitting) {
-                                            e.target.style.transform = 'translateY(-1px)';
-                                            e.target.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.4)';
-                                        }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        if (!isSubmitting) {
-                                            e.target.style.transform = 'translateY(0)';
-                                            e.target.style.boxShadow = 'none';
-                                        }
-                                    }}
-                                >
-                                    {isSubmitting ? (
-                                        <div className="d-flex align-items-center justify-content-center">
-                                            <div 
-                                                className="spinner-border spinner-border-sm me-2"
-                                                style={{ width: '14px', height: '14px' }}
-                                            ></div>
-                                            Subscribing...
-                                        </div>
-                                    ) : (
-                                        'Subscribe'
-                                    )}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
         </GuestLayout>
     );
 };

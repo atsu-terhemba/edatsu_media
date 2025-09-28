@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from '@inertiajs/react';
-import { Menu, Search, Moon, Sun, User } from 'lucide-react';
+import { Fragment, useState, useEffect } from "react";
+import { Link, usePage } from '@inertiajs/react';
+import { Menu, Search, User, Sun, Moon, Home, Briefcase, Settings, Wrench, Globe } from 'lucide-react';
+import FlatButton from './FlatButton';
 
 const FixedMobileNav = ({
   isAuthenticated = false,
@@ -206,13 +207,14 @@ const FixedMobileNav = ({
               }}
             >
               <h5 className="mb-0 fw-bold text-dark">Navigation</h5>
-              <button 
-                className="btn btn-sm btn-outline-secondary rounded-pill"
+              <FlatButton 
+                variant="outline-secondary"
+                size="sm"
                 onClick={toggleMenuModal}
-                style={{ width: '32px', height: '32px', padding: 0 }}
+                style={{ width: '32px', height: '32px', padding: 0, borderRadius: '50%' }}
               >
                 ×
-              </button>
+              </FlatButton>
             </div>
 
             {/* Navigation Links */}
