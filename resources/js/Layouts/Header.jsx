@@ -48,7 +48,7 @@ return(
     </form>
     <Nav className="m-0 p-0 d-flex align-items-center fs-9">
         <Nav.Item>
-        <Link href={route('oppty')} className={`nav-link me-3 text-decoration-none ${ActiveLink('/opportunities')}`}> 
+        <Link href={route('opportunities')} className={`nav-link me-3 text-decoration-none ${ActiveLink('/opportunities')}`}> 
         Opportunities
         </Link>
         </Nav.Item>

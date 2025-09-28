@@ -30,7 +30,7 @@ class PreferenceNotificationService
                         'New Opportunity Match!',
                         "A new opportunity '{$opportunity->title}' matches your preferences!",
                         'info',
-                        "/opportunities/{$opportunity->slug}",
+                        "/op/{$opportunity->id}/{$opportunity->slug}",
                         [
                             'type' => 'opportunity_match',
                             'opportunity_id' => $opportunity->id,
@@ -44,7 +44,7 @@ class PreferenceNotificationService
                             $userPreference->user,
                             'New Opportunity Match!',
                             "A new opportunity '{$opportunity->title}' matches your preferences!",
-                            "/opportunities/{$opportunity->slug}"
+                            "/op/{$opportunity->id}/{$opportunity->slug}"
                         );
                     }
                 }

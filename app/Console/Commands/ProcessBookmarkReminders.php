@@ -47,7 +47,7 @@ class ProcessBookmarkReminders extends Command
                 if ($bookmark->post_type === 'opp' && $bookmark->opportunity) {
                     $itemTitle = $bookmark->opportunity->title;
                     $itemType = 'opportunity';
-                    $actionUrl = "/opportunities/{$bookmark->opportunity->slug}";
+                    $actionUrl = "/op/{$bookmark->opportunity->id}/{$bookmark->opportunity->slug}";
                 } elseif ($bookmark->post_type === 'tool' && $bookmark->product) {
                     $itemTitle = $bookmark->product->product_name;
                     $itemType = 'tool';

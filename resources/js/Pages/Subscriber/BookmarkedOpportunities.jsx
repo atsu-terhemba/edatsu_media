@@ -234,7 +234,7 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                                                                 )}
                                                                 <div className='d-flex flex-wrap gap-1'>
                                                                     <Button 
-                                                                        href={`/opportunities/${bookmark.opportunity?.slug}`}
+                                                                        href={`/op/${bookmark.opportunity?.id}/${bookmark.opportunity?.slug}`}
                                                                         variant="outline-primary" 
                                                                         size="sm"
                                                                     >

@@ -192,7 +192,7 @@ const stripAndTruncate = (html, maxLength = 150) => {
                   //   }}
                   target="_blank"
                   className="text-decoration-none text-dark" 
-                  href={pageLink('op', o.id, o.slug)}>
+                  href={pageLink('op', o.slug, o.id)}>
                     <h2 className="inline-block page-title m-0 p-0 poppins-semibold mb-2 fs-9">
                       {o.title}
                     </h2>

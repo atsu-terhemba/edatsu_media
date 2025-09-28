@@ -47,7 +47,7 @@ use Inertia\Inertia;
 Route::get('/', [App::class, 'initHomePage'])->name('home');
 
 // Public pages
-Route::get('/opportunities', [OpportunityController::class, 'initOpportunitiesPage'])->name('oppty');
+Route::get('/opportunities', [OpportunityController::class, 'initOpportunitiesPage'])->name('opportunities');
 Route::get('/toolshed', [ToolShedController::class, 'initToolShedPage'])->name('toolshed');
 Route::get('/money-guide', [ToolShedController::class, 'initMoneyGuidePage'])->name('money_guide');
 Route::get('/subscribe', [SubscriptionController::class, 'index'])->name('subscribe');
@@ -69,7 +69,7 @@ Route::get('/search-products', [ProductController::class, 'searchProducts']);
 Route::get('/api/latest-opportunities', [OpportunityController::class, 'getLatestOpportunities']);
 
 // Dynamic content routes - matching ziggy routes
-Route::get('/op/{id}/{title}', [OpportunityController::class, 'readOpportunity'])->name('read.blog');
+Route::get('/op/{id}/{title}', [OpportunityController::class, 'readOpportunity'])->name('read.opportunity');
 Route::get('/product/{id}/{product_name}', [ProductController::class, 'readProductData'])->name('read.product_blog');
 Route::get('/ev/{id}/{title}', [Event::class, 'show'])->name('read.ev');
 
@@ -129,7 +129,7 @@ Route::middleware('auth')->group(function () {
 
 // Admin routes
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    // Admin Dashboard
+    // Admin Dashboard...
     Route::get('/admin-dashboard', [Dashboard::class, 'adminDashboard'])->name('admin.dashboard');
     Route::get('/all-users', [Dashboard::class, 'allUsers'])->name('admin.users');
     
