@@ -28,6 +28,7 @@ use App\Http\Controllers\ProductPricingController;
 use App\Http\Controllers\RssFeedController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\Directory;
+use App\Http\Controllers\TrendingController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -60,6 +61,7 @@ Route::get('/privacy-policy', [App::class, 'initPrivacyPage'])->name('privacy');
 Route::get('/help', fn()=>Inertia::render('Help'))->name('help');
 Route::get('/sponsorship', [App::class, 'initSponsorshipPage'])->name('sponsorship');
 Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription');
+Route::get('/pricing', fn() => Inertia::render('Subscription'))->name('pricing');
 
 // Search endpoints
 Route::get('/search-opportunities', [App::class, 'searchOpportunities']);
@@ -67,6 +69,7 @@ Route::get('/search-products', [ProductController::class, 'searchProducts']);
 
 // API endpoints
 Route::get('/api/latest-opportunities', [OpportunityController::class, 'getLatestOpportunities']);
+Route::middleware('auth')->get('/api/subscriber/details', [SubscriberController::class, 'getSubscriberDetails'])->name('api.subscriber.details');
 
 // Dynamic content routes - matching ziggy routes
 Route::get('/op/{id}/{title}', [OpportunityController::class, 'readOpportunity'])->name('read.opportunity');
@@ -103,7 +106,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [Dashboard::class, 'accessControl'])->name('dashboard');
     
     // Subscriber/User routes
-    Route::get('/subscriber-dashboard', [SubscriberController::class, 'dashboard'])->name('subscriber.dashboard');
+    Route::get('/subscriber-dashboard', [SubscriberController::class, 'index'])->name('subscriber.dashboard');
     Route::get('/bookmark', [SubscriberController::class, 'bookmarks'])->name('subscriber.bookmarks');
     Route::get('/bookmarked-opportunities', [SubscriberController::class, 'bookmarkedOpportunities'])->name('subscriber.bookmarked_opportunities');
     Route::get('/bookmarked-tools', [SubscriberController::class, 'bookmarkedTools'])->name('subscriber.bookmarked_tools');
@@ -115,6 +118,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/subscriber/update-profile', [SubscriberController::class, 'updateProfile'])->name('subscriber.update-profile');
     
     // Bookmarking
+    Route::post('/bookmark', [App::class, 'bookmark']); // General bookmark endpoint
     Route::post('/bookmark-opps', [App::class, 'bookmark']);
     Route::post('/bookmark-tools', [App::class, 'bookmark']);
     
@@ -130,12 +134,13 @@ Route::middleware('auth')->group(function () {
 // Admin routes
 Route::middleware(['auth', 'role:admin'])->group(function () {
     // Admin Dashboard...
-    Route::get('/admin-dashboard', [Dashboard::class, 'adminDashboard'])->name('admin.dashboard');
+    Route::get('/admin-dashboard', [Dashboard::class, 'accessControl'])->name('admin.dashboard');
     Route::get('/all-users', [Dashboard::class, 'allUsers'])->name('admin.users');
     
     // Product management
     Route::get('/post-product', [ProductController::class, 'show'])->name('admin.products');
-    Route::get('/all-products', [ProductController::class, 'allProducts'])->name('admin.all_products');
+    Route::get('/all-products', [ProductController::class, 'showProducts'])->name('admin.all_products');
+    Route::get('/fetch-all-products', [ProductController::class, 'fetchAllProducts']);
     Route::get('/admin-edit-product/{id}', [ProductController::class, 'edit'])->name('admin.edit_product');
     Route::post('/admin-store-product', [ProductController::class, 'store']);
     Route::post('/admin-update-product/{id}', [ProductController::class, 'update']);
@@ -143,7 +148,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     
     // Opportunity management
     Route::get('/admin-post-opportunity', [OpportunityController::class, 'show'])->name('admin.opp');
-    Route::get('/all-opp-post', [OpportunityController::class, 'allOpportunities'])->name('admin.all_opp_post');
+    Route::get('/all-opp-post', [OpportunityController::class, 'showOpportunities'])->name('admin.all_opp_post');
+    Route::get('/fetch-all-opp', [OpportunityController::class, 'fetchAllOpportunities']);
     Route::get('/admin-edit-opportunity/{id}', [OpportunityController::class, 'edit']);
     Route::post('/admin-store-opportunity', [OpportunityController::class, 'store']);
     Route::post('/admin-update-opportunity/{id}', [OpportunityController::class, 'update']);
@@ -160,13 +166,13 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin-delete-event/{id}', [Event::class, 'destroy'])->name('admin.delete.ev');
     
     // Category management
-    Route::get('/categories', [CategoryController::class, 'category'])->name('admin.categories');
+    Route::get('/categories', [CategoryController::class, 'categories'])->name('admin.categories');
     Route::post('/admin-store-category', [CategoryController::class, 'store']);
     Route::get('/admin-edit-category/{id}', [CategoryController::class, 'editCategory']);
     Route::post('/admin-delete-category', [CategoryController::class, 'deleteCategory']);
     
     // Product Category management
-    Route::get('/product-categories', [ProductCategoryController::class, 'index'])->name('admin.product_categories');
+    Route::get('/product-categories', [ProductCategoryController::class, 'ProductCategory'])->name('admin.product_categories');
     Route::post('/admin-store-product-category', [ProductCategoryController::class, 'store']);
     
     // Product Functionality management
@@ -190,20 +196,20 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin-delete-continent', [ContinentController::class, 'deleteContinent']);
     
     // Region management
-    Route::get('/regions', [RegionController::class, 'region'])->name('admin.regions');
+    Route::get('/regions', [RegionController::class, 'regions'])->name('admin.regions');
     Route::post('/admin-store-region', [RegionController::class, 'store']);
     Route::get('/admin-edit-region/{id}', [RegionController::class, 'editRegion']);
     Route::post('/admin-delete-region', [RegionController::class, 'deleteRegion']);
     
     // Brand Label management
-    Route::get('/brand-labels', [BrandLabelController::class, 'label'])->name('admin.brand-labels');
+    Route::get('/brand-labels', [BrandLabelController::class, 'brandLabels'])->name('admin.brand-labels');
     Route::get('/label', [BrandLabelController::class, 'show'])->name('admin.label');
     Route::post('/admin-store-label', [BrandLabelController::class, 'store']);
-    Route::get('/admin-edit-label/{id}', [BrandLabelController::class, 'editLabel']);
+    Route::post('/admin-edit-label/{id}', [BrandLabelController::class, 'editLabel']);
     Route::post('/admin-delete-label', [BrandLabelController::class, 'deleteLabel']);
     
     // Tag management
-    Route::get('/tags', [TagController::class, 'tag'])->name('admin.tag');
+    Route::get('/tags', [TagController::class, 'tags'])->name('admin.tag');
     Route::post('/admin-store-tag', [TagController::class, 'store']);
     Route::get('/admin-edit-tag/{id}', [TagController::class, 'editTag']);
     Route::post('/admin-delete-tag', [TagController::class, 'deleteTag']);
@@ -217,10 +223,38 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     
     // Directory
     Route::get('/admin-directory', [Directory::class, 'show'])->name('admin.directory');
+    
+    // Additional delete routes for frontend compatibility
+    Route::post('/delete-label', [BrandLabelController::class, 'deleteLabel']);
+    Route::post('/delete-tag', [TagController::class, 'deleteTag']);
+    Route::post('/delete-country', [CountryController::class, 'deleteCountry']);
+    Route::post('/delete-region', [RegionController::class, 'deleteRegion']);
+    Route::post('/delete-continent', [ContinentController::class, 'deleteContinent']);
+    Route::post('/delete-category', [CategoryController::class, 'deleteCategory']);
+    Route::post('/delete-product-category', [ProductCategoryController::class, 'deleteProductCategory']);
+    
+    // Additional POST routes for edit/update operations (frontend compatibility)
+    Route::post('/edit-tag/{id}', [TagController::class, 'store']);
+    Route::post('/edit-country/{id}', [CountryController::class, 'store']);
+    Route::post('/edit-region/{id}', [RegionController::class, 'store']);
+    Route::post('/edit-continent/{id}', [ContinentController::class, 'store']);
+    Route::post('/edit-category/{id}', [CategoryController::class, 'store']);
+    Route::post('/edit-product-category/{id}', [ProductCategoryController::class, 'store']);
+    Route::post('/edit-brand-label/{id}', [BrandLabelController::class, 'store']);
 });
 
 // Post interactions (public)
 Route::post('/upvote', [PostController::class, 'upvote'])->name('post.upvote');
 Route::get('/report/{id}', [PostController::class, 'report'])->name('post.report');
+
+// Trending endpoints (public for display)
+Route::get('/api/trending/opportunities', [TrendingController::class, 'getTrendingOpportunities'])->name('trending.opportunities');
+Route::get('/api/trending/products', [TrendingController::class, 'getTrendingProducts'])->name('trending.products');
+
+// Admin-only trending management
+Route::middleware(['auth'])->group(function () {
+    Route::post('/api/trending/set-status', [TrendingController::class, 'setTrendingStatus'])->name('trending.set-status');
+    Route::post('/api/trending/update', [TrendingController::class, 'updateTrendingStatus'])->name('trending.update');
+});
 
 require __DIR__.'/auth.php';

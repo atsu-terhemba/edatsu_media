@@ -3162,12 +3162,12 @@ SKELETAL LOADER
     padding: 24px;
     position: relative;
     border: 1px solid #e5e7eb;
-    transition: all 0.3s ease;
+    /* transition: all 0.3s ease; */
 }
 
-.telegram-message-bubble:hover {
+/* .telegram-message-bubble:hover {
     border-color: #d1d5db;
-}
+} */
 
 .message-header {
     display: flex;
@@ -3253,13 +3253,8 @@ SKELETAL LOADER
     border: 1px solid #106ebe;
     color: white;
     text-decoration: none;
-}
-
-.telegram-join-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(255, 107, 107, 0.6);
-    color: white;
-    text-decoration: none;
+    box-shadow: 0 8px 30px rgba(16, 110, 190, 0.3);
 }
 
 .btn-icon {
@@ -3855,4 +3850,200 @@ SKELETAL LOADER
     .floating-bookmark-btn[data-bookmarked="true"]:hover {
         background: #ffd700;
     }
+}
+
+/* ============================================ */
+/* TOOLSHED PAGE SPECIFIC STYLES */
+/* ============================================ */
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.toolshed-hover-primary:hover {
+    color: #3b82f6 !important;
+}
+
+.toolshed-mobile-fixed-toggle {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+    z-index: 1050;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+@media (max-width: 768px) {
+    .toolshed-mobile-fixed-toggle {
+        padding-top: 4rem;
+    }
+}
+
+.toolshed-tool-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e2e8f0;
+}
+
+.toolshed-tool-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+}
+
+.toolshed-filter-chip {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.toolshed-filter-chip:hover {
+    transform: scale(1.05);
+}
+
+.toolshed-share-btn:hover {
+    background-color: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    color: white !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.toolshed-bookmark-btn:hover {
+    background-color: #f59e0b !important;
+    border-color: #f59e0b !important;
+    color: white !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.toolshed-bookmark-btn:hover svg {
+    fill: white !important;
+}
+
+.toolshed-share-modal {
+    animation-duration: 0.4s;
+}
+
+.toolshed-tool-title-link:hover h5 {
+    color: #3b82f6 !important;
+    transform: translateY(-1px);
+}
+
+.toolshed-tool-title-link {
+    transition: all 0.3s ease;
+}
+
+.toolshed-hero-section {
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.toolshed-sidebar {
+    background-color: white;
+    border-right: 1px solid #e2e8f0;
+    min-height: 100vh;
+    position: sticky;
+    top: 0;
+}
+
+.toolshed-quick-access-box {
+    background-color: #f1f5f9;
+    border: 1px solid #e2e8f0;
+}
+
+.toolshed-main-content {
+    background-color: #fafbfc;
+}
+
+.toolshed-results-section {
+    min-height: 400px;
+}
+
+.toolshed-mobile-search-toggle {
+    top: 20px;
+    right: 20px;
+    z-index: 1100;
+    width: 50px;
+    height: 50px;
+}
+
+.toolshed-live-badge {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.toolshed-pulse-dot {
+    width: 6px;
+    height: 6px;
+    background-color: #22c55e;
+    animation: pulse 2s infinite;
+}
+
+/* Dark mode support for toolshed */
+.dark-mode .toolshed-mobile-fixed-toggle {
+    background: #1e293b;
+    color: #e2e8f0;
+}
+
+.dark-mode .toolshed-sidebar {
+    background-color: #1e293b;
+    border-right: 1px solid #334155;
+}
+
+.dark-mode .toolshed-quick-access-box {
+    background-color: #334155;
+    border: 1px solid #475569;
+}
+
+.dark-mode .toolshed-main-content {
+    background-color: #0f172a;
+}
+
+.dark-mode .toolshed-live-badge {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+}
+
+.toolshed-subscribe-btn {
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+}
+
+/* ============================================ */
+/* DASHBOARD UTILITIES */
+/* ============================================ */
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+.dashboard-loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.dashboard-card-gradient-1 {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.dashboard-card-gradient-2 {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.dashboard-card-gradient-3 {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.dashboard-card-gradient-4 {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
 }

@@ -16,6 +16,7 @@ import { useContext } from 'react';
 import { AuthContext } from '@/Layouts/GuestLayout';
 import FixedMobileNav from '@/Components/FixedMobileNav';
 import { Wrench, Search, Filter, TrendingUp, Zap, Star } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const DisplayToolshed = React.lazy(() => import('@/Components/Toolshed'));
 
@@ -42,6 +43,128 @@ const Toolshed = () => {
     });
 
     const props = usePage().props;
+
+    // SweetAlert2 subscription modal function
+    const showSubscriptionModal = () => {
+        Swal.fire({
+            title: '',
+            html: `
+                <div style="text-align: center; padding: 20px;">
+                    <h3 style="font-weight: bold; margin-bottom: 0.5rem; color: #1f2937; font-size: 1.25rem;">Subscribe</h3>
+                    <p style="margin-bottom: 20px; color: #6b7280; font-size: 14px; line-height: 1.4;">
+                        Get the latest tools delivered to your inbox
+                    </p>
+                                
+                    <form id="subscription-form" style="display: flex; flex-direction: column; gap: 12px; max-width: 320px; margin: 0 auto;">
+                        <input type="text" id="firstName" name="firstName" placeholder="First name" required
+                               style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.625rem 0.875rem; font-size: 0.875rem; background: #fafbfc; transition: all 0.2s ease;"
+                               onfocus="this.style.borderColor='#3b82f6'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.08)'"
+                               onblur="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='#fafbfc'; this.style.boxShadow='none'">
+                        
+                        <input type="text" id="lastName" name="lastName" placeholder="Last name" required
+                               style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.625rem 0.875rem; font-size: 0.875rem; background: #fafbfc; transition: all 0.2s ease;"
+                               onfocus="this.style.borderColor='#3b82f6'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.08)'"
+                               onblur="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='#fafbfc'; this.style.boxShadow='none'">
+                        
+                        <input type="email" id="email" name="email" placeholder="Enter your email" required
+                               style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.625rem 0.875rem; font-size: 0.875rem; background: #fafbfc; transition: all 0.2s ease;"
+                               onfocus="this.style.borderColor='#3b82f6'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.08)'"
+                               onblur="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='#fafbfc'; this.style.boxShadow='none'">
+                        
+                        <button type="submit" id="subscribe-btn"
+                                style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; border: none; border-radius: 8px; padding: 0.75rem 1.5rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);"
+                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(59, 130, 246, 0.4)'"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(59, 130, 246, 0.3)'">
+                            Subscribe Now
+                        </button>
+                    </form>
+                    
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+                        <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                            🔒 Your email is safe with us. No spam, unsubscribe anytime.
+                        </p>
+                    </div>
+                </div>
+            `,
+            showConfirmButton: false,
+            showCloseButton: true,
+            width: '480px',
+            padding: '0',
+            background: 'white',
+            customClass: {
+                popup: 'subscription-modal-popup',
+                closeButton: 'subscription-modal-close'
+            },
+            didOpen: () => {
+                const form = document.getElementById('subscription-form');
+                const subscribeBtn = document.getElementById('subscribe-btn');
+                
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    // Get form data
+                    const firstName = document.getElementById('firstName').value;
+                    const lastName = document.getElementById('lastName').value;
+                    const email = document.getElementById('email').value;
+                    
+                    // Disable button and 1oading
+                    subscribeBtn.disabled = true;
+                    subscribeBtn.innerHTML = 'Subscribing...';
+                    
+                    try {
+                        const response = await axios.post('/subscribe', {
+                            first_name: firstName,
+                            last_name: lastName,
+                            email: email
+                        });
+                        
+                        if (response.data.success) {
+                            Swal.fire({
+                                title: 'Successfully Subscribed!',
+                                text: 'You\'ll receive the latest tools and updates directly in your inbox.',
+                                icon: 'success',
+                                confirmButtonText: 'Great!',
+                                confirmButtonColor: '#3b82f6',
+                                buttonsStyling: false,
+                                customClass: {
+                                    popup: 'compact-swal-popup',
+                                    title: 'compact-swal-title',
+                                    content: 'compact-swal-content',
+                                    confirmButton: 'compact-swal-button compact-swal-button-success'
+                                }
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Subscription error:', error);
+                        
+                        let errorMessage = 'An error occurred. Please try again.';
+                        if (error.response?.data?.message) {
+                            errorMessage = error.response.data.message;
+                        }
+                        
+                        Swal.fire({
+                            title: 'Subscription Failed',
+                            text: errorMessage,
+                            icon: 'error',
+                            confirmButtonText: 'Try Again',
+                            confirmButtonColor: '#ef4444',
+                            buttonsStyling: false,
+                            customClass: {
+                                popup: 'compact-swal-popup',
+                                title: 'compact-swal-title',
+                                content: 'compact-swal-content',
+                                confirmButton: 'compact-swal-button compact-swal-button-error'
+                            }
+                        });
+                        
+                        // Reset button
+                        subscribeBtn.disabled = false;
+                        subscribeBtn.innerHTML = 'Subscribe';
+                    }
+                });
+            }
+        });
+    };
 
     useEffect(() => {
         console.log('Fetching products from search-products endpoint...');
@@ -124,88 +247,6 @@ const Toolshed = () => {
 
     return (
         <GuestLayout>
-            <style>{`
-                @keyframes pulse {
-                    0%, 100% { opacity: 1; }
-                    50% { opacity: 0.5; }
-                }
-                
-                .hover-primary:hover {
-                    color: #3b82f6 !important;
-                }
-                
-                .mobile-fixed-toggle {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: white;
-                    z-index: 1050;
-                    overflow-y: auto;
-                    padding: 1rem;
-                }
-                
-                @media (max-width: 768px) {
-                    .mobile-fixed-toggle {
-                        padding-top: 4rem;
-                    }
-                }
-                
-                .tool-card {
-                    transition: all 0.3s ease;
-                    border: 1px solid #e2e8f0;
-                }
-                
-                .tool-card:hover {
-                    transform: translateY(-4px);
-                    box-shadow: 0 12px 35px rgba(0,0,0,0.15);
-                }
-                
-                .filter-chip {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    border: none;
-                    transition: all 0.3s ease;
-                }
-                
-                .filter-chip:hover {
-                    transform: scale(1.05);
-                }
-                
-                .share-btn:hover {
-                    background-color: #3b82f6 !important;
-                    border-color: #3b82f6 !important;
-                    color: white !important;
-                    transform: translateY(-1px);
-                    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-                }
-                
-                .bookmark-btn:hover {
-                    background-color: #f59e0b !important;
-                    border-color: #f59e0b !important;
-                    color: white !important;
-                    transform: translateY(-1px);
-                    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-                }
-                
-                .bookmark-btn:hover svg {
-                    fill: white !important;
-                }
-                
-                .share-modal {
-                    animation-duration: 0.4s;
-                }
-                
-                .tool-title-link:hover h5 {
-                    color: #3b82f6 !important;
-                    transform: translateY(-1px);
-                }
-                
-                .tool-title-link {
-                    transition: all 0.3s ease;
-                }
-            `}</style>
             
             <Metadata
                 title="Strategic Arsenal - Business Tools Intelligence | Edatsu Media"
@@ -222,7 +263,7 @@ const Toolshed = () => {
             />
             
             {/* Hero Section */}
-            <section className="py-4" style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+            <section className="py-4 toolshed-hero-section">
                 <Container fluid={true}>
                     <Row className="align-items-center">
                         <Col lg={8} md={7} sm={12}>
@@ -270,15 +311,8 @@ const Toolshed = () => {
                     {/* Sidebar */}
                     <Col lg={3} md={4} sm={12}>
                         <div 
-                            className={`${isMobileSearchVisible ? 'mobile-fixed-toggle' : 'd-none d-md-block'}`} 
+                            className={`${isMobileSearchVisible ? 'toolshed-mobile-fixed-toggle' : 'd-none d-md-block toolshed-sidebar'}`} 
                             id="searchBar"
-                            style={{ 
-                                backgroundColor: 'white',
-                                borderRight: '1px solid #e2e8f0',
-                                minHeight: '100vh',
-                                position: 'sticky',
-                                top: '0'
-                            }}
                         >
                             <div className="p-4">
                                 <div className="d-flex align-items-center mb-4">
@@ -303,44 +337,44 @@ const Toolshed = () => {
                             
                             {/* Quick Links - Desktop Only */}
                             <div className="px-4 pb-4 d-none d-lg-block">
-                                <div 
-                                    className="p-3 rounded-3"
-                                    style={{ backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0' }}
-                                >
+                                <div className="p-3 rounded-3 toolshed-quick-access-box">
                                     <h6 className="fw-semibold mb-3 text-dark">Quick Access</h6>
                                     <div className="d-flex flex-column gap-2">
                                         <Link 
                                             href="/advertise" 
-                                            className="text-decoration-none text-muted small fw-medium hover-primary"
-                                            style={{ transition: 'color 0.2s' }}
+                                            className="text-decoration-none text-muted small fw-medium toolshed-hover-primary"
                                         >
-                                            📢 Advertise Tool
+                                        Advertise Tool
                                         </Link>
                                         <Link 
                                             href="/help" 
-                                            className="text-decoration-none text-muted small fw-medium hover-primary"
-                                            style={{ transition: 'color 0.2s' }}
+                                            className="text-decoration-none text-muted small fw-medium toolshed-hover-primary"
                                         >
-                                            ❓ Get Help
+                                        Get Help
                                         </Link>
                                         <Link 
                                             href="/terms" 
-                                            className="text-decoration-none text-muted small fw-medium hover-primary"
-                                            style={{ transition: 'color 0.2s' }}
+                                            className="text-decoration-none text-muted small fw-medium toolshed-hover-primary"
                                         >
-                                            📋 Terms & Conditions
+                                        Terms & Conditions
                                         </Link>
                                     </div>
                                 </div>
+
+                         <button
+                            onClick={showSubscriptionModal}
+                            className="btn btn-flat-primary py-3 w-100 my-3 d-flex align-items-center justify-content-center"
+                            >
+                            Subscribe
+                            </button>
                             </div>
                         </div>
                         
                         {/* Mobile Search Toggle */}
-                        <div className="d-md-none position-fixed" style={{ top: '20px', right: '20px', zIndex: 1100 }}>
+                        <div className="d-md-none position-fixed toolshed-mobile-search-toggle">
                             <button 
-                                className="btn btn-primary rounded-circle"
+                                className="btn btn-primary rounded-circle w-100 h-100"
                                 onClick={toggleSearch}
-                                style={{ width: '50px', height: '50px' }}
                             >
                                 <Search size={20} />
                             </button>
@@ -349,7 +383,7 @@ const Toolshed = () => {
 
                     {/* Main Content */}
                     <Col lg={9} md={8} sm={12}>
-                        <div className="p-4" style={{ backgroundColor: '#fafbfc' }}>
+                        <div className="p-4 toolshed-main-content">
                             {/* Feedback Panel */}
                             {/* <div className="mb-4">
                                 <FeedbackPanel />
@@ -362,34 +396,17 @@ const Toolshed = () => {
 
                             {/* Results Section */}
                             <div 
-                                className="bg-white rounded-4 shadow-sm border-0 p-4" 
+                                className="bg-white rounded-4 shadow-sm border-0 p-4 toolshed-results-section" 
                                 ref={paginationContainerRef}
-                                style={{ minHeight: '400px' }}
                             >
                                 <div className="d-flex align-items-center justify-content-between mb-4">
                                     <div>
-                                        <h2 className="h4 fw-bold text-dark mb-1">
-                                            Strategic Arsenal
-                                        </h2>
-                                        <p className="text-muted small mb-0">
-                                            Mission-critical tools curated by intelligence algorithms
-                                        </p>
+                                        {/* empty... */}
                                     </div>
                                     <div className="d-none d-md-flex align-items-center">
-                                        <div 
-                                            className="badge rounded-pill px-3 py-2"
-                                            style={{ backgroundColor: '#dcfce7', color: '#166534' }}
-                                        >
+                                        <div className="badge rounded-pill px-3 py-2 toolshed-live-badge">
                                             <div className="d-flex align-items-center">
-                                                <div 
-                                                    className="rounded-circle me-2"
-                                                    style={{ 
-                                                        width: '6px', 
-                                                        height: '6px', 
-                                                        backgroundColor: '#22c55e',
-                                                        animation: 'pulse 2s infinite' 
-                                                    }}
-                                                ></div>
+                                                <div className="rounded-circle me-2 toolshed-pulse-dot"></div>
                                                 Live Intelligence
                                             </div>
                                         </div>

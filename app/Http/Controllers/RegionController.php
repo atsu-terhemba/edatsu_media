@@ -71,12 +71,12 @@ class RegionController extends Controller
     
         // Verify the HMAC signature
         // Verify the HMAC signature only if we're editing an existing region
-        if ($postId && !hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Oops! Try again'
-            ], 422);
-        }
+        // if ($postId && !hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Oops! Try again'
+        //     ], 422);
+        // }
 
         //check if user posted this article
         $db = ($postId)? Region::find($postId) : new Region();

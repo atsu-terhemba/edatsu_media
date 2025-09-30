@@ -17,6 +17,8 @@ class BrandLabelController extends Controller
     //edit category
     public function editLabel(Request $request, $id){
         $edits = BrandLabel::where('id', $id)->first();
+        //update the database 
+        //UPDATE brand_label SET 
         $labels = BrandLabel::all();
         return Inertia::render("Admin/ManageBrandLabels", ['edit' => $edits, 'labels' => $labels]);
     }
@@ -66,17 +68,19 @@ class BrandLabelController extends Controller
         ], 422); // 422 Unprocessable Entity
         }
 
+       // dd($request->all());
+
         $postId = $request->has('post_id') ? $request->post_id : null;
         $signature = $request->has('signature') ? $request->signature : null;
     
         // Verify the HMAC signature
         // Verify the HMAC signature only if we're editing an existing brand label
-        if ($postId && !hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Oops! Try again'
-            ], 422);
-        }
+        // if ($postId && !hash_equals($signature, hash_hmac('sha256', $postId, config('app.key')))) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Oops! Try again'
+        //     ], 422);
+        // }
 
         //check if user posted this article
         $db = ($postId)? BrandLabel::find($postId) : new BrandLabel();

@@ -171,8 +171,8 @@ const DisplayToolshed = ({ data }) => {
         data.map((tool, index) => {
           const hasImage = tool.cover_img && isValidImage(tool.cover_img);
           const imageId = `img-${tool.id || index}`;
-          // Add trending logic - for demo, make first tool trending
-          const isTrending = index === 0 || tool.is_trending;
+          // Check if tool is trending
+          const isTrending = tool.is_trending;
         
         return (
           <div key={tool.id || index} className="col-md-6 col-lg-4">
@@ -180,15 +180,20 @@ const DisplayToolshed = ({ data }) => {
               {/* Trending Badge */}
               {isTrending && (
                 <Badge 
-                  className="position-absolute top-0 start-50 translate-middle-x mt-3"
+                  className="position-absolute top-0 start-50 translate-middle-x mt-3 trending-badge"
                   style={{ 
-                    backgroundColor: '#007bff',
-                    fontSize: '0.75rem',
+                    background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
+                    fontSize: '10px',
                     fontWeight: '600',
                     padding: '0.5rem 1rem',
                     borderRadius: '20px',
-                    zIndex: 2
+                    zIndex: 2,
+                    boxShadow: '0 2px 4px rgba(238, 90, 36, 0.3)',
+                    animation: 'pulse 2s infinite',
+                    border: 'none',
+                    color: 'white'
                   }}
+                  title={`Trending since ${tool.trending_since ? new Date(tool.trending_since).toLocaleDateString() : 'recently'}`}
                 >
                   🔥 Trending
                 </Badge>

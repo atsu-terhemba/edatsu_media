@@ -27,6 +27,17 @@ class Oppty extends Model
         'source_url',
         'direct_link',
         'status',
+        'is_trending',
+        'trending_since',
+        'trending_score',
+    ];
+
+    protected $casts = [
+        'is_trending' => 'boolean',
+        'trending_since' => 'datetime',
+        'deadline' => 'date',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
       /**

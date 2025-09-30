@@ -4,6 +4,7 @@ import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AdminSideNav from './Components/SideNav';
 import { Plus, Edit, Trash2, MapPin } from 'lucide-react';
+import axios from 'axios';
 
 export default function ManageRegions({ regions, edit }) {
     const [showModal, setShowModal] = useState(false);
@@ -69,19 +70,12 @@ export default function ManageRegions({ regions, edit }) {
         try {
             const url = editingRegion ? `/edit-region/${editingRegion.id}` : '/admin-store-region';
             
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                },
-                body: JSON.stringify({
-                    ...formData,
-                    post_id: editingRegion?.id || null
-                })
+            const response = await axios.post(url, {
+                ...formData,
+                post_id: editingRegion?.id || null
             });
 
-            const data = await response.json();
+            const data = response.data;
 
             if (data.success) {
                 showAlert(data.message, 'success');
@@ -94,7 +88,8 @@ export default function ManageRegions({ regions, edit }) {
                 showAlert(data.message || 'An error occurred', 'danger');
             }
         } catch (error) {
-            showAlert('An error occurred while saving', 'danger');
+            const errorMessage = error.response?.data?.message || 'An error occurred while saving';
+            showAlert(errorMessage, 'danger');
         } finally {
             setIsLoading(false);
         }
@@ -117,16 +112,11 @@ export default function ManageRegions({ regions, edit }) {
 
         setIsLoading(true);
         try {
-            const response = await fetch('/delete-region', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                },
-                body: JSON.stringify({ id: regionId })
+            const response = await axios.post('/delete-region', {
+                id: regionId
             });
 
-            const data = await response.json();
+            const data = response.data;
 
             if (data.success) {
                 showAlert(data.message, 'success');
@@ -136,7 +126,8 @@ export default function ManageRegions({ regions, edit }) {
                 showAlert(data.message || 'An error occurred', 'danger');
             }
         } catch (error) {
-            showAlert('An error occurred while deleting', 'danger');
+            const errorMessage = error.response?.data?.message || 'An error occurred while deleting';
+            showAlert(errorMessage, 'danger');
         } finally {
             setIsLoading(false);
         }

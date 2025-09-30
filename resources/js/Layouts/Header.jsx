@@ -53,15 +53,15 @@ return(
         Opportunities
         </Link>
         </Nav.Item>
-        {/* <Nav.Item>
+        <Nav.Item>
         <Link href={route('toolshed')}  className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/toolshed')}`}>
         Toolshed
         </Link>
-        </Nav.Item> */}
+        </Nav.Item>
         <Nav.Item>
-        {/* <Link href={route('subscription')} className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/subscription')}`}>
+        <Link href={route('pricing')} className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/subscription')}`}>
          Pricing
-        </Link> */}
+        </Link>
         </Nav.Item>
         
         {/* Dark Mode Toggle */}
@@ -103,7 +103,7 @@ return(
                         )}
                     </Link>
                 </Nav.Item>
-                <Nav.Item className="me-3">
+                {/* <Nav.Item className="me-3">
                     <Link 
                         href={route('subscriber.messages')} 
                         className="nav-link text-light text-decoration-none position-relative"
@@ -121,7 +121,7 @@ return(
                             </Badge>
                         )}
                     </Link>
-                </Nav.Item>
+                </Nav.Item> */}
             </>
         )}
         

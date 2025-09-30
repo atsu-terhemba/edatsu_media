@@ -8,6 +8,8 @@ use App\Models\Events;
 use App\Models\Oppty;
 use App\Models\User;
 use Inertia\Inertia;
+use App\Models\Bookmark;
+use Carbon\Carbon;
 
 class Dashboard extends Controller
 {
@@ -67,7 +69,43 @@ class Dashboard extends Controller
                     ]
                 );
             }elseif(Auth::user()->role == 'subscriber'){
-                return Inertia::render('Subscriber/Dashboard');
+                /**
+                 * subscriber account details 
+                 */
+
+        $user_id = Auth::user()->id;
+        
+        // Get total bookmarked tools/products
+        $totalBookmarkedTools = Bookmark::where('user_id', $user_id)
+            ->where('post_type', 'tool')
+            ->where('removed', 0)
+            ->count();
+        
+        // Get upcoming opportunities from bookmarks (opportunities with deadline in future)
+        $upcomingOpportunities = Bookmark::join('opportunities', 'bookmarks.post_id', '=', 'opportunities.id')
+            ->where('bookmarks.user_id', $user_id)
+            ->where('bookmarks.post_type', 'opp')
+            ->where('bookmarks.removed', 0)
+            ->where('opportunities.deadline', '>=', Carbon::now()->toDateString())
+            ->count();
+
+        // Get recent bookmarks for additional context
+        $recentBookmarks = Bookmark::with(['product', 'opportunity'])
+            ->where('user_id', $user_id)
+            ->where('removed', 0)
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+        
+        return Inertia::render('Subscriber/Dashboard', [
+            'dashboardStats' => [
+                'totalBookmarkedTools' => $totalBookmarkedTools,
+                'upcomingOpportunities' => $upcomingOpportunities,
+                'recentBookmarks' => $recentBookmarks
+            ]
+        ]);
+
+              
             }
         }else{
             //terminate existing session an redirect user to home page

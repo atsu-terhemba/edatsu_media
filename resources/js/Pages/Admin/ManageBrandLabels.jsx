@@ -4,6 +4,7 @@ import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AdminSideNav from './Components/SideNav';
 import { Plus, Edit, Trash2, Award } from 'lucide-react';
+import axios from 'axios';
 
 export default function ManageBrandLabels({ labels, edit }) {
     const [showModal, setShowModal] = useState(false);
@@ -67,21 +68,14 @@ export default function ManageBrandLabels({ labels, edit }) {
         setIsLoading(true);
 
         try {
-            const url = editingLabel ? `/edit-label/${editingLabel.id}` : '/admin-store-label';
+            const url = editingLabel ? `/edit-brand-label/${editingLabel.id}` : '/admin-store-label';
             
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                },
-                body: JSON.stringify({
-                    ...formData,
-                    post_id: editingLabel?.id || null
-                })
+            const response = await axios.post(url, {
+                ...formData,
+                post_id: editingLabel?.id || null
             });
 
-            const data = await response.json();
+            const data = response.data;
 
             if (data.success) {
                 showAlert(data.message, 'success');
@@ -94,7 +88,8 @@ export default function ManageBrandLabels({ labels, edit }) {
                 showAlert(data.message || 'An error occurred', 'danger');
             }
         } catch (error) {
-            showAlert('An error occurred while saving', 'danger');
+            const errorMessage = error.response?.data?.message || 'An error occurred while saving';
+            showAlert(errorMessage, 'danger');
         } finally {
             setIsLoading(false);
         }
@@ -117,16 +112,11 @@ export default function ManageBrandLabels({ labels, edit }) {
 
         setIsLoading(true);
         try {
-            const response = await fetch('/delete-label', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                },
-                body: JSON.stringify({ id: labelId })
+            const response = await axios.post('/delete-label', {
+                id: labelId
             });
 
-            const data = await response.json();
+            const data = response.data;
 
             if (data.success) {
                 showAlert(data.message, 'success');
@@ -136,7 +126,8 @@ export default function ManageBrandLabels({ labels, edit }) {
                 showAlert(data.message || 'An error occurred', 'danger');
             }
         } catch (error) {
-            showAlert('An error occurred while deleting', 'danger');
+            const errorMessage = error.response?.data?.message || 'An error occurred while deleting';
+            showAlert(errorMessage, 'danger');
         } finally {
             setIsLoading(false);
         }

@@ -8,3 +8,25 @@
 @tailwind components;
 @tailwind utilities; */
 
+/* Trending Badge Animation */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 2px 4px rgba(238, 90, 36, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(238, 90, 36, 0.5);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 2px 4px rgba(238, 90, 36, 0.3);
+  }
+}
+
+.trending-badge {
+  font-family: 'Poppins', sans-serif;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+

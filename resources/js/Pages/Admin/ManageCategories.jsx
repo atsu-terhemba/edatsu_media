@@ -3,7 +3,8 @@ import { Container, Row, Col, Card, Badge, Button, Form, Table, Alert, Modal } f
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AdminSideNav from './Components/SideNav';
-import { Plus, Edit, Trash2, FolderOpen, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, Folder, FolderOpen, Upload } from 'lucide-react';
+import axios from 'axios';
 
 export default function ManageCategories({ categories, edit }) {
     const [showModal, setShowModal] = useState(false);
@@ -98,15 +99,13 @@ export default function ManageCategories({ categories, edit }) {
             const signature = await generateSignature(editingCategory?.id || '');
             formDataToSend.append('signature', signature);
 
-            const response = await fetch(url, {
-                method: 'POST',
+            const response = await axios.post(url, formDataToSend, {
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                },
-                body: formDataToSend
+                    'Content-Type': 'multipart/form-data',
+                }
             });
 
-            const data = await response.json();
+            const data = response.data;
 
             if (data.success) {
                 showAlert(data.message, 'success');
@@ -119,7 +118,8 @@ export default function ManageCategories({ categories, edit }) {
                 showAlert(data.message || 'An error occurred', 'danger');
             }
         } catch (error) {
-            showAlert('An error occurred while saving', 'danger');
+            const errorMessage = error.response?.data?.message || 'An error occurred while saving';
+            showAlert(errorMessage, 'danger');
         } finally {
             setIsLoading(false);
         }
@@ -149,16 +149,11 @@ export default function ManageCategories({ categories, edit }) {
 
         setIsLoading(true);
         try {
-            const response = await fetch('/delete-category', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                },
-                body: JSON.stringify({ id: categoryId })
+            const response = await axios.post('/delete-category', {
+                id: categoryId
             });
 
-            const data = await response.json();
+            const data = response.data;
 
             if (data.success) {
                 showAlert(data.message, 'success');
@@ -168,7 +163,8 @@ export default function ManageCategories({ categories, edit }) {
                 showAlert(data.message || 'An error occurred', 'danger');
             }
         } catch (error) {
-            showAlert('An error occurred while deleting', 'danger');
+            const errorMessage = error.response?.data?.message || 'An error occurred while deleting';
+            showAlert(errorMessage, 'danger');
         } finally {
             setIsLoading(false);
         }

@@ -30,12 +30,17 @@ class Product extends Model
         'ratings',
         'deleted',
         'post_type',
+        'is_trending',
+        'trending_since',
+        'trending_score',
     ];
 
     protected $casts = [
         'deleted_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'is_trending' => 'boolean',
+        'trending_since' => 'datetime',
     ];
 
     // Relationship with User

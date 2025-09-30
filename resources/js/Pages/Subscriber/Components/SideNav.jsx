@@ -35,12 +35,12 @@ export default function SubscriberSideNav(){
                     </div>
                     <div>Notifications</div>
             </ListGroup.Item>
-            <ListGroup.Item as={Link} href={route('subscriber.messages')} className='d-flex justify-content-between align-items-center'>
+            {/* <ListGroup.Item as={Link} href={route('subscriber.messages')} className='d-flex justify-content-between align-items-center'>
                     <div>
                         <i className="bi bi-envelope"></i>
                     </div>
                     <div>Messages</div>
-            </ListGroup.Item>
+            </ListGroup.Item> */}
             <ListGroup.Item as={Link} href={route('subscriber.preferences')} className='d-flex justify-content-between align-items-center'>
                     <div>
                         <i className="bi bi-sliders"></i>

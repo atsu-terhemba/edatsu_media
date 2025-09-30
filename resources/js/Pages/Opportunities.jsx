@@ -426,6 +426,7 @@ const Opportunities = () => {
                                     className="p-3 rounded-3"
                                     style={{ backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0' }}
                                 >
+                                   <h6 className="fw-semibold mb-3 text-dark">Quick Access</h6>
                                     <div className="d-flex flex-column gap-2">
                                         <Link 
                                             href="/advertise" 
@@ -459,7 +460,7 @@ const Opportunities = () => {
                             {/* <span className="material-symbols-outlined me-2" style={{ fontSize: '18px' }}>
                                 notifications
                             </span> */}
-                            Subscribe to Updates
+                            Subscribe
                             </button>
                             </div>
                         </div>
@@ -486,12 +487,7 @@ const Opportunities = () => {
                             >
                                 <div className="d-flex align-items-center justify-content-between mb-3">
                                     <div>
-                                        <h2 className="h4 fw-bold text-dark mb-1">
-                                        Latest Feeds
-                                        </h2>
-                                        <p className="text-muted small mb-0">
-                                           AI powered data aggregation feeds
-                                        </p>
+                                        {/* empty... */}
                                     </div>
                                     <div className="d-none d-md-flex align-items-center">
                                         <div 

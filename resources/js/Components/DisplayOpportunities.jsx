@@ -256,7 +256,7 @@ const stripAndTruncate = (html, maxLength = 150) => {
         
         return (
           <div key={`${o.id}-${index}`} className="feed-panel text-wrap w-100 position-relative border-bottom">
-            <div className="row">
+            <div className="row  d-flex align-items-center ">
               {hasImage && (
                 <div className={imageCol}>
                   <div className="image-container py-3">
@@ -274,21 +274,38 @@ const stripAndTruncate = (html, maxLength = 150) => {
               )}
               <div className={bodyCol}>
                 <div className="py-3">
-                  <a 
-                  // onClick={(e) => {
-                  //     e.preventDefault()
-                  //     router.visit(`${pageLink(o.slug, o.id)}`, {
-                  //       preserveState: true,
-                  //       preserveScroll: true,
-                  //     })
-                  //   }}
-                  target="_blank"
-                  className="text-decoration-none text-dark" 
-                  href={pageLink('op', o.slug, o.id)}>
-                    <h2 className="inline-block page-title m-0 p-0 poppins-semibold mb-2 fs-9">
-                      {o.title}
-                    </h2>
-                  </a>
+                  <div className="d-flex align-items-center gap-2 mb-2">
+                    <a 
+                    // onClick={(e) => {
+                    //     e.preventDefault()
+                    //     router.visit(`${pageLink(o.slug, o.id)}`, {
+                    //       preserveState: true,
+                    //       preserveScroll: true,
+                    //     })
+                    //   }}
+                    target="_blank"
+                    className="text-decoration-none text-dark flex-grow-1" 
+                    href={pageLink('op', o.slug, o.id)}>
+                      <h2 className="inline-block page-title m-0 p-0 poppins-semibold fs-9">
+                        {o.title}
+                      </h2>
+                    </a>
+                    {o.is_trending && (
+                      <span 
+                        className="trending-badge d-flex align-items-center gap-1 px-2 py-1 rounded-pill text-white" 
+                        style={{
+                          background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
+                          fontSize: '10px',
+                          fontWeight: '600',
+                          boxShadow: '0 2px 4px rgba(238, 90, 36, 0.3)',
+                          animation: 'pulse 2s infinite'
+                        }}
+                        title={`Trending since ${new Date(o.trending_since).toLocaleDateString()}`}
+                      >
+                        🔥 Trending
+                      </span>
+                    )}
+                  </div>
                   
                   {o.continent_name && (
                     <div className="mb-2">
@@ -306,7 +323,7 @@ const stripAndTruncate = (html, maxLength = 150) => {
                   </div>
                   
                   <div className="d-flex justify-content-between align-items-center">
-                    <div className="px-3">
+                    <div className="">
                       <p className="m-0 fs-8 poppins-semibold p-0">
                         {getDaysLeft(o.deadline)}
                       </p>

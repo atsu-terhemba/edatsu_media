@@ -24,8 +24,11 @@ use Carbon\Carbon;
 
 class SubscriberController extends Controller
 {
-    //
-    function index(){
+    /**
+     * API endpoint to fetch comprehensive subscriber details
+     */
+    public function getSubscriberDetails(Request $request)
+    {
         $user_id = Auth::user()->id;
         
         // Get total bookmarked tools/products
@@ -42,7 +45,7 @@ class SubscriberController extends Controller
             ->where('opportunities.deadline', '>=', Carbon::now()->toDateString())
             ->count();
 
-        // Get recent bookmarks for additional context
+        // Get recent bookmarks with detailed information
         $recentBookmarks = Bookmark::with(['product', 'opportunity'])
             ->where('user_id', $user_id)
             ->where('removed', 0)
@@ -50,13 +53,68 @@ class SubscriberController extends Controller
             ->limit(5)
             ->get();
         
-        return Inertia::render('Subscriber/Dashboard', [
-            'dashboardStats' => [
-                'totalBookmarkedTools' => $totalBookmarkedTools,
-                'upcomingOpportunities' => $upcomingOpportunities,
-                'recentBookmarks' => $recentBookmarks
+        // Get user notifications count
+        $unreadNotifications = Notification::where('user_id', $user_id)
+            ->where('is_read', false)
+            ->count();
+        
+        // Get recent messages count (placeholder - update when Message model is implemented)
+        $unreadMessages = 0; // Message::where('receiver_id', $user_id)->where('is_read', false)->count();
+            
+        // Get user profile information
+        $userProfile = Profile::where('user_id', $user_id)->first();
+        
+        // Get user preferences
+        $userPreferences = UserPreference::where('user_id', $user_id)->first();
+        
+        // Get bookmarked opportunities expiring soon (within 7 days)
+        $expiringSoonOpportunities = Bookmark::join('opportunities', 'bookmarks.post_id', '=', 'opportunities.id')
+            ->where('bookmarks.user_id', $user_id)
+            ->where('bookmarks.post_type', 'opp')
+            ->where('bookmarks.removed', 0)
+            ->where('opportunities.deadline', '>=', Carbon::now()->toDateString())
+            ->where('opportunities.deadline', '<=', Carbon::now()->addDays(7)->toDateString())
+            ->select('opportunities.*', 'bookmarks.created_at as bookmarked_at')
+            ->get();
+            
+        // Get activity summary for the current month
+        $monthlyBookmarks = Bookmark::where('user_id', $user_id)
+            ->where('removed', 0)
+            ->whereMonth('created_at', Carbon::now()->month)
+            ->whereYear('created_at', Carbon::now()->year)
+            ->count();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'stats' => [
+                    'totalBookmarkedTools' => $totalBookmarkedTools,
+                    'upcomingOpportunities' => $upcomingOpportunities,
+                    'unreadNotifications' => $unreadNotifications,
+                    'unreadMessages' => $unreadMessages,
+                    'monthlyBookmarks' => $monthlyBookmarks
+                ],
+                'recentBookmarks' => $recentBookmarks,
+                'expiringSoonOpportunities' => $expiringSoonOpportunities,
+                'userProfile' => $userProfile,
+                'userPreferences' => $userPreferences,
+                'user' => [
+                    'id' => Auth::user()->id,
+                    'name' => Auth::user()->name,
+                    'email' => Auth::user()->email,
+                    'role' => Auth::user()->role,
+                    'created_at' => Auth::user()->created_at,
+                    'last_seen_at' => Auth::user()->last_seen_at,
+                    'is_online' => Auth::user()->is_online
+                ]
             ]
         ]);
+    }
+    
+    //
+    function index(){
+        // Return the dashboard view - data will be loaded via API
+        return Inertia::render('Subscriber/Dashboard');
     }        
     
     function bookmark(){
