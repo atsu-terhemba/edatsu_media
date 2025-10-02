@@ -9,7 +9,7 @@ export default function SuccessSection() {
             <Container className="px-3 px-md-4">
                 <Row className="mb-4 mb-md-5">
                     <Col xs={12} className="text-center">
-                        <h2 className="section-title fw-bold text-dark mb-3 mb-md-4">
+                        <h2 className="section-title fw-bold text-dark mb-3">
                             Intelligence-Powered Business Ecosystem
                         </h2>
                         <p className="section-subtitle text-muted mb-0 px-3 px-md-0">

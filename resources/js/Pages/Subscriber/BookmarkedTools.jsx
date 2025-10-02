@@ -5,6 +5,7 @@ import { useState } from 'react';
 import SubscriberSideNav from './Components/SideNav';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import BookmarksSkeleton from '@/Components/BookmarksSkeleton';
 
 export default function BookmarkedTools({ tools: initialTools }) {
     const [tools, setTools] = useState(initialTools || { data: [], total: 0 });
@@ -69,28 +70,25 @@ export default function BookmarkedTools({ tools: initialTools }) {
                                 <SubscriberSideNav/>
                             </div>
                         </Col>
-                        <Col sm={9}>
-                            <div className='mb-3 px-3 px-md-4 py-3'>
-                                <div className='d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3'>
+                        <Col sm={6}>
+                            <div className='mb-3 py-3 rounded' style={{border: '1px solid #dee2e6'}}>
+                                <div className='d-flex justify-content-between align-items-center flex-wrap gap-3'>
                                     <div className='flex-grow-1'>
-                                        <h2 className='poppins-semibold m-0 mb-1'>
-                                            <i className='bi bi-tools text-primary me-2'></i>
+                                        <h4 className='m-0 mb-1' style={{fontWeight: 'normal'}}>
                                             Bookmarked Tools
-                                        </h2>
-                                        <p className='text-muted mb-0'>Your saved tools and resources</p>
+                                        </h4>
+                                        <small className='text-muted'>Your saved tools and resources</small>
                                     </div>
-                                    <Badge bg="primary" className='px-3 py-2 fs-6'>
+                                    <Badge bg="light" text="dark" className='px-3 py-2' style={{border: '1px solid #dee2e6'}}>
                                         <i className='bi bi-collection me-1'></i>
                                         {tools.total || 0} Total
                                     </Badge>
                                 </div>
+                            </div>
+                            <div>
                                 
                                 {loading ? (
-                                    <div className='text-center py-5'>
-                                        <div className="spinner-border text-primary" role="status">
-                                            <span className="visually-hidden">Loading...</span>
-                                        </div>
-                                    </div>
+                                    <BookmarksSkeleton count={5} />
                                 ) : tools.data && tools.data.length > 0 ? (
                                     <div>
                                         {tools.data.map((bookmark) => (
@@ -99,20 +97,20 @@ export default function BookmarkedTools({ tools: initialTools }) {
                                                 className='mb-3 opportunity-card'
                                                 style={{
                                                     border: '1px solid #dee2e6',
-                                                    borderLeft: `3px solid #0d6efd`
+                                                    boxShadow: 'none'
                                                 }}
                                             >
                                                 <Card.Body className='p-3'>
                                                     <div className='d-flex align-items-start justify-content-between'>
                                                         <div className='flex-grow-1'>
-                                                            <h5 className='mb-2 fw-bold'>
+                                                            <h6 className='mb-2'>
                                                                 <Link 
                                                                     href={`/tools/${bookmark.product?.slug}`}
                                                                     className='text-decoration-none text-dark'
                                                                 >
                                                                     {bookmark.product?.product_name}
                                                                 </Link>
-                                                            </h5>
+                                                            </h6>
                                                             <div className='d-flex align-items-center gap-2 flex-wrap mb-2'>
                                                                 <Badge bg="light" text="dark" className='border'>
                                                                     <i className='bi bi-tools me-1'></i>
@@ -131,7 +129,7 @@ export default function BookmarkedTools({ tools: initialTools }) {
                                                             </small>
                                                         </div>
                                                         <Dropdown align="end">
-                                                            <Dropdown.Toggle variant="light" size="sm" className='border-0'>
+                                                            <Dropdown.Toggle variant="outline-secondary" size="sm" style={{borderRadius: '6px'}}>
                                                                 <i className='bi bi-three-dots-vertical'></i>
                                                             </Dropdown.Toggle>
                                                             <Dropdown.Menu>
@@ -203,19 +201,21 @@ export default function BookmarkedTools({ tools: initialTools }) {
                                         )}
                                     </div>
                                 ) : (
-                                    <div className='text-center py-5 bg-light rounded'>
+                                    <div className='text-center py-5 rounded' style={{border: '1px solid #dee2e6'}}>
                                         <div className='mb-4'>
                                             <i className='bi bi-tools text-muted' style={{fontSize: '4rem'}}></i>
                                         </div>
-                                        <h4 className='poppins-semibold text-muted mb-2'>No Bookmarked Tools Yet</h4>
+                                        <h5 className='text-muted mb-2'>No Bookmarked Tools Yet</h5>
                                         <p className='text-muted mb-4'>Start exploring and bookmarking tools to keep track of them here.</p>
-                                        <Link href="/toolshed" className="btn btn-primary btn-lg">
+                                        <Link href="/toolshed" className="btn btn-outline-secondary" style={{borderRadius: '6px'}}>
                                             <i className='bi bi-search me-2'></i>
                                             Explore Tools
                                         </Link>
                                     </div>
                                 )}
                             </div>
+                        </Col>
+                        <Col sm={3}>
                         </Col>
                     </Row>
                 </Container>

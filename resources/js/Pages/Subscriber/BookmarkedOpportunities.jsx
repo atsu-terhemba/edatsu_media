@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import SubscriberSideNav from './Components/SideNav';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import BookmarksSkeleton from '@/Components/BookmarksSkeleton';
 
 export default function BookmarkedOpportunities({ opportunities: initialOpportunities }) {
     const [opportunities, setOpportunities] = useState(initialOpportunities || { data: [], total: 0 });
@@ -196,28 +197,25 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                                 <SubscriberSideNav/>
                             </div>
                         </Col>
-                        <Col sm={9}>
-                            <div className='mb-3 px-3 px-md-4 py-3'>
-                                <div className='d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3'>
+                        <Col sm={6}>
+                            <div className='mb-3 py-3 rounded' style={{border: '1px solid #dee2e6'}}>
+                                <div className='d-flex justify-content-between align-items-center flex-wrap gap-3'>
                                     <div className='flex-grow-1'>
-                                        <h2 className='poppins-semibold m-0 mb-1'>
-                                            <i className='bi bi-bookmarks-fill text-primary me-2'></i>
+                                        <h4 className='m-0 mb-1' style={{fontWeight: 'normal'}}>
                                             Bookmarked Opportunities
-                                        </h2>
-                                        <p className='text-muted mb-0'>Track and manage your saved opportunities</p>
+                                        </h4>
+                                        <small className='text-muted'>Track and manage your saved opportunities</small>
                                     </div>
-                                    <Badge bg="primary" className='px-3 py-2 fs-6'>
+                                    <Badge bg="light" text="dark" className='px-3 py-2' style={{border: '1px solid #dee2e6'}}>
                                         <i className='bi bi-collection me-1'></i>
                                         {opportunities.total || 0} Total
                                     </Badge>
                                 </div>
+                            </div>
+                            <div>
                                 
                                 {loading ? (
-                                    <div className='text-center py-5'>
-                                        <div className="spinner-border text-primary" role="status">
-                                            <span className="visually-hidden">Loading...</span>
-                                        </div>
-                                    </div>
+                                    <BookmarksSkeleton count={5} />
                                 ) : opportunities.data && opportunities.data.length > 0 ? (
                                     <div>
                                         {opportunities.data.map((bookmark) => (
@@ -226,24 +224,20 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                                                 className='mb-3 opportunity-card'
                                                 style={{
                                                     border: '1px solid #dee2e6',
-                                                    borderLeft: `3px solid ${
-                                                        getDeadlineStatus(bookmark.opportunity?.deadline).status === 'expired' ? '#dc3545' :
-                                                        getDeadlineStatus(bookmark.opportunity?.deadline).status === 'expiring' ? '#ffc107' :
-                                                        '#28a745'
-                                                    }`
+                                                    boxShadow: 'none'
                                                 }}
                                             >
                                                 <Card.Body className='p-3'>
                                                     <div className='d-flex align-items-start justify-content-between'>
                                                         <div className='flex-grow-1'>
-                                                            <h5 className='mb-2 fw-bold'>
+                                                            <h6 className='mb-2'>
                                                                 <Link 
                                                                     href={`/op/${bookmark.opportunity?.id}/${bookmark.opportunity?.slug}`}
                                                                     className='text-decoration-none text-dark'
                                                                 >
                                                                     {bookmark.opportunity?.title}
                                                                 </Link>
-                                                            </h5>
+                                                            </h6>
                                                             <div className='d-flex align-items-center gap-2 flex-wrap mb-2'>
                                                                 <Badge bg="light" text="dark" className='border'>
                                                                     <i className='bi bi-calendar3 me-1'></i>
@@ -273,7 +267,7 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                                                             </small>
                                                         </div>
                                                         <Dropdown align="end">
-                                                            <Dropdown.Toggle variant="light" size="sm" className='border-0'>
+                                                            <Dropdown.Toggle variant="outline-secondary" size="sm" style={{borderRadius: '6px'}}>
                                                                 <i className='bi bi-three-dots-vertical'></i>
                                                             </Dropdown.Toggle>
                                                             <Dropdown.Menu>
@@ -351,19 +345,21 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                                         )}
                                     </div>
                                 ) : (
-                                    <div className='text-center py-5 bg-light rounded'>
+                                    <div className='text-center py-5 rounded' style={{border: '1px solid #dee2e6'}}>
                                         <div className='mb-4'>
                                             <i className='bi bi-bookmark-x text-muted' style={{fontSize: '4rem'}}></i>
                                         </div>
-                                        <h4 className='poppins-semibold text-muted mb-2'>No Bookmarked Opportunities Yet</h4>
+                                        <h5 className='text-muted mb-2'>No Bookmarked Opportunities Yet</h5>
                                         <p className='text-muted mb-4'>Start exploring and bookmarking opportunities to keep track of them here.</p>
-                                        <Link href="/opportunities" className="btn btn-primary btn-lg">
+                                        <Link href="/opportunities" className="btn btn-outline-secondary" style={{borderRadius: '6px'}}>
                                             <i className='bi bi-search me-2'></i>
                                             Explore Opportunities
                                         </Link>
                                     </div>
                                 )}
                             </div>
+                        </Col>
+                        <Col sm={3}>
                         </Col>
                     </Row>
                 </Container>

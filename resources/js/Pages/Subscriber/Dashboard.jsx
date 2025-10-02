@@ -6,6 +6,7 @@ import SubscriberSideNav from './Components/SideNav';
 import { Link } from '@inertiajs/react';
 import axios from 'axios';
 import Footer from '@/Components/Footer';
+import DashboardSkeleton from '@/Components/DashboardSkeleton';
 
 export default function Dashboard() {
     const [subscriberData, setSubscriberData] = useState(null);
@@ -56,15 +57,9 @@ export default function Dashboard() {
                                 </div>
                             </Col>
                             <Col sm={6}>
-                                <div className='border px-3 py-4 rounded my-3 text-center'>
-                                    <h2 className='poppins-semibold m-0 py-0'>Dashboard</h2>
-                                </div>
-                                <div className='text-center py-5'>
-                                    <Spinner animation="border" role="status" className='me-2'>
-                                        <span className="visually-hidden">Loading...</span>
-                                    </Spinner>
-                                    <span className='ms-2'>Loading your dashboard...</span>
-                                </div>
+                                <DashboardSkeleton />
+                            </Col>
+                            <Col sm={3}>
                             </Col>
                         </Row>
                     </Container>
@@ -86,8 +81,8 @@ export default function Dashboard() {
                                 </div>
                             </Col>
                             <Col sm={6}>
-                                <div className='border px-3 py-4 rounded my-3 text-center'>
-                                    <h2 className='poppins-semibold m-0 py-0'>Dashboard</h2>
+                                <div className='py-3 rounded my-3' style={{border: '1px solid #dee2e6'}}>
+                                    <h4 className='m-0' style={{fontWeight: 'normal'}}>Dashboard</h4>
                                 </div>
                                 <Alert variant="danger" className="text-center">
                                     <Alert.Heading>Oops! Something went wrong</Alert.Heading>
@@ -96,6 +91,8 @@ export default function Dashboard() {
                                         Try Again
                                     </Button>
                                 </Alert>
+                            </Col>
+                            <Col sm={3}>
                             </Col>
                         </Row>
                     </Container>
@@ -109,7 +106,7 @@ export default function Dashboard() {
             <Head title="Dashboard" />
 
             <Container fluid={true}>
-                {/* <Container> */}
+                <Container>
                     <Row>
                         <Col sm={3}>
                             <div className='my-3 fs-9'>
@@ -117,14 +114,17 @@ export default function Dashboard() {
                             </div>
                         </Col>
                         <Col sm={6}>
-                            <div className='border px-3 py-4 rounded my-3'>
+                            <div className='py-3 rounded my-3' style={{border: '1px solid #dee2e6'}}>
                                 <div className='d-flex justify-content-between align-items-center'>
-                                    <h2 className='poppins-semibold m-0 py-0'>Dashboard</h2>
+                                    <h4 className='m-0 p-0'>
+                                        Hi, {subscriberData?.user?.name}!
+                                    </h4>
                                     <Button 
-                                        variant="outline-primary" 
+                                        variant="outline-secondary" 
                                         size="sm"
                                         onClick={fetchSubscriberDetails}
                                         disabled={loading}
+                                        style={{borderRadius: '6px'}}
                                     >
                                         <i className={`bi bi-arrow-clockwise${loading ? ' spin' : ''} me-1`}></i>
                                         Refresh
@@ -132,79 +132,26 @@ export default function Dashboard() {
                                 </div>
                             </div>
 
-                            {/* Welcome Message */}
-                            <div className='bg-light p-4 rounded mb-4'>
-                                <h4 className='poppins-semibold m-0 p-0 text-primary'>
-                                    Welcome back, {subscriberData?.user?.name}!
-                                </h4>
-                                <p className='fs-8 mb-0 mt-2'>
-                                    Track your bookmarked tools and stay updated with upcoming opportunities. Your personalized dashboard helps you stay organized and never miss important deadlines.
-                                </p>
-                            </div>
-                            
-                            {/* Dashboard Statistics */}
-                            <Row className='mb-4'>
-                                <Col md={6} className='mb-3'>
-                                    <Card className='text-center h-100 border border-light bg-light'>
-                                        <Card.Body className='text-dark'>
-                                            <div className='mb-2'>
-                                                <i className='bi bi-bookmarks-fill text-dark' style={{fontSize: '2.5rem'}}></i>
-                                            </div>
-                                            <Card.Title className='poppins-semibold h2 mb-1 text-dark'>
-                                                {subscriberData?.stats?.totalBookmarks || 0}
-                                            </Card.Title>
-                                            <Card.Text className='fs-7 text-muted'>
-                                                Total Bookmarks
-                                            </Card.Text>
-                                            <div className='mt-3'>
-                                                <Link href={route('subscriber.bookmarked_tools')} className='btn btn-flat btn-flat-primary btn-sm w-100 d-flex align-items-center justify-content-between'>
-                                                    <span>View Bookmarks</span>
-                                                    <i className='bi bi-arrow-right'></i>
-                                                </Link>
-                                            </div>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col md={6} className='mb-3'>
-                                    <Card className='text-center h-100 border border-light bg-light'>
-                                        <Card.Body className='text-dark'>
-                                            <div className='mb-2'>
-                                                <i className='bi bi-calendar-event text-dark' style={{fontSize: '2.5rem'}}></i>
-                                            </div>
-                                            <Card.Title className='poppins-semibold h2 mb-1 text-dark'>
-                                                {subscriberData?.stats?.upcomingOpportunities || 0}
-                                            </Card.Title>
-                                            <Card.Text className='fs-7 text-muted'>
-                                                Upcoming Opportunities
-                                            </Card.Text>
-                                            <div className='mt-3'>
-                                                <Link href={route('subscriber.bookmarked_opportunities')} className='btn btn-flat btn-flat-primary btn-sm w-100 d-flex align-items-center justify-content-between'>
-                                                    <span>View Opportunities</span>
-                                                    <i className='bi bi-arrow-right'></i>
-                                                </Link>
-                                            </div>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                            </Row>
-
                             {/* Expiring Soon Opportunities */}
                             {subscriberData?.expiringSoonOpportunities?.length > 0 && (
-                                <div className='mb-4'>
-                                    <h5 className='poppins-semibold mb-3 text-danger'>
-                                        <i className='bi bi-exclamation-triangle-fill me-2'></i>
-                                        Opportunities Expiring Soon
-                                    </h5>
-                                    <div className='bg-light p-3 rounded'>
-                                        {subscriberData.expiringSoonOpportunities.slice(0, 3).map((opportunity) => (
-                                            <div key={opportunity.id} className='d-flex justify-content-between align-items-center py-2 border-bottom'>
+                                <div className='mb-3'>
+                                    <div className='p-3 rounded' style={{border: '1px solid #dee2e6'}}>
+                                        <h6 className='mb-3' style={{color: '#dc3545', fontWeight: 'normal'}}>
+                                            Opportunities Expiring Soon
+                                        </h6>
+                                        {subscriberData.expiringSoonOpportunities.slice(0, 3).map((opportunity, index) => (
+                                            <div 
+                                                key={opportunity.id} 
+                                                className='d-flex justify-content-between align-items-center py-2'
+                                                style={{borderBottom: index < subscriberData.expiringSoonOpportunities.slice(0, 3).length - 1 ? '1px solid #dee2e6' : 'none'}}
+                                            >
                                                 <div>
-                                                    <strong className='text-truncate'>{opportunity.title}</strong>
+                                                    <div className='text-truncate'>{opportunity.title}</div>
                                                     <small className='d-block text-muted'>
                                                         Deadline: {new Date(opportunity.deadline).toLocaleDateString()}
                                                     </small>
                                                 </div>
-                                                <Button size='sm' variant='outline-primary'>
+                                                <Button size='sm' variant='outline-secondary' style={{borderRadius: '6px'}}>
                                                     <i className='bi bi-arrow-right'></i>
                                                 </Button>
                                             </div>
@@ -215,16 +162,19 @@ export default function Dashboard() {
 
                             {/* Upcoming Reminders */}
                             {subscriberData?.upcomingReminders?.length > 0 && (
-                                <div className='mb-4'>
-                                    <h5 className='poppins-semibold mb-3 text-info'>
-                                        <i className='bi bi-bell-fill me-2'></i>
-                                        Upcoming Reminders
-                                    </h5>
-                                    <div className='bg-light p-3 rounded'>
-                                        {subscriberData.upcomingReminders.map((bookmark) => (
-                                            <div key={bookmark.id} className='d-flex justify-content-between align-items-center py-2 border-bottom last-child-no-border'>
+                                <div className='mb-3'>
+                                    <div className='p-3 rounded' style={{border: '1px solid #dee2e6'}}>
+                                        <h6 className='mb-3' style={{color: '#0d6efd', fontWeight: 'normal'}}>
+                                            Upcoming Reminders
+                                        </h6>
+                                        {subscriberData.upcomingReminders.map((bookmark, index) => (
+                                            <div 
+                                                key={bookmark.id} 
+                                                className='d-flex justify-content-between align-items-center py-2'
+                                                style={{borderBottom: index < subscriberData.upcomingReminders.length - 1 ? '1px solid #dee2e6' : 'none'}}
+                                            >
                                                 <div className='flex-grow-1'>
-                                                    <strong className='d-block'>{bookmark.opportunity?.title}</strong>
+                                                    <div className='d-block'>{bookmark.opportunity?.title}</div>
                                                     <small className='text-muted d-block'>
                                                         <i className='bi bi-calendar-check me-1'></i>
                                                         Reminder: {new Date(bookmark.reminder_date).toLocaleDateString()} at {new Date(bookmark.reminder_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
@@ -236,7 +186,8 @@ export default function Dashboard() {
                                                 </div>
                                                 <Link 
                                                     href={`/op/${bookmark.opportunity?.id}/${bookmark.opportunity?.slug}`}
-                                                    className='btn btn-sm btn-outline-primary ms-2'
+                                                    className='btn btn-sm btn-outline-secondary ms-2'
+                                                    style={{borderRadius: '6px'}}
                                                 >
                                                     <i className='bi bi-arrow-right'></i>
                                                 </Link>
@@ -247,20 +198,35 @@ export default function Dashboard() {
                             )}
 
                             {/* Activity Summary & Stats */}
-                            <div className='bg-light p-4 rounded'>
-                                <h5 className='poppins-semibold mb-3'>Your Activity</h5>
-                                <div className='d-flex gap-2 flex-wrap mb-3'>
+                            <div className='p-3 rounded' style={{border: '1px solid #dee2e6'}}>
+                                <h6 className='mb-3' style={{fontWeight: 'normal'}}>Your Activity</h6>
+                                
+                                {/* Upcoming Opportunities */}
+                                <div className='mb-3 pb-3' style={{borderBottom: '1px solid #dee2e6'}}>
+                                    <div className='d-flex justify-content-between align-items-center mb-2'>
+                                        <div>
+                                            <i className='bi bi-calendar-event text-primary me-2' style={{fontSize: '1.5rem'}}></i>
+                                            <span className='h4 mb-0'>{subscriberData?.stats?.upcomingOpportunities || 0}</span>
+                                        </div>
+                                        <Link href={route('subscriber.bookmarked_opportunities')} className='btn btn-outline-secondary btn-sm' style={{borderRadius: '6px'}}>
+                                            View All
+                                            <i className='bi bi-arrow-right ms-1'></i>
+                                        </Link>
+                                    </div>
+                                    <small className='text-muted'>Upcoming Opportunities</small>
                                     {subscriberData?.stats?.upcomingOpportunities > 0 && (
-                                        <span className='badge bg-warning text-dark px-3 py-2 fs-8'>
-                                            <i className='bi bi-exclamation-triangle me-1'></i>
-                                            {subscriberData.stats.upcomingOpportunities} opportunities expiring soon!
-                                        </span>
+                                        <div className='mt-2'>
+                                            <span className='badge bg-warning text-dark px-2 py-1' style={{fontSize: '0.75rem'}}>
+                                                <i className='bi bi-exclamation-triangle me-1'></i>
+                                                {subscriberData.stats.upcomingOpportunities} opportunities expiring soon!
+                                            </span>
+                                        </div>
                                     )}
                                 </div>
                                 
                                 {/* Activity Summary */}
-                                <div className='pt-3 border-top'>
-                                    <small className='text-muted d-block'>
+                                <div>
+                                    <small className='text-muted d-block mb-2'>
                                         <i className='bi bi-activity me-1'></i>
                                         This month: {subscriberData?.stats?.monthlyBookmarks || 0} new bookmarks
                                     </small>
@@ -276,7 +242,7 @@ export default function Dashboard() {
                         </Col>
                     </Row>
                 </Container>
-            {/* </Container> */}
+            </Container>
             <Footer />
         </AuthenticatedLayout>
     );
