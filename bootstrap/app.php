@@ -21,6 +21,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\Role::class,
         ]);
+        
+        // Register role middleware as an alias for use in routes
+        $middleware->alias([
+            'role' => \App\Http\Middleware\Role::class,
+        ]);
         //...
     })
     ->withExceptions(function (Exceptions $exceptions) {
