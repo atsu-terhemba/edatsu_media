@@ -247,6 +247,43 @@ const stripAndTruncate = (html, maxLength = 150) => {
 
   return (
     <div className="" id="results-container">
+      <style>{`
+        .share-btn:hover,
+        .share-btn:focus,
+        .share-btn:active {
+          background-color: transparent !important;
+          border-color: transparent !important;
+          color: #374151 !important;
+          transform: none !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+        
+        .share-btn:hover .material-symbols-outlined {
+          font-weight: 600 !important;
+          color: #374151 !important;
+        }
+        
+        .bookmark-btn:hover,
+        .bookmark-btn:focus,
+        .bookmark-btn:active {
+          background-color: transparent !important;
+          border-color: transparent !important;
+          transform: none !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+        
+        .bookmark-btn:hover .material-symbols-outlined {
+          font-weight: 600 !important;
+          font-variation-settings: "FILL" 1, "wght" 600, "GRAD" 0, "opsz" 24 !important;
+        }
+        
+        .bookmark-btn:hover svg,
+        .bookmark-btn:hover .material-symbols-outlined {
+          fill: inherit !important;
+        }
+      `}</style>
       {data?.map((o, index) => {
         const hasImage = o.cover_img && isValidImage(o.cover_img);
         const imageCol = hasImage ? 'col-sm-2 col-4' : '';
@@ -329,7 +366,7 @@ const stripAndTruncate = (html, maxLength = 150) => {
                       </p>
                     </div>
 
-                    <div className="d-flex align-items-center gap-2">
+                    <div className="d-flex align-items-center gap-3">
                       {/* Share Button */}
                       <div className="position-relative">
                         <div className="position-absolute share-panel d-none" style={{
@@ -340,50 +377,86 @@ const stripAndTruncate = (html, maxLength = 150) => {
                           minWidth: '280px'
                         }}></div>
                         <button 
-                          className="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center share-btn"
+                          className="btn p-0 share-btn"
                           data-title={o.title} 
                           data-id={o.id} 
                           onClick={(e) => toggleShare(e.currentTarget)}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = '#6b7280';
+                            e.currentTarget.style.borderColor = 'transparent';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = '#6b7280';
+                            e.currentTarget.style.borderColor = 'transparent';
+                          }}
+                          onFocus={(e) => {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = '#6b7280';
+                            e.currentTarget.style.borderColor = 'transparent';
+                            e.currentTarget.style.boxShadow = 'none';
+                          }}
+                          onBlur={(e) => {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = '#6b7280';
+                            e.currentTarget.style.borderColor = 'transparent';
+                          }}
                           style={{ 
-                            width: '36px',
-                            height: '36px',
-                            borderRadius: '8px',
-                            border: '1px solid #e2e8f0',
-                            transition: 'all 0.3s ease'
+                            border: 'none',
+                            background: 'transparent',
+                            color: '#6b7280',
+                            boxShadow: 'none'
                           }}
                         >
-                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '22px', fontWeight: '400', color: 'inherit' }}>
                             share
                           </span>
                         </button>
                       </div>
                       
-                      {/* Bookmark Button */}
+                      {/* Bookmark Button - Filled */}
                       <button 
-                        className="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center bookmark-btn"
+                        className="btn p-0 bookmark-btn"
                         data-id={o.id}
                         data-title={o.title}
                         data-type="opp"
                         data-url={pageLink('op', o.id, o.slug)}
                         onClick={handleBookmark}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'transparent';
+                          e.currentTarget.style.borderColor = 'transparent';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'transparent';
+                          e.currentTarget.style.borderColor = 'transparent';
+                        }}
+                        onFocus={(e) => {
+                          e.currentTarget.style.background = 'transparent';
+                          e.currentTarget.style.borderColor = 'transparent';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
+                        onBlur={(e) => {
+                          e.currentTarget.style.background = 'transparent';
+                          e.currentTarget.style.borderColor = 'transparent';
+                        }}
                         style={{ 
-                          width: '36px',
-                          height: '36px',
-                          borderRadius: '8px',
-                          border: '1px solid #e2e8f0',
-                          transition: 'all 0.3s ease'
+                          border: 'none',
+                          background: 'transparent',
+                          boxShadow: 'none'
                         }}
                       >
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          height="16px" 
-                          viewBox="0 -960 960 960" 
-                          width="16px" 
-                          fill={`${(o.is_bookmarked === 1)? '#FFD700' : '#6B7280'}`}
-                          style={{ transition: 'fill 0.3s ease' }}
+                        <span 
+                          className="material-symbols-outlined" 
+                          style={{ 
+                            fontSize: '22px',
+                            fontWeight: '400',
+                            fontVariationSettings: '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24',
+                            color: (o.is_bookmarked === 1) ? '#FFD700' : '#6b7280'
+                          }}
                         >
-                          <path d="M200-120v-640q0-33 23.5-56.5T280-840h400q33 0 56.5 23.5T760-760v640L480-240 200-120Z"/>
-                        </svg>
+                          bookmark
+                        </span>
                       </button>
                     </div>
                   </div>

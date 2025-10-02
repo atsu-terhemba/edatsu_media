@@ -23,14 +23,18 @@ export default function Header({auth, isDarkMode, toggleDarkMode}){
         try {
             // Fetch unread notifications count
             const notificationsResponse = await axios.get('/notifications?filter=unread');
-            setNotificationCount(notificationsResponse.data.length);
+            const notifCount = Array.isArray(notificationsResponse.data) ? notificationsResponse.data.length : 0;
+            console.log('Notification count from API:', notifCount, notificationsResponse.data);
+            setNotificationCount(notifCount);
 
             // Fetch unread messages count
             const messagesResponse = await axios.get('/messages?type=inbox');
-            const unreadMessages = messagesResponse.data.filter(msg => !msg.is_read);
+            const unreadMessages = Array.isArray(messagesResponse.data) ? messagesResponse.data.filter(msg => !msg.is_read) : [];
             setMessageCount(unreadMessages.length);
         } catch (error) {
             console.error('Error fetching counts:', error);
+            setNotificationCount(0);
+            setMessageCount(0);
         }
     };
 
@@ -58,11 +62,11 @@ return(
         Toolshed
         </Link>
         </Nav.Item>
-        <Nav.Item>
+        {/* <Nav.Item>
         <Link href={route('pricing')} className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/subscription')}`}>
          Pricing
         </Link>
-        </Nav.Item>
+        </Nav.Item> */}
         
         {/* Dark Mode Toggle */}
         {/* <Nav.Item>
@@ -87,16 +91,28 @@ return(
                 <Nav.Item className="me-3">
                     <Link 
                         href={route('subscriber.notifications')} 
-                        className="nav-link text-light text-decoration-none position-relative"
+                        className="nav-link text-light text-decoration-none position-relative d-inline-flex align-items-center"
                         title="Notifications"
+                        style={{ padding: '0.5rem' }}
                     >
-                        <i className="bi bi-bell" style={{fontSize: '1.2rem'}}></i>
+                        <i className="bi bi-bell" style={{fontSize: '1.3rem'}}></i>
                         {notificationCount > 0 && (
                             <Badge 
                                 bg="danger" 
                                 pill 
-                                className="position-absolute top-0 start-100 translate-middle"
-                                style={{fontSize: '0.7rem'}}
+                                className="position-absolute"
+                                style={{
+                                    fontSize: '0.65rem',
+                                    top: '0.2rem',
+                                    right: '0.1rem',
+                                    minWidth: '1.2rem',
+                                    height: '1.2rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '0.25rem',
+                                    fontWeight: 'bold'
+                                }}
                             >
                                 {notificationCount > 9 ? '9+' : notificationCount}
                             </Badge>

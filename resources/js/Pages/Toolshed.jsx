@@ -17,6 +17,7 @@ import { AuthContext } from '@/Layouts/GuestLayout';
 import FixedMobileNav from '@/Components/FixedMobileNav';
 import { Wrench, Search, Filter, TrendingUp, Zap, Star } from 'lucide-react';
 import Swal from 'sweetalert2';
+import ToolshedSkeleton from '@/Components/ToolshedSkeleton';
 
 const DisplayToolshed = React.lazy(() => import('@/Components/Toolshed'));
 
@@ -26,8 +27,9 @@ const Toolshed = () => {
     const [pagination, setPagination] = useState([]);
     const [rootURL, setRootURL] = useState("search-products");
     const [search_keyword, setSearchKeyword] = useState('');
-    const [isloading, setIsLoading] = useState('');
+    const [isloading, setIsLoading] = useState('initial'); // Set to 'initial' to show skeleton on mount
     const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
+    const [showLabels, setShowLabels] = useState(false);
 
     const authUser = useContext(AuthContext);
 
@@ -182,6 +184,9 @@ const Toolshed = () => {
             console.error("Error details:", error.response);
             setData([]);
             setPagination([]);
+        })
+        .finally(() => {
+            setIsLoading(''); // Clear loading state after fetch completes
         });
     }, []);
 
@@ -403,30 +408,43 @@ const Toolshed = () => {
                                     <div>
                                         {/* empty... */}
                                     </div>
-                                    <div className="d-none d-md-flex align-items-center">
-                                        <div className="badge rounded-pill px-3 py-2 toolshed-live-badge">
-                                            <div className="d-flex align-items-center">
-                                                <div className="rounded-circle me-2 toolshed-pulse-dot"></div>
-                                                Live Intelligence
+                                    <div className="d-flex align-items-center gap-3">
+                                        <div className="d-none d-md-flex align-items-center">
+                                            <div className="badge rounded-pill px-3 py-2 toolshed-live-badge">
+                                                <div className="d-flex align-items-center">
+                                                    <div className="rounded-circle me-2 toolshed-pulse-dot"></div>
+                                                    Live Intelligence
+                                                </div>
                                             </div>
                                         </div>
+                                        <button 
+                                            className="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                                            onClick={() => setShowLabels(!showLabels)}
+                                            style={{
+                                                borderRadius: '8px',
+                                                transition: 'all 0.3s ease'
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '16px', lineHeight: '1', verticalAlign: 'middle' }}>
+                                                {showLabels ? 'visibility_off' : 'visibility'}
+                                            </span>
+                                            <span className="ms-2">{showLabels ? 'Hide Labels' : 'Show Labels'}</span>
+                                        </button>
                                     </div>
                                 </div>
                                 
                                 {/* Loading state or content */}
                                 {isloading && isloading !== 'pagination' ? (
-                                    <div className="text-center py-5">
-                                        <ThreadLoader />
-                                        <p className="text-muted mt-3">Analyzing tool intelligence...</p>
+                                    <div className="row">
+                                        <ToolshedSkeleton count={6} />
                                     </div>
                                 ) : (
                                     <Suspense fallback={
-                                        <div className="text-center py-5">
-                                            <ThreadLoader />
-                                            <p className="text-muted mt-3">Loading strategic arsenal...</p>
+                                        <div className="row">
+                                            <ToolshedSkeleton count={6} />
                                         </div>
                                     }>
-                                        <DisplayToolshed data={data} />
+                                        <DisplayToolshed data={data} showLabels={showLabels} />
                                     </Suspense>
                                 )}
                                 

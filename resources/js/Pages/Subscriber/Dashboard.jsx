@@ -148,17 +148,17 @@ export default function Dashboard() {
                                     <Card className='text-center h-100 border border-light bg-light'>
                                         <Card.Body className='text-dark'>
                                             <div className='mb-2'>
-                                                <i className='bi bi-bookmark-fill text-dark' style={{fontSize: '2.5rem'}}></i>
+                                                <i className='bi bi-bookmarks-fill text-dark' style={{fontSize: '2.5rem'}}></i>
                                             </div>
                                             <Card.Title className='poppins-semibold h2 mb-1 text-dark'>
-                                                {subscriberData?.stats?.totalBookmarkedTools || 0}
+                                                {subscriberData?.stats?.totalBookmarks || 0}
                                             </Card.Title>
                                             <Card.Text className='fs-7 text-muted'>
-                                                Bookmarked Tools
+                                                Total Bookmarks
                                             </Card.Text>
                                             <div className='mt-3'>
                                                 <Link href={route('subscriber.bookmarked_tools')} className='btn btn-flat btn-flat-primary btn-sm w-100 d-flex align-items-center justify-content-between'>
-                                                    <span>View Tools</span>
+                                                    <span>View Bookmarks</span>
                                                     <i className='bi bi-arrow-right'></i>
                                                 </Link>
                                             </div>
@@ -180,48 +180,6 @@ export default function Dashboard() {
                                             <div className='mt-3'>
                                                 <Link href={route('subscriber.bookmarked_opportunities')} className='btn btn-flat btn-flat-primary btn-sm w-100 d-flex align-items-center justify-content-between'>
                                                     <span>View Opportunities</span>
-                                                    <i className='bi bi-arrow-right'></i>
-                                                </Link>
-                                            </div>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col md={6} className='mb-3'>
-                                    <Card className='text-center h-100 border border-light bg-light'>
-                                        <Card.Body className='text-dark'>
-                                            <div className='mb-2'>
-                                                <i className='bi bi-bell-fill text-dark' style={{fontSize: '2.5rem'}}></i>
-                                            </div>
-                                            <Card.Title className='poppins-semibold h2 mb-1 text-dark'>
-                                                {subscriberData?.stats?.unreadNotifications || 0}
-                                            </Card.Title>
-                                            <Card.Text className='fs-7 text-muted'>
-                                                Unread Notifications
-                                            </Card.Text>
-                                            <div className='mt-3'>
-                                                <Link href={route('subscriber.notifications')} className='btn btn-flat btn-flat-primary btn-sm w-100 d-flex align-items-center justify-content-between'>
-                                                    <span>View Notifications</span>
-                                                    <i className='bi bi-arrow-right'></i>
-                                                </Link>
-                                            </div>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col md={6} className='mb-3'>
-                                    <Card className='text-center h-100 border border-light bg-light'>
-                                        <Card.Body className='text-dark'>
-                                            <div className='mb-2'>
-                                                <i className='bi bi-chat-dots-fill text-dark' style={{fontSize: '2.5rem'}}></i>
-                                            </div>
-                                            <Card.Title className='poppins-semibold h2 mb-1 text-dark'>
-                                                {subscriberData?.stats?.unreadMessages || 0}
-                                            </Card.Title>
-                                            <Card.Text className='fs-7 text-muted'>
-                                                Unread Messages
-                                            </Card.Text>
-                                            <div className='mt-3'>
-                                                <Link href={route('subscriber.messages')} className='btn btn-flat btn-flat-primary btn-sm w-100 d-flex align-items-center justify-content-between'>
-                                                    <span>View Messages</span>
                                                     <i className='bi bi-arrow-right'></i>
                                                 </Link>
                                             </div>
@@ -255,6 +213,39 @@ export default function Dashboard() {
                                 </div>
                             )}
 
+                            {/* Upcoming Reminders */}
+                            {subscriberData?.upcomingReminders?.length > 0 && (
+                                <div className='mb-4'>
+                                    <h5 className='poppins-semibold mb-3 text-info'>
+                                        <i className='bi bi-bell-fill me-2'></i>
+                                        Upcoming Reminders
+                                    </h5>
+                                    <div className='bg-light p-3 rounded'>
+                                        {subscriberData.upcomingReminders.map((bookmark) => (
+                                            <div key={bookmark.id} className='d-flex justify-content-between align-items-center py-2 border-bottom last-child-no-border'>
+                                                <div className='flex-grow-1'>
+                                                    <strong className='d-block'>{bookmark.opportunity?.title}</strong>
+                                                    <small className='text-muted d-block'>
+                                                        <i className='bi bi-calendar-check me-1'></i>
+                                                        Reminder: {new Date(bookmark.reminder_date).toLocaleDateString()} at {new Date(bookmark.reminder_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                    </small>
+                                                    <small className='text-danger d-block'>
+                                                        <i className='bi bi-alarm me-1'></i>
+                                                        Deadline: {new Date(bookmark.opportunity?.deadline).toLocaleDateString()}
+                                                    </small>
+                                                </div>
+                                                <Link 
+                                                    href={`/op/${bookmark.opportunity?.id}/${bookmark.opportunity?.slug}`}
+                                                    className='btn btn-sm btn-outline-primary ms-2'
+                                                >
+                                                    <i className='bi bi-arrow-right'></i>
+                                                </Link>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Activity Summary & Stats */}
                             <div className='bg-light p-4 rounded'>
                                 <h5 className='poppins-semibold mb-3'>Your Activity</h5>
@@ -263,12 +254,6 @@ export default function Dashboard() {
                                         <span className='badge bg-warning text-dark px-3 py-2 fs-8'>
                                             <i className='bi bi-exclamation-triangle me-1'></i>
                                             {subscriberData.stats.upcomingOpportunities} opportunities expiring soon!
-                                        </span>
-                                    )}
-                                    {subscriberData?.stats?.unreadNotifications > 0 && (
-                                        <span className='badge bg-info text-white px-3 py-2 fs-8'>
-                                            <i className='bi bi-bell me-1'></i>
-                                            {subscriberData.stats.unreadNotifications} new notifications
                                         </span>
                                     )}
                                 </div>

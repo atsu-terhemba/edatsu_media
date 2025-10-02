@@ -29,6 +29,7 @@ use App\Http\Controllers\RssFeedController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\Directory;
 use App\Http\Controllers\TrendingController;
+use App\Http\Controllers\MaintenanceController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -107,7 +108,6 @@ Route::middleware('auth')->group(function () {
     
     // Subscriber/User routes
     Route::get('/subscriber-dashboard', [SubscriberController::class, 'index'])->name('subscriber.dashboard');
-    Route::get('/bookmark', [SubscriberController::class, 'bookmarks'])->name('subscriber.bookmarks');
     Route::get('/bookmarked-opportunities', [SubscriberController::class, 'bookmarkedOpportunities'])->name('subscriber.bookmarked_opportunities');
     Route::get('/bookmarked-tools', [SubscriberController::class, 'bookmarkedTools'])->name('subscriber.bookmarked_tools');
     Route::get('/notifications', [SubscriberController::class, 'notifications'])->name('subscriber.notifications');
@@ -121,6 +121,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/bookmark', [App::class, 'bookmark']); // General bookmark endpoint
     Route::post('/bookmark-opps', [App::class, 'bookmark']);
     Route::post('/bookmark-tools', [App::class, 'bookmark']);
+    Route::put('/remove-bookmark-feed', [SubscriberController::class, 'removeBookmark']);
+    
+    // Bookmark Reminders
+    Route::post('/set-bookmark-reminder', [SubscriberController::class, 'setBookmarkReminder']);
+    Route::post('/update-bookmark-reminder', [SubscriberController::class, 'updateBookmarkReminder']);
+    Route::post('/remove-bookmark-reminder', [SubscriberController::class, 'removeBookmarkReminder']);
     
     // User activity tracking
     Route::post('/track-activity', [UserActivityController::class, 'store']);
@@ -255,6 +261,15 @@ Route::get('/api/trending/products', [TrendingController::class, 'getTrendingPro
 Route::middleware(['auth'])->group(function () {
     Route::post('/api/trending/set-status', [TrendingController::class, 'setTrendingStatus'])->name('trending.set-status');
     Route::post('/api/trending/update', [TrendingController::class, 'updateTrendingStatus'])->name('trending.update');
+});
+
+// Maintenance and System Cleaning Routes
+// Note: These should be protected in production with authentication/authorization
+Route::prefix('maintenance')->group(function () {
+    Route::get('/clear-data', [MaintenanceController::class, 'clearData'])->name('maintenance.clear-data');
+    Route::get('/clear-cache', [MaintenanceController::class, 'clearCacheOnly'])->name('maintenance.clear-cache');
+    Route::get('/clear-logs', [MaintenanceController::class, 'clearLogsOnly'])->name('maintenance.clear-logs');
+    Route::get('/system-info', [MaintenanceController::class, 'getSystemInfo'])->name('maintenance.system-info');
 });
 
 require __DIR__.'/auth.php';

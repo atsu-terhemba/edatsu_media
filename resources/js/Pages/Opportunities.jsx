@@ -20,6 +20,7 @@ import { useContext } from 'react';
 import { AuthContext } from '@/Layouts/GuestLayout';
 import FixedMobileNav from '@/Components/FixedMobileNav';
 import { User, Search, Filter, TrendingUp, Globe, Target } from 'lucide-react';
+import OpportunitiesSkeleton from '@/Components/OpportunitiesSkeleton';
 
 const DisplayOpportunities = React.lazy(() => import('@/Components/DisplayOpportunities'));
 
@@ -511,16 +512,10 @@ const Opportunities = () => {
                                 
                                 {/* Loading state or content */}
                                 {isloading && isloading !== 'pagination' ? (
-                                    <div className="text-center py-5">
-                                        <ThreadLoader />
-                                        <p className="text-muted mt-3">Analyzing global opportunities...</p>
-                                    </div>
+                                    <OpportunitiesSkeleton count={8} />
                                 ) : (
                                     <Suspense fallback={
-                                        <div className="text-center py-5">
-                                            <ThreadLoader />
-                                            <p className="text-muted mt-3">Loading intelligence data...</p>
-                                        </div>
+                                        <OpportunitiesSkeleton count={8} />
                                     }>
                                         <DisplayOpportunities 
                                             data={data} 

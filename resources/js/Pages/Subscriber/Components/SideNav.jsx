@@ -23,12 +23,6 @@ export default function SubscriberSideNav(){
                     </div>
                     <div>Tools</div>
             </ListGroup.Item>
-            <ListGroup.Item as={Link} href={route('subscriber.bookmarks')} className='d-flex justify-content-between align-items-center'>
-                    <div>
-                        <i className="bi bi-bookmarks"></i>
-                    </div>
-                    <div>All Bookmarks</div>
-            </ListGroup.Item>
             <ListGroup.Item as={Link} href={route('subscriber.notifications')} className='d-flex justify-content-between align-items-center'>
                     <div>
                         <i className="bi bi-bell"></i>
@@ -47,12 +41,12 @@ export default function SubscriberSideNav(){
                     </div>
                     <div>Preferences</div>
             </ListGroup.Item>
-            <ListGroup.Item as={Link} href={route('subscriber.notification_settings')} className='d-flex justify-content-between align-items-center'>
+            {/* <ListGroup.Item as={Link} href={route('subscriber.notification_settings')} className='d-flex justify-content-between align-items-center'>
                     <div>
                         <i className="bi bi-gear"></i>
                     </div>
                     <div>Settings</div>
-            </ListGroup.Item>
+            </ListGroup.Item> */}
             <ListGroup.Item as={Link} method="post"  href={route('logout')} className='d-flex justify-content-between align-items-center'>
                     <div>
                         <i className="bi bi-box-arrow-right"></i>

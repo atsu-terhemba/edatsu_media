@@ -7,9 +7,8 @@ import { getDaysLeft, toggleShare, createSharingLinks, bookmark, pageLink } from
 import { router } from '@inertiajs/react';
 import { ArrowRight, Star } from 'lucide-react';
 
-const DisplayToolshed = ({ data }) => {
+const DisplayToolshed = ({ data, showLabels }) => {
   const [loadedImages, setLoadedImages] = useState({});
-  const [showLabels, setShowLabels] = useState(false);
 
   // Debug logging
   console.log('DisplayToolshed received data:', data);
@@ -96,6 +95,13 @@ const DisplayToolshed = ({ data }) => {
     return text.length > length ? text.substring(0, length) + '...' : text;
   };
 
+  const stripHTMLTags = (html) => {
+    if (!html) return '';
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    return tempDiv.textContent || tempDiv.innerText || '';
+  };
+
 
   function convertToProperNoun(input) {
     // Check if input is null, undefined, or not a string
@@ -142,22 +148,43 @@ const DisplayToolshed = ({ data }) => {
 
   return (
     <div>
-      {/* Toggle Labels Button */}
-      <div className="d-flex justify-content-end mb-3">
-        <button 
-          className="btn btn-outline-secondary btn-sm"
-          onClick={() => setShowLabels(!showLabels)}
-          style={{
-            borderRadius: '8px',
-            transition: 'all 0.3s ease'
-          }}
-        >
-          <span className="material-symbols-outlined me-2" style={{ fontSize: '16px' }}>
-            {showLabels ? 'visibility_off' : 'visibility'}
-          </span>
-          {showLabels ? 'Hide Labels' : 'Show Labels'}
-        </button>
-      </div>
+      <style>{`
+        .share-btn:hover,
+        .share-btn:focus,
+        .share-btn:active {
+          background-color: transparent !important;
+          border-color: transparent !important;
+          color: #374151 !important;
+          transform: none !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+        
+        .share-btn:hover .material-symbols-outlined {
+          font-weight: 600 !important;
+          color: #374151 !important;
+        }
+        
+        .bookmark-btn:hover,
+        .bookmark-btn:focus,
+        .bookmark-btn:active {
+          background-color: transparent !important;
+          border-color: transparent !important;
+          transform: none !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+        
+        .bookmark-btn:hover .material-symbols-outlined {
+          font-weight: 600 !important;
+          font-variation-settings: "FILL" 1, "wght" 600, "GRAD" 0, "opsz" 24 !important;
+        }
+        
+        .bookmark-btn:hover svg,
+        .bookmark-btn:hover .material-symbols-outlined {
+          fill: inherit !important;
+        }
+      `}</style>
 
       <div className="row g-4">
       {!data || data.length === 0 ? (
@@ -199,8 +226,8 @@ const DisplayToolshed = ({ data }) => {
                 </Badge>
               )}
               
-              <Card.Body className="p-4 d-flex flex-column" style={{ height: '400px' }}>
-                <div className="mb-3">
+              <Card.Body className="px-2 py-1 d-flex flex-column" style={{ minHeight: '320px' }}>
+                <div className="mb-2">
                   {hasImage ? (
                     <div 
                       className="rounded d-inline-flex align-items-center justify-content-center mb-3"
@@ -236,12 +263,40 @@ const DisplayToolshed = ({ data }) => {
                   )}
                 </div>
                 
+                {/* Rating Display - Moved to top */}
+                <div className="d-flex align-items-center mb-2">
+                  <div className="d-flex align-items-center me-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star 
+                        key={star}
+                        size={14} 
+                        className={star <= Math.round(tool.average_rating || 0) ? 'text-warning' : 'text-muted'} 
+                        fill={star <= Math.round(tool.average_rating || 0) ? 'currentColor' : 'none'}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-muted" style={{ fontSize: '0.85rem' }}>
+                    {tool.average_rating ? parseFloat(tool.average_rating).toFixed(1) : '0.0'} ({tool.total_ratings || 0})
+                  </span>
+                </div>
+
                 <Link
-                  href={pageLink('product', tool.id, tool.slug)}
+                  href={pageLink('product', tool.slug, tool.id)}
                   className="text-decoration-none text-dark tool-title-link"
                 >
-                  <h5 className="fw-bold mb-2" style={{ fontSize: '1.1rem', transition: 'color 0.3s ease' }}>
-                    {truncateText(tool.product_name, 40)}
+                  <h5 
+                    className="fw-bold mb-2" 
+                    style={{ 
+                      fontSize: '1.1rem', 
+                      transition: 'color 0.3s ease',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      display: 'block'
+                    }}
+                    title={tool.product_name}
+                  >
+                    {tool.product_name}
                   </h5>
                 </Link>
                 
@@ -270,43 +325,27 @@ const DisplayToolshed = ({ data }) => {
                   </>
                 )}
                 
-                <p className="text-muted mb-4" style={{ 
-                  fontSize: '0.9rem', 
-                  lineHeight: '1.5',
-                  height: showLabels ? 'auto' : '4.5rem',
-                  overflow: 'hidden',
-                  display: '-webkit-box',
-                  WebkitLineClamp: showLabels ? 'none' : '3',
-                  WebkitBoxOrient: 'vertical'
-                }}>
-                  {truncateText(tool.description, showLabels ? 200 : 120)}
+                {/* Product Description - 50 words max, 2 lines max */}
+                <p 
+                  className="text-muted mb-3" 
+                  style={{ 
+                    fontSize: '0.875rem', 
+                    lineHeight: '1.5',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    display: '-webkit-box',
+                    WebkitLineClamp: '2',
+                    WebkitBoxOrient: 'vertical',
+                    minHeight: '2.625rem'
+                  }}
+                  title={stripHTMLTags(tool.description)}
+                >
+                  {stripHTMLTags(tool.description)?.split(' ').slice(0, 50).join(' ')}
                 </p>
                 
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <div>
-                    <div className="fw-bold text-dark mb-1" style={{ fontSize: '1.1rem' }}>
-                      Free
-                    </div>
-                    {/* Rating Display */}
-                    <div className="d-flex align-items-center">
-                      <div className="d-flex align-items-center me-2">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star 
-                            key={star}
-                            size={14} 
-                            className={star <= Math.round(tool.average_rating || 0) ? 'text-warning' : 'text-muted'} 
-                            fill={star <= Math.round(tool.average_rating || 0) ? 'currentColor' : 'none'}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-muted" style={{ fontSize: '0.85rem' }}>
-                        {tool.average_rating ? parseFloat(tool.average_rating).toFixed(1) : '0.0'} ({tool.total_ratings || 0})
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="d-flex align-items-center gap-2">
-                    {/* Share Button with Panel */}
+                <div className="d-flex justify-content-between align-items-center mb-3 mt-auto">
+                  <div className="d-flex align-items-center gap-3">
+                    {/* Share Button */}
                     <div className="position-relative">
                       <div className="position-absolute share-panel d-none" style={{
                         top: 'auto',
@@ -316,50 +355,48 @@ const DisplayToolshed = ({ data }) => {
                         minWidth: '280px'
                       }}></div>
                       <button 
-                        className="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center share-btn"
+                        className="btn p-0 share-btn"
                         data-title={tool.product_name} 
                         data-id={tool.id} 
                         onClick={(e) => toggleShare(e.currentTarget)}
                         style={{ 
-                          width: '36px',
-                          height: '36px',
-                          borderRadius: '8px',
-                          border: '1px solid #e2e8f0',
-                          transition: 'all 0.3s ease'
+                          border: 'none',
+                          background: 'transparent',
+                          color: '#6b7280',
+                          boxShadow: 'none'
                         }}
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '22px', fontWeight: '400', color: 'inherit' }}>
                           share
                         </span>
                       </button>
                     </div>
                     
-                    {/* Bookmark Button */}
+                    {/* Bookmark Button - Filled */}
                     <button 
-                      className="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center bookmark-btn"
+                      className="btn p-0 bookmark-btn"
                       data-id={tool.id}
                       data-title={tool.product_name}
                       data-type="tool"
                       data-url={pageLink('product', tool.id, tool.slug)}
                       onClick={(e) => bookmark(e.currentTarget)}
                       style={{ 
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '8px',
-                        border: '1px solid #e2e8f0',
-                        transition: 'all 0.3s ease'
+                        border: 'none',
+                        background: 'transparent',
+                        boxShadow: 'none'
                       }}
                     >
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        height="16px" 
-                        viewBox="0 -960 960 960" 
-                        width="16px" 
-                        fill={`${(tool.is_bookmarked === 1)? '#FFD700' : '#6B7280'}`}
-                        style={{ transition: 'fill 0.3s ease' }}
+                      <span 
+                        className="material-symbols-outlined" 
+                        style={{ 
+                          fontSize: '22px',
+                          fontWeight: '400',
+                          fontVariationSettings: '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24',
+                          color: (tool.is_bookmarked === 1) ? '#FFD700' : '#6b7280'
+                        }}
                       >
-                        <path d="M200-120v-640q0-33 23.5-56.5T280-840h400q33 0 56.5 23.5T760-760v640L480-240 200-120Z"/>
-                      </svg>
+                        bookmark
+                      </span>
                     </button>
                   </div>
                 </div>

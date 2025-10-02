@@ -31,6 +31,11 @@ class SubscriberController extends Controller
     {
         $user_id = Auth::user()->id;
         
+        // Get total bookmarks (both tools and opportunities)
+        $totalBookmarks = Bookmark::where('user_id', $user_id)
+            ->where('removed', 0)
+            ->count();
+        
         // Get total bookmarked tools/products
         $totalBookmarkedTools = Bookmark::where('user_id', $user_id)
             ->where('post_type', 'tool')
@@ -83,11 +88,24 @@ class SubscriberController extends Controller
             ->whereMonth('created_at', Carbon::now()->month)
             ->whereYear('created_at', Carbon::now()->year)
             ->count();
+        
+        // Get upcoming reminders (reminders not yet sent and date is in the future)
+        $upcomingReminders = Bookmark::with(['opportunity'])
+            ->where('user_id', $user_id)
+            ->where('removed', 0)
+            ->where('post_type', 'opp')
+            ->whereNotNull('reminder_date')
+            ->where('reminder_sent', false)
+            ->where('reminder_date', '>=', Carbon::now())
+            ->orderBy('reminder_date', 'asc')
+            ->limit(5)
+            ->get();
 
         return response()->json([
             'success' => true,
             'data' => [
                 'stats' => [
+                    'totalBookmarks' => $totalBookmarks,
                     'totalBookmarkedTools' => $totalBookmarkedTools,
                     'upcomingOpportunities' => $upcomingOpportunities,
                     'unreadNotifications' => $unreadNotifications,
@@ -96,6 +114,7 @@ class SubscriberController extends Controller
                 ],
                 'recentBookmarks' => $recentBookmarks,
                 'expiringSoonOpportunities' => $expiringSoonOpportunities,
+                'upcomingReminders' => $upcomingReminders,
                 'userProfile' => $userProfile,
                 'userPreferences' => $userPreferences,
                 'user' => [
@@ -117,10 +136,6 @@ class SubscriberController extends Controller
         return Inertia::render('Subscriber/Dashboard');
     }        
     
-    function bookmark(){
-        return Inertia::render('Subscriber/Bookmark');
-    }
-
     function bookmarkedOpportunities(){
         $user_id = Auth::user()->id;
 
@@ -318,38 +333,6 @@ class SubscriberController extends Controller
             }
         }
 
-
-        //bookmarking
-        public function bookmarkFeed(Request $request){
-            //check if user is authenticated if not 
-            // return response()->json(['data' => $request->all()]);
-            if(Auth::check()){
-
-                //validate entries 
-                $validator = Validator::make($request->all(), [
-                    "url" => "required", 
-                    "title" => "required",
-                ]);
-
-                //handle validation errors
-                if($validator->fails()){
-                    return response()->json(['message'=> $validator->errors()]);
-                }
-
-                //init database 
-                $feedsBookmark = new BookmarkFeeds;
-                $feedsBookmark->user_id = Auth::user()->id;
-                $feedsBookmark->title = $request->post('title');
-                $feedsBookmark->external_url = $request->post('url');
-                $feedsBookmark->save();
-
-                return response()->json(['success' => true, 'message'=> 'Bookmark Successful']);
-            }else{
-                //request user to sign up
-                return response()->json(['success' => false, 'message'=> 'Login to bookmark']);
-            }
-        }
-
         /**list all bookmarked opportunities */
         public function listBookmarkedOpportunites(Request $request) {
             $user_id = Auth::user()->id;
@@ -376,52 +359,6 @@ class SubscriberController extends Controller
             ->orderBy('id', 'desc')->paginate('5');
 
             return response()->json(['data_feeds' => $events]);
-        }
-
-        /**
-         * list all bookmarks
-         */
-
-        public function fetchAllBookmark(){
-            $user_id = Auth::user()->id;
-            /**ELOQUENT DB QUERY**/
-            $bookmarks = Bookmark::with('opportunity', 'event')
-            ->where('user_id', $user_id)
-            ->where('removed', 0)
-            ->orderBy('id', 'desc')
-            ->paginate('5');
-
-            // Fetch bookmarked opportunities
-            // $opportunities = DB::table('bookmarks')
-            // ->join('opportunities', 'bookmarks.opportunity_id', '=', 'opportunities.id')
-            // ->select('bookmarks.id AS bookmark_id', 'bookmarks.*', 'opportunities.*')
-            // ->where('bookmarks.deleted', 0)
-            // ->where('user_id', $user_id)
-            // ->orderBy('bookmarks.id', 'desc')
-            // ->get();
-
-            // Fetch bookmarked events
-            // $events = DB::table('bookmarks')
-            // ->join('events', 'bookmarks.event_id', '=', 'events.id')
-            // ->select('bookmarks.id AS event_id', 'bookmarks.*', 'events.*')
-            // ->where('bookmarks.deleted', 0)
-            // ->where('user_id', $user_id)
-            // ->orderBy('bookmarks.id', 'desc')
-            // ->get();
-
-            // Merge the opportunities and events into a single collection
-            // $allBookmarks = $opportunities->merge($events);
-
-            // // Paginate the combined collection
-            // $bookmarks = new LengthAwarePaginator(
-            //     $allBookmarks->forPage(request()->page, 5),
-            //     $allBookmarks->count(),
-            //     5,
-            //     request()->page,
-            //     ['path' => request()->url()]
-            // );
-
-            return response()->json($bookmarks);
         }
 
         /**remove bookmark */
