@@ -1033,8 +1033,7 @@ public function store(Request $request)
             $categories = ProductCategory::all();
             $brand_label = BrandLabel::all();
             $tags = Tag::all();
-            $countries = Country::all();
-            $continents = Continent::all();
+        
 
             // Get selected data for the product
             $selectedData = $this->getSelectedDataForProduct($id);
@@ -1044,11 +1043,10 @@ public function store(Request $request)
                 "categories" => $categories,
                 "brand_label" => $brand_label,
                 "tags" => $tags,
-                "countries" => $countries,
-                "continents" => $continents,
                 "selectedData" => $selectedData,
             ]);
         } catch (\Exception $e) {
+            dd($e);
             return redirect()->route('admin.all_products')->with('error', 'Product not found');
         }
     }
@@ -1082,10 +1080,10 @@ public function store(Request $request)
         $selectedData['brand_labels'] = $brandLabels->toArray();
 
         // Get tags
-        $tags = DB::table('tag_selections')
-            ->join('tags', 'tags.id', '=', 'tag_selections.tag_id')
-            ->where('tag_selections.post_id', $productId)
-            ->where('tag_selections.post_type', 'products')
+        $tags = DB::table('tags_selections')
+            ->join('tags', 'tags.id', '=', 'tags_selections.tag_id')
+            ->where('tags_selections.post_id', $productId)
+            ->where('tags_selections.post_type', 'products')
             ->select('tags.id', 'tags.name')
             ->get();
         $selectedData['tags'] = $tags->toArray();
@@ -1109,6 +1107,138 @@ public function store(Request $request)
         $selectedData['continent'] = $continents->toArray();
 
         return $selectedData;
+    }
+
+    /**
+     * Update a product
+     */
+    public function update(Request $request, $id)
+    {
+        try {
+            // Find the product
+            $product = Product::findOrFail($id);
+            
+            // Check if user has permission to edit this product
+            if ($product->u_id !== Auth::id() && Auth::user()->role !== 'admin') {
+                return response()->json(['success' => false, 'message' => 'Unauthorized to edit this product']);
+            }
+
+            // Validate the request
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+                'source_url' => 'nullable|url',
+                'direct_link' => 'nullable|url',
+                'youtube_link' => 'nullable|url',
+                'meta_keywords' => 'nullable|string',
+                'meta_description' => 'nullable|string',
+                'cover_img' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+                'categories' => 'nullable|array',
+                'brand_labels' => 'nullable|array',
+                'tags' => 'nullable|array',
+            ]);
+
+            // Handle image upload if provided
+            if ($request->hasFile('cover_img')) {
+                // Delete old image if exists
+                if ($product->cover_img && file_exists(storage_path('app/public/uploads/products/' . $product->cover_img))) {
+                    unlink(storage_path('app/public/uploads/products/' . $product->cover_img));
+                }
+                
+                $image = $request->file('cover_img');
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $image->storeAs('public/uploads/products', $imageName);
+                $product->cover_img = $imageName;
+            }
+
+            // Update product fields
+            $product->product_name = $validated['title'];
+            $product->product_description = $validated['description'];
+            $product->source_url = $validated['source_url'];
+            $product->direct_link = $validated['direct_link'];
+            $product->youtube_link = $validated['youtube_link'];
+            $product->meta_keywords = $validated['meta_keywords'];
+            $product->meta_description = $validated['meta_description'];
+            $product->save();
+
+            // Update categories
+            if ($request->has('categories')) {
+                // Delete existing category selections
+                DB::table('category_selections')
+                    ->where('post_id', $product->id)
+                    ->where('post_type', 'products')
+                    ->delete();
+                
+                // Insert new categories
+                if ($request->categories) {
+                    foreach ($request->categories as $category) {
+                        DB::table('category_selections')->insert([
+                            'post_id' => $product->id,
+                            'category_id' => $category['value'] ?? $category,
+                            'post_type' => 'products',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                }
+            }
+
+            // Update brand labels
+            if ($request->has('brand_labels')) {
+                // Delete existing brand label selections
+                DB::table('brand_labels_selections')
+                    ->where('post_id', $product->id)
+                    ->where('post_type', 'products')
+                    ->delete();
+                
+                // Insert new brand labels
+                if ($request->brand_labels) {
+                    foreach ($request->brand_labels as $brand) {
+                        DB::table('brand_labels_selections')->insert([
+                            'post_id' => $product->id,
+                            'brand_label_id' => $brand['value'] ?? $brand,
+                            'post_type' => 'products',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                }
+            }
+
+            // Update tags
+            if ($request->has('tags')) {
+                // Delete existing tag selections
+                DB::table('tags_selections')
+                    ->where('post_id', $product->id)
+                    ->where('post_type', 'products')
+                    ->delete();
+                
+                // Insert new tags
+                if ($request->tags) {
+                    foreach ($request->tags as $tag) {
+                        DB::table('tags_selections')->insert([
+                            'post_id' => $product->id,
+                            'tag_id' => $tag['value'] ?? $tag,
+                            'post_type' => 'products',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product updated successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Product update error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating product: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

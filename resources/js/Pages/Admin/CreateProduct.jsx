@@ -175,8 +175,11 @@ export default function CreateProduct({ edits, categories, brand_label, /* count
     const handleSubmit = async (e) => {
         e.preventDefault();
         // Send the combined data to the server
+        const isEditing = edits?.id;
+        const url = isEditing ? `/admin-update-product/${edits.id}` : '/admin-store-product';
+        
         try {
-            const response = await axios.post('/admin-store-software-product', formData, {
+            const response = await axios.post(url, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 }

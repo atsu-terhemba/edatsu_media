@@ -79,8 +79,22 @@ const Opportunities = () => {
         });
     }, []);
 
+    // Track if this is the initial mount
+    const [isInitialMount, setIsInitialMount] = useState(true);
+
     useEffect(()=>{
-        initSearch();
+        // Skip initSearch on initial mount to prevent double loading
+        if (isInitialMount) {
+            setIsInitialMount(false);
+            return;
+        }
+        // Only run if we actually have filter changes
+        const hasFilters = Object.values(filter_data).some(value => 
+            Array.isArray(value) ? value.length > 0 : value !== ''
+        );
+        if (hasFilters) {
+            initSearch();
+        }
     }, [filter_data])
 
     const initSearch = useCallback((e) => {
@@ -514,9 +528,7 @@ const Opportunities = () => {
                                 {isloading && isloading !== 'pagination' ? (
                                     <OpportunitiesSkeleton count={8} />
                                 ) : (
-                                    <Suspense fallback={
-                                        <OpportunitiesSkeleton count={8} />
-                                    }>
+                                    <Suspense fallback={<div>Loading...</div>}>
                                         <DisplayOpportunities 
                                             data={data} 
                                             isAuthenticated={!!authUser || !!props.auth.user}

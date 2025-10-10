@@ -145,6 +145,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     
     // Product management
     Route::get('/post-product', [ProductController::class, 'show'])->name('admin.products');
+    Route::get('/admin-post-product', [ProductController::class, 'show'])->name('admin.post_product');
     Route::get('/all-products', [ProductController::class, 'showProducts'])->name('admin.all_products');
     Route::get('/fetch-all-products', [ProductController::class, 'fetchAllProducts']);
     Route::get('/admin-edit-product/{id}', [ProductController::class, 'edit'])->name('admin.edit_product');
