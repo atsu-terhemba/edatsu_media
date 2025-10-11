@@ -596,7 +596,7 @@ function store(Request $request)
     if ($request->hasFile('cover_img') && $request->file('cover_img')->isValid()) {
         $file = $request->file('cover_img');
         $hashedFileName = $this->generateUniqueFileName($file);
-        $file->storeAs('public/uploads/opp', $hashedFileName, 'public');
+        $file->storeAs('public/uploads/opp', $hashedFileName);
         $op->cover_img = $hashedFileName;
     }
 

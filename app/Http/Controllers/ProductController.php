@@ -637,7 +637,7 @@ public function store(Request $request)
     if ($request->hasFile('cover_img') && $request->file('cover_img')->isValid()) {
         $file = $request->file('cover_img');
         $hashedFileName = $this->generateUniqueFileName($file);
-        $file->storeAs('public/uploads/prod', $hashedFileName, 'public');
+        $file->storeAs('public/uploads/prod', $hashedFileName);
         $op->cover_img = $hashedFileName;
     }
 
@@ -1141,13 +1141,13 @@ public function store(Request $request)
             // Handle image upload if provided
             if ($request->hasFile('cover_img')) {
                 // Delete old image if exists
-                if ($product->cover_img && file_exists(storage_path('app/public/uploads/products/' . $product->cover_img))) {
-                    unlink(storage_path('app/public/uploads/products/' . $product->cover_img));
+                if ($product->cover_img && file_exists(storage_path('app/public/public/uploads/prod/' . $product->cover_img))) {
+                    unlink(storage_path('app/public/public/uploads/prod/' . $product->cover_img));
                 }
                 
                 $image = $request->file('cover_img');
                 $imageName = time() . '_' . $image->getClientOriginalName();
-                $image->storeAs('public/uploads/products', $imageName);
+                $image->storeAs('public/uploads/prod', $imageName);
                 $product->cover_img = $imageName;
             }
 
