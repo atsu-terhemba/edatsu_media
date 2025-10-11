@@ -122,10 +122,16 @@ class Product extends Model
     // Get rating distribution
     public function getRatingDistribution()
     {
+        $ratings = $this->ratings()->get();
         $distribution = [];
+        $totalRatings = $ratings->count();
+        
         for ($i = 1; $i <= 5; $i++) {
-            $count = $this->ratings()->where('rating', $i)->count();
-            $percentage = $this->total_ratings > 0 ? ($count / $this->total_ratings) * 100 : 0;
+            $count = $ratings->filter(function($rating) use ($i) {
+                return (int)$rating->rating === $i;
+            })->count();
+            
+            $percentage = $totalRatings > 0 ? ($count / $totalRatings) * 100 : 0;
             $distribution[$i] = [
                 'count' => $count,
                 'percentage' => round($percentage, 1)

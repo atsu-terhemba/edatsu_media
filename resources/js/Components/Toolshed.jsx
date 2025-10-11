@@ -10,13 +10,10 @@ import { ArrowRight, Star } from 'lucide-react';
 const DisplayToolshed = ({ data, showLabels }) => {
   const [loadedImages, setLoadedImages] = useState({});
 
-  // Debug logging
-  console.log('DisplayToolshed received data:', data);
-  console.log('Data type:', typeof data);
-  console.log('Data length:', data?.length);
-
   // Fallback image URL - replace with your actual fallback image
-  const fallbackImageUrl = "img/logo/main_2.png";  const handleImageError = (e) => {
+  const fallbackImageUrl = "/img/logo/main_2.png";
+
+  const handleImageError = (e) => {
     e.target.src = fallbackImageUrl;
   };
 
@@ -239,7 +236,7 @@ const DisplayToolshed = ({ data, showLabels }) => {
                     >
                       <Image
                         src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
-                        data-src={`storage/public/uploads/prod/${tool.cover_img}`}
+                        data-src={`/storage/public/uploads/prod/${tool.cover_img}`}
                         data-id={imageId}
                         alt={`Cover image for ${tool.product_name}`}
                         className="img-fluid w-100 h-100 object-fit-cover lazy-load rounded"
@@ -406,8 +403,7 @@ const DisplayToolshed = ({ data, showLabels }) => {
                 
                 {/* Try Now Button - Separate at Bottom */}
                 <Link
-                  href={tool.direct_link || pageLink('product', tool.id, tool.slug)}
-                  target={tool.direct_link ? "_blank" : "_self"}
+                  href={pageLink('product', tool.slug, tool.id)}
                   className="btn btn-dark w-100 d-flex align-items-center justify-content-center text-decoration-none"
                   style={{ 
                     padding: '0.75rem 1rem',

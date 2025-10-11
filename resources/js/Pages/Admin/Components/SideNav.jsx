@@ -38,6 +38,14 @@ export default function AdminSideNav(){
         <div>Users</div>
       </ListGroup.Item>
 
+      {/* Ads Management */}
+      <ListGroup.Item as={Link} href={route('admin.ads')} className='d-flex justify-content-between align-items-center'>
+        <div>
+          <span className="material-symbols-outlined">ads_click</span>
+        </div>
+        <div>Ads Management</div>
+      </ListGroup.Item>
+
       {/* RSS Feed - COMMENTED: No page exists yet */}
       {/* <ListGroup.Item as={Link} href="#" className='d-flex justify-content-between align-items-center'>
         <div>

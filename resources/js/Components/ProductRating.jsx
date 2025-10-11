@@ -20,32 +20,52 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
 
     const fetchRatings = async () => {
         try {
-            console.log('Fetching ratings for product:', productId);
             const response = await axios.get(`/product/${productId}/ratings`);
-            console.log('Ratings response:', response.data);
             
             if (response.data.success) {
                 const fetchedRatings = response.data.ratings || [];
-                const fetchedDistribution = response.data.distribution || {};
+                let fetchedDistribution = response.data.distribution || {};
                 
-                console.log('Fetched ratings array:', fetchedRatings);
-                console.log('Fetched distribution:', fetchedDistribution);
-                console.log('Number of ratings:', fetchedRatings.length);
+                // If distribution is empty or not properly formatted, calculate it from ratings
+                if (!fetchedDistribution || Object.keys(fetchedDistribution).length === 0) {
+                    fetchedDistribution = calculateDistribution(fetchedRatings);
+                }
                 
                 setRatings(fetchedRatings);
                 setAverageRating(Number(response.data.average_rating) || 0);
-                setTotalRatings(Number(response.data.total_ratings) || 0);
+                setTotalRatings(Number(response.data.total_ratings) || fetchedRatings.length);
                 setDistribution(fetchedDistribution);
-                
-                console.log('State updated - ratings count:', fetchedRatings.length);
-                console.log('State updated - distribution:', fetchedDistribution);
-            } else {
-                console.error('API returned success:false', response.data);
             }
         } catch (error) {
             console.error('Error fetching ratings:', error);
-            console.error('Error details:', error.response?.data);
         }
+    };
+
+    const calculateDistribution = (ratingsArray) => {
+        const dist = {};
+        const total = ratingsArray.length;
+        
+        // Initialize all star counts
+        [5, 4, 3, 2, 1].forEach(star => {
+            dist[star] = { count: 0, percentage: 0 };
+        });
+        
+        // Count ratings for each star level
+        ratingsArray.forEach(rating => {
+            const stars = Math.round(Number(rating.rating));
+            if (stars >= 1 && stars <= 5) {
+                dist[stars].count += 1;
+            }
+        });
+        
+        // Calculate percentages
+        Object.keys(dist).forEach(star => {
+            if (total > 0) {
+                dist[star].percentage = Math.round((dist[star].count / total) * 100);
+            }
+        });
+        
+        return dist;
     };
 
     const handleRatingSubmit = async () => {
@@ -86,7 +106,7 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
                 });
                 setUserRating(0);
                 setUserComment('');
-                await fetchRatings(); // Wait for ratings to refresh
+                await fetchRatings();
                 
                 // Scroll to reviews section to show the new review
                 setTimeout(() => {
@@ -136,14 +156,11 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
     };
 
     const renderRatingDistribution = () => {
-        console.log('Rendering distribution with data:', distribution);
-        
         return (
             <div className="rating-distribution">
                 {[5, 4, 3, 2, 1].map((stars) => {
                     const count = distribution[stars]?.count || 0;
                     const percentage = distribution[stars]?.percentage || 0;
-                    console.log(`${stars} stars: ${count} ratings (${percentage}%)`);
                     
                     return (
                         <div key={stars} className="d-flex align-items-center mb-2">
@@ -233,7 +250,8 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
                     )}
                 </div>
 
-                <div className="mb-3">
+                {/* Temporarily commented out - to be fixed later */}
+                {/* <div className="mb-3">
                     <label className="form-label fw-semibold">Your Review (Optional)</label>
                     <textarea
                         className="form-control"
@@ -244,7 +262,7 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
                         maxLength={1000}
                     />
                     <small className="text-muted">{userComment.length}/1000</small>
-                </div>
+                </div> */}
 
                 <button
                     className="action-button btn-primary-modern"
@@ -256,7 +274,6 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
             </div>
 
             {/* Recent Reviews Preview - Shows latest 3 reviews */}
-            {console.log('Checking recent reviews render condition:', { hasRatings: !!ratings, ratingsLength: ratings?.length })}
             {ratings && ratings.length > 0 && (
                 <div className="recent-reviews-preview mb-4 p-4 border rounded">
                     <div className="d-flex align-items-center justify-content-between mb-3">

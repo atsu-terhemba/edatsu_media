@@ -76,12 +76,15 @@ const Home = () => {
                 twitterImage="/img/logo/default_logo.jpg"
             />
             <HomeBanner />
+            
             <SuccessSection />
+            
             {/**
              * 
             <TrendingToolsSection tools={trendingTools} isLoading={isLoading} />
             <LatestOpportunitiesSection opportunities={latestOpportunities} isLoading={isLoading} />
             */}
+            
             <FixedMobileNav isAuthenticated={(props.auth.user)? true : false} toggleSearch={toggleSearch} />
         </GuestLayout>
     );

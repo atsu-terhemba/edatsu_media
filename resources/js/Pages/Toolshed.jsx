@@ -16,8 +16,9 @@ import { useContext } from 'react';
 import { AuthContext } from '@/Layouts/GuestLayout';
 import FixedMobileNav from '@/Components/FixedMobileNav';
 import { Wrench, Search, Filter, TrendingUp, Zap, Star } from 'lucide-react';
-import Swal from 'sweetalert2';
+import { showToolsSubscriptionModal } from '@/Components/SubscriptionModal';
 import ToolshedSkeleton from '@/Components/ToolshedSkeleton';
+import AdBanner from '@/Components/AdBanner';
 
 const DisplayToolshed = React.lazy(() => import('@/Components/Toolshed'));
 
@@ -46,136 +47,9 @@ const Toolshed = () => {
 
     const props = usePage().props;
 
-    // SweetAlert2 subscription modal function
-    const showSubscriptionModal = () => {
-        Swal.fire({
-            title: '',
-            html: `
-                <div style="text-align: center; padding: 20px;">
-                    <h3 style="font-weight: bold; margin-bottom: 0.5rem; color: #1f2937; font-size: 1.25rem;">Subscribe</h3>
-                    <p style="margin-bottom: 20px; color: #6b7280; font-size: 14px; line-height: 1.4;">
-                        Get the latest tools delivered to your inbox
-                    </p>
-                                
-                    <form id="subscription-form" style="display: flex; flex-direction: column; gap: 12px; max-width: 320px; margin: 0 auto;">
-                        <input type="text" id="firstName" name="firstName" placeholder="First name" required
-                               style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.625rem 0.875rem; font-size: 0.875rem; background: #fafbfc; transition: all 0.2s ease;"
-                               onfocus="this.style.borderColor='#3b82f6'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.08)'"
-                               onblur="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='#fafbfc'; this.style.boxShadow='none'">
-                        
-                        <input type="text" id="lastName" name="lastName" placeholder="Last name" required
-                               style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.625rem 0.875rem; font-size: 0.875rem; background: #fafbfc; transition: all 0.2s ease;"
-                               onfocus="this.style.borderColor='#3b82f6'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.08)'"
-                               onblur="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='#fafbfc'; this.style.boxShadow='none'">
-                        
-                        <input type="email" id="email" name="email" placeholder="Enter your email" required
-                               style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.625rem 0.875rem; font-size: 0.875rem; background: #fafbfc; transition: all 0.2s ease;"
-                               onfocus="this.style.borderColor='#3b82f6'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.08)'"
-                               onblur="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='#fafbfc'; this.style.boxShadow='none'">
-                        
-                        <button type="submit" id="subscribe-btn"
-                                style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; border: none; border-radius: 8px; padding: 0.75rem 1.5rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);"
-                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(59, 130, 246, 0.4)'"
-                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(59, 130, 246, 0.3)'">
-                            Subscribe Now
-                        </button>
-                    </form>
-                    
-                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
-                        <p style="color: #6b7280; font-size: 12px; margin: 0;">
-                            🔒 Your email is safe with us. No spam, unsubscribe anytime.
-                        </p>
-                    </div>
-                </div>
-            `,
-            showConfirmButton: false,
-            showCloseButton: true,
-            width: '480px',
-            padding: '0',
-            background: 'white',
-            customClass: {
-                popup: 'subscription-modal-popup',
-                closeButton: 'subscription-modal-close'
-            },
-            didOpen: () => {
-                const form = document.getElementById('subscription-form');
-                const subscribeBtn = document.getElementById('subscribe-btn');
-                
-                form.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    
-                    // Get form data
-                    const firstName = document.getElementById('firstName').value;
-                    const lastName = document.getElementById('lastName').value;
-                    const email = document.getElementById('email').value;
-                    
-                    // Disable button and 1oading
-                    subscribeBtn.disabled = true;
-                    subscribeBtn.innerHTML = 'Subscribing...';
-                    
-                    try {
-                        const response = await axios.post('/subscribe', {
-                            first_name: firstName,
-                            last_name: lastName,
-                            email: email
-                        });
-                        
-                        if (response.data.success) {
-                            Swal.fire({
-                                title: 'Successfully Subscribed!',
-                                text: 'You\'ll receive the latest tools and updates directly in your inbox.',
-                                icon: 'success',
-                                confirmButtonText: 'Great!',
-                                confirmButtonColor: '#3b82f6',
-                                buttonsStyling: false,
-                                customClass: {
-                                    popup: 'compact-swal-popup',
-                                    title: 'compact-swal-title',
-                                    content: 'compact-swal-content',
-                                    confirmButton: 'compact-swal-button compact-swal-button-success'
-                                }
-                            });
-                        }
-                    } catch (error) {
-                        console.error('Subscription error:', error);
-                        
-                        let errorMessage = 'An error occurred. Please try again.';
-                        if (error.response?.data?.message) {
-                            errorMessage = error.response.data.message;
-                        }
-                        
-                        Swal.fire({
-                            title: 'Subscription Failed',
-                            text: errorMessage,
-                            icon: 'error',
-                            confirmButtonText: 'Try Again',
-                            confirmButtonColor: '#ef4444',
-                            buttonsStyling: false,
-                            customClass: {
-                                popup: 'compact-swal-popup',
-                                title: 'compact-swal-title',
-                                content: 'compact-swal-content',
-                                confirmButton: 'compact-swal-button compact-swal-button-error'
-                            }
-                        });
-                        
-                        // Reset button
-                        subscribeBtn.disabled = false;
-                        subscribeBtn.innerHTML = 'Subscribe';
-                    }
-                });
-            }
-        });
-    };
-
     useEffect(() => {
-        console.log('Fetching products from search-products endpoint...');
         axios.get('search-products') // Fetch Products
         .then(function (response) {
-            console.log('SEARCH ENDPOINT RESPONSE:', response);
-            console.log('SEARCH ENDPOINT DATA:', response.data);
-            console.log('SEARCH ENDPOINT DATA.DATA:', response.data?.data);
-            console.log('SEARCH ENDPOINT DATA.DATA LENGTH:', response.data?.data?.length);
             setData(response.data?.data || []);
             setPagination(response.data?.links || []);
         })
@@ -252,7 +126,6 @@ const Toolshed = () => {
 
     return (
         <GuestLayout>
-            
             <Metadata
                 title="Strategic Arsenal - Business Tools Intelligence | Edatsu Media"
                 description="Mission-critical business tools curated by our intelligence team. Discover vetted productivity, AI, and operational tools deployed by elite entrepreneurs."
@@ -311,6 +184,11 @@ const Toolshed = () => {
                 </Container>
             </section>
 
+            {/* Top Leaderboard Ad */}
+            <div className="container my-4">
+                <AdBanner slot="toolshed_top_leaderboard" size="large-leaderboard" />
+            </div>
+
             <Container fluid className="px-0">
                 <Row className="g-0">
                     {/* Sidebar */}
@@ -340,6 +218,11 @@ const Toolshed = () => {
                                 />
                             </div>
                             
+                            {/* Sidebar Ad */}
+                            <div className="px-4 pb-4 d-none d-lg-block">
+                                <AdBanner slot="toolshed_sidebar_ad" size="medium-rectangle" className="mb-3" />
+                            </div>
+                            
                             {/* Quick Links - Desktop Only */}
                             <div className="px-4 pb-4 d-none d-lg-block">
                                 <div className="p-3 rounded-3 toolshed-quick-access-box">
@@ -367,7 +250,7 @@ const Toolshed = () => {
                                 </div>
 
                          <button
-                            onClick={showSubscriptionModal}
+                            onClick={showToolsSubscriptionModal}
                             className="btn btn-flat-primary py-3 w-100 my-3 d-flex align-items-center justify-content-center"
                             >
                             Subscribe
@@ -458,6 +341,11 @@ const Toolshed = () => {
                                         />
                                     )}
                                 </div>
+                            </div>
+                            
+                            {/* Bottom Ad */}
+                            <div className="my-4">
+                                <AdBanner slot="toolshed_bottom_banner" size="responsive" />
                             </div>
                         </div>
                     </Col>

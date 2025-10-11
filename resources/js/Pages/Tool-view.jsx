@@ -11,6 +11,7 @@ import ProductComments from "@/Components/ProductComments";
 import { router } from '@inertiajs/react'
 import RecommendedContent from "@/Components/RecommendedContent";
 import GoogleAdsense from '@/Components/GoogleAdsense';
+import AdBanner from '@/Components/AdBanner';
 
 const ReadTool = ({tool_data, similarPosts}) => {
 
@@ -266,6 +267,11 @@ const ReadTool = ({tool_data, similarPosts}) => {
                     </div>
                 </div>
 
+                {/* Top Ad - After Hero Section */}
+                <div className="my-4">
+                    <AdBanner slot="tool_view_top" size="leaderboard" />
+                </div>
+
                 {/* Rating Section */}
                 <div className="tool-card">
                     <h3 className="section-title">
@@ -279,7 +285,12 @@ const ReadTool = ({tool_data, similarPosts}) => {
                     />
                 </div>
 
-                {/* Comments Section */}
+                {/* Mid-Content Ad - After Ratings */}
+                <div className="my-4">
+                    <AdBanner slot="tool_view_mid" size="responsive" />
+                </div>
+
+                {/* Comments Section - Disabled in favor of modal reviews */}
                 {/* <div className="tool-card">
                     <h3 className="section-title">
                         <span className="material-symbols-outlined me-2 text-primary" style={{fontSize: '20px'}}>chat</span>

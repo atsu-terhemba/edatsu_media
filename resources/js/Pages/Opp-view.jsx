@@ -15,6 +15,7 @@ import FeedbackPanel from '@/Components/FeedbackInfo';
 import FixedMobileNav from '@/Components/FixedMobileNav';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import AdBanner from '@/Components/AdBanner';
 
 const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
 
@@ -356,6 +357,11 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                     </div>
                 </div>
 
+                {/* Top Ad - After Hero */}
+                <div className="my-4">
+                    <AdBanner slot="opp_view_top" size="leaderboard" />
+                </div>
+
                 {/* Google Ads */}
                 <div className="mb-4">
                     <ins
@@ -485,6 +491,11 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
 
                 
                 {/* <FeedbackPanel /> */}
+
+                {/* Mid-Content Ad */}
+                <div className="my-4">
+                    <AdBanner slot="opp_view_mid" size="responsive" />
+                </div>
           
 
                 {/* Recommended Content */}
@@ -493,6 +504,11 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                 </div>
             </Col>
             <Col lg={4} md={12} sm={12}>
+                {/* Sidebar Ad - Desktop Only */}
+                <div className="mb-4 d-none d-lg-block">
+                    <AdBanner slot="opp_view_sidebar" size="medium-rectangle" />
+                </div>
+                
                 {/* Telegram Community - Cool Message Button */}
                 <div className="telegram-community-container border-0">
                     <div className="telegram-message-bubble border-0">

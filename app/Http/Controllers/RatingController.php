@@ -60,6 +60,7 @@ class RatingController extends Controller
                 'message' => $message
             ]);
         } catch (\Exception $e) {
+            \Log::error('Error saving rating: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Error saving rating: ' . $e->getMessage()
@@ -70,17 +71,11 @@ class RatingController extends Controller
     public function getRatings($id)
     {
         try {
-            \Log::info('Getting ratings for product ID: ' . $id);
-            
             $ratings = Rating::where('rateable_type', Product::class)
                 ->where('rateable_id', $id)
                 ->with('user:id,name')
                 ->orderBy('created_at', 'desc')
                 ->get();
-
-            \Log::info('Found ratings count: ' . $ratings->count());
-            \Log::info('Ratings data: ' . json_encode($ratings));
-            \Log::info('Product class name: ' . Product::class);
 
             $averageRating = $ratings->avg('rating') ?? 0;
             $totalRatings = $ratings->count();
@@ -88,16 +83,17 @@ class RatingController extends Controller
             // Calculate distribution
             $distribution = [];
             for ($i = 1; $i <= 5; $i++) {
-                $count = $ratings->where('rating', $i)->count();
+                // Use filter instead of where for exact numeric comparison
+                $count = $ratings->filter(function($rating) use ($i) {
+                    return (int)$rating->rating === $i;
+                })->count();
+                
                 $percentage = $totalRatings > 0 ? ($count / $totalRatings) * 100 : 0;
                 $distribution[$i] = [
                     'count' => $count,
                     'percentage' => round($percentage, 1)
                 ];
-                \Log::info("Distribution for {$i} stars: count={$count}, percentage={$percentage}");
             }
-
-            \Log::info('Distribution data: ' . json_encode($distribution));
 
             return response()->json([
                 'success' => true,
@@ -108,7 +104,6 @@ class RatingController extends Controller
             ]);
         } catch (\Exception $e) {
             \Log::error('Error getting ratings: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
             return response()->json([
                 'success' => false,
                 'message' => 'Error fetching ratings: ' . $e->getMessage()

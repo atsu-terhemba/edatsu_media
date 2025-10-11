@@ -29,20 +29,6 @@ export default function CreateProduct({ edits, categories, brand_label, /* count
     // const [countryEditOption, setEditCountryOptions] = useState([]);
     // const [continentEditOption, setEditContinentOptions] = useState([]);
 
-    useEffect(()=>{
-        setStateFromData(categories, setCategoryOptions);
-        setStateFromData(brand_label, setBrandLabelOptions);
-        setStateFromData(tags, setTagOptions);
-        // setStateFromData(countries, setCountryOptions);
-        // setStateFromData(continents, setContinentOptions);
-        //..................................................
-        setEditFromData(selectedData?.category, 'categories');
-        setEditFromData(selectedData?.brand_labels, 'brand_labels');
-        // setEditFromData(selectedData?.continent, 'continents');
-        // setEditFromData(selectedData?.country, 'countries');
-        setEditFromData(selectedData?.tags, 'tags');
-    }, []);
-
     const [formData, setFormData] = useState({
         cover_img: null,
         title: edits?.product_name || '',
@@ -60,6 +46,32 @@ export default function CreateProduct({ edits, categories, brand_label, /* count
         tags: [],
         signature: '',
     });
+
+    const [imagePreview, setImagePreview] = useState(null);
+    const [existingImage, setExistingImage] = useState(edits?.cover_img || null);
+
+    useEffect(()=>{
+        setStateFromData(categories, setCategoryOptions);
+        setStateFromData(brand_label, setBrandLabelOptions);
+        setStateFromData(tags, setTagOptions);
+        // setStateFromData(countries, setCountryOptions);
+        // setStateFromData(continents, setContinentOptions);
+        //..................................................
+        setEditFromData(selectedData?.category, 'categories');
+        setEditFromData(selectedData?.brand_labels, 'brand_labels');
+        // setEditFromData(selectedData?.continent, 'continents');
+        // setEditFromData(selectedData?.country, 'countries');
+        setEditFromData(selectedData?.tags, 'tags');
+    }, []);
+
+    // Cleanup preview URL when component unmounts
+    useEffect(() => {
+        return () => {
+            if (imagePreview) {
+                URL.revokeObjectURL(imagePreview);
+            }
+        };
+    }, [imagePreview]);
 
     const handleChange = (e) => {
         const { name, value, files } = e.target;
@@ -138,7 +150,15 @@ export default function CreateProduct({ edits, categories, brand_label, /* count
 
     const handleFileUpload = (e) => {
         const file = e.target.files?.[0] || null;
-        if (!file) return;
+        if (!file) {
+            // Clean up existing preview URL
+            if (imagePreview) {
+                URL.revokeObjectURL(imagePreview);
+            }
+            setImagePreview(null);
+            setFormData({...formData, cover_img: null});
+            return;
+        }
         
         const allowedFileTypes = [
             'image/png',
@@ -169,6 +189,15 @@ export default function CreateProduct({ edits, categories, brand_label, /* count
             e.target.value = '';
             return;
         }
+
+        // Clean up existing preview URL before creating new one
+        if (imagePreview) {
+            URL.revokeObjectURL(imagePreview);
+        }
+
+        // Create preview URL
+        const previewUrl = URL.createObjectURL(file);
+        setImagePreview(previewUrl);
         setFormData({...formData, cover_img: file});
     };
 
@@ -244,7 +273,60 @@ export default function CreateProduct({ edits, categories, brand_label, /* count
                             <div id="jobDetailsSection" className="px-3 bg-white mb-3 py-3 rounded border">
                                 <Form.Group className="mb-3">
                                     <Form.Label>Image:</Form.Label>
-                                    <Form.Control type="file" name="cover_img" onChange={handleFileUpload} />
+                                    
+                                    {/* Image Preview Section */}
+                                    {(imagePreview || existingImage) && (
+                                        <div className="mb-3">
+                                            <div className="d-flex align-items-center justify-content-between mb-2">
+                                                <small className="text-muted">
+                                                    {imagePreview ? 'New image preview:' : 'Current image:'}
+                                                </small>
+                                                {imagePreview && (
+                                                    <Button 
+                                                        variant="outline-danger" 
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            // Clean up the object URL
+                                                            if (imagePreview) {
+                                                                URL.revokeObjectURL(imagePreview);
+                                                            }
+                                                            setImagePreview(null);
+                                                            setFormData({...formData, cover_img: null});
+                                                            // Reset file input
+                                                            const fileInput = document.querySelector('input[name="cover_img"]');
+                                                            if (fileInput) fileInput.value = '';
+                                                        }}
+                                                    >
+                                                        Remove
+                                                    </Button>
+                                                )}
+                                            </div>
+                                            <div 
+                                                className="border rounded p-2 d-inline-block"
+                                                style={{ maxWidth: '200px' }}
+                                            >
+                                                <img 
+                                                    src={imagePreview || `/storage/public/uploads/prod/${existingImage}`}
+                                                    alt="Preview" 
+                                                    className="img-fluid rounded"
+                                                    style={{ maxHeight: '150px', maxWidth: '100%' }}
+                                                    onError={(e) => {
+                                                        e.target.src = '/img/logo/main_2.png'; // Fallback image
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                    
+                                    <Form.Control 
+                                        type="file" 
+                                        name="cover_img" 
+                                        onChange={handleFileUpload}
+                                        accept="image/png,image/jpeg,image/jpg"
+                                    />
+                                    <Form.Text className="text-muted">
+                                        Accepted formats: PNG, JPEG, JPG. Max size: 1MB
+                                    </Form.Text>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Title</Form.Label>

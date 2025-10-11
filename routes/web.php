@@ -30,6 +30,7 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\Directory;
 use App\Http\Controllers\TrendingController;
 use App\Http\Controllers\MaintenanceController;
+use App\Http\Controllers\Admin\AdManagementController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -230,6 +231,17 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     
     // Directory
     Route::get('/admin-directory', [Directory::class, 'show'])->name('admin.directory');
+    
+    // Ad Management
+    Route::get('/admin/ads', [AdManagementController::class, 'index'])->name('admin.ads');
+    Route::post('/admin/ads', [AdManagementController::class, 'store'])->name('admin.ads.store');
+    Route::put('/admin/ads/{adSetting}', [AdManagementController::class, 'update'])->name('admin.ads.update');
+    Route::delete('/admin/ads/{adSetting}', [AdManagementController::class, 'destroy'])->name('admin.ads.destroy');
+    Route::post('/admin/ads/{adSetting}/toggle', [AdManagementController::class, 'toggleActive'])->name('admin.ads.toggle');
+    Route::post('/admin/ads/{adSetting}/toggle-visibility', [AdManagementController::class, 'toggleVisibility'])->name('admin.ads.toggle_visibility');
+    Route::post('/admin/ads/toggle', [AdManagementController::class, 'toggleAds'])->name('admin.ads.toggle_all');
+    Route::post('/admin/ads/toggle-placeholders', [AdManagementController::class, 'togglePlaceholders'])->name('admin.ads.toggle_placeholders');
+    Route::post('/admin/ads/global-settings', [AdManagementController::class, 'updateGlobalSettings'])->name('admin.ads.global');
     
     // Additional delete routes for frontend compatibility
     Route::post('/delete-label', [BrandLabelController::class, 'deleteLabel']);

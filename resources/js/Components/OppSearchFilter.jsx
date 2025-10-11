@@ -3,7 +3,7 @@ import Select from 'react-select'
 import ClickEffectButton from './ClickEffectButton';
 
 
-const OppSearchFilter = ({isloading, searchKeyword, filter_data, setFilterData, categories, continents, countries, brands, initSearch}) => {
+const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_data, setFilterData, categories, continents, countries, brands, initSearch}) => {
     
     const [isFilterVisible, setIsFilterVisible] = useState(false);
     const [categoryOptions, setCategoryOptions] = useState('');
