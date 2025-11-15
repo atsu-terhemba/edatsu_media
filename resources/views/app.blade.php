@@ -89,6 +89,10 @@
         gtag('js', new Date());
         gtag('config', 'G-1Z7BZW1CTX');
     </script>
+    <!--google adsense-->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7365396698208751"
+     crossorigin="anonymous"></script>
+    <!--google adsense-->
     <script>
     //--update page manifest-->
     const manifestLink = document.getElementById('manifest-link');
