@@ -6,6 +6,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
 import { useForm } from '@inertiajs/react';
 import { useRef, useState } from 'react';
+import { Form, Button, Modal as BootstrapModal } from 'react-bootstrap';
 
 export default function DeleteUserForm({ className = '' }) {
     const [confirmingUserDeletion, setConfirmingUserDeletion] = useState(false);
@@ -46,75 +47,94 @@ export default function DeleteUserForm({ className = '' }) {
     };
 
     return (
-        <section className={`space-y-6 ${className}`}>
-            <header>
-                <h2 className="text-lg font-medium text-gray-900">
+        <section className={className}>
+            <div className="mb-3">
+                <h5 className="mb-1" style={{fontWeight: '600', color: '#1f2937'}}>
+                    <i className="bi bi-trash me-2"></i>
                     Delete Account
-                </h2>
-
-                <p className="mt-1 text-sm text-gray-600">
-                    Once your account is deleted, all of its resources and data
-                    will be permanently deleted. Before deleting your account,
-                    please download any data or information that you wish to
-                    retain.
+                </h5>
+                <p className="text-muted mb-0" style={{fontSize: '0.875rem'}}>
+                    Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.
                 </p>
-            </header>
+            </div>
 
-            <DangerButton onClick={confirmUserDeletion}>
+            <Button
+                variant="danger"
+                onClick={confirmUserDeletion}
+                className="mt-3"
+                style={{
+                    borderRadius: '6px',
+                    fontSize: '0.875rem',
+                    padding: '0.5rem 1.5rem'
+                }}
+            >
+                <i className="bi bi-trash me-2"></i>
                 Delete Account
-            </DangerButton>
+            </Button>
 
-            <Modal show={confirmingUserDeletion} onClose={closeModal}>
-                <form onSubmit={deleteUser} className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">
-                        Are you sure you want to delete your account?
-                    </h2>
+            <BootstrapModal 
+                show={confirmingUserDeletion} 
+                onHide={closeModal}
+                centered
+            >
+                <BootstrapModal.Header closeButton style={{borderBottom: '1px solid #dee2e6'}}>
+                    <BootstrapModal.Title style={{fontSize: '1.125rem', fontWeight: '600'}}>
+                        <i className="bi bi-exclamation-triangle text-danger me-2"></i>
+                        Delete Account
+                    </BootstrapModal.Title>
+                </BootstrapModal.Header>
+                <BootstrapModal.Body>
+                    <Form onSubmit={deleteUser}>
+                        <p className="text-muted mb-3" style={{fontSize: '0.875rem'}}>
+                            Are you sure you want to delete your account? Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm.
+                        </p>
 
-                    <p className="mt-1 text-sm text-gray-600">
-                        Once your account is deleted, all of its resources and
-                        data will be permanently deleted. Please enter your
-                        password to confirm you would like to permanently delete
-                        your account.
-                    </p>
+                        <Form.Group className="mb-3">
+                            <Form.Label className="visually-hidden">Password</Form.Label>
+                            <Form.Control
+                                type="password"
+                                placeholder="Password"
+                                ref={passwordInput}
+                                value={data.password}
+                                onChange={(e) => setData('password', e.target.value)}
+                                autoFocus
+                                style={{fontSize: '0.875rem', border: '1px solid #dee2e6'}}
+                            />
+                            {errors.password && (
+                                <Form.Text className="text-danger" style={{fontSize: '0.875rem'}}>
+                                    {errors.password}
+                                </Form.Text>
+                            )}
+                        </Form.Group>
 
-                    <div className="mt-6">
-                        <InputLabel
-                            htmlFor="password"
-                            value="Password"
-                            className="sr-only"
-                        />
-
-                        <TextInput
-                            id="password"
-                            type="password"
-                            name="password"
-                            ref={passwordInput}
-                            value={data.password}
-                            onChange={(e) =>
-                                setData('password', e.target.value)
-                            }
-                            className="mt-1 block w-3/4"
-                            isFocused
-                            placeholder="Password"
-                        />
-
-                        <InputError
-                            message={errors.password}
-                            className="mt-2"
-                        />
-                    </div>
-
-                    <div className="mt-6 flex justify-end">
-                        <SecondaryButton onClick={closeModal}>
-                            Cancel
-                        </SecondaryButton>
-
-                        <DangerButton className="ms-3" disabled={processing}>
-                            Delete Account
-                        </DangerButton>
-                    </div>
-                </form>
-            </Modal>
+                        <div className="d-flex justify-content-end gap-2">
+                            <Button 
+                                variant="outline-secondary"
+                                onClick={closeModal}
+                                style={{
+                                    borderRadius: '6px',
+                                    fontSize: '0.875rem',
+                                    padding: '0.5rem 1.5rem'
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button 
+                                variant="danger"
+                                type="submit"
+                                disabled={processing}
+                                style={{
+                                    borderRadius: '6px',
+                                    fontSize: '0.875rem',
+                                    padding: '0.5rem 1.5rem'
+                                }}
+                            >
+                                Delete Account
+                            </Button>
+                        </div>
+                    </Form>
+                </BootstrapModal.Body>
+            </BootstrapModal>
         </section>
     );
 }

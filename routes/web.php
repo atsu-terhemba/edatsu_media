@@ -54,6 +54,7 @@ Route::get('/opportunities', [OpportunityController::class, 'initOpportunitiesPa
 Route::get('/toolshed', [ToolShedController::class, 'initToolShedPage'])->name('toolshed');
 Route::get('/money-guide', [ToolShedController::class, 'initMoneyGuidePage'])->name('money_guide');
 Route::get('/subscribe', [SubscriptionController::class, 'index'])->name('subscribe');
+Route::post('/subscribe', [SubscriptionController::class, 'mail_subscription'])->name('subscribe.post');
 Route::get('/feedback', [App::class, 'initFeedbackPage'])->name('feedback');
 Route::get('/advertise', [App::class, 'initAdvertisePage'])->name('advertise');
 Route::get('/platforms', [App::class, 'initPlatformsPage'])->name('platforms');
@@ -75,6 +76,13 @@ Route::middleware('auth')->get('/api/subscriber/details', [SubscriberController:
 
 // Dynamic content routes - matching ziggy routes
 Route::get('/op/{id}/{title}', [OpportunityController::class, 'readOpportunity'])->name('read.opportunity');
+
+// Ratings and Comments API routes (must come before the general product route)
+Route::get('/product/{id}/comments', [CommentController::class, 'getComments'])->name('product.comments');
+Route::get('/product/{id}/ratings', [RatingController::class, 'getRatings'])->name('product.ratings');
+Route::post('/product/{id}/rate', [RatingController::class, 'rateProduct'])->name('product.rate');
+Route::post('/product/{id}/comment', [CommentController::class, 'store'])->name('product.comment');
+
 Route::get('/product/{id}/{product_name}', [ProductController::class, 'readProductData'])->name('read.product_blog');
 Route::get('/ev/{id}/{title}', [Event::class, 'show'])->name('read.ev');
 
@@ -92,11 +100,7 @@ Route::get('/podcast', [App::class, 'initPodcastPage'])->name('podcast');
 // Ratings and Comments
 Route::post('/ratings', [RatingController::class, 'store'])->name('rating.store');
 Route::post('/process-subscription', [SubscriptionController::class, 'process'])->name('subscription.process');
-Route::post('/product/{id}/rate', [RatingController::class, 'rateProduct'])->name('product.rate');
-Route::post('/product/{id}/comment', [CommentController::class, 'store'])->name('product.comment');
 Route::post('/comment/{id}/reply', [CommentController::class, 'reply'])->name('comment.reply');
-Route::get('/product/{id}/comments', [CommentController::class, 'getComments'])->name('product.comments');
-Route::get('/product/{id}/ratings', [RatingController::class, 'getRatings'])->name('product.ratings');
 
 // User registration
 Route::get('/admin-register', [RegisteredUserController::class, 'create_admin'])->name('admin-register');
@@ -135,6 +139,8 @@ Route::middleware('auth')->group(function () {
     // Profile management
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
+    Route::delete('/profile/photo', [ProfileController::class, 'deletePhoto'])->name('profile.photo.delete');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 

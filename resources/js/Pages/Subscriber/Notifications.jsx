@@ -58,13 +58,13 @@ export default function Notifications() {
     const getNotificationIcon = (type) => {
         switch (type) {
             case 'success':
-                return 'bi bi-check-circle-fill text-success';
+                return { icon: 'check_circle', class: 'text-success', fill: true };
             case 'warning':
-                return 'bi bi-exclamation-triangle-fill text-warning';
+                return { icon: 'warning', class: 'text-warning', fill: true };
             case 'error':
-                return 'bi bi-x-circle-fill text-danger';
+                return { icon: 'cancel', class: 'text-danger', fill: true };
             default:
-                return 'bi bi-info-circle-fill text-primary';
+                return { icon: 'info', class: 'text-primary', fill: true };
         }
     };
 
@@ -83,9 +83,9 @@ export default function Notifications() {
                             </div>
                         </Col>
                         <Col sm={6}>
-                            <div className='py-3 rounded my-3' style={{border: '1px solid #dee2e6'}}>
+                            <div className='py-3 px-3 rounded my-3' style={{border: '1px solid #dee2e6'}}>
                                 <div className='d-flex justify-content-between align-items-center mb-3'>
-                                    <h4 className='m-0' style={{fontWeight: 'normal'}}>
+                                    <h4 className='m-0 fw-bold' style={{fontWeight: 'normal'}}>
                                         Notifications 
                                         {unreadCount > 0 && (
                                             <Badge bg="danger" className='ms-2'>{unreadCount}</Badge>
@@ -99,7 +99,7 @@ export default function Notifications() {
                                             disabled={unreadCount === 0}
                                             style={{borderRadius: '6px'}}
                                         >
-                                            <i className='bi bi-check-all me-1'></i>
+                                            <span className='material-symbols-outlined me-1' style={{fontSize: '16px', verticalAlign: 'middle'}}>done_all</span>
                                             Mark All Read
                                         </Button>
                                     </div>
@@ -138,20 +138,21 @@ export default function Notifications() {
                                 {loading ? (
                                     <NotificationsSkeleton count={5} />
                                 ) : notifications.length > 0 ? (
-                                    <ListGroup variant="flush">
+                                    <ListGroup variant="flush" className="border-0">
                                         {notifications.map((notification) => (
                                             <ListGroup.Item 
                                                 key={notification.id} 
                                                 className={`d-flex justify-content-between align-items-start ${!notification.is_read ? 'border-start border-3' : ''}`}
                                                 style={{
-                                                    border: '1px solid #dee2e6',
-                                                    borderLeft: !notification.is_read ? '3px solid #0d6efd' : '1px solid #dee2e6',
+                                                    border: 'none',
+                                                    borderLeft: !notification.is_read ? '3px solid #0d6efd' : 'none',
                                                     marginBottom: '0.5rem',
-                                                    borderRadius: '6px'
+                                                    borderRadius: '6px',
+                                                    backgroundColor: 'transparent'
                                                 }}
                                             >
                                                 <div className='d-flex align-items-start'>
-                                                    <i className={`${getNotificationIcon(notification.type)} me-3 mt-1`} style={{fontSize: '1.2rem'}}></i>
+                                                    <span className={`material-symbols-outlined ${getNotificationIcon(notification.type).class} me-3 mt-1`} style={{fontSize: '1.2rem', fontVariationSettings: getNotificationIcon(notification.type).fill ? "'FILL' 1" : "'FILL' 0"}}>{ getNotificationIcon(notification.type).icon}</span>
                                                     <div className='flex-grow-1'>
                                                         <h6 className='mb-1'>
                                                             {notification.title}
@@ -173,7 +174,7 @@ export default function Notifications() {
                                                             size="sm"
                                                             style={{borderRadius: '6px'}}
                                                         >
-                                                            <i className='bi bi-arrow-right me-1'></i>
+                                                            <span className='material-symbols-outlined me-1' style={{fontSize: '16px', verticalAlign: 'middle'}}>arrow_forward</span>
                                                             View
                                                         </Button>
                                                     )}
@@ -184,7 +185,7 @@ export default function Notifications() {
                                                             onClick={() => markAsRead(notification.id)}
                                                             style={{borderRadius: '6px'}}
                                                         >
-                                                            <i className='bi bi-check me-1'></i>
+                                                            <span className='material-symbols-outlined me-1' style={{fontSize: '16px', verticalAlign: 'middle'}}>check</span>
                                                             Mark Read
                                                         </Button>
                                                     )}
@@ -194,7 +195,7 @@ export default function Notifications() {
                                     </ListGroup>
                                 ) : (
                                     <div className='text-center py-5 rounded' style={{border: '1px solid #dee2e6'}}>
-                                        <i className='bi bi-bell text-muted' style={{fontSize: '3rem'}}></i>
+                                        <span className='material-symbols-outlined text-muted' style={{fontSize: '3rem'}}>notifications</span>
                                         <h5 className='mt-3 text-muted'>No Notifications</h5>
                                         <p className='text-muted'>
                                             {filter === 'unread' ? 'No unread notifications.' : 'You have no notifications yet.'}

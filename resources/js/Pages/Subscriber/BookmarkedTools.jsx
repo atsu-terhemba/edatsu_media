@@ -10,6 +10,7 @@ import BookmarksSkeleton from '@/Components/BookmarksSkeleton';
 export default function BookmarkedTools({ tools: initialTools }) {
     const [tools, setTools] = useState(initialTools || { data: [], total: 0 });
     const [loading, setLoading] = useState(false);
+    const [filter, setFilter] = useState('all'); // 'all', 'rated', 'unrated'
 
     const Toast = Swal.mixin({
         toast: true,
@@ -59,6 +60,18 @@ export default function BookmarkedTools({ tools: initialTools }) {
                     .last-child-no-border:last-child {
                         border-bottom: none !important;
                     }
+                    .custom-dropdown-toggle::after {
+                        display: none !important;
+                    }
+                    .tool-card {
+                        position: relative;
+                    }
+                    .tool-card .dropdown.show {
+                        z-index: 9999 !important;
+                    }
+                    .tool-card .dropdown-menu {
+                        z-index: 10000 !important;
+                    }
                 `}} />
             </Head>
 
@@ -71,19 +84,49 @@ export default function BookmarkedTools({ tools: initialTools }) {
                             </div>
                         </Col>
                         <Col sm={6}>
-                            <div className='mb-3 py-3 rounded' style={{border: '1px solid #dee2e6'}}>
+                            <div className='mb-3 py-3 rounded px-3 mt-3' style={{border: '1px solid #dee2e6'}}>
                                 <div className='d-flex justify-content-between align-items-center flex-wrap gap-3'>
                                     <div className='flex-grow-1'>
-                                        <h4 className='m-0 mb-1' style={{fontWeight: 'normal'}}>
+                                        <h4 className='m-0 mb-1 fw-bold' style={{fontWeight: 'normal'}}>
                                             Bookmarked Tools
                                         </h4>
-                                        <small className='text-muted'>Your saved tools and resources</small>
+                                        <small className='text-muted'>Track and manage your saved tools and resources</small>
                                     </div>
                                     <Badge bg="light" text="dark" className='px-3 py-2' style={{border: '1px solid #dee2e6'}}>
-                                        <i className='bi bi-collection me-1'></i>
+                                        <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>collections_bookmark</span>
                                         {tools.total || 0} Total
                                     </Badge>
                                 </div>
+                            </div>
+
+                            <div className='mb-3 d-flex gap-2'>
+                                <Button 
+                                    size="sm" 
+                                    variant={filter === 'all' ? 'primary' : 'outline-secondary'}
+                                    onClick={() => setFilter('all')}
+                                    style={{borderRadius: '4px', padding: '6px 12px'}}
+                                >
+                                    <span className='material-symbols-outlined me-1' style={{fontSize: '16px', verticalAlign: 'middle'}}>list</span>
+                                    All
+                                </Button>
+                                <Button 
+                                    size="sm" 
+                                    variant={filter === 'rated' ? 'warning' : 'outline-secondary'}
+                                    onClick={() => setFilter('rated')}
+                                    style={{borderRadius: '4px', padding: '6px 12px'}}
+                                >
+                                    <span className='material-symbols-outlined me-1' style={{fontSize: '16px', verticalAlign: 'middle', fontVariationSettings: "'FILL' 1"}}>star</span>
+                                    Rated
+                                </Button>
+                                <Button 
+                                    size="sm" 
+                                    variant={filter === 'unrated' ? 'secondary' : 'outline-secondary'}
+                                    onClick={() => setFilter('unrated')}
+                                    style={{borderRadius: '4px', padding: '6px 12px'}}
+                                >
+                                    <span className='material-symbols-outlined me-1' style={{fontSize: '16px', verticalAlign: 'middle'}}>star</span>
+                                    Unrated
+                                </Button>
                             </div>
                             <div>
                                 
@@ -91,53 +134,86 @@ export default function BookmarkedTools({ tools: initialTools }) {
                                     <BookmarksSkeleton count={5} />
                                 ) : tools.data && tools.data.length > 0 ? (
                                     <div>
-                                        {tools.data.map((bookmark) => (
+                                        {tools.data
+                                            .filter(bookmark => {
+                                                if (filter === 'all') return true;
+                                                if (filter === 'rated') return bookmark.product?.ratings > 0;
+                                                if (filter === 'unrated') return !bookmark.product?.ratings || bookmark.product.ratings === 0;
+                                                return true;
+                                            })
+                                            .map((bookmark, index) => (
                                             <Card 
                                                 key={bookmark.id} 
-                                                className='mb-3 opportunity-card'
+                                                className='mb-3 tool-card'
                                                 style={{
                                                     border: '1px solid #dee2e6',
-                                                    boxShadow: 'none'
+                                                    boxShadow: 'none',
+                                                    position: 'relative',
+                                                    zIndex: tools.data.length - index
                                                 }}
                                             >
                                                 <Card.Body className='p-3'>
                                                     <div className='d-flex align-items-start justify-content-between'>
                                                         <div className='flex-grow-1'>
-                                                            <h6 className='mb-2'>
+                                                            <h6 className='mb-2' style={{fontSize: '0.9em'}}>
                                                                 <Link 
-                                                                    href={`/tools/${bookmark.product?.slug}`}
+                                                                    href={`/product/${bookmark.product?.id}/${bookmark.product?.slug}`}
                                                                     className='text-decoration-none text-dark'
                                                                 >
                                                                     {bookmark.product?.product_name}
                                                                 </Link>
                                                             </h6>
                                                             <div className='d-flex align-items-center gap-2 flex-wrap mb-2'>
-                                                                <Badge bg="light" text="dark" className='border'>
-                                                                    <i className='bi bi-tools me-1'></i>
+                                                                <span className='badge' style={{
+                                                                    background: '#667eea',
+                                                                    color: 'white',
+                                                                    padding: '4px 10px',
+                                                                    borderRadius: '4px',
+                                                                    fontSize: '0.75rem',
+                                                                    fontWeight: '500'
+                                                                }}>
+                                                                    <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>handyman</span>
                                                                     Tool
-                                                                </Badge>
+                                                                </span>
                                                                 {bookmark.product?.ratings > 0 && (
-                                                                    <Badge bg="warning">
-                                                                        <i className='bi bi-star-fill me-1'></i>
+                                                                    <span className='badge' style={{
+                                                                        background: '#ffc107',
+                                                                        color: 'white',
+                                                                        padding: '4px 10px',
+                                                                        borderRadius: '4px',
+                                                                        fontSize: '0.75rem',
+                                                                        fontWeight: '500'
+                                                                    }}>
+                                                                        <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle', fontVariationSettings: "'FILL' 1"}}>star</span>
                                                                         {bookmark.product.ratings}/5
-                                                                    </Badge>
+                                                                    </span>
                                                                 )}
                                                             </div>
                                                             <small className='text-muted'>
-                                                                <i className='bi bi-bookmark-check me-1'></i>
+                                                                <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>bookmark_check</span>
                                                                 {formatDate(bookmark.created_at)}
                                                             </small>
                                                         </div>
-                                                        <Dropdown align="end">
-                                                            <Dropdown.Toggle variant="outline-secondary" size="sm" style={{borderRadius: '6px'}}>
-                                                                <i className='bi bi-three-dots-vertical'></i>
+                                                        <Dropdown align="end" style={{position: 'relative', zIndex: 1000}}>
+                                                            <Dropdown.Toggle 
+                                                                variant="light" 
+                                                                size="sm" 
+                                                                style={{
+                                                                    borderRadius: '8px',
+                                                                    border: 'none',
+                                                                    padding: '6px 10px',
+                                                                    background: 'transparent'
+                                                                }}
+                                                                bsPrefix="custom-dropdown-toggle"
+                                                            >
+                                                                <span className='material-symbols-outlined' style={{fontSize: '16px'}}>more_vert</span>
                                                             </Dropdown.Toggle>
-                                                            <Dropdown.Menu>
+                                                            <Dropdown.Menu style={{zIndex: 10000, position: 'absolute'}}>
                                                                 <Dropdown.Item 
                                                                     as={Link}
-                                                                    href={`/tools/${bookmark.product?.slug}`}
+                                                                    href={`/product/${bookmark.product?.id}/${bookmark.product?.slug}`}
                                                                 >
-                                                                    <i className='bi bi-eye me-2'></i>
+                                                                    <span className='material-symbols-outlined me-2' style={{fontSize: '16px', verticalAlign: 'middle'}}>visibility</span>
                                                                     View Details
                                                                 </Dropdown.Item>
                                                                 {bookmark.product?.source_url && (
@@ -147,7 +223,7 @@ export default function BookmarkedTools({ tools: initialTools }) {
                                                                             href={bookmark.product.source_url}
                                                                             target="_blank"
                                                                         >
-                                                                            <i className='bi bi-box-arrow-up-right me-2'></i>
+                                                                            <span className='material-symbols-outlined me-2' style={{fontSize: '16px', verticalAlign: 'middle'}}>open_in_new</span>
                                                                             Visit Website
                                                                         </Dropdown.Item>
                                                                     </>
@@ -157,7 +233,7 @@ export default function BookmarkedTools({ tools: initialTools }) {
                                                                     onClick={() => removeBookmark(bookmark.id)}
                                                                     className='text-danger'
                                                                 >
-                                                                    <i className='bi bi-trash3 me-2'></i>
+                                                                    <span className='material-symbols-outlined me-2' style={{fontSize: '16px', verticalAlign: 'middle'}}>delete</span>
                                                                     Remove Bookmark
                                                                 </Dropdown.Item>
                                                             </Dropdown.Menu>
@@ -203,12 +279,12 @@ export default function BookmarkedTools({ tools: initialTools }) {
                                 ) : (
                                     <div className='text-center py-5 rounded' style={{border: '1px solid #dee2e6'}}>
                                         <div className='mb-4'>
-                                            <i className='bi bi-tools text-muted' style={{fontSize: '4rem'}}></i>
+                                            <span className='material-symbols-outlined text-muted' style={{fontSize: '4rem'}}>bookmark_remove</span>
                                         </div>
                                         <h5 className='text-muted mb-2'>No Bookmarked Tools Yet</h5>
                                         <p className='text-muted mb-4'>Start exploring and bookmarking tools to keep track of them here.</p>
                                         <Link href="/toolshed" className="btn btn-outline-secondary" style={{borderRadius: '6px'}}>
-                                            <i className='bi bi-search me-2'></i>
+                                            <span className='material-symbols-outlined me-2' style={{fontSize: '16px', verticalAlign: 'middle'}}>search</span>
                                             Explore Tools
                                         </Link>
                                     </div>

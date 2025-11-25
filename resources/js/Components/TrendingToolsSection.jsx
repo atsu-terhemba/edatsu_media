@@ -209,7 +209,7 @@ export default function TrendingToolsSection({ tools = [], isLoading = false }) 
                           }}
                         >
                           <img
-                            src={`/storage/public/uploads/prod/${tool.cover_img}`}
+                            src={`${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/uploads/prod/${tool.cover_img}`}
                             alt={`Cover image for ${tool.product_name}`}
                             className="img-fluid w-100 h-100 object-fit-cover rounded"
                             onError={handleImageError}

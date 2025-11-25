@@ -15,10 +15,10 @@ import FeedbackPanel from '@/Components/FeedbackInfo';
 import { useContext } from 'react';
 import { AuthContext } from '@/Layouts/GuestLayout';
 import FixedMobileNav from '@/Components/FixedMobileNav';
-import { Wrench, Search, Filter, TrendingUp, Zap, Star } from 'lucide-react';
+
 import { showToolsSubscriptionModal } from '@/Components/SubscriptionModal';
 import ToolshedSkeleton from '@/Components/ToolshedSkeleton';
-import AdBanner from '@/Components/AdBanner';
+// import AdBanner from '@/Components/AdBanner';
 
 const DisplayToolshed = React.lazy(() => import('@/Components/Toolshed'));
 
@@ -141,7 +141,7 @@ const Toolshed = () => {
             />
             
             {/* Hero Section */}
-            <section className="py-4 toolshed-hero-section">
+            <section className="py-4" style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                 <Container fluid={true}>
                     <Row className="align-items-center">
                         <Col lg={8} md={7} sm={12}>
@@ -158,26 +158,25 @@ const Toolshed = () => {
                                     <Wrench size={24} />
                                 </div> */}
                                 <div>
-                                    <h1 className="h3 fw-bold text-dark mb-1">
-                                    Productivity Tools
+                                    <h1 className="h3 text-dark mb-1">
+                                    Productivity tools
                                     </h1>
-                                    <p className="text-muted mb-0">
+                                    <p className="font-monospace text-secondary mb-0">
                                         Mission-critical tools vetted by our intelligence algorithms
                                     </p>
                                 </div>
                             </div>
                         </Col>
-                        
                         <Col lg={4} md={5} sm={12}>
-                            <div className="d-flex justify-content-end align-items-center gap-3 px-3">
-                                <div className="d-flex align-items-center text-success">
+                            <div className="d-flex justify-content-end align-items-center gap-3">
+                                {/* <div className="d-flex align-items-center text-success">
                                     <TrendingUp size={16} className="me-1" />
                                     <small className="fw-semibold">Live Intelligence</small>
                                 </div>
-                                <div className="d-flex align-items-center text-primary">
+                                <div className="d-flex align-items-center text-primary px-3">
                                     <Zap size={16} className="me-1" />
                                     <small className="fw-semibold">Elite Grade</small>
-                                </div>
+                                </div> */}
                             </div>
                         </Col>
                     </Row>
@@ -185,22 +184,39 @@ const Toolshed = () => {
             </section>
 
             {/* Top Leaderboard Ad */}
-            <div className="container my-4">
+            {/* <div className="container my-4">
                 <AdBanner slot="toolshed_top_leaderboard" size="large-leaderboard" />
-            </div>
+            </div> */}
 
             <Container fluid className="px-0">
                 <Row className="g-0">
                     {/* Sidebar */}
                     <Col lg={3} md={4} sm={12}>
                         <div 
-                            className={`${isMobileSearchVisible ? 'toolshed-mobile-fixed-toggle' : 'd-none d-md-block toolshed-sidebar'}`} 
+                            className={`${isMobileSearchVisible ? 'mobile-fixed-toggle' : 'd-none d-md-block'}`} 
                             id="searchBar"
+                            style={{ 
+                                backgroundColor: 'white',
+                                borderRight: '1px solid #e2e8f0',
+                                minHeight: isMobileSearchVisible ? 'auto' : '100vh',
+                                maxHeight: isMobileSearchVisible ? '85vh' : 'none',
+                                overflowY: isMobileSearchVisible ? 'auto' : 'visible',
+                                position: 'sticky',
+                                top: '0'
+                            }}
                         >
-                            <div className="p-4">
-                                <div className="d-flex align-items-center mb-4">
-                                    <Filter size={20} className="text-primary me-2" />
+                            <div className={`${isMobileSearchVisible ? 'px-3 py-3' : 'px-3 py-3'}`}>
+                                <div className={`d-flex align-items-center ${isMobileSearchVisible ? 'mb-3' : 'mb-4'}`}>
+                                    <span className="material-symbols-outlined text-primary me-2" style={{fontSize: '20px'}}>filter_list</span>
                                     <h5 className="fw-bold mb-0">Filters</h5>
+                                    {isMobileSearchVisible && (
+                                        <button 
+                                            className="btn btn-sm btn-outline-secondary ms-auto"
+                                            onClick={toggleSearch}
+                                        >
+                                            Close
+                                        </button>
+                                    )}
                                 </div>
                                 
                                 <ToolshedFilter
@@ -218,103 +234,101 @@ const Toolshed = () => {
                                 />
                             </div>
                             
-                            {/* Sidebar Ad */}
+                            {/* Sidebar Ad - Desktop Only */}
                             <div className="px-4 pb-4 d-none d-lg-block">
-                                <AdBanner slot="toolshed_sidebar_ad" size="medium-rectangle" className="mb-3" />
+                                {/* <AdBanner slot="toolshed_sidebar_ad" size="medium-rectangle" className="mb-3" /> */}
                             </div>
                             
                             {/* Quick Links - Desktop Only */}
                             <div className="px-4 pb-4 d-none d-lg-block">
-                                <div className="p-3 rounded-3 toolshed-quick-access-box">
-                                    <h6 className="fw-semibold mb-3 text-dark">Quick Access</h6>
-                                    <div className="d-flex flex-column gap-2">
+                            
+                        
+                        <div className='subscribe-box'>
+                         <h5 className="fw-bold mb-1">Subscribe</h5>
+                         <p className='fs-8 text-muted'>
+                         Subscribe to get tools & productivity insights
+                         </p>
+                         <button
+                            onClick={showToolsSubscriptionModal}
+                            className="btn py-3 btn-primary w-100 my-3 d-flex align-items-center justify-content-center"
+                            style={{ borderRadius: '12px', fontWeight: '600', fontSize: '0.9rem' }}
+                            >
+                            {/* <span className="material-symbols-outlined me-2" style={{ fontSize: '18px' }}>
+                                notifications
+                            </span> */}
+                            Subscribe
+                            </button>
+                        </div>
+
+                                <div className="">
                                         <Link 
                                             href="/advertise" 
-                                            className="text-decoration-none text-muted small fw-medium toolshed-hover-primary"
+                                            className="text-decoration-none fs-8 me-2 small fw-medium hover-primary"
+                                            style={{ transition: 'color 0.2s' }}
                                         >
-                                        Advertise Tool
+                                        Advertise
                                         </Link>
                                         <Link 
                                             href="/help" 
-                                            className="text-decoration-none text-muted small fw-medium toolshed-hover-primary"
+                                            className="text-decoration-none fs-8 me-2 small fw-medium hover-primary"
+                                            style={{ transition: 'color 0.2s' }}
                                         >
-                                        Get Help
+                                       Help
                                         </Link>
                                         <Link 
                                             href="/terms" 
-                                            className="text-decoration-none text-muted small fw-medium toolshed-hover-primary"
+                                            className="text-decoration-none fs-8 small fw-medium hover-primary"
+                                            style={{ transition: 'color 0.2s' }}
                                         >
-                                        Terms & Conditions
+                                        Terms
                                         </Link>
                                     </div>
-                                </div>
 
-                         <button
-                            onClick={showToolsSubscriptionModal}
-                            className="btn btn-flat-primary py-3 w-100 my-3 d-flex align-items-center justify-content-center"
-                            >
-                            Subscribe
-                            </button>
                             </div>
-                        </div>
-                        
-                        {/* Mobile Search Toggle */}
-                        <div className="d-md-none position-fixed toolshed-mobile-search-toggle">
-                            <button 
-                                className="btn btn-primary rounded-circle w-100 h-100"
-                                onClick={toggleSearch}
-                            >
-                                <Search size={20} />
-                            </button>
                         </div>
                     </Col>
 
                     {/* Main Content */}
                     <Col lg={9} md={8} sm={12}>
-                        <div className="p-4 toolshed-main-content">
+                        <div className="p-2 p-md-3" style={{ backgroundColor: '#fafbfc' }}>
                             {/* Feedback Panel */}
                             {/* <div className="mb-4">
                                 <FeedbackPanel />
                             </div> */}
 
                             {/* Filter Labels */}
-                            <div className="mb-4">
+                            <div className="mb-2 mb-md-3">
                                 <FilterLabels filter_data={filter_data} setFilterData={setFilterData}/>
                             </div>
 
                             {/* Results Section */}
                             <div 
-                                className="bg-white rounded-4 shadow-sm border-0 p-4 toolshed-results-section" 
+                                className="bg-white rounded-4 shadow-sm border-0 p-2 p-md-3" 
                                 ref={paginationContainerRef}
+                                style={{ minHeight: '400px' }}
                             >
-                                <div className="d-flex align-items-center justify-content-between mb-4">
+                                {/* <div className="d-flex align-items-center justify-content-between mb-3">
                                     <div>
-                                        {/* empty... */}
                                     </div>
-                                    <div className="d-flex align-items-center gap-3">
-                                        <div className="d-none d-md-flex align-items-center">
-                                            <div className="badge rounded-pill px-3 py-2 toolshed-live-badge">
-                                                <div className="d-flex align-items-center">
-                                                    <div className="rounded-circle me-2 toolshed-pulse-dot"></div>
-                                                    Live Intelligence
-                                                </div>
+                                    <div className="d-none d-md-flex align-items-center">
+                                        <div 
+                                            className="badge rounded-pill px-3 py-2"
+                                            style={{ backgroundColor: '#dcfce7', color: '#166534' }}
+                                        >
+                                            <div className="d-flex align-items-center">
+                                                <div 
+                                                    className="rounded-circle me-2 live-updates-pulse"
+                                                    style={{ 
+                                                        width: '6px', 
+                                                        height: '6px', 
+                                                        backgroundColor: '#22c55e'
+                                                    }}
+                                                ></div>
+                                                Live Updates
                                             </div>
                                         </div>
-                                        <button 
-                                            className="btn btn-outline-secondary btn-sm d-flex align-items-center"
-                                            onClick={() => setShowLabels(!showLabels)}
-                                            style={{
-                                                borderRadius: '8px',
-                                                transition: 'all 0.3s ease'
-                                            }}
-                                        >
-                                            <span className="material-symbols-outlined" style={{ fontSize: '16px', lineHeight: '1', verticalAlign: 'middle' }}>
-                                                {showLabels ? 'visibility_off' : 'visibility'}
-                                            </span>
-                                            <span className="ms-2">{showLabels ? 'Hide Labels' : 'Show Labels'}</span>
-                                        </button>
                                     </div>
-                                </div>
+                                </div> */}
                                 
                                 {/* Loading state or content */}
                                 {isloading && isloading !== 'pagination' ? (
@@ -332,7 +346,7 @@ const Toolshed = () => {
                                 )}
                                 
                                 {/* Pagination */}
-                                <div className="mt-4 pt-4 border-top">
+                                <div className="mt-4 pt-4">
                                     {(pagination.length > 0) && (
                                         <DefaultPagination 
                                             pagination={pagination} 
@@ -345,7 +359,7 @@ const Toolshed = () => {
                             
                             {/* Bottom Ad */}
                             <div className="my-4">
-                                <AdBanner slot="toolshed_bottom_banner" size="responsive" />
+                                {/* <AdBanner slot="toolshed_bottom_banner" size="responsive" /> */}
                             </div>
                         </div>
                     </Col>

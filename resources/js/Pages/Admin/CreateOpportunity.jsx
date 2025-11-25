@@ -11,6 +11,7 @@ import { Toast } from '@/utils/Index';
 import LexicalTextEditor from '@/Components/LexicalTextEditorComponent';
 import EditorJS from '@editorjs/editorjs';
 import QuillEditor from '@/Components/QuillEditorComponent';
+import ImageCropCompress from '@/Components/ImageCropCompress';
 
 
 
@@ -21,6 +22,8 @@ export default function CreateOpportunity({ edits, categories, brand_label, coun
     const [brandLabelOption, setBrandLabelOptions] = useState([]);
     const [countryOption, setCountryOptions] = useState([]);
     const [continentOption, setContinentOptions] = useState([]);
+    const [showImageModal, setShowImageModal] = useState(false);
+    const [imagePreview, setImagePreview] = useState(null);
 
     //..................................................
     // const [categoryEditOption, setEditCategoryOptions] = useState([]);
@@ -105,13 +108,13 @@ export default function CreateOpportunity({ edits, categories, brand_label, coun
             'image/jpg'
         ];
         
-        const maxSize = 1 * 1024 * 1024; // 1MB
+        const maxSize = 50 * 1024 * 1024; // 50MB
         
         // Check file size
         if (file.size > maxSize) {
             Toast.fire({
                 icon: 'warning',
-                title: 'File size exceeds 1MB limit',
+                title: 'File size exceeds 50MB limit',
                 swalConfig
             });
             e.target.value = '';
@@ -129,7 +132,23 @@ export default function CreateOpportunity({ edits, categories, brand_label, coun
             return;
         }
 
-        setFormData({...formData, cover_img: file});
+        // Open crop/compress modal instead of directly setting the file
+        setShowImageModal(true);
+        e.target.value = ''; // Reset input so user can select same file again if needed
+    };
+
+    const handleImageProcessed = (processedFile) => {
+        setFormData({...formData, cover_img: processedFile});
+        
+        // Create preview URL
+        const previewUrl = URL.createObjectURL(processedFile);
+        setImagePreview(previewUrl);
+        
+        Toast.fire({
+            icon: 'success',
+            title: 'Image processed successfully',
+            swalConfig
+        });
     };
 
     const handleSubmit = async (e) => {
@@ -204,6 +223,18 @@ export default function CreateOpportunity({ edits, categories, brand_label, coun
                                 <Form.Group className="mb-3">
                                     <Form.Label>Image:</Form.Label>
                                     <Form.Control type="file" name="cover_img" onChange={handleFileUpload} />
+                                    {imagePreview && (
+                                        <div className="mt-3">
+                                            <img 
+                                                src={imagePreview} 
+                                                alt="Preview" 
+                                                style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px' }}
+                                            />
+                                            <div className="mt-2">
+                                                <small className="text-success">✓ Image processed and ready to upload</small>
+                                            </div>
+                                        </div>
+                                    )}
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Title</Form.Label>
@@ -337,6 +368,14 @@ export default function CreateOpportunity({ edits, categories, brand_label, coun
                         </Col>
                     </Row>
                 </Container>
+
+                {/* Image Crop & Compress Modal */}
+                <ImageCropCompress
+                    show={showImageModal}
+                    onHide={() => setShowImageModal(false)}
+                    onImageProcessed={handleImageProcessed}
+                    aspectRatio={1}
+                />
             </AuthenticatedLayout>
         </>
     );

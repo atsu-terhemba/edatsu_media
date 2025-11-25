@@ -21,6 +21,7 @@ use App\Models\BrandLabel;
 use App\Models\Tag;
 use Inertia\Inertia;
 use Carbon\Carbon;
+use App\Notifications\ReminderNotification;
 
 class SubscriberController extends Controller
 {
@@ -598,6 +599,7 @@ class SubscriberController extends Controller
 
             $bookmark = Bookmark::where('id', $request->bookmark_id)
                 ->where('user_id', $user_id)
+                ->with('bookmarkable')
                 ->first();
 
             if (!$bookmark) {
@@ -611,6 +613,17 @@ class SubscriberController extends Controller
                 'reminder_date' => $request->reminder_date,
                 'reminder_sent' => false
             ]);
+
+            // Send notification (email + push + database)
+            $user = Auth::user();
+            $user->notify(new ReminderNotification(
+                'set',
+                $bookmark->bookmarkable->title ?? 'Unknown',
+                $request->reminder_date,
+                $bookmark->id,
+                $bookmark->bookmarkable_id,
+                $bookmark->bookmarkable->slug ?? null
+            ));
 
             return response()->json([
                 'status' => 'success', 
@@ -639,6 +652,7 @@ class SubscriberController extends Controller
 
             $bookmark = Bookmark::where('id', $request->bookmark_id)
                 ->where('user_id', $user_id)
+                ->with('bookmarkable')
                 ->first();
 
             if (!$bookmark) {
@@ -652,6 +666,17 @@ class SubscriberController extends Controller
                 'reminder_date' => $request->reminder_date,
                 'reminder_sent' => false
             ]);
+
+            // Send notification (email + push + database)
+            $user = Auth::user();
+            $user->notify(new ReminderNotification(
+                'updated',
+                $bookmark->bookmarkable->title ?? 'Unknown',
+                $request->reminder_date,
+                $bookmark->id,
+                $bookmark->bookmarkable_id,
+                $bookmark->bookmarkable->slug ?? null
+            ));
 
             return response()->json([
                 'status' => 'success', 

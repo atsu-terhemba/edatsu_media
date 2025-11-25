@@ -8,7 +8,7 @@ const DisplayOpportunities = ({ data, isAuthenticated }) => {
   const [loadedImages, setLoadedImages] = useState({});
 
   // Fallback image URL - replace with your actual fallback image
-  const fallbackImageUrl = "img/logo/main_2.png";
+  const fallbackImageUrl = "/img/logo/main_2.png";
 
   // Function to show authentication modal
   const showAuthModal = () => {
@@ -299,7 +299,7 @@ const stripAndTruncate = (html, maxLength = 150) => {
                   <div className="image-container py-3">
                     <Image
                       src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
-                      data-src={`storage/public/uploads/opp/${o.cover_img}`}
+                      data-src={`${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/uploads/opp/${o.cover_img}`}
                       data-id={imageId}
                       alt={`Cover image for ${o.title}`}
                       className="img-fluid w-100 h-100 object-fit-cover lazy-load rounded"

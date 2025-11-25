@@ -10,12 +10,13 @@ import StarRating from "@/Components/Rating";
 import { router } from '@inertiajs/react'
 import RecommendedContent from "@/Components/RecommendedContent";
 import CommentComponent from "@/Components/CommentComponent";
-import GoogleAdsense from '@/Components/GoogleAdsense';
+// import GoogleAdsense from '@/Components/GoogleAdsense';
 import FeedbackPanel from '@/Components/FeedbackInfo';
 import FixedMobileNav from '@/Components/FixedMobileNav';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import AdBanner from '@/Components/AdBanner';
+import { showOpportunitiesSubscriptionModal } from '@/Components/SubscriptionModal';
+// import AdBanner from '@/Components/AdBanner';
 
 const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
 
@@ -48,14 +49,23 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
 
         // Scroll tracking for floating bookmark
         const handleScroll = () => {
+            const contentElement = document.querySelector('.default-font-style');
+            if (!contentElement) return;
+            
             const scrollTop = window.pageYOffset;
-            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-            const scrollPercent = (scrollTop / docHeight) * 100;
+            const contentTop = contentElement.offsetTop;
+            const contentHeight = contentElement.offsetHeight;
+            const contentBottom = contentTop + contentHeight;
             
-            setScrollProgress(scrollPercent);
+            // Calculate progress within the content area only
+            const relativeScroll = scrollTop - contentTop;
+            const scrollPercent = (relativeScroll / contentHeight) * 100;
             
-            // Show floating bookmark after scrolling 20% and before reaching 95%
-            const shouldShow = scrollPercent > 20 && scrollPercent < 95;
+            setScrollProgress(Math.min(Math.max(scrollPercent, 0), 100));
+            
+            // Show floating bookmark when scrolling through content (20% to end of content)
+            const isInContentArea = scrollTop > contentTop && scrollTop < contentBottom;
+            const shouldShow = isInContentArea && scrollPercent > 20;
             setShowFloatingBookmark(shouldShow);
             
             // Add slight delay for smooth appearance
@@ -176,25 +186,23 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
             });
 
             if (response.data.success) {
-                // Success with SweetAlert
-                Swal.fire({
-                    title: 'Subscribed!',
-                    text: 'You\'ve been successfully subscribed to our newsletter. You\'ll receive the latest opportunities directly in your inbox.',
-                    icon: 'success',
-                    confirmButtonText: 'Great!',
-                    confirmButtonColor: '#0078d4',
-                    showClass: {
-                        popup: 'animate__animated animate__zoomIn animate__faster'
-                    },
-                    hideClass: {
-                        popup: 'animate__animated animate__zoomOut animate__faster'
-                    },
-                    customClass: {
-                        popup: 'swal-modern-popup',
-                        title: 'swal-modern-title',
-                        content: 'swal-modern-content',
-                        confirmButton: 'swal-modern-confirm'
+                // Success with Toast notification
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: "top-end",
+                    showConfirmButton: false,
+                    timer: 4000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer)
+                        toast.addEventListener('mouseleave', Swal.resumeTimer)
                     }
+                });
+
+                Toast.fire({
+                    icon: "success",
+                    title: "Successfully subscribed!",
+                    text: "You'll receive the latest opportunities in your inbox."
                 });
 
                 setShowSubscriptionModal(false);
@@ -216,24 +224,22 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                 errorMessage = error.response.data.message || 'This email is already subscribed.';
             }
 
-            Swal.fire({
-                title: 'Subscription Failed',
-                text: errorMessage,
-                icon: 'error',
-                confirmButtonText: 'Try Again',
-                confirmButtonColor: '#d13438',
-                showClass: {
-                    popup: 'animate__animated animate__shakeX animate__faster'
-                },
-                hideClass: {
-                    popup: 'animate__animated animate__fadeOut animate__faster'
-                },
-                customClass: {
-                    popup: 'swal-modern-popup',
-                    title: 'swal-modern-title',
-                    content: 'swal-modern-content',
-                    confirmButton: 'swal-modern-confirm'
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
                 }
+            });
+
+            Toast.fire({
+                icon: "error",
+                title: "Subscription Failed",
+                text: errorMessage
             });
         } finally {
             setIsSubmitting(false);
@@ -268,11 +274,11 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
     canonicalUrl={fullURL}
     ogTitle={opp_posts?.title}
     ogDescription={opp_posts?.meta_description}
-    ogImage={`/storage/public/uploads/opp/${opp_posts.cover_img}`}
+    ogImage={`${import.meta.env.VITE_R2_PUBLIC_URL || ''}/uploads/opp/${opp_posts.cover_img}`}
     ogUrl={fullURL}
     twitterTitle={opp_posts?.title}
     twitterDescription={opp_posts?.meta_description}
-    twitterImage={`/storage/public/uploads/opp/${opp_posts.cover_img}`}
+    twitterImage={`${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/uploads/opp/${opp_posts.cover_img}`}
 />
 
 {/* Floating Bookmark Button */}
@@ -329,11 +335,11 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
             <Col lg={8} md={12} sm={12}>
                 {/* Hero Section */}
                 <div className="border-0 mt-3">
-                    <div className="d-flex align-items-center mb-3">
+                    {/* <div className="d-flex align-items-center mb-3">
                         <span className="badge bg-dark text-white rounded-pill px-3 py-2">
                             Opportunity
                         </span>
-                    </div>
+                    </div> */}
                     <h1 className="text-m-0 p-0 fw-bold" style={{ fontSize: '2.5em' }}>
                         {opp_posts.title}
                     </h1>
@@ -359,7 +365,7 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
 
                 {/* Top Ad - After Hero */}
                 <div className="my-4">
-                    <AdBanner slot="opp_view_top" size="leaderboard" />
+                    {/* <AdBanner slot="opp_view_top" size="leaderboard" /> */}
                 </div>
 
                 {/* Google Ads */}
@@ -376,11 +382,12 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
 
                 {/* Cover Image */}
                 {opp_posts.cover_img && (
-                    <div className="image-container">
+                    <div className="image-container mb-5">
                         <img
-                            src={`/storage/public/uploads/opp/${opp_posts.cover_img}`}
-                            className="img-fluid"
+                            src={`${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/uploads/opp/${opp_posts.cover_img}`}
+                            className="w-100 rounded"
                             alt="Opportunity Cover"
+                            style={{ objectFit: 'cover', maxHeight: '500px' }}
                             onError={(e) => {
                                 if (!e.target.getAttribute('data-error-handled')) {
                                     e.target.setAttribute('data-error-handled', 'true');
@@ -393,14 +400,13 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                 )}
 
                 {/* Content Section */}
-                <div className="">
+                <div className="mb-5">
                     <div className="default-font-style" dangerouslySetInnerHTML={{ __html: opp_posts.description }}></div>
                 </div>
 
                 {/* Tags Section */}
-                <div className="mb-3">
+                <div className="mb-5">
                     <h5 className="fw-bold mb-3 d-flex align-items-center">
-                        <span className="material-symbols-outlined me-2 text-primary" style={{fontSize: '20px'}}>tag</span>
                         Categories & Locations
                     </h5>
                     <div className="tag-container">
@@ -411,7 +417,7 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="mb-3">
+                <div className="mb-5">
                     {/* <h5 className="fw-bold mb-4 text-center text-md-start">Take Action</h5> */}
                     <div className="">
                         <Row className="">
@@ -494,7 +500,7 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
 
                 {/* Mid-Content Ad */}
                 <div className="my-4">
-                    <AdBanner slot="opp_view_mid" size="responsive" />
+                    {/* <AdBanner slot="opp_view_mid" size="responsive" /> */}
                 </div>
           
 
@@ -506,37 +512,107 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
             <Col lg={4} md={12} sm={12}>
                 {/* Sidebar Ad - Desktop Only */}
                 <div className="mb-4 d-none d-lg-block">
-                    <AdBanner slot="opp_view_sidebar" size="medium-rectangle" />
+                    {/* <AdBanner slot="opp_view_sidebar" size="medium-rectangle" /> */}
+                </div>
+
+                {/* Subscribe Box */}
+                <div className='subscribe-box mb-4 border rounded px-3 py-3'>
+                    <h5 className="fw-bold mb-1">Subscribe</h5>
+                    <p className='fs-8 text-muted'>
+                        Subscribe to get funding & growth insights
+                    </p>
+                    <button
+                        onClick={showOpportunitiesSubscriptionModal}
+                        className="btn py-3 btn-primary w-100 mt-3 mb-0 d-flex align-items-center justify-content-center"
+                        style={{ borderRadius: '12px', fontWeight: '600', fontSize: '0.9rem' }}
+                    >
+                        Subscribe
+                    </button>
                 </div>
                 
-                {/* Telegram Community - Cool Message Button */}
-                <div className="telegram-community-container border-0">
-                    <div className="telegram-message-bubble border-0">
-                        <div className="message-header">
-                            <div className="avatar-container">
-                                <img 
-                                    src='/img/defaults/telegram_icon.png'
-                                    className="telegram-avatar" 
-                                    alt="Edatsu Community"
-                                />
-                                <div className="online-indicator"></div>
+                {/* Community Sections */}
+                {/* <div className="border rounded px-3 py-3 mb-4">
+                    <div className="" style={{marginBottom: '15px'}}>
+                        <div className="">
+                            <div className="message-header">
+                                <div className="avatar-container">
+                                    <img 
+                                        src='/img/defaults/telegram_icon.png'
+                                        className="telegram-avatar" 
+                                        alt="Telegram Community"
+                                    />
+                                    <div className="online-indicator"></div>
+                                </div>
+                                <div className="message-info">
+                                    <h6 className="username">Telegram Community</h6>
+                                    <span className="status">💬 Join the conversation</span>
+                                </div>
                             </div>
-                            <div className="message-info">
-                                <h6 className="username">Edatsu Community</h6>
-                                <span className="status">🔥 Active now</span>
+                            
+                            <div className="message-content">      
+                                <a 
+                                    href="https://t.me/+66AGIA3g2dwzMjc0" 
+                                    target="_blank"
+                                    className="telegram-join-btn"
+                                >
+                                    <span className="btn-text">Join Community Now</span>
+                                    <span className="btn-arrow">→</span>
+                                </a>
                             </div>
                         </div>
-                        
-                        <div className="message-content">      
-                            <a 
-                                href="https://t.me/+66AGIA3g2dwzMjc0" 
-                                target="_blank"
-                                className="telegram-join-btn"
-                            >
-                                <span className="btn-text">Join Community Now</span>
-                                <span className="btn-arrow">→</span>
-                            </a>
+                    </div>
+
+                    <div className="" style={{marginBottom: '15px'}}>
+                        <div className="">
+                            <div className="message-header">
+                                <div className="avatar-container">
+                                    <img 
+                                        src='/img/gif/icons8-whatsapp-50.png'
+                                        className="telegram-avatar" 
+                                        alt="WhatsApp Community"
+                                    />
+                                    <div className="online-indicator"></div>
+                                </div>
+                                <div className="message-info">
+                                    <h6 className="username">WhatsApp Community</h6>
+                                    <span className="status">💬 Join the conversation</span>
+                                </div>
+                            </div>
+                            
+                            <div className="message-content">      
+                                <a 
+                                    href="https://chat.whatsapp.com/YOUR_WHATSAPP_LINK" 
+                                    target="_blank"
+                                    className="telegram-join-btn"
+                                    style={{background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)'}}
+                                >
+                                    <span className="btn-text">Join WhatsApp Group</span>
+                                    <span className="btn-arrow">→</span>
+                                </a>
+                            </div>
                         </div>
+                    </div>
+                </div> */}
+
+                {/* Hostinger Ad */}
+                <div className="border rounded px-3 py-3 my-3">
+                    <div>
+                        <a target="_blank" 
+                        className='text-decoration-none'
+                        href="https://www.hostinger.com/cart?product=hosting%3Acloud_professional&period=12&referral_type=cart_link&REFERRALCODE=1ATSUDOMINI21&referral_id=0194e7a3-6593-739b-9f80-916a5e15e60c">
+                        <h5 className="poppins-semibold m-0 p-0 mb-2">
+                            Build a Powerful Business Website with Hostinger Cloud Professional
+                            <span className="text-primary"> $16.99/mo</span>
+                        </h5>
+                        <span className="badge text-bg-warning rounded-0 poppins-semibold text-uppercase mb-3">
+                            Limited Offer 20% OFF
+                        </span>
+                        <img 
+                            src='/img/main/hostinger.webp'
+                            className="img-fluid rounded" 
+                            alt="hostinger-ads"
+                        />
+                        </a>
                     </div>
                 </div>
 
@@ -546,8 +622,8 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                 </div> */}
             </Col>
         </Row>
-</Container>
-<FixedMobileNav isAuthenticated={(props.auth.user)? true : false} />
+    </Container>
+    <FixedMobileNav isAuthenticated={(props.auth.user)? true : false} />
 </GuestLayout>
         </>
     )

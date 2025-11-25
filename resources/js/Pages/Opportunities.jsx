@@ -14,14 +14,14 @@ import ThreadLoader from '@/Components/TheadLoader';
 import { useRef } from 'react';
 import FilterLabels from '@/Components/FilterSearchLabels';
 import FeedbackPanel from '@/Components/FeedbackInfo';
-import GoogleAdsense from '@/Components/GoogleAdsense';
+// import GoogleAdsense from '@/Components/GoogleAdsense';
 import { useContext } from 'react';
 import { AuthContext } from '@/Layouts/GuestLayout';
 import FixedMobileNav from '@/Components/FixedMobileNav';
-import { User, Search, Filter, TrendingUp, Globe, Target } from 'lucide-react';
+
 import { showOpportunitiesSubscriptionModal } from '@/Components/SubscriptionModal';
 import OpportunitiesSkeleton from '@/Components/OpportunitiesSkeleton';
-import AdBanner from '@/Components/AdBanner';
+// import AdBanner from '@/Components/AdBanner';
 
 const DisplayOpportunities = React.lazy(() => import('@/Components/DisplayOpportunities'));
 
@@ -235,10 +235,10 @@ const Opportunities = () => {
                                     <Target size={24} />
                                 </div> */}
                                 <div>
-                                    <h1 className="h3 fw-bold text-dark mb-1">
+                                    <h1 className="h3 text-dark mb-1">
                                         Opportunities
                                     </h1>
-                                    <p className="text-muted mb-0">
+                                    <p className="font-monospace text-secondary mb-0">
                                        Discover funding, grants & accelerators to launch and scale your vision
                                     </p>
                                 </div>
@@ -250,10 +250,10 @@ const Opportunities = () => {
                                     <TrendingUp size={16} className="me-1" />
                                     <small className="fw-semibold">Live Feed</small>
                                 </div> */}
-                                <div className="d-flex align-items-center text-primary px-3">
+                                {/* <div className="d-flex align-items-center text-primary px-3">
                                     <Globe size={16} className="me-1" />
                                     <small className="fw-semibold">Global Reach</small>
-                                </div>
+                                </div> */}
                             </div>
                         </Col>
                     </Row>
@@ -261,9 +261,9 @@ const Opportunities = () => {
             </section>
 
             {/* Top Leaderboard Ad */}
-            <div className="container my-4">
+            {/* <div className="container my-4">
                 <AdBanner slot="opportunities_top_leaderboard" size="large-leaderboard" />
-            </div>
+            </div> */}
 
             <Container fluid className="px-0">
                 <Row className="g-0">
@@ -282,9 +282,9 @@ const Opportunities = () => {
                                 top: '0'
                             }}
                         >
-                            <div className={`${isMobileSearchVisible ? 'p-3' : 'p-4'}`}>
+                            <div className={`${isMobileSearchVisible ? 'px-3 py-3' : 'px-3 py-3'}`}>
                                 <div className={`d-flex align-items-center ${isMobileSearchVisible ? 'mb-3' : 'mb-4'}`}>
-                                    <Filter size={20} className="text-primary me-2" />
+                                    <span className="material-symbols-outlined text-primary me-2" style={{fontSize: '20px'}}>filter_list</span>
                                     <h5 className="fw-bold mb-0">Filters</h5>
                                     {isMobileSearchVisible && (
                                         <button 
@@ -312,41 +312,18 @@ const Opportunities = () => {
                             
                             {/* Sidebar Ad - Desktop Only */}
                             <div className="px-4 pb-4 d-none d-lg-block">
-                                <AdBanner slot="opportunities_sidebar_ad" size="medium-rectangle" className="mb-3" />
+                                {/* <AdBanner slot="opportunities_sidebar_ad" size="medium-rectangle" className="mb-3" /> */}
                             </div>
                             
                             {/* Quick Links - Desktop Only */}
                             <div className="px-4 pb-4 d-none d-lg-block">
-                                <div 
-                                    className="p-3 rounded-3"
-                                    style={{ backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0' }}
-                                >
-                                   <h6 className="fw-semibold mb-3 text-dark">Quick Access</h6>
-                                    <div className="d-flex flex-column gap-2">
-                                        <Link 
-                                            href="/advertise" 
-                                            className="text-decoration-none fs-8 text-muted small fw-medium hover-primary"
-                                            style={{ transition: 'color 0.2s' }}
-                                        >
-                                        Advertise Opportunity
-                                        </Link>
-                                        <Link 
-                                            href="/help" 
-                                            className="text-decoration-none fs-8 text-muted small fw-medium hover-primary"
-                                            style={{ transition: 'color 0.2s' }}
-                                        >
-                                        Get Help
-                                        </Link>
-                                        <Link 
-                                            href="/terms" 
-                                            className="text-decoration-none fs-8 text-muted small fw-medium hover-primary"
-                                            style={{ transition: 'color 0.2s' }}
-                                        >
-                                        Terms & Conditions
-                                        </Link>
-                                    </div>
-                                </div>
-
+                            
+                        
+                        <div className='subscribe-box'>
+                         <h5 className="fw-bold mb-1">Subscribe</h5>
+                         <p className='fs-8 text-muted'>
+                         Subscribe to get funding & growth insights
+                         </p>
                          <button
                             onClick={showOpportunitiesSubscriptionModal}
                             className="btn py-3 btn-primary w-100 my-3 d-flex align-items-center justify-content-center"
@@ -357,6 +334,32 @@ const Opportunities = () => {
                             </span> */}
                             Subscribe
                             </button>
+                        </div>
+
+                                <div className="">
+                                        <Link 
+                                            href="/advertise" 
+                                            className="text-decoration-none fs-8 me-2 small fw-medium hover-primary"
+                                            style={{ transition: 'color 0.2s' }}
+                                        >
+                                        Advertise
+                                        </Link>
+                                        <Link 
+                                            href="/help" 
+                                            className="text-decoration-none fs-8 me-2 small fw-medium hover-primary"
+                                            style={{ transition: 'color 0.2s' }}
+                                        >
+                                       Help
+                                        </Link>
+                                        <Link 
+                                            href="/terms" 
+                                            className="text-decoration-none fs-8 small fw-medium hover-primary"
+                                            style={{ transition: 'color 0.2s' }}
+                                        >
+                                        Terms
+                                        </Link>
+                                    </div>
+
                             </div>
                         </div>
                     </Col>
@@ -380,9 +383,8 @@ const Opportunities = () => {
                                 ref={paginationContainerRef}
                                 style={{ minHeight: '400px' }}
                             >
-                                <div className="d-flex align-items-center justify-content-between mb-3">
+                                {/* <div className="d-flex align-items-center justify-content-between mb-3">
                                     <div>
-                                        {/* empty... */}
                                     </div>
                                     <div className="d-none d-md-flex align-items-center">
                                         <div 
@@ -402,7 +404,7 @@ const Opportunities = () => {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> */}
                                 
                                 {/* Loading state or content */}
                                 {isloading && isloading !== 'pagination' ? (
@@ -430,14 +432,15 @@ const Opportunities = () => {
                             
                             {/* Bottom Ad */}
                             <div className="my-4">
-                                <AdBanner slot="opportunities_bottom_banner" size="responsive" />
+                                {/* <AdBanner slot="opportunities_bottom_banner" size="responsive" /> */}
                             </div>
                         </div>
                     </Col>
                 </Row>
             </Container>
-                    {/* <Col sm={3} xs={12}> */}
-                        {/* <a 
+
+                    {/* <Col sm={3} xs={12}>
+                        <a 
                             href="https://t.me/+66AGIA3g2dwzMjc0" 
                             target="_blank"
                             style={{ color: "#249fda" }} 
@@ -488,8 +491,8 @@ const Opportunities = () => {
 
                         {/* <div className='my-3'>
                             <MailchimpSubscriptionForm />
-                        </div> */}
-                    {/* </Col> */}
+                        </div> 
+                    </Col> */}
             
             <FixedMobileNav isAuthenticated={(props.auth.user)? true : false} toggleSearch={toggleSearch} />
 

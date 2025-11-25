@@ -2,6 +2,7 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
+import { Form } from 'react-bootstrap';
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
 
@@ -18,81 +19,80 @@ export default function UpdateProfileInformation({
             email: user.email,
         });
 
-    const submit = (e) => {
-        e.preventDefault();
-
-        patch(route('profile.update'));
-    };
+    // const submit = (e) => {
+    //     e.preventDefault();
+    //     patch(route('profile.update'));
+    // };
 
     return (
         <section className={className}>
-            <header>
-                <h2 className="text-lg font-medium text-gray-900">
+            <div className="mb-3">
+                <h5 className="mb-1" style={{fontWeight: '600', color: '#1f2937'}}>
+                    <i className="bi bi-person me-2"></i>
                     Profile Information
-                </h2>
-
-                <p className="mt-1 text-sm text-gray-600">
-                    Update your account's profile information and email address.
+                </h5>
+                <p className="text-muted mb-0" style={{fontSize: '0.875rem'}}>
+                    View your account's profile information.
                 </p>
-            </header>
+            </div>
 
-            <form onSubmit={submit} className="mt-6 space-y-6">
-                <div>
-                    <InputLabel htmlFor="name" value="Name" />
-
-                    <TextInput
-                        id="name"
-                        className="mt-1 block w-full"
+            <Form className="mt-4">
+                <Form.Group className="mb-3">
+                    <Form.Label style={{fontWeight: '500', fontSize: '0.875rem'}}>Name</Form.Label>
+                    <Form.Control
+                        type="text"
                         value={data.name}
-                        onChange={(e) => setData('name', e.target.value)}
-                        required
-                        isFocused
-                        autoComplete="name"
+                        disabled
+                        style={{
+                            backgroundColor: '#f3f4f6',
+                            cursor: 'not-allowed',
+                            border: '1px solid #dee2e6',
+                            fontSize: '0.875rem'
+                        }}
                     />
+                    {errors.name && <Form.Text className="text-danger">{errors.name}</Form.Text>}
+                </Form.Group>
 
-                    <InputError className="mt-2" message={errors.name} />
-                </div>
-
-                <div>
-                    <InputLabel htmlFor="email" value="Email" />
-
-                    <TextInput
-                        id="email"
+                <Form.Group className="mb-3">
+                    <Form.Label style={{fontWeight: '500', fontSize: '0.875rem'}}>Email</Form.Label>
+                    <Form.Control
                         type="email"
-                        className="mt-1 block w-full"
                         value={data.email}
-                        onChange={(e) => setData('email', e.target.value)}
-                        required
-                        autoComplete="username"
+                        disabled
+                        style={{
+                            backgroundColor: '#f3f4f6',
+                            cursor: 'not-allowed',
+                            border: '1px solid #dee2e6',
+                            fontSize: '0.875rem'
+                        }}
                     />
-
-                    <InputError className="mt-2" message={errors.email} />
-                </div>
+                    {errors.email && <Form.Text className="text-danger">{errors.email}</Form.Text>}
+                </Form.Group>
 
                 {mustVerifyEmail && user.email_verified_at === null && (
-                    <div>
-                        <p className="mt-2 text-sm text-gray-800">
+                    <div className="alert alert-warning" role="alert">
+                        <p className="mb-2" style={{fontSize: '0.875rem'}}>
                             Your email address is unverified.
                             <Link
                                 href={route('verification.send')}
                                 method="post"
                                 as="button"
-                                className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                className="btn btn-link p-0 ms-1"
+                                style={{fontSize: '0.875rem'}}
                             >
                                 Click here to re-send the verification email.
                             </Link>
                         </p>
 
                         {status === 'verification-link-sent' && (
-                            <div className="mt-2 text-sm font-medium text-green-600">
-                                A new verification link has been sent to your
-                                email address.
+                            <div className="text-success" style={{fontSize: '0.875rem'}}>
+                                A new verification link has been sent to your email address.
                             </div>
                         )}
                     </div>
                 )}
 
-                <div className="flex items-center gap-4">
+                {/* <div className="d-flex align-items-center gap-3">
                     <PrimaryButton disabled={processing}>Save</PrimaryButton>
 
                     <Transition
@@ -102,12 +102,12 @@ export default function UpdateProfileInformation({
                         leave="transition ease-in-out"
                         leaveTo="opacity-0"
                     >
-                        <p className="text-sm text-gray-600">
+                        <p className="text-muted mb-0" style={{fontSize: '0.875rem'}}>
                             Saved.
                         </p>
                     </Transition>
-                </div>
-            </form>
+                </div> */}
+            </Form>
         </section>
     );
 }

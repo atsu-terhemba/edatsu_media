@@ -21,9 +21,21 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use App\Models\Product;
 use Inertia\Inertia;
 
+/**
+ * ProductController
+ * 
+ * Image Storage Structure:
+ * - User uploads are organized in user-specific folders
+ * - Path format: uploads/prod/{username}/{filename}
+ * - Spaces in usernames are replaced with underscores
+ * - Example: uploads/prod/John_Doe/abc123.jpg
+ * - Public/general images can be stored in: uploads/prod/public/
+ */
 class ProductController extends Controller
 {
     //
@@ -637,8 +649,15 @@ public function store(Request $request)
     if ($request->hasFile('cover_img') && $request->file('cover_img')->isValid()) {
         $file = $request->file('cover_img');
         $hashedFileName = $this->generateUniqueFileName($file);
-        $file->storeAs('public/uploads/prod', $hashedFileName);
-        $op->cover_img = $hashedFileName;
+        
+        // Get user-specific folder path
+        $userFolder = $this->getUserFolderPath(Auth::user()->name);
+        $uploadPath = 'uploads/prod/' . $userFolder . '/' . $hashedFileName;
+        
+        // Upload to Cloudflare R2
+        Storage::disk('r2')->put($uploadPath, file_get_contents($file));
+        
+        $op->cover_img = $userFolder . '/' . $hashedFileName;
     }
 
     // Populate model attributes
@@ -760,6 +779,15 @@ public function store(Request $request)
         $fileExtension = $file->getClientOriginalExtension();
         $uniqueHash = hash('sha256', $originalFileName . time());
         return $uniqueHash . '.' . $fileExtension;
+    }
+
+    /**
+     * Generate user-specific folder path from username
+     * Replaces spaces with underscores for clean directory names
+     */
+    private function getUserFolderPath($username)
+    {
+        return str_replace(' ', '_', $username);
     }
 
     function createSlug($title) {
@@ -1132,7 +1160,7 @@ public function store(Request $request)
                 'youtube_link' => 'nullable|url',
                 'meta_keywords' => 'nullable|string',
                 'meta_description' => 'nullable|string',
-                'cover_img' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+                'cover_img' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:51200',
                 'categories' => 'nullable|array',
                 'brand_labels' => 'nullable|array',
                 'tags' => 'nullable|array',
@@ -1141,14 +1169,24 @@ public function store(Request $request)
             // Handle image upload if provided
             if ($request->hasFile('cover_img')) {
                 // Delete old image if exists
-                if ($product->cover_img && file_exists(storage_path('app/public/public/uploads/prod/' . $product->cover_img))) {
-                    unlink(storage_path('app/public/public/uploads/prod/' . $product->cover_img));
+                if ($product->cover_img) {
+                    try {
+                        Storage::disk('r2')->delete('uploads/prod/' . $product->cover_img);
+                    } catch (\Exception $e) {
+                        // Log but don't fail if old image can't be deleted
+                        Log::warning('Could not delete old product image: ' . $e->getMessage());
+                    }
                 }
                 
                 $image = $request->file('cover_img');
                 $imageName = time() . '_' . $image->getClientOriginalName();
-                $image->storeAs('public/uploads/prod', $imageName);
-                $product->cover_img = $imageName;
+                
+                // Get user-specific folder path
+                $userFolder = $this->getUserFolderPath(Auth::user()->name);
+                $uploadPath = 'uploads/prod/' . $userFolder . '/' . $imageName;
+                
+                Storage::disk('r2')->put($uploadPath, file_get_contents($image));
+                $product->cover_img = $userFolder . '/' . $imageName;
             }
 
             // Update product fields
@@ -1166,7 +1204,6 @@ public function store(Request $request)
                 // Delete existing category selections
                 DB::table('category_selections')
                     ->where('post_id', $product->id)
-                    ->where('post_type', 'products')
                     ->delete();
                 
                 // Insert new categories
@@ -1176,6 +1213,7 @@ public function store(Request $request)
                             'post_id' => $product->id,
                             'category_id' => $category['value'] ?? $category,
                             'post_type' => 'products',
+                            'user_id' => Auth::id(),
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]);
@@ -1188,7 +1226,6 @@ public function store(Request $request)
                 // Delete existing brand label selections
                 DB::table('brand_labels_selections')
                     ->where('post_id', $product->id)
-                    ->where('post_type', 'products')
                     ->delete();
                 
                 // Insert new brand labels
@@ -1198,6 +1235,7 @@ public function store(Request $request)
                             'post_id' => $product->id,
                             'brand_label_id' => $brand['value'] ?? $brand,
                             'post_type' => 'products',
+                            'user_id' => Auth::id(),
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]);
@@ -1210,7 +1248,6 @@ public function store(Request $request)
                 // Delete existing tag selections
                 DB::table('tags_selections')
                     ->where('post_id', $product->id)
-                    ->where('post_type', 'products')
                     ->delete();
                 
                 // Insert new tags
@@ -1220,6 +1257,7 @@ public function store(Request $request)
                             'post_id' => $product->id,
                             'tag_id' => $tag['value'] ?? $tag,
                             'post_type' => 'products',
+                            'user_id' => Auth::id(),
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]);

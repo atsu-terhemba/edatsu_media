@@ -1476,6 +1476,41 @@ SKELETAL LOADER
     border: none !important;
 }
 
+/* Modern SweetAlert Styles */
+.swal-modern-popup {
+    border-radius: 16px !important;
+    padding: 2rem !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+.swal-modern-title {
+    font-size: 1.5rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.75rem !important;
+    color: #1f2937 !important;
+}
+
+.swal-modern-content {
+    font-size: 1rem !important;
+    color: #6b7280 !important;
+    margin-bottom: 1.5rem !important;
+}
+
+.swal-modern-confirm {
+    border-radius: 8px !important;
+    padding: 0.75rem 2rem !important;
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+    border: none !important;
+    transition: all 0.2s ease !important;
+}
+
+.swal-modern-confirm:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3) !important;
+}
+
 /* Modal animations */
 @keyframes fadeIn {
     from { opacity: 0; }
@@ -3151,15 +3186,14 @@ SKELETAL LOADER
 
 /* Modern Telegram Community Flat Design */
 .telegram-community-container {
-    margin-top: 2rem;
-    margin-bottom: 2rem;
+    margin: 0;
     padding: 0;
 }
 
 .telegram-message-bubble {
     background: white;
     border-radius: 12px;
-    padding: 24px;
+    padding: 0;
     position: relative;
     border: 1px solid #e5e7eb;
     /* transition: all 0.3s ease; */
@@ -4055,7 +4089,7 @@ SKELETAL LOADER
 .tool-card {
     background: white;
     border-radius: 4px;
-    padding: 1.5rem;
+    padding: 0.75rem;
     margin-bottom: 1.5rem;
     border: 1px solid #e1e5e9;
 }

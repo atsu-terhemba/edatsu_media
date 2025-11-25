@@ -18,10 +18,20 @@ use App\Models\Region;
 use App\Models\Continent;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Redis;
 
-
+/**
+ * OpportunityController
+ * 
+ * Image Storage Structure:
+ * - User uploads are organized in user-specific folders
+ * - Path format: uploads/opp/{username}/{filename}
+ * - Spaces in usernames are replaced with underscores
+ * - Example: uploads/opp/John_Doe/xyz789.jpg
+ * - Public/general images can be stored in: uploads/opp/public/
+ */
 class OpportunityController extends Controller
 {
     //...
@@ -596,8 +606,15 @@ function store(Request $request)
     if ($request->hasFile('cover_img') && $request->file('cover_img')->isValid()) {
         $file = $request->file('cover_img');
         $hashedFileName = $this->generateUniqueFileName($file);
-        $file->storeAs('public/uploads/opp', $hashedFileName);
-        $op->cover_img = $hashedFileName;
+        
+        // Get user-specific folder path
+        $userFolder = $this->getUserFolderPath(Auth::user()->name);
+        $uploadPath = 'uploads/opp/' . $userFolder . '/' . $hashedFileName;
+        
+        // Upload to Cloudflare R2
+        Storage::disk('r2')->put($uploadPath, file_get_contents($file));
+        
+        $op->cover_img = $userFolder . '/' . $hashedFileName;
     }
 
     // Populate model attributes
@@ -711,6 +728,15 @@ function store(Request $request)
         $fileExtension = $file->getClientOriginalExtension();
         $uniqueHash = hash('sha256', $originalFileName . time());
         return $uniqueHash . '.' . $fileExtension;
+    }
+
+    /**
+     * Generate user-specific folder path from username
+     * Replaces spaces with underscores for clean directory names
+     */
+    private function getUserFolderPath($username)
+    {
+        return str_replace(' ', '_', $username);
     }
    
    

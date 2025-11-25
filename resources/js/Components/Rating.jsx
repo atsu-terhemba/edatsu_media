@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Star } from 'lucide-react';
 import { Card, Form, Button } from 'react-bootstrap';
 import { Head, Link, usePage } from '@inertiajs/react';
 
@@ -39,15 +38,19 @@ const FeedbackComponent = ({ onSubmitFeedback, postID}) => {
     return (
       <div className="d-flex justify-content-center">
         {[1, 2, 3, 4, 5].map((star) => (
-          <Star
+          <span
             key={star}
-            size={32}
-            fill={star <= rating ? 'gold' : 'none'}
-            stroke={star <= rating ? 'gold' : 'gray'}
-            className="mx-1"
-            style={{cursor: 'pointer'}}
+            className="material-symbols-outlined mx-1"
+            style={{
+              fontSize: '32px',
+              cursor: 'pointer',
+              color: star <= rating ? 'gold' : 'gray',
+              fontVariationSettings: star <= rating ? '"FILL" 1' : '"FILL" 0'
+            }}
             onClick={() => handleStarClick(star)}
-          />
+          >
+            star
+          </span>
         ))}
       </div>
     );

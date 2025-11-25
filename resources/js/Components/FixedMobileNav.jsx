@@ -1,6 +1,5 @@
 import { Fragment, useState, useEffect } from "react";
 import { Link, usePage } from '@inertiajs/react';
-import { Menu, Search, User, Sun, Moon, Home, Briefcase, Settings, Wrench, Globe } from 'lucide-react';
 import FlatButton from './FlatButton';
 
 const FixedMobileNav = ({
@@ -144,28 +143,28 @@ const FixedMobileNav = ({
   const navItems = [
     {
       id: 'menu',
-      icon: Menu,
+      icon: 'menu',
       label: 'Menu',
       path: null,
       onClick: toggleMenuModal
     },
     {
       id: 'search',
-      icon: Search,
+      icon: 'search',
       label: 'Search',
       path: null,
       onClick: handleSearchClick
     },
     {
       id: 'theme',
-      icon: isDarkMode ? Sun : Moon,
+      icon: isDarkMode ? 'light_mode' : 'dark_mode',
       label: isDarkMode ? 'Light' : 'Dark',
       path: null,
       onClick: toggleMode
     },
     {
       id: 'profile',
-      icon: User,
+      icon: 'person',
       label: isAuthenticated ? 'Profile' : 'Login',
       path: isAuthenticated ? '/profile' : '/login',
       onClick: null
@@ -304,7 +303,6 @@ const FixedMobileNav = ({
         <div className="container-fluid px-4">
           <div className="row g-0">
             {navItems.map((item) => {
-              const IconComponent = item.icon;
               const isActive = item.path ? getHighlightClass(item.path) : false;
               
               const buttonContent = (
@@ -319,11 +317,15 @@ const FixedMobileNav = ({
                       transform: isActive ? 'scale(1.1)' : 'scale(1)'
                     }}
                   >
-                    <IconComponent 
-                      size={20} 
-                      color={isActive ? '#374151' : '#6b7280'}
-                      strokeWidth={2}
-                    />
+                    <span 
+                      className="material-symbols-outlined"
+                      style={{
+                        fontSize: '20px',
+                        color: isActive ? '#374151' : '#6b7280'
+                      }}
+                    >
+                      {item.icon}
+                    </span>
                   </div>
                   <span 
                     className="mt-1"

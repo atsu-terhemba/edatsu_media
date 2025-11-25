@@ -7,6 +7,7 @@ import { truncateText, ActiveLink } from "@/utils/Index";
 import { Images } from "@/utils/Images";
 import { Moon, Sun } from 'lucide-react';
 import axios from 'axios';
+import UserAvatar from '@/Components/UserAvatar';
 
 
 export default function Header({auth, isDarkMode, toggleDarkMode}){
@@ -95,7 +96,7 @@ return(
                         title="Notifications"
                         style={{ padding: '0.5rem' }}
                     >
-                        <i className="bi bi-bell" style={{fontSize: '1.3rem'}}></i>
+                        <span className="material-symbols-outlined" style={{fontSize: '1.5rem'}}>notifications</span>
                         {notificationCount > 0 && (
                             <Badge 
                                 bg="danger" 
@@ -141,15 +142,34 @@ return(
             </>
         )}
         
-        <NavDropdown title={truncateText(auth?.name, 10)}>
+        <NavDropdown 
+            title={
+                <div className="d-flex align-items-center gap-2" style={{ height: '40px' }}>
+                    <span className="d-flex align-items-center">{truncateText(auth?.name, 10)}</span>
+                    <UserAvatar user={auth} size={40} />
+                </div>
+            }
+            id="user-dropdown"
+            align="end"
+        >
             {(auth?.role == 'subscriber')?
+            <>
             <NavDropdown.Item as={Link} href={route('subscriber.dashboard')} className="fs-9">     
+            Dashboard
+            </NavDropdown.Item>
+            <NavDropdown.Item as={Link} href={route('profile.edit')} className="fs-9">     
             Profile
             </NavDropdown.Item>
+            </>
             :
+            <>
             <NavDropdown.Item as={Link} href={route('admin.dashboard')} className="fs-9">     
+            Dashboard
+            </NavDropdown.Item>
+            <NavDropdown.Item as={Link} href={route('profile.edit')} className="fs-9">     
             Profile
             </NavDropdown.Item>
+            </>
             }
 
             <NavDropdown.Item as={Link} method="post" href={route('logout')} className="fs-9" >

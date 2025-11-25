@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Slider from 'react-slick';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { Link } from '@inertiajs/react';
@@ -130,7 +129,7 @@ const RecommendedContent = ({similarPosts = []}) => {
             <Slider ref={sliderRef} {...settings} className="blog-carousel mb-5 row">
               {similarPosts?.map(post => {
                 const cleanText = post.description;
-                const imageUrl = `/storage/public/uploads/opp/${post.cover_img}`;
+                const imageUrl = `${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/uploads/opp/${post.cover_img}`;
                 const coverImage = loadedImages[post.id] || defaultImage;
                 
                 // Load the image if not already loaded
@@ -141,13 +140,30 @@ const RecommendedContent = ({similarPosts = []}) => {
                 return (
                   <div key={post.id} className="col-sm-4">
                     <div className="px-1" style={{ height: '380px' }}>
-                      <img 
-                        src={coverImage}
-                        loading="lazy"
-                        className="w-100 object-cover rounded mb-3 border"
-                        alt={post.title}
-                        onError={() => handleImageError(post.id)}
-                      />
+                      <div style={{ 
+                        width: '100%', 
+                        height: '250px', 
+                        overflow: 'hidden', 
+                        borderRadius: '8px',
+                        marginBottom: '12px'
+                      }}>
+                        <img 
+                          src={coverImage}
+                          loading="lazy"
+                          className="rounded border"
+                          alt={post.title}
+                          onError={() => handleImageError(post.id)}
+                          style={{
+                            width: '500px',
+                            height: '250px',
+                            objectFit: 'cover',
+                            transition: 'transform 0.3s ease',
+                            cursor: 'pointer'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        />
+                      </div>
                       <h6 className="poppins-semibold m-0 p-0 mb-2">
                         <Link
                           href={`/op/${post.id}/${post.slug}`} 

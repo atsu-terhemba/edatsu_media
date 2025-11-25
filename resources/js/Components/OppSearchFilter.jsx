@@ -131,11 +131,11 @@ const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_dat
 
             <div className="py-3 px-3 border bg-white rounded d-flex justify-content-between">
                 <div>
-                    <span className="material-symbols-outlined align-middle">
+                    {/* <span className="material-symbols-outlined align-middle">
                         filter_alt
-                    </span>
-                    <span className="fs-9 text-dark px-3">
-                        Search filters
+                    </span> */}
+                    <span className="fs-9 text-dark">
+                      Toggle  Filters
                     </span>
                 </div>
                 <span

@@ -11,6 +11,7 @@ import { Toast } from '@/utils/Index';
 // import LexicalTextEditor from '@/Components/LexicalTextEditorComponent';
 // import EditorJS from '@editorjs/editorjs';
 import QuillEditor from '@/Components/QuillEditorComponent';
+import ImageCropCompress from '@/Components/ImageCropCompress';
 
 
 
@@ -20,6 +21,7 @@ export default function CreateProduct({ edits, categories, brand_label, /* count
     const [categoryOption, setCategoryOptions] = useState([]);
     const [tagOption, setTagOptions] = useState([]);
     const [brandLabelOption, setBrandLabelOptions] = useState([]);
+    const [showImageModal, setShowImageModal] = useState(false);
     // const [countryOption, setCountryOptions] = useState([]);
     // const [continentOption, setContinentOptions] = useState([]);
 
@@ -166,13 +168,13 @@ export default function CreateProduct({ edits, categories, brand_label, /* count
             'image/jpg'
         ];
         
-        const maxSize = 1 * 1024 * 1024; // 1MB
+        const maxSize = 50 * 1024 * 1024; // 50MB
         
         // Check file size
         if (file.size > maxSize) {
             Toast.fire({
                 icon: 'warning',
-                title: 'File size exceeds 1MB limit',
+                title: 'File size exceeds 50MB limit',
                 swalConfig
             });
             e.target.value = '';
@@ -190,15 +192,27 @@ export default function CreateProduct({ edits, categories, brand_label, /* count
             return;
         }
 
+        // Open crop/compress modal instead of directly setting the file
+        setShowImageModal(true);
+        e.target.value = ''; // Reset input
+    };
+
+    const handleImageProcessed = (processedFile) => {
         // Clean up existing preview URL before creating new one
         if (imagePreview) {
             URL.revokeObjectURL(imagePreview);
         }
 
         // Create preview URL
-        const previewUrl = URL.createObjectURL(file);
+        const previewUrl = URL.createObjectURL(processedFile);
         setImagePreview(previewUrl);
-        setFormData({...formData, cover_img: file});
+        setFormData({...formData, cover_img: processedFile});
+        
+        Toast.fire({
+            icon: 'success',
+            title: 'Image processed successfully',
+            swalConfig
+        });
     };
 
     const handleSubmit = async (e) => {
@@ -306,7 +320,7 @@ export default function CreateProduct({ edits, categories, brand_label, /* count
                                                 style={{ maxWidth: '200px' }}
                                             >
                                                 <img 
-                                                    src={imagePreview || `/storage/public/uploads/prod/${existingImage}`}
+                                                    src={imagePreview || `${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/uploads/prod/${existingImage}`}
                                                     alt="Preview" 
                                                     className="img-fluid rounded"
                                                     style={{ maxHeight: '150px', maxWidth: '100%' }}
@@ -325,7 +339,7 @@ export default function CreateProduct({ edits, categories, brand_label, /* count
                                         accept="image/png,image/jpeg,image/jpg"
                                     />
                                     <Form.Text className="text-muted">
-                                        Accepted formats: PNG, JPEG, JPG. Max size: 1MB
+                                        Accepted formats: PNG, JPEG, JPG. Max size: 50MB
                                     </Form.Text>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
@@ -483,6 +497,14 @@ export default function CreateProduct({ edits, categories, brand_label, /* count
                         </Col>
                     </Row>
                 </Container>
+
+                {/* Image Crop & Compress Modal */}
+                <ImageCropCompress
+                    show={showImageModal}
+                    onHide={() => setShowImageModal(false)}
+                    onImageProcessed={handleImageProcessed}
+                    aspectRatio={1}
+                />
             </AuthenticatedLayout>
         </>
     );

@@ -1,39 +1,57 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
+import { Container, Row, Col, Card } from 'react-bootstrap';
 import DeleteUserForm from './Partials/DeleteUserForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
+import UpdateProfilePhotoForm from './Partials/UpdateProfilePhotoForm';
 
 export default function Edit({ mustVerifyEmail, status }) {
     return (
-        <AuthenticatedLayout
-            header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Profile
-                </h2>
-            }
-        >
+        <AuthenticatedLayout>
             <Head title="Profile" />
 
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
-                    <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8">
-                        <UpdateProfileInformationForm
-                            mustVerifyEmail={mustVerifyEmail}
-                            status={status}
-                            className="max-w-xl"
-                        />
-                    </div>
+            <Container fluid={true}>
+                <Container>
+                    <Row className="justify-content-center">
+                        <Col lg={8}>
+                            <div className='py-3 rounded my-3 px-3' style={{border: '1px solid #dee2e6'}}>
+                                <div className='d-flex justify-content-between align-items-center'>
+                                    <h4 className='m-0 fw-bold'>Profile Settings</h4>
+                                    <i className='bi bi-person-circle text-primary' style={{fontSize: '1.5rem'}}></i>
+                                </div>
+                            </div>
 
-                    <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8">
-                        <UpdatePasswordForm className="max-w-xl" />
-                    </div>
+                            <Card className="mb-3" style={{border: '1px solid #dee2e6', boxShadow: 'none'}}>
+                                <Card.Body className="p-4">
+                                    <UpdateProfilePhotoForm />
+                                </Card.Body>
+                            </Card>
 
-                    <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8">
-                        <DeleteUserForm className="max-w-xl" />
-                    </div>
-                </div>
-            </div>
+                            <Card className="mb-3" style={{border: '1px solid #dee2e6', boxShadow: 'none'}}>
+                                <Card.Body className="p-4">
+                                    <UpdateProfileInformationForm
+                                        mustVerifyEmail={mustVerifyEmail}
+                                        status={status}
+                                    />
+                                </Card.Body>
+                            </Card>
+
+                            <Card className="mb-3" style={{border: '1px solid #dee2e6', boxShadow: 'none'}}>
+                                <Card.Body className="p-4">
+                                    <UpdatePasswordForm />
+                                </Card.Body>
+                            </Card>
+
+                            <Card className="mb-3" style={{border: '1px solid #dee2e6', boxShadow: 'none'}}>
+                                <Card.Body className="p-4">
+                                    <DeleteUserForm />
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    </Row>
+                </Container>
+            </Container>
         </AuthenticatedLayout>
     );
 }

@@ -13,6 +13,7 @@ import axios from 'axios';
  * @param {string} options.loadingText - Loading button text (default: "Subscribing...")
  * @param {string} options.modalClass - Custom CSS class for modal styling (default: "subscription-modal-popup")
  * @param {string} options.endpoint - API endpoint for subscription (default: "/subscribe")
+ * @param {string} options.subscriptionType - Type of subscription: 'opportunities' or 'tools' (optional)
  */
 export const showSubscriptionModal = (options = {}) => {
     const {
@@ -24,7 +25,8 @@ export const showSubscriptionModal = (options = {}) => {
         submitButtonText = "Subscribe Now",
         loadingText = "Subscribing...",
         modalClass = "subscription-modal-popup",
-        endpoint = "/subscribe"
+        endpoint = "/subscribe",
+        subscriptionType = null
     } = options;
 
     Swal.fire({
@@ -96,23 +98,31 @@ export const showSubscriptionModal = (options = {}) => {
                     const response = await axios.post(endpoint, {
                         first_name: firstName,
                         last_name: lastName,
-                        email: email
+                        email: email,
+                        subscription_type: subscriptionType // Include subscription type (opportunities/tools)
                     });
                     
                     if (response.data.success) {
-                        Swal.fire({
-                            title: successTitle,
-                            text: successMessage,
-                            icon: 'success',
-                            confirmButtonText: 'Great!',
-                            confirmButtonColor: '#3b82f6',
-                            buttonsStyling: false,
-                            customClass: {
-                                popup: 'compact-swal-popup',
-                                title: 'compact-swal-title',
-                                content: 'compact-swal-content',
-                                confirmButton: 'compact-swal-button compact-swal-button-success'
+                        // Close the modal first
+                        Swal.close();
+                        
+                        // Show toast notification
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: "top-end",
+                            showConfirmButton: false,
+                            timer: 4000,
+                            timerProgressBar: true,
+                            didOpen: (toast) => {
+                                toast.addEventListener('mouseenter', Swal.stopTimer)
+                                toast.addEventListener('mouseleave', Swal.resumeTimer)
                             }
+                        });
+
+                        Toast.fire({
+                            icon: "success",
+                            title: successTitle,
+                            text: successMessage
                         });
                     }
                 } catch (error) {
@@ -132,19 +142,23 @@ export const showSubscriptionModal = (options = {}) => {
                         errorMessage = error.response.data.message;
                     }
                     
-                    Swal.fire({
-                        title: 'Subscription Failed',
-                        text: errorMessage,
-                        icon: 'error',
-                        confirmButtonText: 'Try Again',
-                        confirmButtonColor: '#ef4444',
-                        buttonsStyling: false,
-                        customClass: {
-                            popup: 'compact-swal-popup',
-                            title: 'compact-swal-title',
-                            content: 'compact-swal-content',
-                            confirmButton: 'compact-swal-button compact-swal-button-error'
+                    // Show toast notification for error
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: "top-end",
+                        showConfirmButton: false,
+                        timer: 4000,
+                        timerProgressBar: true,
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer)
+                            toast.addEventListener('mouseleave', Swal.resumeTimer)
                         }
+                    });
+
+                    Toast.fire({
+                        icon: "error",
+                        title: "Subscription Failed",
+                        text: errorMessage
                     });
                     
                     // Reset button
@@ -161,139 +175,19 @@ export const showToolsSubscriptionModal = () => {
     showSubscriptionModal({
         description: "Get the latest tools delivered to your inbox",
         successMessage: "You'll receive the latest tools and updates directly in your inbox.",
-        modalClass: "subscription-modal-popup"
+        modalClass: "subscription-modal-popup",
+        subscriptionType: "tools"
     });
 };
 
 export const showOpportunitiesSubscriptionModal = () => {
-    Swal.fire({
-        title: '',
-        html: `
-            <div style="text-align: center; padding: 20px;">
-                <h3 style="font-weight: bold; margin-bottom: 0.5rem; color: #1f2937; font-size: 1.25rem;">Subscribe</h3>
-                <p style="margin-bottom: 20px; color: #6b7280; font-size: 14px; line-height: 1.4;">
-                    Get opportunities delivered to your inbox
-                </p>
-                            
-                <form id="subscription-form" style="display: flex; flex-direction: column; gap: 12px; max-width: 320px; margin: 0 auto;">
-                    <input type="text" id="firstName" name="firstName" placeholder="First name" required
-                           style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.625rem 0.875rem; font-size: 0.875rem; background: #fafbfc; transition: all 0.2s ease;"
-                           onfocus="this.style.borderColor='#3b82f6'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.08)'"
-                           onblur="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='#fafbfc'; this.style.boxShadow='none'">
-                    
-                    <input type="text" id="lastName" name="lastName" placeholder="Last name" required
-                           style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.625rem 0.875rem; font-size: 0.875rem; background: #fafbfc; transition: all 0.2s ease;"
-                           onfocus="this.style.borderColor='#3b82f6'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.08)'"
-                           onblur="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='#fafbfc'; this.style.boxShadow='none'">
-                    
-                    <input type="email" id="email" name="email" placeholder="your@email.com" required
-                           style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.625rem 0.875rem; font-size: 0.875rem; background: #fafbfc; transition: all 0.2s ease;"
-                           onfocus="this.style.borderColor='#3b82f6'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.08)'"
-                           onblur="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='#fafbfc'; this.style.boxShadow='none'">
-                    
-                    <button type="submit" id="subscribe-btn"
-                            style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; border: none; border-radius: 8px; padding: 0.625rem 1rem; font-weight: 600; font-size: 0.875rem; transition: all 0.2s ease; cursor: pointer;"
-                            onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(59, 130, 246, 0.4)'"
-                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                        Subscribe
-                    </button>
-                </form>
-                
-                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
-                    <p style="color: #6b7280; font-size: 12px; margin: 0;">
-                        Secure •  Free Forever • Instant Access
-                    </p>
-                    <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0 0;">
-                        By subscribing, you agree to our Terms of Service and Privacy Policy
-                    </p>
-                </div>
-            </div>
-        `,
-        showConfirmButton: false,
-        showCloseButton: true,
-        width: '480px',
-        padding: '0',
-        background: 'white',
-        customClass: {
-            popup: 'auth-modal-popup',
-            closeButton: 'auth-modal-close'
-        },
-        didOpen: () => {
-            const form = document.getElementById('subscription-form');
-            const subscribeBtn = document.getElementById('subscribe-btn');
-            
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const firstName = document.getElementById('firstName').value;
-                const lastName = document.getElementById('lastName').value;
-                const email = document.getElementById('email').value;
-                
-                // Disable button and show loading state
-                subscribeBtn.disabled = true;
-                subscribeBtn.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; gap: 8px;"><div style="width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite;"></div>Subscribing...</div>';
-                
-                try {
-                    const response = await axios.post('/subscribe', {
-                        first_name: firstName,
-                        last_name: lastName,
-                        email: email
-                    });
-
-                    if (response.data.success) {
-                        Swal.fire({
-                            title: 'Subscribed!',
-                            text: "You'll receive opportunities in your inbox",
-                            iconHtml: '<div style="width: 32px; height: 32px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; font-weight: bold; margin: 0;">✓</div>',
-                            confirmButtonText: 'Perfect!',
-                            confirmButtonColor: '#10b981',
-                            buttonsStyling: false,
-                            customClass: {
-                                popup: 'compact-swal-popup',
-                                title: 'compact-swal-title',
-                                content: 'compact-swal-content',
-                                confirmButton: 'compact-swal-button'
-                            },
-                            timer: 3000,
-                            timerProgressBar: true
-                        });
-                    }
-                } catch (error) {
-                    console.error('Subscription error:', error);
-                    
-                    let errorMessage = 'Something went wrong. Please try again.';
-                    
-                    if (error.response && error.response.status === 422) {
-                        const errors = error.response.data.errors;
-                        if (errors) {
-                            errorMessage = error.response.data.first_error || Object.values(errors)[0][0];
-                        }
-                    } else if (error.response && error.response.status === 409) {
-                        errorMessage = error.response.data.message || 'This email is already subscribed.';
-                    } else if (error.response && error.response.data && error.response.data.message) {
-                        errorMessage = error.response.data.message;
-                    }
-                    
-                    Swal.fire({
-                        text: errorMessage,
-                        iconHtml: '<div style="width: 32px; height: 32px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; font-weight: bold; margin: 0;">✕</div>',
-                        confirmButtonText: 'Retry',
-                        confirmButtonColor: '#ef4444',
-                        buttonsStyling: false,
-                        customClass: {
-                            popup: 'compact-swal-popup',
-                            title: 'compact-swal-title',
-                            content: 'compact-swal-content',
-                            confirmButton: 'compact-swal-button compact-swal-button-error'
-                        }
-                    });
-                    
-                    // Reset button
-                    subscribeBtn.disabled = false;
-                    subscribeBtn.innerHTML = 'Subscribe';
-                }
-            });
-        }
+    showSubscriptionModal({
+        description: "Get opportunities delivered to your inbox",
+        successTitle: "Subscribed!",
+        successMessage: "You'll receive opportunities in your inbox",
+        submitButtonText: "Subscribe",
+        modalClass: "auth-modal-popup",
+        subscriptionType: "opportunities"
     });
 };
 

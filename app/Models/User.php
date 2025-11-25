@@ -20,6 +20,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $fillable = [
         'name',
         'email',
+        'profile_photo_path',
         'role',
         'password',
         'last_seen_at',
@@ -145,5 +146,31 @@ class User extends Authenticatable implements MustVerifyEmail
             'user_agent' => $userAgent,
             'device_name' => $os . ' - ' . $browser
         ]);
+    }
+
+    /**
+     * Route notifications for the custom database channel.
+     */
+    public function routeNotificationForDatabase()
+    {
+        return $this->hasMany(\App\Models\Notification::class, 'user_id');
+    }
+
+    /**
+     * Get user's notifications relationship
+     */
+    public function notifications()
+    {
+        return $this->hasMany(\App\Models\Notification::class, 'user_id')->latest();
+    }
+
+    /**
+     * Get user's unread notifications
+     */
+    public function unreadNotifications()
+    {
+        return $this->hasMany(\App\Models\Notification::class, 'user_id')
+            ->where('is_read', false)
+            ->latest();
     }
 }

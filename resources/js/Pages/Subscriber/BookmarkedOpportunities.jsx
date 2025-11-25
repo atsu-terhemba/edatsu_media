@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Container, Row, Col, Card, Badge, Button, Modal, Form, Dropdown } from 'react-bootstrap';
+import { Container, Row, Col, Card, Badge, Button, Modal, Form, Dropdown, Alert } from 'react-bootstrap';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import SubscriberSideNav from './Components/SideNav';
@@ -13,6 +13,7 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
     const [showReminderModal, setShowReminderModal] = useState(false);
     const [selectedBookmark, setSelectedBookmark] = useState(null);
     const [reminderDate, setReminderDate] = useState('');
+    const [filter, setFilter] = useState('all'); // 'all', 'active', 'expired'
 
     const Toast = Swal.mixin({
         toast: true,
@@ -70,10 +71,14 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
 
         try {
             const endpoint = selectedBookmark.reminder_date ? '/update-bookmark-reminder' : '/set-bookmark-reminder';
+            console.log('Setting reminder:', { endpoint, bookmark_id: selectedBookmark.id, reminder_date: reminderDate });
+            
             const response = await axios.post(endpoint, {
                 bookmark_id: selectedBookmark.id,
                 reminder_date: reminderDate
             });
+
+            console.log('Reminder response:', response.data);
 
             if (response.data.status === 'success') {
                 // Update the local state
@@ -97,14 +102,15 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
             } else {
                 Toast.fire({
                     icon: "error",
-                    title: response.data.message
+                    title: response.data.message || "Failed to set reminder"
                 });
             }
         } catch (error) {
             console.error('Error setting reminder:', error);
+            console.error('Error response:', error.response?.data);
             Toast.fire({
                 icon: "error",
-                title: "Error setting reminder"
+                title: error.response?.data?.message || "Error setting reminder"
             });
         }
     };
@@ -171,11 +177,11 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
         if (diffDays < 0) {
-            return { status: 'expired', color: 'danger', icon: 'x-circle', text: 'Expired' };
+            return { status: 'expired', color: 'danger', icon: 'cancel', text: 'Expired' };
         } else if (diffDays <= 7) {
-            return { status: 'expiring', color: 'warning', icon: 'exclamation-triangle', text: 'Expiring Soon' };
+            return { status: 'expiring', color: 'warning', icon: 'warning', text: 'Expiring Soon' };
         } else {
-            return { status: 'active', color: 'success', icon: 'check-circle', text: 'Active' };
+            return { status: 'active', color: 'success', icon: 'check_circle', text: 'Active' };
         }
     };
 
@@ -185,6 +191,18 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                 <style dangerouslySetInnerHTML={{__html: `
                     .last-child-no-border:last-child {
                         border-bottom: none !important;
+                    }
+                    .custom-dropdown-toggle::after {
+                        display: none !important;
+                    }
+                    .opportunity-card {
+                        position: relative;
+                    }
+                    .opportunity-card .dropdown.show {
+                        z-index: 9999 !important;
+                    }
+                    .opportunity-card .dropdown-menu {
+                        z-index: 10000 !important;
                     }
                 `}} />
             </Head>
@@ -198,39 +216,84 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                             </div>
                         </Col>
                         <Col sm={6}>
-                            <div className='mb-3 py-3 rounded' style={{border: '1px solid #dee2e6'}}>
+                            <div className='mb-3 py-3 rounded px-3 mt-3' style={{border: '1px solid #dee2e6'}}>
                                 <div className='d-flex justify-content-between align-items-center flex-wrap gap-3'>
                                     <div className='flex-grow-1'>
-                                        <h4 className='m-0 mb-1' style={{fontWeight: 'normal'}}>
+                                        <h4 className='m-0 mb-1 fw-bold' style={{fontWeight: 'normal'}}>
                                             Bookmarked Opportunities
                                         </h4>
                                         <small className='text-muted'>Track and manage your saved opportunities</small>
                                     </div>
                                     <Badge bg="light" text="dark" className='px-3 py-2' style={{border: '1px solid #dee2e6'}}>
-                                        <i className='bi bi-collection me-1'></i>
+                                        <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>collections_bookmark</span>
                                         {opportunities.total || 0} Total
                                     </Badge>
                                 </div>
                             </div>
+
+                            <div className='mb-3 d-flex gap-2'>
+                                <Button 
+                                    size="sm" 
+                                    variant={filter === 'all' ? 'primary' : 'outline-secondary'}
+                                    onClick={() => setFilter('all')}
+                                    style={{borderRadius: '4px', padding: '6px 12px'}}
+                                >
+                                    <span className='material-symbols-outlined me-1' style={{fontSize: '16px', verticalAlign: 'middle'}}>list</span>
+                                    All
+                                </Button>
+                                <Button 
+                                    size="sm" 
+                                    variant={filter === 'active' ? 'success' : 'outline-secondary'}
+                                    onClick={() => setFilter('active')}
+                                    style={{borderRadius: '4px', padding: '6px 12px'}}
+                                >
+                                    <span className='material-symbols-outlined me-1' style={{fontSize: '16px', verticalAlign: 'middle'}}>check_circle</span>
+                                    Active
+                                </Button>
+                                <Button 
+                                    size="sm" 
+                                    variant={filter === 'expired' ? 'danger' : 'outline-secondary'}
+                                    onClick={() => setFilter('expired')}
+                                    style={{borderRadius: '4px', padding: '6px 12px'}}
+                                >
+                                    <span className='material-symbols-outlined me-1' style={{fontSize: '16px', verticalAlign: 'middle'}}>cancel</span>
+                                    Expired
+                                </Button>
+                            </div>
+{/* 
+                            <Alert variant="danger" className="mb-4">
+                            <p className='fw-bold mb-0 fs-9 font-monospace'>Important</p>
+                            <small className='font-monospace'>This page is currently under development. Some features may not be fully functional yet.</small>
+                            </Alert> */}
+
                             <div>
-                                
                                 {loading ? (
                                     <BookmarksSkeleton count={5} />
                                 ) : opportunities.data && opportunities.data.length > 0 ? (
                                     <div>
-                                        {opportunities.data.map((bookmark) => (
+                                        {opportunities.data
+                                            .filter(bookmark => {
+                                                if (filter === 'all') return true;
+                                                const status = getDeadlineStatus(bookmark.opportunity?.deadline).status;
+                                                if (filter === 'active') return status !== 'expired';
+                                                if (filter === 'expired') return status === 'expired';
+                                                return true;
+                                            })
+                                            .map((bookmark, index) => (
                                             <Card 
                                                 key={bookmark.id} 
                                                 className='mb-3 opportunity-card'
                                                 style={{
                                                     border: '1px solid #dee2e6',
-                                                    boxShadow: 'none'
+                                                    boxShadow: 'none',
+                                                    position: 'relative',
+                                                    zIndex: opportunities.data.length - index
                                                 }}
                                             >
                                                 <Card.Body className='p-3'>
                                                     <div className='d-flex align-items-start justify-content-between'>
                                                         <div className='flex-grow-1'>
-                                                            <h6 className='mb-2'>
+                                                            <h6 className='mb-2' style={{fontSize: '0.9em'}}>
                                                                 <Link 
                                                                     href={`/op/${bookmark.opportunity?.id}/${bookmark.opportunity?.slug}`}
                                                                     className='text-decoration-none text-dark'
@@ -238,61 +301,98 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                                                                     {bookmark.opportunity?.title}
                                                                 </Link>
                                                             </h6>
+
+
                                                             <div className='d-flex align-items-center gap-2 flex-wrap mb-2'>
-                                                                <Badge bg="light" text="dark" className='border'>
-                                                                    <i className='bi bi-calendar3 me-1'></i>
+                                                                <span className='badge' style={{
+                                                                    background: '#667eea',
+                                                                    color: 'white',
+                                                                    padding: '4px 10px',
+                                                                    borderRadius: '4px',
+                                                                    fontSize: '0.75rem',
+                                                                    fontWeight: '500'
+                                                                }}>
+                                                                    <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>calendar_month</span>
                                                                     {formatDate(bookmark.opportunity?.deadline)}
-                                                                </Badge>
-                                                                <Badge bg={getDeadlineStatus(bookmark.opportunity?.deadline).color}>
-                                                                    <i className={`bi bi-${getDeadlineStatus(bookmark.opportunity?.deadline).icon} me-1`}></i>
+                                                                </span>
+                                                                <span className='badge' style={{
+                                                                    background: getDeadlineStatus(bookmark.opportunity?.deadline).status === 'expired' 
+                                                                        ? '#f5576c'
+                                                                        : getDeadlineStatus(bookmark.opportunity?.deadline).status === 'expiring'
+                                                                        ? '#ffc107'
+                                                                        : '#10b981',
+                                                                    color: 'white',
+                                                                    padding: '4px 10px',
+                                                                    borderRadius: '4px',
+                                                                    fontSize: '0.75rem',
+                                                                    fontWeight: '500'
+                                                                }}>
+                                                                    <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>{getDeadlineStatus(bookmark.opportunity?.deadline).icon}</span>
                                                                     {getDeadlineStatus(bookmark.opportunity?.deadline).text}
-                                                                </Badge>
+                                                                </span>
                                                                 {bookmark.reminder_date && (
-                                                                    <Badge bg="secondary">
-                                                                        <i className='bi bi-bell-fill me-1'></i>
+                                                                    <span className='badge' style={{
+                                                                        background: '#8b5cf6',
+                                                                        color: 'white',
+                                                                        padding: '4px 10px',
+                                                                        borderRadius: '4px',
+                                                                        fontSize: '0.75rem',
+                                                                        fontWeight: '500'
+                                                                    }}>
+                                                                        <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle', fontVariationSettings: "'FILL' 1"}}>notifications</span>
                                                                         Reminder
-                                                                    </Badge>
+                                                                    </span>
                                                                 )}
                                                             </div>
                                                             <small className='text-muted'>
-                                                                <i className='bi bi-bookmark-check me-1'></i>
+                                                                <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>bookmark_check</span>
                                                                 {formatDate(bookmark.created_at)}
                                                                 {bookmark.reminder_date && (
                                                                     <>
                                                                         <span className='mx-2'>•</span>
-                                                                        <i className='bi bi-alarm me-1'></i>
+                                                                        <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>alarm</span>
                                                                         {new Date(bookmark.reminder_date).toLocaleDateString()}
                                                                     </>
                                                                 )}
                                                             </small>
                                                         </div>
-                                                        <Dropdown align="end">
-                                                            <Dropdown.Toggle variant="outline-secondary" size="sm" style={{borderRadius: '6px'}}>
-                                                                <i className='bi bi-three-dots-vertical'></i>
+                                                        <Dropdown align="end" style={{position: 'relative', zIndex: 1000}}>
+                                                            <Dropdown.Toggle 
+                                                                variant="light" 
+                                                                size="sm" 
+                                                                style={{
+                                                                    borderRadius: '8px',
+                                                                    border: 'none',
+                                                                    padding: '6px 10px',
+                                                                    background: 'transparent'
+                                                                }}
+                                                                bsPrefix="custom-dropdown-toggle"
+                                                            >
+                                                                <span className='material-symbols-outlined' style={{fontSize: '16px'}}>more_vert</span>
                                                             </Dropdown.Toggle>
-                                                            <Dropdown.Menu>
+                                                            <Dropdown.Menu style={{zIndex: 10000, position: 'absolute'}}>
                                                                 <Dropdown.Item 
                                                                     as={Link}
                                                                     href={`/op/${bookmark.opportunity?.id}/${bookmark.opportunity?.slug}`}
                                                                 >
-                                                                    <i className='bi bi-eye me-2'></i>
+                                                                    <span className='material-symbols-outlined me-2' style={{fontSize: '16px', verticalAlign: 'middle'}}>visibility</span>
                                                                     View Details
                                                                 </Dropdown.Item>
                                                                 <Dropdown.Divider />
                                                                 {bookmark.reminder_date ? (
                                                                     <>
                                                                         <Dropdown.Item onClick={() => openReminderModal(bookmark)}>
-                                                                            <i className='bi bi-pencil-square me-2'></i>
+                                                                            <span className='material-symbols-outlined me-2' style={{fontSize: '16px', verticalAlign: 'middle'}}>edit</span>
                                                                             Edit Reminder
                                                                         </Dropdown.Item>
                                                                         <Dropdown.Item onClick={() => removeReminder(bookmark)}>
-                                                                            <i className='bi bi-bell-slash me-2'></i>
+                                                                            <span className='material-symbols-outlined me-2' style={{fontSize: '16px', verticalAlign: 'middle'}}>notifications_off</span>
                                                                             Remove Reminder
                                                                         </Dropdown.Item>
                                                                     </>
                                                                 ) : (
                                                                     <Dropdown.Item onClick={() => openReminderModal(bookmark)}>
-                                                                        <i className='bi bi-bell-plus me-2'></i>
+                                                                        <span className='material-symbols-outlined me-2' style={{fontSize: '16px', verticalAlign: 'middle'}}>add_alert</span>
                                                                         Set Reminder
                                                                     </Dropdown.Item>
                                                                 )}
@@ -301,7 +401,7 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                                                                     onClick={() => removeBookmark(bookmark.id)}
                                                                     className='text-danger'
                                                                 >
-                                                                    <i className='bi bi-trash3 me-2'></i>
+                                                                    <span className='material-symbols-outlined me-2' style={{fontSize: '16px', verticalAlign: 'middle'}}>delete</span>
                                                                     Remove Bookmark
                                                                 </Dropdown.Item>
                                                             </Dropdown.Menu>
@@ -347,12 +447,12 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                                 ) : (
                                     <div className='text-center py-5 rounded' style={{border: '1px solid #dee2e6'}}>
                                         <div className='mb-4'>
-                                            <i className='bi bi-bookmark-x text-muted' style={{fontSize: '4rem'}}></i>
+                                            <span className='material-symbols-outlined text-muted' style={{fontSize: '4rem'}}>bookmark_remove</span>
                                         </div>
                                         <h5 className='text-muted mb-2'>No Bookmarked Opportunities Yet</h5>
                                         <p className='text-muted mb-4'>Start exploring and bookmarking opportunities to keep track of them here.</p>
                                         <Link href="/opportunities" className="btn btn-outline-secondary" style={{borderRadius: '6px'}}>
-                                            <i className='bi bi-search me-2'></i>
+                                            <span className='material-symbols-outlined me-2' style={{fontSize: '16px', verticalAlign: 'middle'}}>search</span>
                                             Explore Opportunities
                                         </Link>
                                     </div>
@@ -369,7 +469,7 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
             <Modal show={showReminderModal} onHide={() => setShowReminderModal(false)} centered>
                 <Modal.Header closeButton className='bg-light'>
                     <Modal.Title className='d-flex align-items-center'>
-                        <i className={`bi bi-${selectedBookmark?.reminder_date ? 'pencil-square' : 'bell-plus'} me-2 text-primary`}></i>
+                        <span className={`material-symbols-outlined me-2 text-primary`} style={{fontSize: '20px'}}>{selectedBookmark?.reminder_date ? 'edit' : 'add_alert'}</span>
                         {selectedBookmark?.reminder_date ? 'Update Reminder' : 'Set Reminder'}
                     </Modal.Title>
                 </Modal.Header>
@@ -378,7 +478,7 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                         <div className='mb-3 p-3 bg-light rounded'>
                             <h6 className='poppins-semibold mb-1'>{selectedBookmark.opportunity.title}</h6>
                             <small className='text-muted'>
-                                <i className='bi bi-calendar-x me-1'></i>
+                                <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>event_busy</span>
                                 Deadline: {formatDate(selectedBookmark.opportunity.deadline)}
                             </small>
                         </div>
@@ -386,7 +486,7 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                     <Form>
                         <Form.Group className="mb-3">
                             <Form.Label className='fw-semibold'>
-                                <i className='bi bi-clock me-1'></i>
+                                <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>schedule</span>
                                 Reminder Date & Time
                             </Form.Label>
                             <Form.Control
@@ -397,7 +497,7 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                                 className='py-2'
                             />
                             <Form.Text className="text-muted d-block mt-2">
-                                <i className='bi bi-info-circle me-1'></i>
+                                <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>info</span>
                                 You'll receive a notification at the selected time.
                             </Form.Text>
                         </Form.Group>
@@ -405,11 +505,11 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                 </Modal.Body>
                 <Modal.Footer className='bg-light'>
                     <Button variant="outline-secondary" onClick={() => setShowReminderModal(false)}>
-                        <i className='bi bi-x-circle me-1'></i>
+                        <span className='material-symbols-outlined me-1' style={{fontSize: '16px', verticalAlign: 'middle'}}>cancel</span>
                         Cancel
                     </Button>
                     <Button variant="primary" onClick={setReminder}>
-                        <i className={`bi bi-${selectedBookmark?.reminder_date ? 'check-circle' : 'bell-fill'} me-1`}></i>
+                        <span className={`material-symbols-outlined me-1`} style={{fontSize: '16px', verticalAlign: 'middle', fontVariationSettings: "'FILL' 1"}}>{selectedBookmark?.reminder_date ? 'check_circle' : 'notifications'}</span>
                         {selectedBookmark?.reminder_date ? 'Update Reminder' : 'Set Reminder'}
                     </Button>
                 </Modal.Footer>

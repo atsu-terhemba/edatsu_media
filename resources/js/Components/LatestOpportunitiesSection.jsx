@@ -141,7 +141,7 @@ export default function LatestOpportunitiesSection({ opportunities = [], isLoadi
                           }}
                         >
                           <img
-                            src={`/storage/public/uploads/opp/${opp.cover_img}`}
+                            src={`${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/uploads/opp/${opp.cover_img}`}
                             alt={`Cover image for ${opp.title}`}
                             className="img-fluid w-100 h-100 object-fit-cover rounded"
                             onError={handleImageError}

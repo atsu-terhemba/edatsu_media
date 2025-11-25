@@ -5,7 +5,6 @@ import Swal from 'sweetalert2';
 import { Link } from "@inertiajs/react";
 import { getDaysLeft, toggleShare, createSharingLinks, bookmark, pageLink } from "@/utils/Index";
 import { router } from '@inertiajs/react';
-import { ArrowRight, Star } from 'lucide-react';
 
 const DisplayToolshed = ({ data, showLabels }) => {
   const [loadedImages, setLoadedImages] = useState({});
@@ -236,7 +235,7 @@ const DisplayToolshed = ({ data, showLabels }) => {
                     >
                       <Image
                         src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
-                        data-src={`/storage/public/uploads/prod/${tool.cover_img}`}
+                        data-src={`${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/uploads/prod/${tool.cover_img}`}
                         data-id={imageId}
                         alt={`Cover image for ${tool.product_name}`}
                         className="img-fluid w-100 h-100 object-fit-cover lazy-load rounded"
@@ -264,12 +263,16 @@ const DisplayToolshed = ({ data, showLabels }) => {
                 <div className="d-flex align-items-center mb-2">
                   <div className="d-flex align-items-center me-2">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <Star 
+                      <span 
                         key={star}
-                        size={14} 
-                        className={star <= Math.round(tool.average_rating || 0) ? 'text-warning' : 'text-muted'} 
-                        fill={star <= Math.round(tool.average_rating || 0) ? 'currentColor' : 'none'}
-                      />
+                        className={`material-symbols-outlined ${star <= Math.round(tool.average_rating || 0) ? 'text-warning' : 'text-muted'}`}
+                        style={{ 
+                          fontSize: '14px',
+                          fontVariationSettings: star <= Math.round(tool.average_rating || 0) ? '"FILL" 1' : '"FILL" 0'
+                        }}
+                      >
+                        star
+                      </span>
                     ))}
                   </div>
                   <span className="text-muted" style={{ fontSize: '0.85rem' }}>
@@ -413,7 +416,7 @@ const DisplayToolshed = ({ data, showLabels }) => {
                   }}
                 >
                   Try Now
-                  <ArrowRight size={16} className="ms-2" />
+                  <span className="material-symbols-outlined ms-2" style={{ fontSize: '16px' }}>arrow_forward</span>
                 </Link>
               </Card.Body>
             </Card>

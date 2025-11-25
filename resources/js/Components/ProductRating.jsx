@@ -3,7 +3,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { Modal } from 'react-bootstrap';
 
-const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialCount = 0 }) => {
+const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialCount = 0, showRatingForm = true }) => {
     const [ratings, setRatings] = useState([]);
     const [averageRating, setAverageRating] = useState(Number(initialRating) || 0);
     const [totalRatings, setTotalRatings] = useState(Number(initialCount) || 0);
@@ -12,10 +12,13 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
     const [userComment, setUserComment] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showAllReviewsModal, setShowAllReviewsModal] = useState(false);
+    const [showCommentModal, setShowCommentModal] = useState(false);
     const [distribution, setDistribution] = useState({});
 
     useEffect(() => {
-        fetchRatings();
+        if (productId) {
+            fetchRatings();
+        }
     }, [productId]);
 
     const fetchRatings = async () => {
@@ -68,13 +71,53 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
         return dist;
     };
 
+    const handleStarClick = (star) => {
+        if (!isAuthenticated) {
+            Swal.fire({
+                title: 'Login Required',
+                text: 'Please login to rate this product',
+                icon: 'warning',
+                confirmButtonText: 'Okay',
+                confirmButtonColor: '#0078d4',
+                showClass: {
+                    popup: 'animate__animated animate__zoomIn animate__faster'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__zoomOut animate__faster'
+                },
+                customClass: {
+                    popup: 'swal-modern-popup',
+                    title: 'swal-modern-title',
+                    content: 'swal-modern-content',
+                    confirmButton: 'swal-modern-confirm'
+                }
+            });
+            return;
+        }
+        setUserRating(star);
+        setShowCommentModal(true);
+    };
+
     const handleRatingSubmit = async () => {
         if (!isAuthenticated) {
             Swal.fire({
                 title: 'Login Required',
                 text: 'Please login to rate this product',
                 icon: 'warning',
-                confirmButtonColor: '#0078d4'
+                confirmButtonText: 'Okay',
+                confirmButtonColor: '#0078d4',
+                showClass: {
+                    popup: 'animate__animated animate__zoomIn animate__faster'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__zoomOut animate__faster'
+                },
+                customClass: {
+                    popup: 'swal-modern-popup',
+                    title: 'swal-modern-title',
+                    content: 'swal-modern-content',
+                    confirmButton: 'swal-modern-confirm'
+                }
             });
             return;
         }
@@ -84,7 +127,20 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
                 title: 'Rating Required',
                 text: 'Please select a star rating',
                 icon: 'warning',
-                confirmButtonColor: '#0078d4'
+                confirmButtonText: 'Okay',
+                confirmButtonColor: '#0078d4',
+                showClass: {
+                    popup: 'animate__animated animate__zoomIn animate__faster'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__zoomOut animate__faster'
+                },
+                customClass: {
+                    popup: 'swal-modern-popup',
+                    title: 'swal-modern-title',
+                    content: 'swal-modern-content',
+                    confirmButton: 'swal-modern-confirm'
+                }
             });
             return;
         }
@@ -101,8 +157,21 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
                     title: 'Success!',
                     text: response.data.message,
                     icon: 'success',
+                    confirmButtonText: 'Great!',
                     confirmButtonColor: '#0078d4',
-                    timer: 2000
+                    timer: 2000,
+                    showClass: {
+                        popup: 'animate__animated animate__zoomIn animate__faster'
+                    },
+                    hideClass: {
+                        popup: 'animate__animated animate__zoomOut animate__faster'
+                    },
+                    customClass: {
+                        popup: 'swal-modern-popup',
+                        title: 'swal-modern-title',
+                        content: 'swal-modern-content',
+                        confirmButton: 'swal-modern-confirm'
+                    }
                 });
                 setUserRating(0);
                 setUserComment('');
@@ -121,7 +190,20 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
                 title: 'Error',
                 text: error.response?.data?.message || 'An error occurred while submitting rating',
                 icon: 'error',
-                confirmButtonColor: '#d13438'
+                confirmButtonText: 'Okay',
+                confirmButtonColor: '#d13438',
+                showClass: {
+                    popup: 'animate__animated animate__zoomIn animate__faster'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__zoomOut animate__faster'
+                },
+                customClass: {
+                    popup: 'swal-modern-popup',
+                    title: 'swal-modern-title',
+                    content: 'swal-modern-content',
+                    confirmButton: 'swal-modern-confirm'
+                }
             });
         } finally {
             setIsLoading(false);
@@ -132,19 +214,21 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
         const displayRating = interactive ? (hoverRating || userRating) : rating;
         
         return (
-            <div className="d-flex gap-1">
+            <div className="d-flex gap-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                     <span
                         key={star}
                         className={`material-symbols-outlined ${interactive ? 'rating-star-interactive' : 'rating-star'}`}
                         style={{
-                            fontSize: interactive ? '32px' : '20px',
-                            color: star <= displayRating ? '#fbbf24' : '#d1d5db',
-                            fontVariationSettings: star <= displayRating ? '"FILL" 1, "wght" 400' : '"FILL" 0, "wght" 400',
+                            fontSize: interactive ? '48px' : '20px',
+                            color: star <= displayRating ? '#fbbf24' : '#6b7280', // darker gray for unfilled
+                            fontVariationSettings: star <= displayRating
+                                ? '"FILL" 1, "wght" 700, "GRAD" 0, "opsz" 48'
+                                : '"FILL" 0, "wght" 700, "GRAD" 0, "opsz" 48',
                             cursor: interactive ? 'pointer' : 'default',
                             transition: 'all 0.2s ease'
                         }}
-                        onClick={interactive ? () => setUserRating(star) : undefined}
+                        onClick={interactive ? () => handleStarClick(star) : undefined}
                         onMouseEnter={interactive ? () => setHoverRating(star) : undefined}
                         onMouseLeave={interactive ? () => setHoverRating(0) : undefined}
                     >
@@ -191,113 +275,132 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
 
     return (
         <div className="product-rating-container">
-            {/* Overall Rating Summary - E-commerce Style */}
-            <div className="rating-overview mb-4 p-4 border rounded">
-                <div className="row">
-                    {/* Left: Average Rating */}
-                    <div className="col-md-4 text-center border-end">
-                        <div className="mb-2">
-                            <span className="display-4 fw-bold">{Number(averageRating).toFixed(1)}</span>
-                            <span className="text-muted fs-5">/5</span>
-                        </div>
-                        <div className="mb-2">
-                            {renderStars(Math.round(averageRating))}
-                        </div>
-                        <p className="text-muted mb-0">
-                            Based on {totalRatings} {totalRatings === 1 ? 'review' : 'reviews'}
-                        </p>
-                    </div>
+            {!showRatingForm && (
+                <>
+                    {/* Overall Rating Summary - E-commerce Style */}
+                    <div className="mb-4" style={{padding: 0, background: 'none', border: 'none', borderRadius: 0}}>
+                        <div className="row">
+                            {/* Left: Average Rating */}
+                            <div className="col-md-4 text-center" style={{borderRight: '1px solid #e5e7eb'}}>
+                                <div className="mb-2">
+                                    <span className="display-4 fw-bold">{Number(averageRating).toFixed(1)}</span>
+                                    <span className="text-muted fs-5">/5</span>
+                                </div>
+                                <div className="mb-2">
+                                    {renderStars(Math.round(averageRating))}
+                                </div>
+                                <p className="text-muted mb-0">
+                                    Based on {totalRatings} {totalRatings === 1 ? 'review' : 'reviews'}
+                                </p>
+                            </div>
 
-                    {/* Right: Rating Distribution */}
-                    <div className="col-md-8">
-                        <h6 className="mb-3 fw-bold">Rating Breakdown</h6>
-                        {totalRatings > 0 ? (
-                            renderRatingDistribution()
-                        ) : (
-                            <p className="text-muted text-center py-3">No ratings yet</p>
+                            {/* Right: Rating Distribution */}
+                            <div className="col-md-8">
+                                <h6 className="mb-3 fw-bold">Rating Breakdown</h6>
+                                {totalRatings > 0 ? (
+                                    renderRatingDistribution()
+                                ) : (
+                                    <p className="text-muted text-center py-3">No ratings yet</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {/* Add Your Rating Section */}
+            {showRatingForm && (
+                <div className="add-rating-section">
+                    <div className="mb-3">
+                        <div className="d-flex justify-content-center mb-3">
+                            {renderStars(userRating, true)}
+                        </div>
+                        {userRating > 0 && (
+                            <p className="text-muted text-center mt-3 mb-0" style={{ fontSize: '1rem', fontWeight: '500' }}>
+                                {userRating === 1 && 'Poor'}
+                                {userRating === 2 && 'Fair'}
+                                {userRating === 3 && 'Good'}
+                                {userRating === 4 && 'Very Good'}
+                                {userRating === 5 && 'Excellent'}
+                            </p>
                         )}
                     </div>
                 </div>
+            )}
 
-                {/* View All Reviews Button */}
-                {totalRatings > 0 && (
-                    <div className="text-center mt-3 pt-3 border-top">
-                        <button
-                            className="action-button btn-outline-modern"
-                            onClick={() => setShowAllReviewsModal(true)}
-                        >
-                            <span className="material-symbols-outlined me-2" style={{fontSize: '18px'}}>rate_review</span>
-                            View All {totalRatings} Reviews
-                        </button>
-                    </div>
-                )}
-            </div>
-
-            {/* Add Your Rating Section */}
-            <div className="add-rating-section p-4 border rounded">
-                <h5 className="mb-3 fw-bold">Rate This Tool</h5>
-                <div className="mb-3">
-                    <label className="form-label fw-semibold">Your Rating</label>
-                    {renderStars(userRating, true)}
-                    {userRating > 0 && (
-                        <p className="text-muted small mt-2 mb-0">
+            {/* Comment Modal */}
+            <Modal show={showCommentModal} onHide={() => setShowCommentModal(false)} centered>
+                <Modal.Header closeButton className="border-0">
+                    <Modal.Title className="fw-bold">Add Your Review</Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="px-4">
+                    <div className="text-center mb-3">
+                        <div className="mb-2">
+                            {renderStars(userRating)}
+                        </div>
+                        <p className="text-muted mb-0">
                             {userRating === 1 && 'Poor'}
                             {userRating === 2 && 'Fair'}
                             {userRating === 3 && 'Good'}
                             {userRating === 4 && 'Very Good'}
                             {userRating === 5 && 'Excellent'}
                         </p>
-                    )}
-                </div>
-
-                {/* Temporarily commented out - to be fixed later */}
-                {/* <div className="mb-3">
-                    <label className="form-label fw-semibold">Your Review (Optional)</label>
-                    <textarea
-                        className="form-control"
-                        rows="3"
-                        value={userComment}
-                        onChange={(e) => setUserComment(e.target.value)}
-                        placeholder="Share your experience with this tool..."
-                        maxLength={1000}
-                    />
-                    <small className="text-muted">{userComment.length}/1000</small>
-                </div> */}
-
-                <button
-                    className="action-button btn-primary-modern"
-                    onClick={handleRatingSubmit}
-                    disabled={isLoading || userRating === 0}
-                >
-                    {isLoading ? 'Submitting...' : 'Submit Rating'}
-                </button>
-            </div>
-
-            {/* Recent Reviews Preview - Shows latest 3 reviews */}
-            {ratings && ratings.length > 0 && (
-                <div className="recent-reviews-preview mb-4 p-4 border rounded">
-                    <div className="d-flex align-items-center justify-content-between mb-3">
-                        <h5 className="fw-bold mb-0">Recent Reviews ({ratings.length} total)</h5>
-                        {ratings.length > 3 && (
-                            <button
-                                className="btn btn-link text-decoration-none p-0"
-                                onClick={() => setShowAllReviewsModal(true)}
-                            >
-                                View all {totalRatings} reviews →
-                            </button>
-                        )}
                     </div>
+                    <div className="mb-3">
+                        <label className="form-label fw-semibold">Your Review (Optional)</label>
+                        <textarea
+                            className="form-control"
+                            rows="4"
+                            value={userComment}
+                            onChange={(e) => setUserComment(e.target.value)}
+                            placeholder="Share your experience with this tool..."
+                            maxLength={1000}
+                        />
+                        <small className="text-muted">{userComment.length}/1000</small>
+                    </div>
+                    <div className="d-flex gap-2">
+                        <button
+                            className="btn btn-secondary flex-fill"
+                            onClick={() => {
+                                setShowCommentModal(false);
+                                setUserRating(0);
+                                setUserComment('');
+                            }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            className="action-button btn-primary-modern flex-fill"
+                            onClick={() => {
+                                setShowCommentModal(false);
+                                handleRatingSubmit();
+                            }}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? 'Submitting...' : 'Submit Review'}
+                        </button>
+                    </div>
+                </Modal.Body>
+            </Modal>
+
+            {/* All Reviews Section */}
+            {!showRatingForm && ratings && ratings.length > 0 && (
+                <div className="all-reviews-section mt-5">
+
+                <h5 className="fw-bold mb-4 d-flex align-items-center">
+                All Reviews ({ratings.length})
+                </h5>
                     
-                    {ratings.slice(0, 3).map((rating) => (
-                        <div key={rating.id} className="review-item mb-3 pb-3 border-bottom last-child-no-border">
+                    {ratings.map((rating) => (
+                        <div key={rating.id} className="review-item mb-4 pb-4 border-bottom last-child-no-border">
                             <div className="d-flex align-items-start justify-content-between mb-2">
                                 <div className="flex-grow-1">
                                     <div className="d-flex align-items-center mb-2">
-                                        <div className="avatar-circle me-2" style={{ width: '36px', height: '36px', fontSize: '14px' }}>
+                                        <div className="avatar-circle me-2" style={{ width: '40px', height: '40px', fontSize: '16px' }}>
                                             {(rating.user?.name || 'A')[0].toUpperCase()}
                                         </div>
                                         <div className="flex-grow-1">
-                                            <h6 className="mb-0 fw-semibold">{rating.user?.name || 'Anonymous'}</h6>
+                                            <h6 className="mb-1 fw-semibold">{rating.user?.name || 'Anonymous'}</h6>
                                             <div className="d-flex align-items-center gap-2">
                                                 <div className="d-flex align-items-center">
                                                     {renderStars(rating.rating)}
@@ -426,7 +529,7 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
                 }
 
                 .rating-overview {
-                    background: #fafafa;
+                    background: none;
                 }
                 
                 .recent-reviews-preview {

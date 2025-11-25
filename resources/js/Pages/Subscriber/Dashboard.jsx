@@ -56,10 +56,8 @@ export default function Dashboard() {
                                     <SubscriberSideNav/>
                                 </div>
                             </Col>
-                            <Col sm={6}>
+                            <Col sm={9}>
                                 <DashboardSkeleton />
-                            </Col>
-                            <Col sm={3}>
                             </Col>
                         </Row>
                     </Container>
@@ -80,7 +78,7 @@ export default function Dashboard() {
                                     <SubscriberSideNav/>
                                 </div>
                             </Col>
-                            <Col sm={6}>
+                            <Col sm={9}>
                                 <div className='py-3 rounded my-3' style={{border: '1px solid #dee2e6'}}>
                                     <h4 className='m-0' style={{fontWeight: 'normal'}}>Dashboard</h4>
                                 </div>
@@ -91,8 +89,6 @@ export default function Dashboard() {
                                         Try Again
                                     </Button>
                                 </Alert>
-                            </Col>
-                            <Col sm={3}>
                             </Col>
                         </Row>
                     </Container>
@@ -113,11 +109,12 @@ export default function Dashboard() {
                                 <SubscriberSideNav/>
                             </div>
                         </Col>
-                        <Col sm={6}>
-                            <div className='py-3 rounded my-3' style={{border: '1px solid #dee2e6'}}>
+                        <Col sm={9}>
+                            {/* Header */}
+                            <div className='py-3 px-3 rounded my-3' style={{border: '1px solid #dee2e6'}}>
                                 <div className='d-flex justify-content-between align-items-center'>
-                                    <h4 className='m-0 p-0'>
-                                        Hi, {subscriberData?.user?.name}!
+                                    <h4 className='m-0 p-0 fw-bold'>
+                                        Hi, <Link href={route('profile.edit')} className='text-decoration-none text-dark'>{subscriberData?.user?.name}</Link>!
                                     </h4>
                                     <Button 
                                         variant="outline-secondary" 
@@ -126,17 +123,74 @@ export default function Dashboard() {
                                         disabled={loading}
                                         style={{borderRadius: '6px'}}
                                     >
-                                        <i className={`bi bi-arrow-clockwise${loading ? ' spin' : ''} me-1`}></i>
+                                        <span className={`material-symbols-outlined${loading ? ' spin' : ''} me-1`} style={{fontSize: '16px', verticalAlign: 'middle'}}>refresh</span>
                                         Refresh
                                     </Button>
                                 </div>
                             </div>
 
+                            {/* Stats Cards */}
+                            <Row className='mb-3 g-3'>
+                                <Col md={4}>
+                                    <div className='p-3 rounded' style={{border: '1px solid #dee2e6'}}>
+                                        <div className='d-flex align-items-start justify-content-between'>
+                                            <div>
+                                                <small className='text-muted d-block mb-1'>
+                                                    Upcoming Opportunities
+                                                </small>
+                                                <h2 className='mb-0'>{subscriberData?.stats?.upcomingOpportunities || 0}</h2>
+                                            </div>
+                                            <span className='material-symbols-outlined text-primary' style={{fontSize: '1.5rem'}}>event</span>
+                                        </div>
+                                        {subscriberData?.stats?.upcomingOpportunities > 0 && (
+                                            <div className='mt-2'>
+                                                <span className='badge bg-warning text-dark px-2 py-1' style={{fontSize: '0.75rem'}}>
+                                                    <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>warning</span>
+                                                    Expiring soon
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </Col>
+                                <Col md={4}>
+                                    <div className='p-3 rounded' style={{border: '1px solid #dee2e6'}}>
+                                        <div className='d-flex align-items-start justify-content-between'>
+                                            <div>
+                                                <small className='text-muted d-block mb-1'>
+                                                    This Month
+                                                </small>
+                                                <h2 className='mb-0'>{subscriberData?.stats?.monthlyBookmarks || 0}</h2>
+                                            </div>
+                                            <span className='material-symbols-outlined text-success' style={{fontSize: '1.5rem'}}>monitoring</span>
+                                        </div>
+                                        <small className='text-muted d-block mt-2'>
+                                            New bookmarks added
+                                        </small>
+                                    </div>
+                                </Col>
+                                <Col md={4}>
+                                    <div className='p-3 rounded' style={{border: '1px solid #dee2e6'}}>
+                                        <div className='d-flex align-items-start justify-content-between'>
+                                            <div>
+                                                <small className='text-muted d-block mb-1'>
+                                                    Active Reminders
+                                                </small>
+                                                <h2 className='mb-0'>{subscriberData?.upcomingReminders?.length || 0}</h2>
+                                            </div>
+                                            <span className='material-symbols-outlined text-warning' style={{fontSize: '1.5rem'}}>notifications</span>
+                                        </div>
+                                        <small className='text-muted d-block mt-2'>
+                                            Upcoming notifications
+                                        </small>
+                                    </div>
+                                </Col>
+                            </Row>
+
                             {/* Expiring Soon Opportunities */}
                             {subscriberData?.expiringSoonOpportunities?.length > 0 && (
                                 <div className='mb-3'>
                                     <div className='p-3 rounded' style={{border: '1px solid #dee2e6'}}>
-                                        <h6 className='mb-3' style={{color: '#dc3545', fontWeight: 'normal'}}>
+                                        <h6 className='mb-3 fw-bold' style={{color: '#dc3545', fontSize: '0.9em'}}>
                                             Opportunities Expiring Soon
                                         </h6>
                                         {subscriberData.expiringSoonOpportunities.slice(0, 3).map((opportunity, index) => (
@@ -151,14 +205,20 @@ export default function Dashboard() {
                                                         Deadline: {new Date(opportunity.deadline).toLocaleDateString()}
                                                     </small>
                                                 </div>
-                                                <Button size='sm' variant='outline-secondary' style={{borderRadius: '6px'}}>
-                                                    <i className='bi bi-arrow-right'></i>
-                                                </Button>
+                                                <Link
+                                                    href={`/op/${opportunity.id}/${opportunity.slug}`}
+                                                    className='btn btn-sm btn-outline-secondary'
+                                                    style={{borderRadius: '6px'}}
+                                                >
+                                                    <span className='material-symbols-outlined' style={{fontSize: '16px'}}>arrow_forward</span>
+                                                </Link>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             )}
+
+
 
                             {/* Upcoming Reminders */}
                             {subscriberData?.upcomingReminders?.length > 0 && (
@@ -176,11 +236,11 @@ export default function Dashboard() {
                                                 <div className='flex-grow-1'>
                                                     <div className='d-block'>{bookmark.opportunity?.title}</div>
                                                     <small className='text-muted d-block'>
-                                                        <i className='bi bi-calendar-check me-1'></i>
+                                                        <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>event_available</span>
                                                         Reminder: {new Date(bookmark.reminder_date).toLocaleDateString()} at {new Date(bookmark.reminder_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                                     </small>
                                                     <small className='text-danger d-block'>
-                                                        <i className='bi bi-alarm me-1'></i>
+                                                        <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>alarm</span>
                                                         Deadline: {new Date(bookmark.opportunity?.deadline).toLocaleDateString()}
                                                     </small>
                                                 </div>
@@ -189,7 +249,7 @@ export default function Dashboard() {
                                                     className='btn btn-sm btn-outline-secondary ms-2'
                                                     style={{borderRadius: '6px'}}
                                                 >
-                                                    <i className='bi bi-arrow-right'></i>
+                                                    <span className='material-symbols-outlined' style={{fontSize: '16px'}}>arrow_forward</span>
                                                 </Link>
                                             </div>
                                         ))}
@@ -197,48 +257,24 @@ export default function Dashboard() {
                                 </div>
                             )}
 
-                            {/* Activity Summary & Stats */}
+                            {/* Activity Summary */}
                             <div className='p-3 rounded' style={{border: '1px solid #dee2e6'}}>
                                 <h6 className='mb-3' style={{fontWeight: 'normal'}}>Your Activity</h6>
                                 
-                                {/* Upcoming Opportunities */}
-                                <div className='mb-3 pb-3' style={{borderBottom: '1px solid #dee2e6'}}>
+                                <div className='mb-3'>
                                     <div className='d-flex justify-content-between align-items-center mb-2'>
                                         <div>
-                                            <i className='bi bi-calendar-event text-primary me-2' style={{fontSize: '1.5rem'}}></i>
+                                            <span className='material-symbols-outlined text-primary me-2' style={{fontSize: '1.5rem', verticalAlign: 'middle'}}>event</span>
                                             <span className='h4 mb-0'>{subscriberData?.stats?.upcomingOpportunities || 0}</span>
                                         </div>
                                         <Link href={route('subscriber.bookmarked_opportunities')} className='btn btn-outline-secondary btn-sm' style={{borderRadius: '6px'}}>
                                             View All
-                                            <i className='bi bi-arrow-right ms-1'></i>
+                                            <span className='material-symbols-outlined ms-1' style={{fontSize: '16px', verticalAlign: 'middle'}}>arrow_forward</span>
                                         </Link>
                                     </div>
                                     <small className='text-muted'>Upcoming Opportunities</small>
-                                    {subscriberData?.stats?.upcomingOpportunities > 0 && (
-                                        <div className='mt-2'>
-                                            <span className='badge bg-warning text-dark px-2 py-1' style={{fontSize: '0.75rem'}}>
-                                                <i className='bi bi-exclamation-triangle me-1'></i>
-                                                {subscriberData.stats.upcomingOpportunities} opportunities expiring soon!
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                                
-                                {/* Activity Summary */}
-                                <div>
-                                    <small className='text-muted d-block mb-2'>
-                                        <i className='bi bi-activity me-1'></i>
-                                        This month: {subscriberData?.stats?.monthlyBookmarks || 0} new bookmarks
-                                    </small>
-                                    <small className='text-muted d-block'>
-                                        <i className='bi bi-clock-history me-1'></i>
-                                        Member since: {subscriberData?.user?.created_at ? new Date(subscriberData.user.created_at).toLocaleDateString() : 'N/A'}
-                                    </small>
                                 </div>
                             </div>
-                        </Col>
-                        <Col sm={3}>
-                            {/* <div>main content</div> */}
                         </Col>
                     </Row>
                 </Container>

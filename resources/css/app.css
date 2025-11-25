@@ -30,3 +30,43 @@
   white-space: nowrap;
 }
 
+/* Header Navigation Dropdown Alignment */
+#user-dropdown {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.navbar-nav .nav-link,
+.navbar-nav .dropdown-toggle {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  text-decoration: none;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .dropdown-toggle:hover {
+  text-decoration: none;
+}
+
+/* Hide the dropdown caret */
+.navbar-nav .dropdown-toggle::after {
+  display: none;
+}
+
+/* Reduce dropdown menu width */
+#user-dropdown .dropdown-menu {
+  min-width: 150px;
+  padding: 0.25rem 0;
+  font-size: 0.875rem;
+}
+
+#user-dropdown .dropdown-item {
+  padding: 0.4rem 1rem;
+  text-decoration: none;
+}
+
+#user-dropdown .dropdown-item:hover {
+  text-decoration: none;
+}

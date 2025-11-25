@@ -109,12 +109,17 @@ export default function Preferences({ userPreferences, categories, countries, re
                             </div>
                         </Col>
                         <Col sm={6}>
-                            <div className='py-3 rounded my-3' style={{border: '1px solid #dee2e6'}}>
+                            <div className='py-3 rounded my-3 px-3' style={{border: '1px solid #dee2e6'}}>
                                 <div className='d-flex justify-content-between align-items-center'>
-                                    <h4 className='m-0' style={{fontWeight: 'normal'}}>Your Preferences</h4>
+                                    <h4 className='m-0 fw-bold' style={{fontWeight: 'normal'}}>Your Preferences</h4>
                                     <i className='bi bi-gear text-primary' style={{fontSize: '1.5rem'}}></i>
                                 </div>
                             </div>
+
+                            <Alert variant="danger" className="mb-4">
+                                <p className='fw-bold mb-0 fs-9 font-monospace'>Important</p>
+                                <small className='font-monospace'>This page is currently under development. Some features may not be fully functional yet.</small>
+                            </Alert>
 
                             <div>
 

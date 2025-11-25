@@ -114,10 +114,10 @@ const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_dat
 
             <div className="py-3 px-3 border bg-white rounded d-flex justify-content-between">
                 <div>
-                    <span className="material-symbols-outlined align-middle">
+                    {/* <span className="material-symbols-outlined align-middle">
                         filter_alt
-                    </span>
-                    <span className="fs-9 text-dark px-3">
+                    </span> */}
+                    <span className="fs-9 text-dark">
                         Search filters
                     </span>
                 </div>
