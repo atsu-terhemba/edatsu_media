@@ -2,9 +2,11 @@ import { useRef, useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { Button } from 'react-bootstrap';
 import Swal from 'sweetalert2';
+import axios from 'axios';
 
 export default function UpdateProfilePhotoForm({ className = '' }) {
     const user = usePage().props.auth.user;
+    const csrfToken = usePage().props.csrf_token;
     const fileInputRef = useRef();
     const [photoPreview, setPhotoPreview] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
@@ -61,40 +63,50 @@ export default function UpdateProfilePhotoForm({ className = '' }) {
 
         setUploading(true);
 
-        router.post(route('profile.photo.update'), {
-            photo: selectedFile,
-        }, {
-            forceFormData: true,
-            preserveScroll: true,
-            onSuccess: () => {
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: 'Profile photo updated successfully!',
-                    showConfirmButton: false,
-                    timer: 4000,
-                    timerProgressBar: true,
-                });
-                // Clear the preview and file
-                setPhotoPreview(null);
-                setSelectedFile(null);
-                fileInputRef.current.value = '';
+        // Use FormData with axios for more reliable file uploads
+        const formData = new FormData();
+        formData.append('photo', selectedFile);
+        formData.append('_token', csrfToken);
+
+        axios.post(route('profile.photo.update'), formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'X-CSRF-TOKEN': csrfToken,
             },
-            onError: (errors) => {
-                console.error('Upload error:', errors);
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'error',
-                    title: errors.photo || 'Failed to update photo. Please try again.',
-                    showConfirmButton: false,
-                    timer: 4000,
-                });
-            },
-            onFinish: () => {
-                setUploading(false);
-            },
+        })
+        .then(() => {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Profile photo updated successfully!',
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true,
+            });
+            // Clear the preview and file
+            setPhotoPreview(null);
+            setSelectedFile(null);
+            fileInputRef.current.value = '';
+            // Reload to refresh user data
+            router.reload({ only: ['auth'] });
+        })
+        .catch((error) => {
+            console.error('Upload error:', error);
+            const errorMessage = error.response?.data?.errors?.photo?.[0] 
+                || error.response?.data?.message 
+                || 'Failed to update photo. Please try again.';
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: errorMessage,
+                showConfirmButton: false,
+                timer: 4000,
+            });
+        })
+        .finally(() => {
+            setUploading(false);
         });
     };
 
@@ -117,22 +129,37 @@ export default function UpdateProfilePhotoForm({ className = '' }) {
         }).then((result) => {
             if (result.isConfirmed) {
                 setDeleting(true);
-                router.delete(route('profile.photo.delete'), {
-                    preserveScroll: true,
-                    onSuccess: () => {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'success',
-                            title: 'Profile photo removed successfully!',
-                            showConfirmButton: false,
-                            timer: 4000,
-                            timerProgressBar: true,
-                        });
+                axios.delete(route('profile.photo.delete'), {
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
                     },
-                    onFinish: () => {
-                        setDeleting(false);
-                    },
+                })
+                .then(() => {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Profile photo removed successfully!',
+                        showConfirmButton: false,
+                        timer: 4000,
+                        timerProgressBar: true,
+                    });
+                    // Reload to refresh user data
+                    router.reload({ only: ['auth'] });
+                })
+                .catch((error) => {
+                    console.error('Delete error:', error);
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'error',
+                        title: 'Failed to remove photo. Please try again.',
+                        showConfirmButton: false,
+                        timer: 4000,
+                    });
+                })
+                .finally(() => {
+                    setDeleting(false);
                 });
             }
         });

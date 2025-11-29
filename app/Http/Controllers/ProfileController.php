@@ -44,7 +44,7 @@ class ProfileController extends Controller
     /**
      * Update the user's profile photo.
      */
-    public function updatePhoto(Request $request): RedirectResponse
+    public function updatePhoto(Request $request)
     {
         $request->validate([
             'photo' => ['required', 'image', 'max:2048'],
@@ -64,19 +64,36 @@ class ProfileController extends Controller
             'profile_photo_path' => $path,
         ]);
 
+        // Return JSON for axios requests, redirect for Inertia
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile photo updated successfully',
+                'path' => $path,
+            ]);
+        }
+
         return Redirect::route('profile.edit')->with('status', 'profile-photo-updated');
     }
 
     /**
      * Delete the user's profile photo.
      */
-    public function deletePhoto(Request $request): RedirectResponse
+    public function deletePhoto(Request $request)
     {
         $user = $request->user();
 
         if ($user->profile_photo_path) {
             Storage::disk('public')->delete($user->profile_photo_path);
             $user->update(['profile_photo_path' => null]);
+        }
+
+        // Return JSON for axios requests, redirect for Inertia
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile photo deleted successfully',
+            ]);
         }
 
         return Redirect::route('profile.edit')->with('status', 'profile-photo-deleted');
