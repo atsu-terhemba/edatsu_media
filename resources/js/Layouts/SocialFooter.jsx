@@ -2,7 +2,7 @@ import React from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {  
-    faFacebookF,
+    faFacebook,
     faInstagram,
     faLinkedinIn,
     faTiktok,
@@ -27,7 +27,7 @@ export default function SocialFooter(){
             {/* Facebook */}
             <li>
                 <a href="https://www.facebook.com/edatsu_media" target="_blank" rel="noopener noreferrer">
-                <FontAwesomeIcon icon={faFacebookF} className="text-info" />
+                <FontAwesomeIcon icon={faFacebook} className="text-info" />
                 <span className="sr-only">Facebook</span>
                 </a>
             </li>

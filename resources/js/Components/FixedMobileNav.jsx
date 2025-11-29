@@ -431,7 +431,7 @@ const FixedMobileNav = ({
       <div className="d-md-none" style={{ height: '80px' }}></div>
 
       {/* CSS for animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes slideUp {
           from {
             transform: translateY(100%);
