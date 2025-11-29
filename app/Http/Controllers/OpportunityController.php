@@ -621,11 +621,23 @@ function store(Request $request)
             $userFolder = $this->getUserFolderPath(Auth::user()->name);
             $uploadPath = 'uploads/opp/' . $userFolder . '/' . $hashedFileName;
             
-            // Upload to Cloudflare R2
-            Storage::disk('r2')->put($uploadPath, file_get_contents($file));
+            // Try to upload to Cloudflare R2, fallback to local storage
+            try {
+                if (config('filesystems.disks.r2.key')) {
+                    Storage::disk('r2')->put($uploadPath, file_get_contents($file));
+                    \Log::info("File uploaded to R2", ['path' => $uploadPath]);
+                } else {
+                    // Fallback to local public storage
+                    Storage::disk('public')->put($uploadPath, file_get_contents($file));
+                    \Log::info("File uploaded to local storage (R2 not configured)", ['path' => $uploadPath]);
+                }
+            } catch (\Exception $storageException) {
+                // If R2 fails, try local storage
+                \Log::warning("R2 upload failed, using local storage: " . $storageException->getMessage());
+                Storage::disk('public')->put($uploadPath, file_get_contents($file));
+            }
             
             $op->cover_img = $userFolder . '/' . $hashedFileName;
-            \Log::info("File uploaded successfully", ['path' => $uploadPath]);
         } catch (\Exception $e) {
             \Log::error("File upload error: " . $e->getMessage());
             return response()->json([
