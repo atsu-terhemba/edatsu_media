@@ -103,12 +103,12 @@ export default function Preferences({ userPreferences, categories, countries, re
             <Container fluid={true}>
                 <Container>
                     <Row>
-                        <Col sm={3}>
+                        <Col sm={3} className="d-none d-md-block">
                             <div className='my-3 fs-9'>
                                 <SubscriberSideNav/>
                             </div>
                         </Col>
-                        <Col sm={6}>
+                        <Col sm={6} xs={12}>
                             <div className='py-3 rounded my-3 px-3' style={{border: '1px solid #dee2e6'}}>
                                 <div className='d-flex justify-content-between align-items-center'>
                                     <h4 className='m-0 fw-bold' style={{fontWeight: 'normal'}}>Your Preferences</h4>

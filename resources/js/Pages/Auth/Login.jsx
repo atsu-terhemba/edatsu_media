@@ -130,11 +130,11 @@ export default function Login({ status, canResetPassword }) {
                                     type="email"
                                     name="email"
                                     value={data.email}
-                                    className="form-control shadow-none focus:shadow-none border-0"
+                                    className="form-control shadow-none focus:shadow-none"
                                     style={{
                                         padding: '12px 16px',
                                         borderRadius: '8px',
-                                        backgroundColor: '#f8f9fa',
+                                        border: '2px solid #e9ecef',
                                         fontSize: '16px'
                                     }}
                                     autoComplete="username"
@@ -152,11 +152,11 @@ export default function Login({ status, canResetPassword }) {
                                         type={showPassword ? "text" : "password"}
                                         name="password"
                                         value={data.password}
-                                        className="form-control shadow-none focus:shadow-none border-0"
+                                        className="form-control shadow-none focus:shadow-none"
                                         style={{
                                             padding: '12px 40px 12px 16px',
                                             borderRadius: '8px',
-                                            backgroundColor: '#f8f9fa',
+                                            border: '2px solid #e9ecef',
                                             fontSize: '16px'
                                         }}
                                         autoComplete="current-password"
@@ -215,7 +215,7 @@ export default function Login({ status, canResetPassword }) {
                                 className="btn w-100 fw-semibold"
                                 disabled={processing}
                                 style={{
-                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    background: '#1a1a2e',
                                     border: 'none',
                                     padding: '12px',
                                     borderRadius: '8px',

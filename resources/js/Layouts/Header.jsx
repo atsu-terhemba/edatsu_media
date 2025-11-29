@@ -5,12 +5,11 @@ import FlatButton from '@/Components/FlatButton';
 import { useEffect, useState } from "react";
 import { truncateText, ActiveLink } from "@/utils/Index";
 import { Images } from "@/utils/Images";
-import { Moon, Sun } from 'lucide-react';
 import axios from 'axios';
 import UserAvatar from '@/Components/UserAvatar';
 
 
-export default function Header({auth, isDarkMode, toggleDarkMode}){
+export default function Header({auth}){
     const [notificationCount, setNotificationCount] = useState(0);
     const [messageCount, setMessageCount] = useState(0);
 
@@ -67,20 +66,6 @@ return(
         <Link href={route('pricing')} className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/subscription')}`}>
          Pricing
         </Link>
-        </Nav.Item> */}
-        
-        {/* Dark Mode Toggle */}
-        {/* <Nav.Item>
-            <Button 
-                className="btn bg-transparent border-0 me-3" 
-                onClick={toggleDarkMode}
-                title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-                {isDarkMode ? 
-                    <Sun size={20} color="white" /> : 
-                    <Moon size={20} color="white" />
-                }
-            </Button>
         </Nav.Item> */}
         
         {/* User Authenticated */}

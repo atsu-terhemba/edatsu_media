@@ -8,7 +8,7 @@ import { Images } from "@/utils/Images";
 
 
 
-export default function Footer({auth, isDarkMode}){
+export default function Footer({auth}){
 
 function handleCopyRSS(){
 

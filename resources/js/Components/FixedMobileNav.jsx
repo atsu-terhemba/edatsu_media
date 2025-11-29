@@ -1,37 +1,16 @@
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState } from "react";
 import { Link, usePage } from '@inertiajs/react';
 import FlatButton from './FlatButton';
 
 const FixedMobileNav = ({
   isAuthenticated = false,
   currentPath = '/',
-  username = '', 
   toggleSearch
 }) => {
+  const { auth } = usePage().props;
+  const username = auth?.user?.name || auth?.user?.username || '';
   const [showSubscriptionAlert, setShowSubscriptionAlert] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [showMenuModal, setShowMenuModal] = useState(false);
-
-  useEffect(() => {
-    // Check for dark mode preference
-    const darkModePreference = localStorage.getItem('darkMode');
-    if (darkModePreference === 'true') {
-      setIsDarkMode(true);
-      document.body.classList.add('dark-mode');
-    }
-  }, []);
-
-  const toggleMode = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    localStorage.setItem('darkMode', newMode.toString());
-    
-    if (newMode) {
-      document.body.classList.add('dark-mode');
-    } else {
-      document.body.classList.remove('dark-mode');
-    }
-  };
 
   const toggleMenuModal = () => {
     setShowMenuModal(!showMenuModal);
@@ -58,70 +37,59 @@ const FixedMobileNav = ({
   const getNavigationPages = () => {
     const commonPages = [
       { 
-        name: 'Home', 
-        path: '/', 
-        description: 'Back to main page' 
-      },
-      { 
         name: 'Opportunities', 
         path: '/opportunities', 
-        description: 'Browse latest opportunities' 
+        icon: 'event',
+        description: 'Browse latest opportunities',
+        isSeparator: true
       },
       { 
         name: 'Toolshed', 
         path: '/toolshed', 
+        icon: 'handyman',
         description: 'Discover useful tools' 
-      },
-      { 
-        name: 'About', 
-        path: '/about', 
-        description: 'Learn more about us' 
-      },
-      { 
-        name: 'Contact', 
-        path: '/contact', 
-        description: 'Get in touch with us' 
       },
       { 
         name: 'Help', 
         path: '/help', 
+        icon: 'help',
         description: 'Find answers and support' 
-      },
-      { 
-        name: 'Terms & Conditions', 
-        path: '/terms', 
-        description: 'Our terms of service' 
-      },
-      { 
-        name: 'Privacy Policy', 
-        path: '/privacy', 
-        description: 'How we protect your data' 
       },
     ];
 
     if (isAuthenticated) {
       return [
-        ...commonPages,
-        { 
-          name: 'Profile', 
-          path: '/profile', 
-          description: 'Manage your profile' 
-        },
         { 
           name: 'Dashboard', 
-          path: '/dashboard', 
+          path: '/subscriber-dashboard',
+          icon: 'dashboard',
           description: 'Your personal dashboard' 
         },
         { 
-          name: 'Settings', 
-          path: '/settings', 
-          description: 'Account preferences' 
+          name: 'Profile', 
+          path: '/profile',
+          icon: 'person',
+          description: 'Edit your profile' 
         },
         { 
-          name: 'Logout', 
-          path: '/logout', 
-          description: 'Sign out securely' 
+          name: 'Saved Opportunities', 
+          path: '/bookmarked-opportunities',
+          icon: 'bookmark',
+          description: 'Your saved opportunities' 
         },
+        { 
+          name: 'Saved Tools', 
+          path: '/bookmarked-tools',
+          icon: 'bookmark',
+          description: 'Your saved tools' 
+        },
+        { 
+          name: 'Notifications', 
+          path: '/notifications',
+          icon: 'notifications',
+          description: 'Your notifications' 
+        },
+        ...commonPages,
       ];
     } else {
       return [
@@ -129,11 +97,13 @@ const FixedMobileNav = ({
         { 
           name: 'Login', 
           path: '/login', 
+          icon: 'login',
           description: 'Sign in to your account' 
         },
         { 
           name: 'Register', 
           path: '/register', 
+          icon: 'person_add',
           description: 'Create a new account' 
         },
       ];
@@ -156,11 +126,11 @@ const FixedMobileNav = ({
       onClick: handleSearchClick
     },
     {
-      id: 'theme',
-      icon: isDarkMode ? 'light_mode' : 'dark_mode',
-      label: isDarkMode ? 'Light' : 'Dark',
-      path: null,
-      onClick: toggleMode
+      id: 'toolshed',
+      icon: 'handyman',
+      label: 'Toolshed',
+      path: '/toolshed',
+      onClick: null
     },
     {
       id: 'profile',
@@ -205,7 +175,7 @@ const FixedMobileNav = ({
                 zIndex: 10
               }}
             >
-              <h5 className="mb-0 fw-bold text-dark">Navigation</h5>
+              <h5 className="mb-0 fw-bold text-dark">{isAuthenticated ? 'My Account' : 'Navigation'}</h5>
               <FlatButton 
                 variant="outline-secondary"
                 size="sm"
@@ -216,71 +186,160 @@ const FixedMobileNav = ({
               </FlatButton>
             </div>
 
+            {/* Profile Section (if logged in) */}
+            {isAuthenticated && username && (
+              <div 
+                className="p-4 border-bottom"
+                style={{ background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)' }}
+              >
+                <div className="d-flex align-items-center">
+                  <div 
+                    className="d-flex align-items-center justify-content-center me-3"
+                    style={{
+                      width: '50px',
+                      height: '50px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+                      color: 'white',
+                      fontSize: '20px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    {username.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="fw-semibold text-dark" style={{ fontSize: '16px' }}>
+                      {username}
+                    </div>
+                    <span 
+                      className="badge"
+                      style={{
+                        background: '#10b981',
+                        color: 'white',
+                        fontSize: '10px',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontWeight: '500'
+                      }}
+                    >
+                      Logged in
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Navigation Links */}
             <div className="pb-4">
-              {getNavigationPages().map((page, index) => (
+              {getNavigationPages().map((page) => (
+                <Fragment key={page.path}>
+                  {page.isSeparator && (
+                    <div 
+                      className="px-4 py-2 text-muted fw-semibold"
+                      style={{ 
+                        fontSize: '12px', 
+                        background: '#f8fafc',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }}
+                    >
+                      Browse
+                    </div>
+                  )}
+                  <Link
+                    href={page.path}
+                    className="text-decoration-none"
+                    onClick={toggleMenuModal}
+                  >
+                    <div 
+                      className="d-flex align-items-center justify-content-between p-4 border-bottom hover-list-item"
+                      style={{
+                        background: getHighlightClass(page.path) ? '#f0f9ff' : 'white',
+                        borderLeft: getHighlightClass(page.path) ? '4px solid #3b82f6' : '4px solid transparent',
+                        transition: 'all 0.2s ease',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <div className="d-flex align-items-center flex-grow-1">
+                        <span 
+                          className="material-symbols-outlined me-3"
+                          style={{ 
+                            fontSize: '24px',
+                            color: getHighlightClass(page.path) ? '#3b82f6' : '#6b7280'
+                          }}
+                        >
+                          {page.icon}
+                        </span>
+                        <div>
+                          <div 
+                            className="fw-semibold"
+                            style={{ 
+                              color: getHighlightClass(page.path) ? '#1e40af' : '#374151',
+                              fontSize: '16px'
+                            }}
+                          >
+                            {page.name}
+                          </div>
+                          <div className="text-muted" style={{ fontSize: '13px' }}>
+                            {page.description}
+                          </div>
+                        </div>
+                      </div>
+                      <div 
+                        className="ms-3"
+                        style={{
+                          color: getHighlightClass(page.path) ? '#3b82f6' : '#9ca3af',
+                          fontSize: '18px'
+                        }}
+                      >
+                        →
+                      </div>
+                    </div>
+                  </Link>
+                </Fragment>
+              ))}
+
+              {/* Logout (if logged in) */}
+              {isAuthenticated && (
                 <Link
-                  key={page.path}
-                  href={page.path}
-                  className="text-decoration-none"
+                  href="/logout"
+                  method="post"
+                  as="button"
+                  className="text-decoration-none w-100 border-0 bg-transparent text-start"
                   onClick={toggleMenuModal}
                 >
                   <div 
                     className="d-flex align-items-center justify-content-between p-4 border-bottom hover-list-item"
                     style={{
-                      background: getHighlightClass(page.path) ? '#f0f9ff' : 'white',
-                      borderLeft: getHighlightClass(page.path) ? '4px solid #3b82f6' : '4px solid transparent',
+                      background: 'white',
+                      borderLeft: '4px solid transparent',
                       transition: 'all 0.2s ease',
                       cursor: 'pointer'
                     }}
                   >
-                    <div className="flex-grow-1">
-                      <div 
-                        className="fw-semibold mb-1"
-                        style={{ 
-                          color: getHighlightClass(page.path) ? '#1e40af' : '#374151',
-                          fontSize: '16px',
-                          lineHeight: '1.2'
-                        }}
+                    <div className="d-flex align-items-center flex-grow-1">
+                      <span 
+                        className="material-symbols-outlined me-3"
+                        style={{ fontSize: '24px', color: '#ef4444' }}
                       >
-                        {page.name}
-                      </div>
-                      <div 
-                        className="text-muted"
-                        style={{ 
-                          fontSize: '13px',
-                          lineHeight: '1.3'
-                        }}
-                      >
-                        {page.description}
+                        logout
+                      </span>
+                      <div>
+                        <div className="fw-semibold" style={{ color: '#ef4444', fontSize: '16px' }}>
+                          Logout
+                        </div>
+                        <div className="text-muted" style={{ fontSize: '13px' }}>
+                          Sign out of your account
+                        </div>
                       </div>
                     </div>
-                    <div 
-                      className="ms-3"
-                      style={{
-                        color: getHighlightClass(page.path) ? '#3b82f6' : '#9ca3af',
-                        fontSize: '18px',
-                        transition: 'transform 0.2s ease'
-                      }}
-                    >
+                    <div className="ms-3" style={{ color: '#9ca3af', fontSize: '18px' }}>
                       →
                     </div>
                   </div>
                 </Link>
-              ))}
+              )}
             </div>
-
-            {/* Footer Info */}
-            {isAuthenticated && (
-              <div 
-                className="p-4 text-center border-top mt-auto"
-                style={{ background: '#f8fafc' }}
-              >
-                <small className="text-muted">
-                  Welcome back, {username || 'User'}!
-                </small>
-              </div>
-            )}
           </div>
         </div>
       )}
@@ -295,13 +354,11 @@ const FixedMobileNav = ({
           zIndex: 1000,
           background: 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(20px)',
-          borderTop: '1px solid rgba(0, 0, 0, 0.1)',
-          padding: '8px 0 20px 0',
-          boxShadow: '0 -10px 30px rgba(0, 0, 0, 0.1)'
+          padding: '8px 0 20px 0'
         }}
       >
-        <div className="container-fluid px-4">
-          <div className="row g-0">
+        <div className="container-fluid px-2">
+          <div className="d-flex justify-content-between">
             {navItems.map((item) => {
               const isActive = item.path ? getHighlightClass(item.path) : false;
               
@@ -342,7 +399,7 @@ const FixedMobileNav = ({
               );
 
               return (
-                <div key={item.id} className="col-3">
+                <div key={item.id} className="flex-fill text-center">
                   {item.path ? (
                     <Link
                       href={item.path}

@@ -9,7 +9,7 @@ import {
     faXTwitter,
     faYoutube, } from '@fortawesome/free-brands-svg-icons';
 
-export default function SocialFooter({isDarkMode}){
+export default function SocialFooter(){
     return(
     <>
 <Container fluid={true}>
@@ -17,10 +17,10 @@ export default function SocialFooter({isDarkMode}){
     <Row className="social-footer">
         <Col sm={12} className="text-center">
         <div className="py-3 px-3">
-            <h5 className={`poppins-semibold mb-3 ${isDarkMode ? 'text-light' : ''}`} style={{ fontSize: '2em' }}>
+            <h5 className="poppins-semibold mb-3" style={{ fontSize: '2em' }}>
             Follow Us
             </h5>
-            <p className={`mb-2 p-0 ${isDarkMode ? 'text-light' : ''}`}>
+            <p className="mb-2 p-0">
             Follow Us on Your Favorite Platform to Stay Connected
             </p>
             <ul className="share-icons m-0 p-0 list-unstyled d-flex justify-content-center gap-3">

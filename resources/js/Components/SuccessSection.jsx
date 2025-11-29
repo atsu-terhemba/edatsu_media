@@ -9,6 +9,9 @@ export default function SuccessSection() {
             <Container className="px-3 px-md-4">
                 <Row className="mb-4 mb-md-5">
                     <Col xs={12} className="text-center">
+                        <p className="text-muted mb-2" style={{ fontSize: '1.1rem' }}>
+                            Looking for funding?
+                        </p>
                         <h2 className="section-title fw-bold text-dark mb-3">
                             Intelligence-Powered Business Ecosystem
                         </h2>

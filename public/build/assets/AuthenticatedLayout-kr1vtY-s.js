@@ -1,1 +1,0 @@
-import{V as e,j as r,r as a}from"./app-4wCrxnXP.js";import{H as o}from"./Header-DxZsnhO4.js";function p({children:t}){const s=e().props.auth.user;return r.jsxs(a.Fragment,{children:[r.jsx(o,{auth:s}),t]})}export{p as A};

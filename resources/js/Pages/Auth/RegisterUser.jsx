@@ -543,7 +543,7 @@ export default function Register({role}) {
                                         className="btn w-100 fw-semibold"
                                         disabled={processing}
                                         style={{
-                                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                            background: '#1a1a2e',
                                             border: 'none',
                                             padding: '12px',
                                             borderRadius: '8px',

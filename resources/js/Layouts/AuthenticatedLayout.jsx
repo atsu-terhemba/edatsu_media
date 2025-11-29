@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { Fragment } from 'react';
 import Header from './Header';
+import FixedAuthNav from '@/Components/FixedAuthNav';
 
 
 export default function AuthenticatedLayout({ children }) {
@@ -10,6 +11,7 @@ export default function AuthenticatedLayout({ children }) {
         <Fragment>
         <Header auth={user}/>
         {children}
+        <FixedAuthNav />
         </Fragment>
     );
 }

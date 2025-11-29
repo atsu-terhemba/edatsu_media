@@ -17,12 +17,12 @@ export default function Notifications() {
             <Container fluid={true}>
                 <Container>
                     <Row>
-                        <Col sm={3}>
+                        <Col sm={3} className="d-none d-md-block">
                             <div className='my-3 fs-9'>
                                 <SubscriberSideNav/>
                             </div>
                         </Col>
-                        <Col sm={6}>
+                        <Col sm={6} xs={12}>
                             <div className='border px-3 py-4 rounded my-3 text-center'>
                                 <h2 className='poppins-semibold m-0 py-0'>Notifications</h2>
                             </div>

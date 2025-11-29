@@ -1,8 +1,8 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useState } from "react";
 import { Container, Row, Col, Button, Form, InputGroup } from 'react-bootstrap';
 import { Link, usePage } from '@inertiajs/react';
 
-export default function SubFooter({isDarkMode}){
+export default function SubFooter(){
 
   const user = usePage().props.auth.user;
   const [email, setEmail] = useState('');
@@ -25,7 +25,7 @@ export default function SubFooter({isDarkMode}){
     return (
 <Fragment>
 <Container fluid={true}>
-      <Row className={`footer-banner position-relative border-0 ${isDarkMode ? 'dark-banner' : ''}`}>
+      <Row className="footer-banner position-relative border-0">
         <div className="overlay d-flex align-items-center">
           <Container>
             <Row>

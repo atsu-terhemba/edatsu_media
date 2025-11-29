@@ -51,12 +51,12 @@ export default function Dashboard() {
                 <Container fluid={true}>
                     <Container>
                         <Row>
-                            <Col sm={3}>
+                            <Col sm={3} className="d-none d-md-block">
                                 <div className='my-3 fs-9'>
                                     <SubscriberSideNav/>
                                 </div>
                             </Col>
-                            <Col sm={9}>
+                            <Col sm={9} xs={12}>
                                 <DashboardSkeleton />
                             </Col>
                         </Row>
@@ -73,12 +73,12 @@ export default function Dashboard() {
                 <Container fluid={true}>
                     <Container>
                         <Row>
-                            <Col sm={3}>
+                            <Col sm={3} className="d-none d-md-block">
                                 <div className='my-3 fs-9'>
                                     <SubscriberSideNav/>
                                 </div>
                             </Col>
-                            <Col sm={9}>
+                            <Col sm={9} xs={12}>
                                 <div className='py-3 rounded my-3' style={{border: '1px solid #dee2e6'}}>
                                     <h4 className='m-0' style={{fontWeight: 'normal'}}>Dashboard</h4>
                                 </div>
@@ -104,12 +104,12 @@ export default function Dashboard() {
             <Container fluid={true}>
                 <Container>
                     <Row>
-                        <Col sm={3}>
+                        <Col sm={3} className="d-none d-md-block">
                             <div className='my-3 fs-9'>
                                 <SubscriberSideNav/>
                             </div>
                         </Col>
-                        <Col sm={9}>
+                        <Col sm={9} xs={12}>
                             {/* Header */}
                             <div className='py-3 px-3 rounded my-3' style={{border: '1px solid #dee2e6'}}>
                                 <div className='d-flex justify-content-between align-items-center'>

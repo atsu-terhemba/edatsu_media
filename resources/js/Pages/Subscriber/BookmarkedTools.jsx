@@ -78,12 +78,12 @@ export default function BookmarkedTools({ tools: initialTools }) {
             <Container fluid={true}>
                 <Container>
                     <Row>
-                        <Col sm={3}>
+                        <Col sm={3} className="d-none d-md-block">
                             <div className='my-3 fs-9' style={{position: 'relative', zIndex: 1000}}>
                                 <SubscriberSideNav/>
                             </div>
                         </Col>
-                        <Col sm={6}>
+                        <Col sm={6} xs={12}>
                             <div className='mb-3 py-3 rounded px-3 mt-3' style={{border: '1px solid #dee2e6'}}>
                                 <div className='d-flex justify-content-between align-items-center flex-wrap gap-3'>
                                     <div className='flex-grow-1'>
