@@ -621,20 +621,22 @@ function store(Request $request)
             $userFolder = $this->getUserFolderPath(Auth::user()->name);
             $uploadPath = 'uploads/opp/' . $userFolder . '/' . $hashedFileName;
             
-            // Try to upload to Cloudflare R2, fallback to local storage
-            try {
-                if (config('filesystems.disks.r2.key')) {
+            // Check if R2 is fully configured (key AND bucket must be set)
+            $r2Configured = config('filesystems.disks.r2.key') && config('filesystems.disks.r2.bucket');
+            
+            if ($r2Configured) {
+                try {
                     Storage::disk('r2')->put($uploadPath, file_get_contents($file));
                     \Log::info("File uploaded to R2", ['path' => $uploadPath]);
-                } else {
-                    // Fallback to local public storage
+                } catch (\Exception $storageException) {
+                    // If R2 fails, try local storage
+                    \Log::warning("R2 upload failed, using local storage: " . $storageException->getMessage());
                     Storage::disk('public')->put($uploadPath, file_get_contents($file));
-                    \Log::info("File uploaded to local storage (R2 not configured)", ['path' => $uploadPath]);
                 }
-            } catch (\Exception $storageException) {
-                // If R2 fails, try local storage
-                \Log::warning("R2 upload failed, using local storage: " . $storageException->getMessage());
+            } else {
+                // Fallback to local public storage
                 Storage::disk('public')->put($uploadPath, file_get_contents($file));
+                \Log::info("File uploaded to local storage (R2 not configured)", ['path' => $uploadPath]);
             }
             
             $op->cover_img = $userFolder . '/' . $hashedFileName;
