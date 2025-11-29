@@ -311,8 +311,7 @@ const FixedAuthNav = () => {
           left: '0',
           right: '0',
           zIndex: 1000,
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(20px)',
+          background: '#212529',
           padding: '8px 0 20px 0'
         }}
       >
@@ -328,7 +327,7 @@ const FixedAuthNav = () => {
                     style={{
                       width: '44px',
                       height: '44px',
-                      background: isActive ? '#e5e7eb' : 'transparent',
+                      background: isActive ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                       transform: isActive ? 'scale(1.1)' : 'scale(1)'
                     }}
@@ -337,7 +336,7 @@ const FixedAuthNav = () => {
                       className="material-symbols-outlined"
                       style={{
                         fontSize: '20px',
-                        color: isActive ? '#374151' : '#6b7280'
+                        color: isActive ? '#ffffff' : '#9ca3af'
                       }}
                     >
                       {item.icon}
@@ -348,7 +347,7 @@ const FixedAuthNav = () => {
                     style={{
                       fontSize: '10px',
                       fontWeight: '500',
-                      color: isActive ? '#374151' : '#9ca3af'
+                      color: isActive ? '#ffffff' : '#9ca3af'
                     }}
                   >
                     {item.label}
@@ -386,7 +385,7 @@ const FixedAuthNav = () => {
       <div className="d-md-none" style={{ height: '80px' }}></div>
 
       {/* CSS for animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes slideUp {
           from {
             transform: translateY(100%);
@@ -401,6 +400,25 @@ const FixedAuthNav = () => {
         .hover-list-item:hover {
           background: #f8fafc !important;
           transform: translateX(4px);
+        }
+        
+        /* Remove all button outlines, shadows, and borders */
+        .btn,
+        button {
+          outline: none !important;
+          box-shadow: none !important;
+          border: none !important;
+        }
+        
+        .btn:focus,
+        .btn:active,
+        .btn:focus-visible,
+        button:focus,
+        button:active,
+        button:focus-visible {
+          outline: none !important;
+          box-shadow: none !important;
+          border: none !important;
         }
       `}</style>
     </>

@@ -560,22 +560,31 @@ class OpportunityController extends Controller
 
 function store(Request $request)
 {
-    
-    // Define custom validation rules
-    $rules = [
-        'title' => 'required|string|max:255',
-        'description' => 'required|string',
-        'source_url' => 'required|url|max:255',
-        'deadline' => 'nullable|date|after_or_equal:today',
-        'meta_description' => 'nullable|string',
-        'meta_keywords' => 'nullable|string',
-        'post_id' => 'nullable|integer|exists:opportunities,id',
-    ];
+    try {
+        // Log incoming request data for debugging
+        \Log::info("Opportunity store request received", [
+            'has_title' => $request->has('title'),
+            'has_description' => $request->has('description'),
+            'has_cover_img' => $request->hasFile('cover_img'),
+            'user_id' => Auth::id(),
+        ]);
 
-    // Validate the request
-    $validator = Validator::make($request->all(), $rules);
+        // Define custom validation rules
+        $rules = [
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'source_url' => 'required|url|max:255',
+            'deadline' => 'nullable|date|after_or_equal:today',
+            'meta_description' => 'nullable|string',
+            'meta_keywords' => 'nullable|string',
+            'post_id' => 'nullable|integer|exists:opportunities,id',
+        ];
+
+        // Validate the request
+        $validator = Validator::make($request->all(), $rules);
 
     if ($validator->fails()) {
+        \Log::warning("Validation failed", ['errors' => $validator->errors()->toArray()]);
         return response()->json([
             'success' => false,
             'message' => $validator->errors()->first()
@@ -604,17 +613,26 @@ function store(Request $request)
 
     // Handle file upload
     if ($request->hasFile('cover_img') && $request->file('cover_img')->isValid()) {
-        $file = $request->file('cover_img');
-        $hashedFileName = $this->generateUniqueFileName($file);
-        
-        // Get user-specific folder path
-        $userFolder = $this->getUserFolderPath(Auth::user()->name);
-        $uploadPath = 'uploads/opp/' . $userFolder . '/' . $hashedFileName;
-        
-        // Upload to Cloudflare R2
-        Storage::disk('r2')->put($uploadPath, file_get_contents($file));
-        
-        $op->cover_img = $userFolder . '/' . $hashedFileName;
+        try {
+            $file = $request->file('cover_img');
+            $hashedFileName = $this->generateUniqueFileName($file);
+            
+            // Get user-specific folder path
+            $userFolder = $this->getUserFolderPath(Auth::user()->name);
+            $uploadPath = 'uploads/opp/' . $userFolder . '/' . $hashedFileName;
+            
+            // Upload to Cloudflare R2
+            Storage::disk('r2')->put($uploadPath, file_get_contents($file));
+            
+            $op->cover_img = $userFolder . '/' . $hashedFileName;
+            \Log::info("File uploaded successfully", ['path' => $uploadPath]);
+        } catch (\Exception $e) {
+            \Log::error("File upload error: " . $e->getMessage());
+            return response()->json([
+                "success" => false,
+                "message" => "Error uploading image: " . $e->getMessage(),
+            ], 500);
+        }
     }
 
     // Populate model attributes
@@ -632,16 +650,24 @@ function store(Request $request)
     $op->meta_keywords = $request->meta_keywords;
 
     $op->save();
+    \Log::info("Opportunity saved", ['id' => $op->id]);
 
     // Get the ID of the newly created or updated post
     $postId = $op->id;
 
-    $categories = extractSelectData($request->categories);
-    $brand_labels = extractSelectData($request->brand_labels);
-    $tags = extractSelectData($request->tags);
-    $regions = extractSelectData($request->regions);
-    $countries = extractSelectData($request->countries);
-    $continents = extractSelectData($request->continents);
+    // Extract select data with error handling
+    try {
+        $categories = extractSelectData($request->categories);
+        $brand_labels = extractSelectData($request->brand_labels);
+        $tags = extractSelectData($request->tags);
+        $regions = extractSelectData($request->regions);
+        $countries = extractSelectData($request->countries);
+        $continents = extractSelectData($request->continents);
+    } catch (\Exception $e) {
+        \Log::error("Error extracting select data: " . $e->getMessage());
+        // Continue with empty values
+        $categories = $brand_labels = $tags = $regions = $countries = $continents = null;
+    }
 
 
     // Helper function to delete and insert relational data
@@ -716,6 +742,13 @@ function store(Request $request)
         "success" => true,
         "message" => $post_message,
     ]);
+    } catch (\Exception $e) {
+        \Log::error("Error in opportunity store: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
+        return response()->json([
+            "success" => false,
+            "message" => "An error occurred: " . $e->getMessage(),
+        ], 500);
+    }
 }
 
 

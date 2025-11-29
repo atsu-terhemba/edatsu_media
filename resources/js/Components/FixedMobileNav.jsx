@@ -352,8 +352,7 @@ const FixedMobileNav = ({
           left: '0',
           right: '0',
           zIndex: 1000,
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(20px)',
+          background: '#212529',
           padding: '8px 0 20px 0'
         }}
       >
@@ -369,7 +368,7 @@ const FixedMobileNav = ({
                     style={{
                       width: '44px',
                       height: '44px',
-                      background: isActive ? '#e5e7eb' : 'transparent',
+                      background: isActive ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                       transform: isActive ? 'scale(1.1)' : 'scale(1)'
                     }}
@@ -378,7 +377,7 @@ const FixedMobileNav = ({
                       className="material-symbols-outlined"
                       style={{
                         fontSize: '20px',
-                        color: isActive ? '#374151' : '#6b7280'
+                        color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.7)'
                       }}
                     >
                       {item.icon}
@@ -389,7 +388,7 @@ const FixedMobileNav = ({
                     style={{
                       fontSize: '10px',
                       fontWeight: '500',
-                      color: isActive ? '#374151' : '#9ca3af',
+                      color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.6)',
                       transition: 'color 0.3s ease'
                     }}
                   >
@@ -403,10 +402,14 @@ const FixedMobileNav = ({
                   {item.path ? (
                     <Link
                       href={item.path}
-                      className="btn border-0 p-0 w-100 bg-transparent"
+                      className="btn p-0 w-100"
                       style={{ 
                         height: '60px',
-                        textDecoration: 'none'
+                        textDecoration: 'none',
+                        border: 'none',
+                        outline: 'none',
+                        boxShadow: 'none',
+                        background: 'transparent'
                       }}
                     >
                       {buttonContent}
@@ -414,8 +417,14 @@ const FixedMobileNav = ({
                   ) : (
                     <button
                       onClick={item.onClick}
-                      className="btn border-0 p-0 w-100 bg-transparent"
-                      style={{ height: '60px' }}
+                      className="btn p-0 w-100"
+                      style={{ 
+                        height: '60px',
+                        border: 'none',
+                        outline: 'none',
+                        boxShadow: 'none',
+                        background: 'transparent'
+                      }}
                     >
                       {buttonContent}
                     </button>
@@ -455,6 +464,22 @@ const FixedMobileNav = ({
         .hover-list-item:active {
           background: #e2e8f0 !important;
           transform: scale(0.98) translateX(4px);
+        }
+        
+        /* Remove all button outlines and shadows in mobile nav */
+        .d-md-none .btn,
+        .d-md-none .btn:focus,
+        .d-md-none .btn:active,
+        .d-md-none .btn:hover,
+        .d-md-none button,
+        .d-md-none button:focus,
+        .d-md-none button:active,
+        .d-md-none a.btn,
+        .d-md-none a.btn:focus,
+        .d-md-none a.btn:active {
+          outline: none !important;
+          box-shadow: none !important;
+          border: none !important;
         }
       `}</style>
     </>

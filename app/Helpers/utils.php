@@ -138,16 +138,48 @@ function extractSelectData($data, $key = 'value') {
         return null;
     }
     
+    // If data is a string (already JSON or comma-separated), handle it
+    if (is_string($data)) {
+        // Try to decode if it's JSON
+        $decoded = json_decode($data, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            $data = $decoded;
+        } else {
+            // Return as-is if it's already a simple string
+            return $data;
+        }
+    }
+    
+    // Ensure data is an array at this point
+    if (!is_array($data)) {
+        return null;
+    }
+    
     // If data is an array of arrays (e.g., a list of select options)
-    if (isset($data[0])) {
+    if (isset($data[0]) && is_array($data[0])) {
         // Use array_map to extract the specified key ('value' by default)
         return json_encode(array_map(function($item) use ($key) {
-            return $item[$key];
+            // Handle if item is an array or object
+            if (is_array($item)) {
+                return $item[$key] ?? null;
+            } elseif (is_object($item)) {
+                return $item->$key ?? null;
+            }
+            return $item;
         }, $data));
     }
     
-    // If it's a single item (not an array of options)
-    return $data[$key] ?? null; // If the key doesn't exist, return null
+    // If it's a single item array (not an array of options)
+    if (is_array($data) && isset($data[$key])) {
+        return $data[$key];
+    }
+    
+    // If it's a simple indexed array of IDs
+    if (isset($data[0]) && !is_array($data[0])) {
+        return json_encode($data);
+    }
+    
+    return null;
 }
 
 // function processor($itemsString, $label = '', $slugString = '') {
