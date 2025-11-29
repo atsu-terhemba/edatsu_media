@@ -127,16 +127,16 @@ const Toolshed = () => {
     return (
         <GuestLayout>
             <Metadata
-                title="Strategic Arsenal - Business Tools Intelligence | Edatsu Media"
-                description="Mission-critical business tools curated by our intelligence team. Discover vetted productivity, AI, and operational tools deployed by elite entrepreneurs."
-                keywords="business tools, productivity software, AI tools, marketing automation, project management, entrepreneur tools, SaaS reviews, business intelligence tools"
+                title="Business Tools & Software for Entrepreneurs | Edatsu Toolshed"
+                description="Discover curated business tools, productivity software, AI tools, and SaaS solutions reviewed by entrepreneurs. Find the best tools to grow your business with Edatsu Media's Toolshed."
+                keywords="business tools, entrepreneur software, productivity tools, AI tools for business, SaaS reviews, marketing tools, project management software, business automation, startup tools, Edatsu Toolshed"
                 canonicalUrl="https://www.edatsu.com/toolshed"
-                ogTitle="Strategic Arsenal - Mission-Critical Business Tools"
-                ogDescription="Intelligence-grade tools deployed by elite entrepreneurs. Each tool undergoes our proprietary vetting algorithm to ensure operational superiority."
+                ogTitle="Business Tools & Software for Entrepreneurs | Edatsu Toolshed"
+                ogDescription="Curated collection of business tools, productivity software, and AI solutions reviewed by real entrepreneurs. Find your perfect business toolkit."
                 ogImage="/img/logo/default_logo.jpg"
                 ogUrl="https://www.edatsu.com/toolshed"
-                twitterTitle="Strategic Arsenal - Mission-Critical Business Tools"
-                twitterDescription="Intelligence-grade tools deployed by elite entrepreneurs. Each tool undergoes our proprietary vetting algorithm to ensure operational superiority."
+                twitterTitle="Business Tools & Software for Entrepreneurs | Edatsu Toolshed"
+                twitterDescription="Curated collection of business tools, productivity software, and AI solutions reviewed by real entrepreneurs. Find your perfect business toolkit."
                 twitterImage="/img/logo/default_logo.jpg"
             />
             
@@ -158,10 +158,10 @@ const Toolshed = () => {
                                     <Wrench size={24} />
                                 </div> */}
                                 <div>
-                                    <h1 className="h3 text-dark mb-1">
+                                    <h1 className="h3 text-dark mb-1 fw-bold">
                                     Productivity tools
                                     </h1>
-                                    <p className="font-monospace text-secondary mb-0">
+                                    <p className="text-secondary mb-0">
                                         Mission-critical tools vetted by our intelligence algorithms
                                     </p>
                                 </div>

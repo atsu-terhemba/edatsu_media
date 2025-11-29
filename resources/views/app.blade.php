@@ -4,6 +4,16 @@
     <meta charset="utf-8">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="application-name" content="Edatsu Media">
+    
+    <!-- Primary SEO Meta Tags -->
+    <meta name="title" content="Edatsu Media - Discover Funding Opportunities, Grants & Business Tools">
+    <meta name="description" content="Edatsu Media helps entrepreneurs discover funding opportunities, grants, accelerators, and essential business tools to launch and scale their ventures globally.">
+    <meta name="keywords" content="funding opportunities, business grants, startup accelerators, entrepreneur tools, business growth, venture capital, small business funding, Edatsu Media">
+    <meta name="author" content="Edatsu Media">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
+    
+    <!-- Favicons and App Icons -->
     <link rel="icon" type="image/png" sizes="192x192" href="{{asset('img/icons/android-icon-192x192.png')}}">
     <link rel="icon" type="image/png" sizes="144x144" href="{{asset('img/icons/android-icon-144x144.png')}}">
     <link rel="icon" type="image/png" sizes="96x96" href="{{asset('img/icons/android-icon-96x96.png')}}">
@@ -29,18 +39,34 @@
     <meta name="msapplication-TileImage" content="img/icons/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
     
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Edatsu Media">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:title" content="Edatsu Media - Funding Opportunities & Business Tools">
+    <meta property="og:description" content="Discover funding opportunities, grants, accelerators, and essential business tools to launch and scale your venture.">
+    <meta property="og:image" content="{{asset('img/logo/default_logo.jpg')}}">
+    <meta property="og:url" content="https://www.edatsu.com">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@edatsumedia">
+    <meta name="twitter:title" content="Edatsu Media - Funding Opportunities & Business Tools">
+    <meta name="twitter:description" content="Discover funding opportunities, grants, accelerators, and essential business tools for entrepreneurs.">
+    <meta name="twitter:image" content="{{asset('img/logo/default_logo.jpg')}}">
+    
     <!-- Google Material Symbols Outlined -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
-    <!-- Laravel 12 Font - Instrument Sans -->
+    <!-- Edatsu Media Font - Instrument Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
     
-    <!-- Laravel 12 Typography Styles -->
+    <!-- Edatsu Media Typography Styles -->
     <style>
         * {
             font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';

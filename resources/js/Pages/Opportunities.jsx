@@ -204,16 +204,16 @@ const Opportunities = () => {
     return (
         <GuestLayout>
             <Metadata
-                title="Opportunities"
-                description="Explore global business opportunities, grants, and finance resources with Edatsu Media. Get the latest news, events, and tools for growth."
-                keywords="global business opportunities, business grants and funding, crypto investment opportunities, finance tools and resources, latest global news, blockchain business tools, international business events, cryptocurrency news and updates, decentralized finance (DeFi) tools, global funding opportunities"
-                canonicalUrl="https://www.edatsu.com"
-                ogTitle="Edatsu Global Hub: News, Events, Funding & Business Resources"
-                ogDescription="Explore global business opportunities, grants, and finance resources with Edatsu Media. Get the latest news, events, and tools for growth."
+                title="Funding Opportunities, Grants & Accelerators for Entrepreneurs"
+                description="Discover curated funding opportunities, business grants, startup accelerators, and investment programs from around the world. Find the perfect funding match for your venture with Edatsu Media."
+                keywords="funding opportunities, business grants, startup accelerators, venture capital, angel investors, seed funding, small business grants, entrepreneur funding, startup funding, investment opportunities, Edatsu Media"
+                canonicalUrl="https://www.edatsu.com/opportunities"
+                ogTitle="Funding Opportunities & Grants for Entrepreneurs | Edatsu Media"
+                ogDescription="Browse thousands of funding opportunities, grants, and accelerators curated for entrepreneurs. Launch and scale your business with the right funding."
                 ogImage="/img/logo/default_logo.jpg"
-                ogUrl="https://www.edatsu.com"
-                twitterTitle="Edatsu Global Hub: News, Events, Funding & Business Resources"
-                twitterDescription="Explore global business opportunities, grants, and finance resources with Edatsu Media. Get the latest news, events, and tools for growth."
+                ogUrl="https://www.edatsu.com/opportunities"
+                twitterTitle="Funding Opportunities & Grants for Entrepreneurs | Edatsu Media"
+                twitterDescription="Browse thousands of funding opportunities, grants, and accelerators curated for entrepreneurs. Launch and scale your business with the right funding."
                 twitterImage="/img/logo/default_logo.jpg"
             />
             
@@ -235,10 +235,10 @@ const Opportunities = () => {
                                     <Target size={24} />
                                 </div> */}
                                 <div>
-                                    <h1 className="h3 text-dark mb-1">
+                                    <h1 className="h3 text-dark mb-1f fw-bold">
                                         Opportunities
                                     </h1>
-                                    <p className="font-monospace text-secondary mb-0">
+                                    <p className="text-secondary mb-0">
                                        Discover funding, grants & accelerators to launch and scale your vision
                                     </p>
                                 </div>

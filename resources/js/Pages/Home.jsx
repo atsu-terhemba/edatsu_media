@@ -63,16 +63,16 @@ const Home = () => {
     return (
         <GuestLayout>
             <Metadata
-                title="Home"
-                description="Explore global business opportunities, grants, and finance resources with Edatsu Media. Get the latest news, events, and tools for growth."
-                keywords="global business opportunities, business grants and funding, crypto investment opportunities, finance tools and resources, latest global news, blockchain business tools, international business events, cryptocurrency news and updates, decentralized finance (DeFi) tools, global funding opportunities"
+                title="Edatsu Media - Discover Funding Opportunities, Grants & Business Tools"
+                description="Edatsu Media helps entrepreneurs discover funding opportunities, grants, accelerators, and essential business tools to launch and scale their ventures globally. Find your perfect funding match today."
+                keywords="funding opportunities, business grants, startup accelerators, entrepreneur tools, business growth resources, venture capital, small business funding, startup resources, Edatsu Media"
                 canonicalUrl="https://www.edatsu.com"
-                ogTitle="Edatsu Global Hub: News, Events, Funding & Business Resources"
-                ogDescription="Explore global business opportunities, grants, and finance resources with Edatsu Media. Get the latest news, events, and tools for growth."
+                ogTitle="Edatsu Media - Funding Opportunities & Business Tools for Entrepreneurs"
+                ogDescription="Discover funding opportunities, grants, accelerators, and essential business tools. Join thousands of entrepreneurs growing their ventures with Edatsu Media."
                 ogImage="/img/logo/default_logo.jpg"
                 ogUrl="https://www.edatsu.com"
-                twitterTitle="Edatsu Global Hub: News, Events, Funding & Business Resources"
-                twitterDescription="Explore global business opportunities, grants, and finance resources with Edatsu Media. Get the latest news, events, and tools for growth."
+                twitterTitle="Edatsu Media - Funding Opportunities & Business Tools for Entrepreneurs"
+                twitterDescription="Discover funding opportunities, grants, accelerators, and essential business tools. Join thousands of entrepreneurs growing their ventures with Edatsu Media."
                 twitterImage="/img/logo/default_logo.jpg"
             />
             <HomeBanner />
