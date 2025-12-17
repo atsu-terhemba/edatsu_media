@@ -1003,6 +1003,53 @@ search toggle effect**/
     .page-title{font-size:1em !important;}
 }
 
+/* Opportunities Page Responsive Styles */
+@media (max-width: 575.98px) {
+    .container {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+    
+    .opportunities-hero h1 {
+        font-size: 1.5rem;
+    }
+    
+    .opportunities-hero p {
+        font-size: 0.875rem;
+    }
+}
+
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .container {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .container {
+        max-width: 720px;
+    }
+}
+
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    .container {
+        max-width: 960px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1140px;
+    }
+}
+
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1320px;
+    }
+}
+
 /* Home Page Banner Responsive Styles */
 .banner-title {
     font-size: 2.5rem;

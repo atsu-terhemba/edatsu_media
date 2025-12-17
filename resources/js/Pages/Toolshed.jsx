@@ -141,11 +141,11 @@ const Toolshed = () => {
             />
             
             {/* Hero Section */}
-            <section className="py-4" style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                <Container fluid={true}>
+            <section className="py-3 py-md-4" style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                <Container>
                     <Row className="align-items-center">
-                        <Col lg={8} md={7} sm={12}>
-                            <div className="d-flex align-items-center mb-3 px-3">
+                        <Col xs={12} md={7} lg={8}>
+                            <div className="d-flex align-items-center mb-2 mb-md-3">
                                 {/* <div 
                                     className="rounded-circle d-inline-flex align-items-center justify-content-center me-3"
                                     style={{ 
@@ -158,16 +158,16 @@ const Toolshed = () => {
                                     <Wrench size={24} />
                                 </div> */}
                                 <div>
-                                    <h1 className="h3 text-dark mb-1 fw-bold">
-                                    Productivity tools
+                                    <h1 className="h4 h3-md text-dark mb-1 fw-bold">
+                                    Toolshed
                                     </h1>
-                                    <p className="text-secondary mb-0">
-                                        Mission-critical tools vetted by our intelligence algorithms
+                                    <p className="text-secondary mb-0 small small-md">
+                                        Discover the best tools to build, market & scale your business
                                     </p>
                                 </div>
                             </div>
                         </Col>
-                        <Col lg={4} md={5} sm={12}>
+                        <Col xs={12} md={5} lg={4} className="d-none d-md-block">
                             <div className="d-flex justify-content-end align-items-center gap-3">
                                 {/* <div className="d-flex align-items-center text-success">
                                     <TrendingUp size={16} className="me-1" />
@@ -188,21 +188,22 @@ const Toolshed = () => {
                 <AdBanner slot="toolshed_top_leaderboard" size="large-leaderboard" />
             </div> */}
 
-            <Container fluid className="px-0">
-                <Row className="g-0">
+            <Container className="py-3 py-md-4">
+                <Row className="g-0 g-md-3">
                     {/* Sidebar */}
-                    <Col lg={3} md={4} sm={12}>
+                    <Col xs={12} md={4} lg={3}>
                         <div 
                             className={`${isMobileSearchVisible ? 'mobile-fixed-toggle' : 'd-none d-md-block'}`} 
                             id="searchBar"
                             style={{ 
                                 backgroundColor: 'white',
                                 borderRight: '1px solid #e2e8f0',
-                                minHeight: isMobileSearchVisible ? 'auto' : '100vh',
+                                minHeight: isMobileSearchVisible ? 'auto' : 'calc(100vh - 150px)',
                                 maxHeight: isMobileSearchVisible ? '85vh' : 'none',
                                 overflowY: isMobileSearchVisible ? 'auto' : 'visible',
                                 position: 'sticky',
-                                top: '0'
+                                top: '20px',
+                                borderRadius: '12px'
                             }}
                         >
                             <div className={`${isMobileSearchVisible ? 'px-3 py-3' : 'px-3 py-3'}`}>
@@ -289,8 +290,32 @@ const Toolshed = () => {
                     </Col>
 
                     {/* Main Content */}
-                    <Col lg={9} md={8} sm={12}>
-                        <div className="p-2 p-md-3" style={{ backgroundColor: '#fafbfc' }}>
+                    <Col xs={12} md={8} lg={9}>
+                        <div className="p-0 p-md-3" style={{ backgroundColor: '#fafbfc', borderRadius: '12px' }}>
+                            {/* e_media_display_horizontal_ad_1 */}
+                    <div style={{
+                        width: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        border: '1.5px solid #e2e8f0',
+                        borderRadius: '12px',
+                        background: '#f8fafc',
+                        boxShadow: '0 2px 8px rgba(44,62,80,0.04)',
+                        position: 'relative',
+                        minHeight: 90,
+                        padding: '18px 0',
+                        marginBottom: 24
+                    }}>
+                        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7365396698208751" crossOrigin="anonymous"></script>
+                        <ins className="adsbygoogle"
+                            style={{ display: 'block' }}
+                            data-ad-client="ca-pub-7365396698208751"
+                            data-ad-slot="7889919728"
+                            data-ad-format="auto"
+                            data-full-width-responsive="true"></ins>
+                        <script>{`(adsbygoogle = window.adsbygoogle || []).push({});`}</script>
+                    </div>
+                            
                             {/* Feedback Panel */}
                             {/* <div className="mb-4">
                                 <FeedbackPanel />
@@ -344,6 +369,8 @@ const Toolshed = () => {
                                         <DisplayToolshed data={data} showLabels={showLabels} />
                                     </Suspense>
                                 )}
+                                
+                                
                                 
                                 {/* Pagination */}
                                 <div className="mt-4 pt-4">

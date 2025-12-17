@@ -134,9 +134,9 @@ const FixedMobileNav = ({
     },
     {
       id: 'profile',
-      icon: 'person',
-      label: isAuthenticated ? 'Profile' : 'Login',
-      path: isAuthenticated ? '/profile' : '/login',
+      icon: 'dashboard',
+      label: isAuthenticated ? 'Dashboard' : 'Login',
+      path: isAuthenticated ? '/subscriber-dashboard' : '/login',
       onClick: null
     }
   ];

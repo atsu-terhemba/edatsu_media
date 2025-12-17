@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Container, Row, Col, Card, Badge, Button, Modal, Form, Dropdown, Alert } from 'react-bootstrap';
+import '../../../css/modern-badges.css';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import SubscriberSideNav from './Components/SideNav';
@@ -224,10 +225,10 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                                         </h4>
                                         <small className='text-muted'>Track and manage your saved opportunities</small>
                                     </div>
-                                    <Badge bg="light" text="dark" className='px-3 py-2' style={{border: '1px solid #dee2e6'}}>
-                                        <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>collections_bookmark</span>
+                                    <span className="modern-badge">
+                                        <span className='material-symbols-outlined'>collections_bookmark</span>
                                         {opportunities.total || 0} Total
-                                    </Badge>
+                                    </span>
                                 </div>
                             </div>
 
@@ -304,42 +305,17 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
 
 
                                                             <div className='d-flex align-items-center gap-2 flex-wrap mb-2'>
-                                                                <span className='badge' style={{
-                                                                    background: '#667eea',
-                                                                    color: 'white',
-                                                                    padding: '4px 10px',
-                                                                    borderRadius: '4px',
-                                                                    fontSize: '0.75rem',
-                                                                    fontWeight: '500'
-                                                                }}>
-                                                                    <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>calendar_month</span>
+                                                                <span className='modern-badge primary'>
+                                                                    <span className='material-symbols-outlined'>calendar_month</span>
                                                                     {formatDate(bookmark.opportunity?.deadline)}
                                                                 </span>
-                                                                <span className='badge' style={{
-                                                                    background: getDeadlineStatus(bookmark.opportunity?.deadline).status === 'expired' 
-                                                                        ? '#f5576c'
-                                                                        : getDeadlineStatus(bookmark.opportunity?.deadline).status === 'expiring'
-                                                                        ? '#ffc107'
-                                                                        : '#10b981',
-                                                                    color: 'white',
-                                                                    padding: '4px 10px',
-                                                                    borderRadius: '4px',
-                                                                    fontSize: '0.75rem',
-                                                                    fontWeight: '500'
-                                                                }}>
-                                                                    <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>{getDeadlineStatus(bookmark.opportunity?.deadline).icon}</span>
+                                                                <span className={`modern-badge ${getDeadlineStatus(bookmark.opportunity?.deadline).status === 'expired' ? 'danger' : getDeadlineStatus(bookmark.opportunity?.deadline).status === 'expiring' ? 'warning' : 'success'}`}>
+                                                                    <span className='material-symbols-outlined'>{getDeadlineStatus(bookmark.opportunity?.deadline).icon}</span>
                                                                     {getDeadlineStatus(bookmark.opportunity?.deadline).text}
                                                                 </span>
                                                                 {bookmark.reminder_date && (
-                                                                    <span className='badge' style={{
-                                                                        background: '#8b5cf6',
-                                                                        color: 'white',
-                                                                        padding: '4px 10px',
-                                                                        borderRadius: '4px',
-                                                                        fontSize: '0.75rem',
-                                                                        fontWeight: '500'
-                                                                    }}>
-                                                                        <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle', fontVariationSettings: "'FILL' 1"}}>notifications</span>
+                                                                    <span className='modern-badge info'>
+                                                                        <span className='material-symbols-outlined' style={{ fontVariationSettings: "'FILL' 1" }}>notifications</span>
                                                                         Reminder
                                                                     </span>
                                                                 )}

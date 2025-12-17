@@ -1,0 +1,24 @@
+.upcoming-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  background: linear-gradient(90deg, #ffecd2 0%, #fcb69f 100%);
+  color: #b85c00;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-radius: 999px;
+  padding: 0.35em 1em 0.35em 0.8em;
+  box-shadow: 0 2px 8px rgba(252,182,159,0.08);
+  border: none;
+  letter-spacing: 0.03em;
+  transition: background 0.2s, color 0.2s;
+}
+.upcoming-badge .material-symbols-outlined {
+  font-size: 1.1em;
+  color: #ff9800;
+  vertical-align: middle;
+}
+.upcoming-badge:hover {
+  background: linear-gradient(90deg, #fcb69f 0%, #ffecd2 100%);
+  color: #a04a00;
+}

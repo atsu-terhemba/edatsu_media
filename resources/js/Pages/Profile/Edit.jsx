@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import Footer from '@/Components/Footer';
 import { Head } from '@inertiajs/react';
 import { Container, Row, Col, Card } from 'react-bootstrap';
 import DeleteUserForm from './Partials/DeleteUserForm';
@@ -52,6 +53,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                     </Row>
                 </Container>
             </Container>
+            <Footer />
         </AuthenticatedLayout>
     );
 }

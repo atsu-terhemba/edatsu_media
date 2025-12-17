@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import '../../../css/custom-badges.css';
 import { Container, Row, Col, Button, Card, Spinner, Alert } from 'react-bootstrap';
 import { Head } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
@@ -144,9 +145,9 @@ export default function Dashboard() {
                                         </div>
                                         {subscriberData?.stats?.upcomingOpportunities > 0 && (
                                             <div className='mt-2'>
-                                                <span className='badge bg-warning text-dark px-2 py-1' style={{fontSize: '0.75rem'}}>
-                                                    <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>warning</span>
-                                                    Expiring soon
+                                                <span className='upcoming-badge'>
+                                                    <span className='material-symbols-outlined'>event_upcoming</span>
+                                                    Upcoming & Expiring
                                                 </span>
                                             </div>
                                         )}

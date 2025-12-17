@@ -1,5 +1,6 @@
 import { Fragment } from "react"
 import { Navbar, Nav, Container, Button, NavDropdown, Image, Badge } from 'react-bootstrap';
+import NotificationDropdown from '@/Components/NotificationDropdown';
 import { Link } from "@inertiajs/react";
 import FlatButton from '@/Components/FlatButton';
 import { useEffect, useState } from "react";
@@ -40,25 +41,27 @@ export default function Header({auth}){
 
 return(
 <Fragment>
-<Navbar expand="lg" className="header border-0 custom-title align-middle" bg="dark" variant="dark">
-<Container fluid={true} className="align-middle">
+<Navbar expand="lg" className="header border-0 custom-title align-middle py-2" bg="dark" variant="dark">
+<Container className="align-middle">
 {/* Logo */}
 <Link href={route('home')}>
     <Image src={Images.app_logo_trans} width={50} className="img-fluid" alt="logo" />
 </Link>
+{/* Mobile Toggle */}
+<Navbar.Toggle aria-controls="navbarSupportedContent" className="border-0" />
 {/* Navbar Collapse */}
 <Navbar.Collapse id="navbarSupportedContent">
-    <div className="d-flex justify-content-between w-100">
+    <div className="d-lg-flex justify-content-between w-100 py-3 py-lg-0">
     <form className="d-flex" role="search">
     </form>
-    <Nav className="m-0 p-0 d-flex align-items-center fs-9">
+    <Nav className="m-0 p-0 d-flex flex-column flex-lg-row align-items-start align-items-lg-center fs-9 gap-2 gap-lg-0">
         <Nav.Item>
-        <Link href={route('opportunities')} className={`nav-link me-3 text-decoration-none ${ActiveLink('/opportunities')}`}> 
+        <Link href={route('opportunities')} className={`nav-link me-lg-3 text-decoration-none ${ActiveLink('/opportunities')}`}> 
         Opportunities
         </Link>
         </Nav.Item>
         <Nav.Item>
-        <Link href={route('toolshed')}  className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/toolshed')}`}>
+        <Link href={route('toolshed')}  className={`nav-link text-light me-lg-3 text-decoration-none poppins-light ${ActiveLink('/toolshed')}`}>
         Toolshed
         </Link>
         </Nav.Item>
@@ -74,36 +77,8 @@ return(
         {/* Notification and Message Icons for Subscribers */}
         {auth?.role === 'subscriber' && (
             <>
-                <Nav.Item className="me-3">
-                    <Link 
-                        href={route('subscriber.notifications')} 
-                        className="nav-link text-light text-decoration-none position-relative d-inline-flex align-items-center"
-                        title="Notifications"
-                        style={{ padding: '0.5rem' }}
-                    >
-                        <span className="material-symbols-outlined" style={{fontSize: '1.5rem'}}>notifications</span>
-                        {notificationCount > 0 && (
-                            <Badge 
-                                bg="danger" 
-                                pill 
-                                className="position-absolute"
-                                style={{
-                                    fontSize: '0.65rem',
-                                    top: '0.2rem',
-                                    right: '0.1rem',
-                                    minWidth: '1.2rem',
-                                    height: '1.2rem',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    padding: '0.25rem',
-                                    fontWeight: 'bold'
-                                }}
-                            >
-                                {notificationCount > 9 ? '9+' : notificationCount}
-                            </Badge>
-                        )}
-                    </Link>
+                <Nav.Item className="me-lg-3">
+                    <NotificationDropdown count={notificationCount} />
                 </Nav.Item>
                 {/* <Nav.Item className="me-3">
                     <Link 
@@ -166,12 +141,14 @@ return(
         </>
         :
         <>
-        <FlatButton href="/login" variant="primary" size="sm" className="me-3">
+        <Nav.Item className="d-flex flex-row gap-2 mt-2 mt-lg-0">
+        <FlatButton href="/login" variant="primary" size="sm">
             Login
         </FlatButton>
         <FlatButton href="/sign-up" variant="success" size="sm">
             Sign Up
         </FlatButton>
+        </Nav.Item>
         </>
         }
     </Nav>

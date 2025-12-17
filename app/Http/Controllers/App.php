@@ -91,6 +91,10 @@ class App extends Controller
      */
     public function initHomePage()
     {
+        if (auth()->check()) {
+            // You can change the route below to the correct dashboard route for your app
+            return redirect()->route('subscriber.dashboard');
+        }
         return Inertia::render('Home');
     }
 

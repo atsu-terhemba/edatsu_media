@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Container, Row, Col, Card, Badge, Button, Dropdown } from 'react-bootstrap';
+import '../../../css/modern-badges.css';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import SubscriberSideNav from './Components/SideNav';
@@ -92,10 +93,10 @@ export default function BookmarkedTools({ tools: initialTools }) {
                                         </h4>
                                         <small className='text-muted'>Track and manage your saved tools and resources</small>
                                     </div>
-                                    <Badge bg="light" text="dark" className='px-3 py-2' style={{border: '1px solid #dee2e6'}}>
-                                        <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>collections_bookmark</span>
+                                    <span className="modern-badge">
+                                        <span className='material-symbols-outlined'>collections_bookmark</span>
                                         {tools.total || 0} Total
-                                    </Badge>
+                                    </span>
                                 </div>
                             </div>
 
@@ -164,27 +165,13 @@ export default function BookmarkedTools({ tools: initialTools }) {
                                                                 </Link>
                                                             </h6>
                                                             <div className='d-flex align-items-center gap-2 flex-wrap mb-2'>
-                                                                <span className='badge' style={{
-                                                                    background: '#667eea',
-                                                                    color: 'white',
-                                                                    padding: '4px 10px',
-                                                                    borderRadius: '4px',
-                                                                    fontSize: '0.75rem',
-                                                                    fontWeight: '500'
-                                                                }}>
-                                                                    <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>handyman</span>
+                                                                <span className='modern-badge primary'>
+                                                                    <span className='material-symbols-outlined'>handyman</span>
                                                                     Tool
                                                                 </span>
                                                                 {bookmark.product?.ratings > 0 && (
-                                                                    <span className='badge' style={{
-                                                                        background: '#ffc107',
-                                                                        color: 'white',
-                                                                        padding: '4px 10px',
-                                                                        borderRadius: '4px',
-                                                                        fontSize: '0.75rem',
-                                                                        fontWeight: '500'
-                                                                    }}>
-                                                                        <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle', fontVariationSettings: "'FILL' 1"}}>star</span>
+                                                                    <span className='modern-badge warning'>
+                                                                        <span className='material-symbols-outlined' style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                                                                         {bookmark.product.ratings}/5
                                                                     </span>
                                                                 )}

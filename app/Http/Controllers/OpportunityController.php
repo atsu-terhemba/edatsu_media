@@ -621,8 +621,8 @@ function store(Request $request)
             $userFolder = $this->getUserFolderPath(Auth::user()->name);
             $uploadPath = 'uploads/opp/' . $userFolder . '/' . $hashedFileName;
             
-            // Check if R2 is fully configured (key AND bucket must be set)
-            $r2Configured = config('filesystems.disks.r2.key') && config('filesystems.disks.r2.bucket');
+            // Check if R2 is fully configured using env() directly to avoid disk resolution
+            $r2Configured = env('R2_ACCESS_KEY_ID') && env('R2_BUCKET');
             
             if ($r2Configured) {
                 try {
