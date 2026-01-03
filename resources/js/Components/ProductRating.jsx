@@ -214,19 +214,19 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
         const displayRating = interactive ? (hoverRating || userRating) : rating;
         
         return (
-            <div className="d-flex gap-2">
+            <div className="d-flex gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                     <span
                         key={star}
                         className={`material-symbols-outlined ${interactive ? 'rating-star-interactive' : 'rating-star'}`}
                         style={{
-                            fontSize: interactive ? '48px' : '20px',
-                            color: star <= displayRating ? '#fbbf24' : '#6b7280', // darker gray for unfilled
+                            fontSize: interactive ? '32px' : '16px',
+                            color: star <= displayRating ? '#fbbf24' : '#d1d5db',
                             fontVariationSettings: star <= displayRating
-                                ? '"FILL" 1, "wght" 700, "GRAD" 0, "opsz" 48'
-                                : '"FILL" 0, "wght" 700, "GRAD" 0, "opsz" 48',
+                                ? '"FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24'
+                                : '"FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24',
                             cursor: interactive ? 'pointer' : 'default',
-                            transition: 'all 0.2s ease'
+                            transition: 'all 0.15s ease'
                         }}
                         onClick={interactive ? () => handleStarClick(star) : undefined}
                         onMouseEnter={interactive ? () => setHoverRating(star) : undefined}

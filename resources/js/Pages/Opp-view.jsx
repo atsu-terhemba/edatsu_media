@@ -16,6 +16,7 @@ import FixedMobileNav from '@/Components/FixedMobileNav';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { showOpportunitiesSubscriptionModal } from '@/Components/SubscriptionModal';
+import FlatButton from '@/Components/FlatButton';
 // import AdBanner from '@/Components/AdBanner';
 
 const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
@@ -418,80 +419,59 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
 
                 {/* Action Buttons */}
                 <div className="mb-5">
-                    {/* <h5 className="fw-bold mb-4 text-center text-md-start">Take Action</h5> */}
-                    <div className="">
-                        <Row className="">
-                            {/* Share Button */}
-                            <Col lg={3} md={6} sm={6} xs={6}>
-                                <div className="position-relative">
-                                    <div className="position-absolute share-panel border rounded fs-8 d-none"></div>
-                                    <button 
-                                        className="action-button btn-outline-modern w-100 d-flex align-items-center justify-content-center gap-2 py-3"
-                                        data-title={opp_posts.title} 
-                                        data-id={opp_posts.id} 
-                                        onClick={(e) => toggleShare(e.currentTarget)}
-                                    >
-                                        <span className="material-symbols-outlined" style={{fontSize: '18px'}}>
-                                            share
-                                        </span>
-                                        <span className="d-none d-lg-inline">Share</span>
-                                    </button>
-                                </div>
-                            </Col>
-                            
-                            {/* Bookmark Button */}
-                            <Col lg={3} md={6} sm={6} xs={6}>
-                                <button 
-                                    className="action-button btn-outline-modern w-100 d-flex align-items-center justify-content-center gap-2 py-3"
-                                    data-id={opp_posts.id}
-                                    data-title={opp_posts.title}
-                                    data-type="opp"
-                                    data-url={pageLink(opp_posts.title, opp_posts.id)}
-                                    onClick={handleBookmark}
-                                >
-                                    <span className="material-symbols-outlined" style={{fontSize: '18px', color: opp_posts.is_bookmarked === 1 ? '#FFD700' : 'currentColor'}}>
-                                        {opp_posts.is_bookmarked === 1 ? 'bookmark' : 'bookmark_border'}
-                                    </span>
-                                    <span className="d-none d-lg-inline">
-                                        {opp_posts.is_bookmarked === 1 ? 'Saved' : 'Bookmark'}
-                                    </span>
-                                </button>
-                            </Col>
-                            
-                            {/* Read More Button (if available) */}
-                            {opp_posts.source_url && (
-                                <Col lg={3} md={6} sm={6} xs={6}>
-                                    <a 
-                                        className="action-button btn-primary-modern w-100 d-flex align-items-center justify-content-center gap-2 py-3"
-                                        href={opp_posts.source_url} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                    >
-                                        <span className="material-symbols-outlined" style={{fontSize: '18px'}}>
-                                            open_in_new
-                                        </span>
-                                        <span className="d-none d-lg-inline">Read More</span>
-                                    </a>
-                                </Col>
-                            )}
-                            
-                            {/* Apply Now Button (if available) */}
-                            {opp_posts.direct_link && (
-                                <Col lg={3} md={6} sm={6} xs={6}>
-                                    <a 
-                                        className="action-button btn-success-modern w-100 d-flex align-items-center justify-content-center gap-2 py-3"
-                                        href={opp_posts.direct_link} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                    >
-                                        <span className="material-symbols-outlined" style={{fontSize: '18px'}}>
-                                            target
-                                        </span>
-                                        <span className="d-none d-lg-inline">Apply Now</span>
-                                    </a>
-                                </Col>
-                            )}
-                        </Row>
+                    <div className="d-flex flex-wrap gap-2">
+                        {/* Share Button */}
+                        <div className="position-relative">
+                            <div className="position-absolute share-panel border rounded fs-8 d-none"></div>
+                            <button 
+                                className="btn btn-outline-secondary btn-sm px-3"
+                                style={{ fontSize: '13px', borderRadius: '6px' }}
+                                data-title={opp_posts.title} 
+                                data-id={opp_posts.id} 
+                                onClick={(e) => toggleShare(e.currentTarget)}
+                            >
+                                Share
+                            </button>
+                        </div>
+                        
+                        {/* Bookmark Button */}
+                        <button 
+                            className="btn btn-outline-secondary btn-sm px-3"
+                            style={{ fontSize: '13px', borderRadius: '6px' }}
+                            data-id={opp_posts.id}
+                            data-title={opp_posts.title}
+                            data-type="opp"
+                            data-url={pageLink(opp_posts.title, opp_posts.id)}
+                            onClick={handleBookmark}
+                        >
+                            {opp_posts.is_bookmarked === 1 ? 'Saved' : 'Save'}
+                        </button>
+                        
+                        {/* Read More Button */}
+                        {opp_posts.source_url && (
+                            <a 
+                                className="btn btn-outline-dark btn-sm px-3"
+                                style={{ fontSize: '13px', borderRadius: '6px' }}
+                                href={opp_posts.source_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                            >
+                                Read More
+                            </a>
+                        )}
+                        
+                        {/* Apply Now Button */}
+                        {opp_posts.direct_link && (
+                            <a 
+                                className="btn btn-dark btn-sm px-3"
+                                style={{ fontSize: '13px', borderRadius: '6px' }}
+                                href={opp_posts.direct_link} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                            >
+                                Apply Now
+                            </a>
+                        )}
                     </div>
                 </div>
 
@@ -515,19 +495,58 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                     {/* <AdBanner slot="opp_view_sidebar" size="medium-rectangle" /> */}
                 </div>
 
+                {/* Sidebar Ad Placeholder */}
+                <div style={{
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    border: '1px dashed #d2d2d7',
+                    borderRadius: '12px',
+                    background: '#fafafa',
+                    position: 'relative',
+                    minHeight: 200,
+                    padding: '16px',
+                    marginTop: 15,
+                    marginBottom: 16
+                }}>
+                    <span style={{
+                        position: 'absolute',
+                        top: 8,
+                        left: 12,
+                        fontSize: '10px',
+                        color: '#86868b',
+                        fontWeight: 500
+                    }}>Advertisement</span>
+                    <ins className="adsbygoogle"
+                        style={{ display: 'block' }}
+                        data-ad-client="ca-pub-7365396698208751"
+                        data-ad-slot="1848837203"
+                        data-ad-format="auto"
+                        data-full-width-responsive="true"></ins>
+                </div>
+
                 {/* Subscribe Box */}
-                <div className='subscribe-box mb-4 border rounded px-3 py-3'>
-                    <h5 className="fw-bold mb-1">Subscribe</h5>
-                    <p className='fs-8 text-muted'>
-                        Subscribe to get funding & growth insights
+                <div style={{
+                    borderRadius: '12px',
+                    padding: '16px',
+                    border: '1px solid #e5e5e5',
+                    marginBottom: '16px'
+                }}>
+                    <h3 style={{fontSize: '14px', fontWeight: '600', color: '#1d1d1f', marginBottom: '6px'}}>
+                        Subscribe
+                    </h3>
+                    <p style={{fontSize: '13px', color: '#86868b', marginBottom: '12px'}}>
+                        Get funding & growth insights
                     </p>
-                    <button
+                    <FlatButton
+                        variant="primary"
+                        size="sm"
                         onClick={showOpportunitiesSubscriptionModal}
-                        className="btn py-3 btn-primary w-100 mt-3 mb-0 d-flex align-items-center justify-content-center"
-                        style={{ borderRadius: '12px', fontWeight: '600', fontSize: '0.9rem' }}
+                        className="w-100"
                     >
                         Subscribe
-                    </button>
+                    </FlatButton>
                 </div>
                 
                 {/* Community Sections */}
@@ -595,25 +614,28 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                 </div> */}
 
                 {/* Hostinger Ad */}
-                <div className="border rounded px-3 py-3 my-3">
-                    <div>
-                        <a target="_blank" 
-                        className='text-decoration-none'
-                        href="https://www.hostinger.com/cart?product=hosting%3Acloud_professional&period=12&referral_type=cart_link&REFERRALCODE=1ATSUDOMINI21&referral_id=0194e7a3-6593-739b-9f80-916a5e15e60c">
-                        <h5 className="poppins-semibold m-0 p-0 mb-2">
-                            Build a Powerful Business Website with Hostinger Cloud Professional
-                            <span className="text-primary"> $16.99/mo</span>
-                        </h5>
-                        <span className="badge text-bg-warning rounded-0 poppins-semibold text-uppercase mb-3">
-                            Limited Offer 20% OFF
-                        </span>
+                <div style={{
+                    borderRadius: '12px',
+                    padding: '16px',
+                    border: '1px solid #e5e5e5'
+                }}>
+                    <a 
+                        target="_blank" 
+                        href="https://www.hostinger.com/cart?product=hosting%3Acloud_professional&period=12&referral_type=cart_link&REFERRALCODE=1ATSUDOMINI21&referral_id=0194e7a3-6593-739b-9f80-916a5e15e60c"
+                        style={{ textDecoration: 'none' }}
+                    >
+                        <p style={{fontSize: '13px', fontWeight: '600', color: '#1d1d1f', marginBottom: '4px'}}>
+                            Hostinger Cloud
+                        </p>
+                        <p style={{fontSize: '12px', color: '#86868b', marginBottom: '8px'}}>
+                            Build your website · $16.99/mo
+                        </p>
                         <img 
                             src='/img/main/hostinger.webp'
-                            className="img-fluid rounded" 
-                            alt="hostinger-ads"
+                            style={{ width: '100%', borderRadius: '8px' }}
+                            alt="hostinger"
                         />
-                        </a>
-                    </div>
+                    </a>
                 </div>
 
                 {/* Google Adsense - Commented out for clean design */}

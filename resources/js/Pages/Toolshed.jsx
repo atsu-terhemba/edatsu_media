@@ -297,15 +297,24 @@ const Toolshed = () => {
                         width: '100%',
                         display: 'flex',
                         justifyContent: 'center',
-                        border: '1.5px solid #e2e8f0',
+                        alignItems: 'center',
+                        border: '1.5px dashed #d1d5db',
                         borderRadius: '12px',
-                        background: '#f8fafc',
-                        boxShadow: '0 2px 8px rgba(44,62,80,0.04)',
+                        background: '#ffffff',
                         position: 'relative',
                         minHeight: 90,
-                        padding: '18px 0',
+                        padding: '18px 12px',
                         marginBottom: 24
                     }}>
+                        <span style={{
+                            position: 'absolute',
+                            top: 8,
+                            left: 12,
+                            fontSize: '11px',
+                            color: '#9ca3af',
+                            fontWeight: 500,
+                            letterSpacing: '0.02em'
+                        }}>Advertisement</span>
                         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7365396698208751" crossOrigin="anonymous"></script>
                         <ins className="adsbygoogle"
                             style={{ display: 'block' }}

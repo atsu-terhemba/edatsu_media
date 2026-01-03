@@ -86,7 +86,7 @@ const OpportunitiesSkeleton = ({ count = 6 }) => {
         </div>
       ))}
       
-      <style jsx>{`
+      <style>{`
         .skeleton-loader {
           animation: shimmer 1.2s infinite;
           background: linear-gradient(

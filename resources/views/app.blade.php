@@ -55,6 +55,9 @@
     <meta name="twitter:description" content="Discover funding opportunities, grants, accelerators, and essential business tools for entrepreneurs.">
     <meta name="twitter:image" content="{{asset('img/logo/default_logo.jpg')}}">
     
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7365396698208751" crossorigin="anonymous"></script>
+    
     <!-- Google Material Symbols Outlined -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     

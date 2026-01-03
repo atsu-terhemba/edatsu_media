@@ -11,6 +11,7 @@ import ProductComments from "@/Components/ProductComments";
 import { router } from '@inertiajs/react'
 import RecommendedContent from "@/Components/RecommendedContent";
 import { showToolsSubscriptionModal } from '@/Components/SubscriptionModal';
+import FlatButton from '@/Components/FlatButton';
 // import GoogleAdsense from '@/Components/GoogleAdsense';
 // import AdBanner from '@/Components/AdBanner';
 
@@ -18,6 +19,7 @@ const ReadTool = ({tool_data, similarPosts}) => {
 
     const baseUrl = `${window.location.protocol}//${window.location.host}`;
     const [fullURL, setFullUrl] = useState();
+    const [showRating, setShowRating] = useState(false);
     const {props} = usePage();
 
     useEffect(()=>{
@@ -26,6 +28,97 @@ const ReadTool = ({tool_data, similarPosts}) => {
         setFullUrl(fullURL);
         console.log(tool_data);
     },[])
+
+    // iOS-inspired minimal styles
+    const styles = {
+        container: {
+            minHeight: '100vh',
+        },
+        header: {
+            padding: '20px 0',
+        },
+        toolIcon: {
+            width: '56px',
+            height: '56px',
+            borderRadius: '14px',
+            objectFit: 'cover',
+        },
+        title: {
+            fontSize: '24px',
+            fontWeight: '600',
+            color: '#1d1d1f',
+            letterSpacing: '-0.02em',
+            marginBottom: '8px',
+            lineHeight: '1.2',
+        },
+        subtitle: {
+            fontSize: '14px',
+            color: '#6e6e73',
+            fontWeight: '400',
+            lineHeight: '1.5',
+        },
+        metaText: {
+            fontSize: '12px',
+            color: '#86868b',
+            fontWeight: '400',
+        },
+        sectionTitle: {
+            fontSize: '12px',
+            fontWeight: '600',
+            color: '#86868b',
+            letterSpacing: '0.02em',
+            textTransform: 'uppercase',
+            marginBottom: '16px',
+        },
+        button: {
+            fontSize: '14px',
+            fontWeight: '500',
+            padding: '10px 20px',
+            borderRadius: '20px',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+        },
+        primaryButton: {
+            backgroundColor: '#1d1d1f',
+            color: '#ffffff',
+        },
+        secondaryButton: {
+            backgroundColor: '#f5f5f7',
+            color: '#1d1d1f',
+        },
+        outlineButton: {
+            backgroundColor: 'transparent',
+            color: '#1d1d1f',
+            border: '1px solid #d2d2d7',
+        },
+        card: {
+            borderRadius: '12px',
+            padding: '16px',
+            border: '1px solid #e5e5e5',
+        },
+        divider: {
+            height: '1px',
+            backgroundColor: '#f0f0f0',
+            margin: '24px 0',
+        },
+        tag: {
+            fontSize: '12px',
+            fontWeight: '500',
+            padding: '6px 12px',
+            borderRadius: '16px',
+            backgroundColor: '#f5f5f7',
+            color: '#1d1d1f',
+            marginRight: '8px',
+            marginBottom: '8px',
+            display: 'inline-block',
+        },
+        content: {
+            fontSize: '15px',
+            lineHeight: '1.7',
+            color: '#1d1d1f',
+        },
+    };
 
     return(
         <>
@@ -45,55 +138,100 @@ const ReadTool = ({tool_data, similarPosts}) => {
     twitterImage={`${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/uploads/prod/${tool_data.cover_img}`}
 />
 
-<Container fluid={true} className="container-fluid container-lg">
+<Container fluid={true} className="container-fluid container-lg" style={styles.container}>
         <Row className="g-4">
             <Col lg={8} md={12} sm={12}>
-                {/* Hero Section with Tool Info */}
-                <div className="border-0 mt-3 mb-4">
-                    <div className="d-flex align-items-center mb-3">
-                                {tool_data.cover_img && (
-                                    <img
-                                        src={`${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/uploads/prod/${tool_data.cover_img}`}
-                                        alt={tool_data.title}
-                                        className="rounded me-3"
-                                        style={{ width: '64px', height: '64px', objectFit: 'cover' }}
-                                        onError={(e) => {
-                                            if (!e.target.getAttribute('data-error-handled')) {
-                                                e.target.setAttribute('data-error-handled', 'true');
-                                                e.target.onerror = null;
-                                                e.target.src = "/img/logo/main_2.png";
-                                            }
-                                        }}
-                                    />
-                                )}
-                                {/* <div>
-                                    <span className="badge bg-dark text-white rounded-pill px-3 py-2 mb-2">
-                                        Tool
-                                    </span>
-                                </div> */}
-                            </div>
-                            
-                            <h1 className="text-m-0 p-0 fw-bold mb-3" style={{ fontSize: '2.5em' }}>
-                                {tool_data.title}
-                            </h1>
-                            
-                            <div className="d-flex flex-wrap align-items-center gap-3 mb-3">
-                                <div className="info-pill">
-                                    <span className="material-symbols-outlined" style={{fontSize: '14px'}}>calendar_month</span>
-                                    Posted {new Date(tool_data.created_at).toLocaleDateString()}
-                                </div>
-                            </div>
-                            
-                            {/* Short Description */}
-                            <p className="text-secondary mb-3" style={{ fontSize: '1rem', lineHeight: '1.6' }}>
-                                {tool_data.meta_description || 'Explore this productivity tool to enhance your workflow.'}
+                {/* Header Section */}
+                <div style={styles.header} className="mt-3">
+                    <div className="d-flex align-items-start gap-3">
+                        {tool_data.cover_img && (
+                            <img
+                                src={`${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/uploads/prod/${tool_data.cover_img}`}
+                                alt={tool_data.title}
+                                style={styles.toolIcon}
+                                onError={(e) => {
+                                    if (!e.target.getAttribute('data-error-handled')) {
+                                        e.target.setAttribute('data-error-handled', 'true');
+                                        e.target.onerror = null;
+                                        e.target.src = "/img/logo/main_2.png";
+                                    }
+                                }}
+                            />
+                        )}
+                        <div className="flex-grow-1">
+                            <h1 style={styles.title}>{tool_data.title}</h1>
+                            <p style={styles.subtitle} className="mb-2">
+                                {tool_data.meta_description || 'Productivity tool for your workflow'}
                             </p>
+                            <span style={styles.metaText}>
+                                {new Date(tool_data.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {/* Action Buttons */}
+                    <div className="mt-3">
+                        <div className="d-flex flex-wrap gap-2">
+                            {/* Share Button */}
+                            <div className="position-relative">
+                                <div className="position-absolute share-panel border rounded fs-8 d-none"></div>
+                                <button 
+                                    className="btn btn-outline-secondary btn-sm px-3"
+                                    style={{ fontSize: '13px', borderRadius: '6px' }}
+                                    data-title={tool_data.title} 
+                                    data-id={tool_data.id} 
+                                    onClick={(e) => toggleShare(e.currentTarget)}
+                                >
+                                    Share
+                                </button>
+                            </div>
+                            
+                            {/* Bookmark Button */}
+                            <button 
+                                className="btn btn-outline-secondary btn-sm px-3"
+                                style={{ fontSize: '13px', borderRadius: '6px' }}
+                                data-id={tool_data.id}
+                                data-title={tool_data.title}
+                                data-type="ts"
+                                data-url={pageLink('product', tool_data.slug, tool_data.id)}
+                                onClick={(e) => bookmark(e.currentTarget)}
+                            >
+                                {tool_data.is_bookmarked === 1 ? 'Saved' : 'Save'}
+                            </button>
+                            
+                            {/* Try Tool Button */}
+                            {tool_data.direct_link && (
+                                <a 
+                                    className="btn btn-dark btn-sm px-3"
+                                    style={{ fontSize: '13px', borderRadius: '6px' }}
+                                    href={tool_data.direct_link} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                >
+                                    Try Tool
+                                </a>
+                            )}
+                            
+                            {/* Website Button */}
+                            {tool_data.source_url && (
+                                <a 
+                                    className="btn btn-outline-dark btn-sm px-3"
+                                    style={{ fontSize: '13px', borderRadius: '6px' }}
+                                    href={tool_data.source_url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                >
+                                    Website
+                                </a>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
-                {/* YouTube Video Section */}
+                {/* Video Section */}
                 {tool_data.youtube_link ? (
-                    <div className="mb-4">
-                        <div className="ratio ratio-16x9 rounded overflow-hidden shadow-sm">
+                    <div className="my-4">
+                        <div className="ratio ratio-16x9" style={{ borderRadius: '12px', overflow: 'hidden' }}>
                             <iframe
                                 src={(() => {
                                     let url = tool_data.youtube_link;
@@ -102,7 +240,6 @@ const ReadTool = ({tool_data, similarPosts}) => {
                                     } else if (url.includes('youtu.be/')) {
                                         url = url.replace('youtu.be/', 'youtube.com/embed/');
                                     } else if (url.includes('youtube.com/embed/')) {
-                                        // Already in correct format
                                     } else {
                                         const videoId = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
                                         if (videoId) {
@@ -111,352 +248,154 @@ const ReadTool = ({tool_data, similarPosts}) => {
                                     }
                                     return url;
                                 })()}
-                                title="Product Demo Video"
+                                title="Demo"
                                 allowFullScreen
-                                className="rounded"
                                 style={{ border: 'none' }}
                             />
                         </div>
                     </div>
                 ) : (
-                    <div className="mb-4">
-                        <div 
-                            className="d-flex flex-column align-items-center justify-content-center rounded shadow-sm"
-                            style={{ 
-                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                minHeight: '250px',
-                                padding: '2rem'
-                            }}
+                    <div className="my-4" style={{...styles.card, textAlign: 'center', padding: '32px'}}>
+                        <p style={{...styles.subtitle, marginBottom: '12px'}}>Video review coming soon</p>
+                        <button 
+                            style={{...styles.button, ...styles.secondaryButton}}
+                            onClick={showToolsSubscriptionModal}
                         >
-                            <span className="material-symbols-outlined text-white mb-3" style={{ fontSize: '48px' }}>
-                                video_library
-                            </span>
-                            <h5 className="text-white fw-bold mb-2 text-center">Product Review Coming Soon</h5>
-                            <p className="text-white text-center mb-3" style={{ opacity: 0.9, fontSize: '0.9rem' }}>
-                                Subscribe to get notified when we publish our video review
-                            </p>
-                            <button 
-                                className="action-button btn-success-modern px-4 py-2"
-                                onClick={showToolsSubscriptionModal}
-                            >
-                                <span className="material-symbols-outlined me-2" style={{fontSize: '18px'}}>notifications_active</span>
-                                Subscribe for Updates
-                            </button>
+                            Get Notified
+                        </button>
+                    </div>
+                )}
+
+                <div style={styles.divider}></div>
+
+                {/* Description */}
+                <div className="mb-4">
+                    <h2 style={styles.sectionTitle}>About</h2>
+                    <div 
+                        className="default-font-style" 
+                        style={{ fontSize: '14px', color: '#1d1d1f', lineHeight: '1.6' }}
+                        dangerouslySetInnerHTML={{ __html: tool_data.description }}
+                    ></div>
+                </div>
+
+                <div style={styles.divider}></div>
+                
+                {/* Tags */}
+                {(Array.isArray(tool_data.categories) || Array.isArray(tool_data.tags)) && (
+                    <div className="mb-4">
+                        <h2 style={styles.sectionTitle}>Tags</h2>
+                        <div className="d-flex flex-wrap">
+                            {Array.isArray(tool_data.categories) && tool_data.categories.map((cat, i) => (
+                                <span key={`cat-${i}`} style={styles.tag}>{cat.name}</span>
+                            ))}
+                            {Array.isArray(tool_data.tags) && tool_data.tags.map((tag, i) => (
+                                <span key={`tag-${i}`} style={styles.tag}>{tag.name}</span>
+                            ))}
                         </div>
                     </div>
                 )}
 
-                {/* Content Section */}
-                <div className="mb-5">
-                    <div className="default-font-style" dangerouslySetInnerHTML={{ __html: tool_data.description }}></div>
-                </div>
-
-                
-                {/* Tags & Categories */}
-                <div className="mb-5">
-                    <div className="d-flex flex-wrap">
-                        {["continents", "countries", "categories", "tags", "brand_labels"].map((key) => 
-                            tool_data[key] && renderLabels(tool_data[key], key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' '))
-                        )}
+                {/* Rating Section */}
+                <div className="mb-4">
+                    <div className="d-flex align-items-center justify-content-between mb-3">
+                        <h2 style={{...styles.sectionTitle, marginBottom: 0}}>Rating</h2>
+                        <FlatButton 
+                            variant="primary" 
+                            size="sm"
+                            onClick={() => setShowRating(!showRating)}
+                        >
+                            {showRating ? 'Hide' : 'Rate this'}
+                        </FlatButton>
                     </div>
-                </div>
-
-
-                {/* Rate This Tool Section - Modern Card */}
-                <div className="mb-5">
-                    <div 
-                        className="position-relative overflow-hidden rounded-4 p-4"
-                        style={{
-                            background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)',
-                            border: '1px solid #e2e8f0'
-                        }}
-                    >
-                        {/* Decorative Elements */}
-                        <div 
-                            className="position-absolute"
-                            style={{
-                                top: '-20px',
-                                right: '-20px',
-                                width: '100px',
-                                height: '100px',
-                                background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-                                borderRadius: '50%',
-                                opacity: '0.15',
-                                filter: 'blur(20px)'
-                            }}
+                    {showRating && (
+                        <ProductRating 
+                            productId={tool_data?.id}
+                            isAuthenticated={props?.auth?.user ? true : false}
+                            initialRating={tool_data?.average_rating || 0}
+                            initialCount={tool_data?.total_ratings || 0}
+                            showRatingForm={true}
                         />
-                        <div 
-                            className="position-absolute"
-                            style={{
-                                bottom: '-30px',
-                                left: '20%',
-                                width: '80px',
-                                height: '80px',
-                                background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-                                borderRadius: '50%',
-                                opacity: '0.1',
-                                filter: 'blur(15px)'
-                            }}
-                        />
-                        <div className="position-relative">
-                            {/* Header with Icon */}
-                            <div className="d-flex align-items-center gap-3 mb-3">
-                                <div 
-                                    className="d-flex align-items-center justify-content-center rounded-circle"
-                                    style={{
-                                        width: '48px',
-                                        height: '48px',
-                                        background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-                                        boxShadow: '0 4px 12px rgba(251, 191, 36, 0.3)'
-                                    }}
-                                >
-                                    <span className="material-symbols-outlined text-white" style={{ fontSize: '24px', fontVariationSettings: '"FILL" 1' }}>
-                                        star
-                                    </span>
-                                </div>
-                                <div>
-                                    <h5 className="fw-bold mb-0" style={{ color: '#1e293b', fontSize: '1.1rem' }}>
-                                        Rate this Tool
-                                    </h5>
-                                    <p className="mb-0 text-muted" style={{ fontSize: '0.85rem' }}>
-                                        Have you used this tool? Share your experience!
-                                    </p>
-                                </div>
-                            </div>
-                            {/* Rating Component - no white background */}
-                            <div className="pt-2 pb-1">
-                                <ProductRating 
-                                    productId={tool_data?.id}
-                                    isAuthenticated={props?.auth?.user ? true : false}
-                                    initialRating={tool_data?.average_rating || 0}
-                                    initialCount={tool_data?.total_ratings || 0}
-                                    showRatingForm={true}
-                                />
-                            </div>
-                        </div>
-                    </div>
+                    )}
                 </div>
 
-                {/* Action Buttons */}
-                <div className="mb-5">
-                    <div className="">
-                        <Row className="">
-                            {/* Share Button */}
-                            <Col lg={3} md={6} sm={6} xs={6}>
-                                <div className="position-relative">
-                                    <div className="position-absolute share-panel border rounded fs-8 d-none"></div>
-                                    <button 
-                                        className="action-button btn-outline-modern w-100 d-flex align-items-center justify-content-center gap-2 py-3"
-                                        data-title={tool_data.title} 
-                                        data-id={tool_data.id} 
-                                        onClick={(e) => toggleShare(e.currentTarget)}
-                                    >
-                                        <span className="material-symbols-outlined" style={{fontSize: '18px'}}>share</span>
-                                        <span className="d-none d-lg-inline">Share</span>
-                                    </button>
-                                </div>
-                            </Col>
-                            
-                            {/* Bookmark Button */}
-                            <Col lg={3} md={6} sm={6} xs={6}>
-                                <button 
-                                    className="action-button btn-outline-modern w-100 d-flex align-items-center justify-content-center gap-2 py-3"
-                                    data-id={tool_data.id}
-                                    data-title={tool_data.title}
-                                    data-type="ts"
-                                    data-url={pageLink('product', tool_data.slug, tool_data.id)}
-                                    onClick={(e) => bookmark(e.currentTarget)}
-                                >
-                                    <span className="material-symbols-outlined" style={{fontSize: '18px', color: tool_data.is_bookmarked === 1 ? '#FFD700' : 'currentColor'}}>
-                                        {tool_data.is_bookmarked === 1 ? 'bookmark' : 'bookmark_border'}
-                                    </span>
-                                    <span className="d-none d-lg-inline">
-                                        {tool_data.is_bookmarked === 1 ? 'Saved' : 'Bookmark'}
-                                    </span>
-                                </button>
-                            </Col>
-                            
-                            {/* Try Tool Button */}
-                            {tool_data.direct_link && (
-                                <Col lg={3} md={6} sm={6} xs={6}>
-                                    <a 
-                                        className="action-button btn-success-modern w-100 d-flex align-items-center justify-content-center gap-2 py-3"
-                                        href={tool_data.direct_link} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                    >
-                                        <span className="material-symbols-outlined" style={{fontSize: '18px'}}>target</span>
-                                        <span className="d-none d-lg-inline">Try Tool</span>
-                                    </a>
-                                </Col>
-                            )}
-                            
-                            {/* Learn More Button */}
-                            {tool_data.source_url && (
-                                <Col lg={3} md={6} sm={6} xs={6}>
-                                    <a 
-                                        className="action-button btn-primary-modern w-100 d-flex align-items-center justify-content-center gap-2 py-3"
-                                        href={tool_data.source_url} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                    >
-                                        <span className="material-symbols-outlined" style={{fontSize: '18px'}}>open_in_new</span>
-                                        <span className="d-none d-lg-inline">Learn More</span>
-                                    </a>
-                                </Col>
-                            )}
-                        </Row>
-                    </div>
-                </div>
-
-                {/* Top Ad - After Hero Section */}
-                <div className="my-4">
-                    {/* <AdBanner slot="tool_view_top" size="leaderboard" /> */}
-                </div>
-
-                {/* Ratings & Reviews Section - Separate Container */}
-                <div className="mb-5">
-                    <h6 className="fw-semibold mb-3 d-flex align-items-center text-muted" style={{ fontSize: '0.9rem' }}>
-                        <span className="material-symbols-outlined me-2" style={{ fontSize: '18px' }}>reviews</span>
-                        User Ratings & Reviews
-                    </h6>
-                    <ProductRating 
-                        productId={tool_data?.id}
-                        isAuthenticated={props?.auth?.user ? true : false}
-                        initialRating={tool_data?.average_rating || 0}
-                        initialCount={tool_data?.total_ratings || 0}
-                        showRatingForm={false}
-                    />
-                </div>
-
-                {/* Mid-Content Ad - After Ratings */}
-                <div className="my-4">
-                    {/* <AdBanner slot="tool_view_mid" size="responsive" /> */}
-                </div>
-
-                {/* Comments Section - Disabled in favor of modal reviews */}
-                {/* <div className="tool-card">
-                    <h3 className="section-title">
-                        <span className="material-symbols-outlined me-2 text-primary" style={{fontSize: '20px'}}>chat</span>
-                        Comments & Discussion
-                    </h3>
-                    <ProductComments 
-                        productId={tool_data?.id}
-                        isAuthenticated={props?.auth?.user ? true : false}
-                    />
-                </div> */}
-
-                {/* Recommended Tools */}
-                <div className="mt-5">
+                {/* Recommended */}
+                <div className="mb-4">
+                    <h2 style={styles.sectionTitle}>Similar Tools</h2>
                     <RecommendedContent similarPosts={similarPosts}/>
                 </div>
             </Col>
             
             {/* Sidebar */}
-            <Col lg={4} md={12} sm={12} style={{ marginTop: '15px' }}>
-                {/* Subscribe Box */}
-                <div className='subscribe-box mb-3 border rounded px-3 py-3' style={{ marginTop: '30px' }}>
-                    <h5 className="fw-bold mb-1">Subscribe</h5>
-                    <p className='fs-8 text-muted'>
-                        Subscribe to get funding & growth insights
+            <Col lg={4} md={12} sm={12} className="mt-4">
+                {/* Ad Placeholder */}
+                <div style={{
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    border: '1px dashed #d2d2d7',
+                    borderRadius: '12px',
+                    background: '#fafafa',
+                    position: 'relative',
+                    minHeight: 200,
+                    padding: '16px',
+                    marginTop: 15,
+                    marginBottom: 16
+                }}>
+                    <span style={{
+                        position: 'absolute',
+                        top: 8,
+                        left: 12,
+                        fontSize: '10px',
+                        color: '#86868b',
+                        fontWeight: 500,
+                    }}>Advertisement</span>
+                    <ins className="adsbygoogle"
+                        style={{ display: 'block' }}
+                        data-ad-client="ca-pub-7365396698208751"
+                        data-ad-slot="1848837203"
+                        data-ad-format="auto"
+                        data-full-width-responsive="true"></ins>
+                </div>
+
+                {/* Subscribe */}
+                <div style={{...styles.card, marginBottom: '16px'}}>
+                    <h3 style={{fontSize: '14px', fontWeight: '600', color: '#1d1d1f', marginBottom: '6px'}}>
+                        Subscribe
+                    </h3>
+                    <p style={{...styles.subtitle, marginBottom: '12px'}}>
+                        Get tools & insights delivered
                     </p>
-                    <button
+                    <FlatButton
+                        variant="primary"
+                        size="sm"
                         onClick={showToolsSubscriptionModal}
-                        className="btn py-3 btn-primary w-100 mt-3 mb-0 d-flex align-items-center justify-content-center"
-                        style={{ borderRadius: '12px', fontWeight: '600', fontSize: '0.9rem' }}
+                        className="w-100"
                     >
                         Subscribe
-                    </button>
+                    </FlatButton>
                 </div>
 
-                {/* Community Sections */}
-                {/* <div className="border rounded px-3 py-3 mb-4">
-                    <div className="" style={{marginBottom: '15px'}}>
-                        <div className="">
-                            <div className="message-header">
-                                <div className="avatar-container">
-                                    <img 
-                                        src='/img/defaults/telegram_icon.png'
-                                        className="telegram-avatar" 
-                                        alt="Telegram Community"
-                                    />
-                                    <div className="online-indicator"></div>
-                                </div>
-                                <div className="message-info">
-                                    <h6 className="username">Telegram Community</h6>
-                                    <span className="status">💬 Join the conversation</span>
-                                </div>
-                            </div>
-                            
-                            <div className="message-content">      
-                                <a 
-                                    href="https://t.me/+66AGIA3g2dwzMjc0" 
-                                    target="_blank"
-                                    className="telegram-join-btn"
-                                >
-                                    <span className="btn-text">Join Community Now</span>
-                                    <span className="btn-arrow">→</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="" style={{marginBottom: '15px'}}>
-                        <div className="">
-                            <div className="message-header">
-                                <div className="avatar-container">
-                                    <img 
-                                        src='/img/gif/icons8-whatsapp-50.png'
-                                        className="telegram-avatar" 
-                                        alt="WhatsApp Community"
-                                    />
-                                    <div className="online-indicator"></div>
-                                </div>
-                                <div className="message-info">
-                                    <h6 className="username">WhatsApp Community</h6>
-                                    <span className="status">💬 Join the conversation</span>
-                                </div>
-                            </div>
-                            
-                            <div className="message-content">      
-                                <a 
-                                    href="https://chat.whatsapp.com/YOUR_WHATSAPP_LINK" 
-                                    target="_blank"
-                                    className="telegram-join-btn"
-                                    style={{background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)'}}
-                                >
-                                    <span className="btn-text">Join WhatsApp Group</span>
-                                    <span className="btn-arrow">→</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div> */}
-                {/* Hostinger Ad */}
-                <div className="border rounded px-3 py-3 my-3">
-                    <div>
-                        <a target="_blank" 
-                        className='text-decoration-none'
-                        href="https://www.hostinger.com/cart?product=hosting%3Acloud_professional&period=12&referral_type=cart_link&REFERRALCODE=1ATSUDOMINI21&referral_id=0194e7a3-6593-739b-9f80-916a5e15e60c">
-                        <h5 className="poppins-semibold m-0 p-0 mb-2">
-                            Build a Powerful Business Website with Hostinger Cloud Professional
-                            <span className="text-primary"> $16.99/mo</span>
-                        </h5>
-                        <span className="badge text-bg-warning rounded-0 poppins-semibold text-uppercase mb-3">
-                            Limited Offer 20% OFF
-                        </span>
+                {/* Hostinger */}
+                <div style={{...styles.card}}>
+                    <a 
+                        target="_blank" 
+                        href="https://www.hostinger.com/cart?product=hosting%3Acloud_professional&period=12&referral_type=cart_link&REFERRALCODE=1ATSUDOMINI21&referral_id=0194e7a3-6593-739b-9f80-916a5e15e60c"
+                        style={{ textDecoration: 'none' }}
+                    >
+                        <p style={{fontSize: '13px', fontWeight: '600', color: '#1d1d1f', marginBottom: '4px'}}>
+                            Hostinger Cloud
+                        </p>
+                        <p style={{...styles.metaText, marginBottom: '8px'}}>
+                            Build your website · $16.99/mo
+                        </p>
                         <img 
                             src='/img/main/hostinger.webp'
-                            className="img-fluid rounded" 
-                            alt="hostinger-ads"
+                            style={{ width: '100%', borderRadius: '8px' }}
+                            alt="hostinger"
                         />
-                        </a>
-                    </div>
+                    </a>
                 </div>
-
-                {/* <div className="my-3">
-                    <GoogleAdsense/>
-                </div> */}
             </Col>
         </Row>
     </Container>
