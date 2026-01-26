@@ -51,13 +51,13 @@ export default function Dashboard() {
                 <Head title="Dashboard" />
                 <Container fluid={true}>
                     <Container>
-                        <Row>
-                            <Col sm={3} className="d-none d-md-block">
-                                <div className='my-3 fs-9'>
+                        <Row className="g-4">
+                            <Col md={3} className="d-none d-md-block">
+                                <div className='my-3 fs-9' style={{position: 'sticky', top: '20px'}}>
                                     <SubscriberSideNav/>
                                 </div>
                             </Col>
-                            <Col sm={9} xs={12}>
+                            <Col md={9} xs={12}>
                                 <DashboardSkeleton />
                             </Col>
                         </Row>
@@ -73,13 +73,13 @@ export default function Dashboard() {
                 <Head title="Dashboard" />
                 <Container fluid={true}>
                     <Container>
-                        <Row>
-                            <Col sm={3} className="d-none d-md-block">
-                                <div className='my-3 fs-9'>
+                        <Row className="g-4">
+                            <Col md={3} className="d-none d-md-block">
+                                <div className='my-3 fs-9' style={{position: 'sticky', top: '20px'}}>
                                     <SubscriberSideNav/>
                                 </div>
                             </Col>
-                            <Col sm={9} xs={12}>
+                            <Col md={9} xs={12}>
                                 <div className='py-3 rounded my-3' style={{border: '1px solid #dee2e6'}}>
                                     <h4 className='m-0' style={{fontWeight: 'normal'}}>Dashboard</h4>
                                 </div>
@@ -104,13 +104,13 @@ export default function Dashboard() {
 
             <Container fluid={true}>
                 <Container>
-                    <Row>
-                        <Col sm={3} className="d-none d-md-block">
-                            <div className='my-3 fs-9'>
+                    <Row className="g-4">
+                        <Col md={3} className="d-none d-md-block">
+                            <div className='my-3 fs-9' style={{position: 'sticky', top: '20px'}}>
                                 <SubscriberSideNav/>
                             </div>
                         </Col>
-                        <Col sm={9} xs={12}>
+                        <Col md={9} xs={12}>
                             {/* Header */}
                             <div className='py-3 px-3 rounded my-3' style={{border: '1px solid #dee2e6'}}>
                                 <div className='d-flex justify-content-between align-items-center'>
@@ -133,7 +133,7 @@ export default function Dashboard() {
                             {/* Stats Cards */}
                             <Row className='mb-3 g-3'>
                                 <Col md={4}>
-                                    <div className='p-3 rounded' style={{border: '1px solid #dee2e6'}}>
+                                    <div className='p-3 rounded h-100' style={{border: '1px solid #dee2e6', minHeight: '120px'}}>
                                         <div className='d-flex align-items-start justify-content-between'>
                                             <div>
                                                 <small className='text-muted d-block mb-1'>
@@ -154,7 +154,7 @@ export default function Dashboard() {
                                     </div>
                                 </Col>
                                 <Col md={4}>
-                                    <div className='p-3 rounded' style={{border: '1px solid #dee2e6'}}>
+                                    <div className='p-3 rounded h-100' style={{border: '1px solid #dee2e6', minHeight: '120px'}}>
                                         <div className='d-flex align-items-start justify-content-between'>
                                             <div>
                                                 <small className='text-muted d-block mb-1'>
@@ -170,7 +170,7 @@ export default function Dashboard() {
                                     </div>
                                 </Col>
                                 <Col md={4}>
-                                    <div className='p-3 rounded' style={{border: '1px solid #dee2e6'}}>
+                                    <div className='p-3 rounded h-100' style={{border: '1px solid #dee2e6', minHeight: '120px'}}>
                                         <div className='d-flex align-items-start justify-content-between'>
                                             <div>
                                                 <small className='text-muted d-block mb-1'>

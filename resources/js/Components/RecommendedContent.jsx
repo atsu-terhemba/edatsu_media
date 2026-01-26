@@ -1,11 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
-import Slider from 'react-slick';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
+import React, { useState } from 'react';
 import { Link } from '@inertiajs/react';
 
 const RecommendedContent = ({similarPosts = []}) => {
-  const sliderRef = useRef(null);
   const [loadedImages, setLoadedImages] = useState({});
   const defaultImage = '/img/logo/main.png';
 
@@ -14,23 +10,6 @@ const RecommendedContent = ({similarPosts = []}) => {
       ...prev,
       [postId]: defaultImage
     }));
-  };
-
-  const loadImage = (postId, imageUrl) => {
-    const img = new Image();
-    img.src = imageUrl;
-    img.onload = () => {
-      setLoadedImages(prev => ({
-        ...prev,
-        [postId]: imageUrl
-      }));
-    };
-    img.onerror = () => {
-      setLoadedImages(prev => ({
-        ...prev,
-        [postId]: defaultImage
-      }));
-    };
   };
 
   const truncateText = (text, length) => {
@@ -43,146 +22,118 @@ const RecommendedContent = ({similarPosts = []}) => {
     return html.replace(/<\/?[^>]+(>|$)/g, '');
   };
 
-  const NextArrow = ({ onClick }) => (
-    <button 
-      onClick={onClick} 
-      className="carousel-arrow next-arrow btn btn-light rounded-circle position-absolute"
-      style={{
-        right: '10px',
-        top: '50%',
-        transform: 'translateY(-50%)',
-        zIndex: 1,
-        width: '40px',
-        height: '40px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-      }}
-      type="button"
-    >
-      <span className="material-symbols-outlined align-middle">
-        skip_next
-      </span>
-    </button>
-  );
-  
-  const PrevArrow = ({ onClick }) => (
-    <button 
-      onClick={onClick} 
-      className="carousel-arrow prev-arrow btn btn-light rounded-circle position-absolute"
-      style={{
-        left: '10px',
-        top: '50%',
-        transform: 'translateY(-50%)',
-        zIndex: 1,
-        width: '40px',
-        height: '40px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-      }}
-      type="button"
-    >
-      <span className="material-symbols-outlined align-middle">
-        skip_previous
-      </span>
-    </button>
-  );
-
-  const settings = {
-    dots: false,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 3,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 5000,
-    adaptiveHeight: true, // Adjusts height to current slide
-    centerMode: false, // Consider true if you want to highlight current slide
-    focusOnSelect: true, // Allows clicking to select slide
-    nextArrow: <NextArrow />,
-    prevArrow: <PrevArrow />,
-    responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 2,
-        }
-      },
-      {
-        breakpoint: 640,
-        settings: {
-          slidesToShow: 1,
-        }
-      }
-    ]
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
   };
 
-  return (
-    <div className="my-3">
-      {(similarPosts.length > 0) &&
-        <>
-          <h3 className="font-semibold mb-3 poppins-semibold">Recommended</h3>
-          <div className="container-fluid relative">
-            <Slider ref={sliderRef} {...settings} className="blog-carousel mb-5 row">
-              {similarPosts?.map(post => {
-                const cleanText = post.description;
-                const imageUrl = `${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/uploads/opp/${post.cover_img}`;
-                const coverImage = loadedImages[post.id] || defaultImage;
-                
-                // Load the image if not already loaded
-                if (!loadedImages[post.id]) {
-                  loadImage(post.id, imageUrl);
-                }
+  if (!similarPosts || similarPosts.length === 0) {
+    return null;
+  }
 
-                return (
-                  <div key={post.id} className="col-sm-4">
-                    <div className="px-1" style={{ height: '380px' }}>
-                      <div style={{ 
-                        width: '100%', 
-                        height: '250px', 
-                        overflow: 'hidden', 
-                        borderRadius: '8px',
-                        marginBottom: '12px'
-                      }}>
-                        <img 
-                          src={coverImage}
-                          loading="lazy"
-                          className="rounded border"
-                          alt={post.title}
-                          onError={() => handleImageError(post.id)}
-                          style={{
-                            width: '500px',
-                            height: '250px',
-                            objectFit: 'cover',
-                            transition: 'transform 0.3s ease',
-                            cursor: 'pointer'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                        />
-                      </div>
-                      <h6 className="poppins-semibold m-0 p-0 mb-2">
-                        <Link
-                          href={`/op/${post.id}/${post.slug}`} 
-                          className="hover:underline"
-                        >
-                          {truncateText(post.title, 30)}
-                        </Link>
-                      </h6>
-                      <p className="text-gray-500 m-0 p-0 fs-9">
-                        {truncateText(stripTags(cleanText), 50)}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </Slider>
-          </div>
-        </>
-      }
+  return (
+    <div className="my-4">
+      <h3 style={{
+        fontSize: '1.25rem',
+        fontWeight: '700',
+        color: '#1a1a1a',
+        marginBottom: '1.5rem',
+        paddingBottom: '0.75rem',
+        borderBottom: '2px solid #e5e7eb'
+      }}>
+        Recommended Articles
+      </h3>
+      
+      <div className="recommended-list">
+        {similarPosts.slice(0, 6).map((post, index) => {
+          const imageUrl = `${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/uploads/opp/${post.cover_img}`;
+          const coverImage = loadedImages[post.id] || imageUrl;
+
+          return (
+            <Link 
+              key={post.id} 
+              href={`/op/${post.id}/${post.slug}`}
+              className="text-decoration-none"
+            >
+              <article 
+                className="d-flex gap-3 py-3"
+                style={{
+                  borderBottom: index < similarPosts.slice(0, 6).length - 1 ? '1px solid #f3f4f6' : 'none',
+                  transition: 'background 0.2s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              >
+                {/* Thumbnail */}
+                <div style={{
+                  width: '100px',
+                  height: '75px',
+                  flexShrink: 0,
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  background: '#f3f4f6'
+                }}>
+                  <img 
+                    src={coverImage}
+                    loading="lazy"
+                    alt={post.title}
+                    onError={() => handleImageError(post.id)}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover'
+                    }}
+                  />
+                </div>
+                
+                {/* Content */}
+                <div className="flex-grow-1" style={{minWidth: 0}}>
+                  <h4 style={{
+                    fontSize: '0.95rem',
+                    fontWeight: '600',
+                    color: '#1a1a1a',
+                    marginBottom: '0.375rem',
+                    lineHeight: '1.4',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden'
+                  }}>
+                    {post.title}
+                  </h4>
+                  <p style={{
+                    fontSize: '0.8rem',
+                    color: '#6b7280',
+                    marginBottom: 0
+                  }}>
+                    {formatDate(post.created_at)}
+                    {post.deadline && (
+                      <span style={{color: '#dc2626'}}> · Deadline: {formatDate(post.deadline)}</span>
+                    )}
+                  </p>
+                </div>
+              </article>
+            </Link>
+          );
+        })}
+      </div>
+      
+      {similarPosts.length > 6 && (
+        <div className="text-center mt-3">
+          <Link 
+            href="/opportunities"
+            className="btn btn-outline-secondary btn-sm px-4"
+            style={{borderRadius: '8px', fontSize: '0.85rem'}}
+          >
+            View More Opportunities
+          </Link>
+        </div>
+      )}
     </div>
   );
 };

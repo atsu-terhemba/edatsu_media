@@ -321,7 +321,7 @@ const Opportunities = () => {
                             <div className="px-4 pb-4 d-none d-lg-block">
                             
                         
-                        <div className='subscribe-box'>
+                        {/* <div className='subscribe-box'>
                          <h5 className="fw-bold mb-1">Subscribe</h5>
                          <p className='fs-8 text-muted'>
                          Subscribe to get funding & growth insights
@@ -331,12 +331,9 @@ const Opportunities = () => {
                             className="btn py-3 btn-primary w-100 my-3 d-flex align-items-center justify-content-center"
                             style={{ borderRadius: '12px', fontWeight: '600', fontSize: '0.9rem' }}
                             >
-                            {/* <span className="material-symbols-outlined me-2" style={{ fontSize: '18px' }}>
-                                notifications
-                            </span> */}
                             Subscribe
                             </button>
-                        </div>
+                        </div> */}
 
                                 <div className="">
                                         <Link 

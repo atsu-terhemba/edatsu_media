@@ -12,6 +12,12 @@ use \App\Models\MailSubscriptionModel;
 
 class SubscriptionController extends Controller
 {
+    // Show the subscription/pricing page
+    public function show()
+    {
+        return Inertia::render('Subscription');
+    }
+
     // Handle the subscription request
     function mail_subscription(Request $request){
         //$request->all());
@@ -64,5 +70,15 @@ class SubscriptionController extends Controller
             'message' => 'Subscription successful!',
             'success' => true,
             ], 200);
+    }
+
+    // Process subscription payment
+    public function process(Request $request)
+    {
+        // TODO: Implement subscription payment processing
+        return response()->json([
+            'success' => true,
+            'message' => 'Subscription processing - to be implemented'
+        ]);
     }
 }

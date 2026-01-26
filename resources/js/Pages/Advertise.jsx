@@ -30,7 +30,8 @@ export default function Advertise(){
                     Reach passionate visionaries building the businesses of the future
                 </p>
                 <p className="fs-9">
-                <strong>Email:</strong> info@edatsu.com
+                <strong>Email:</strong> advertise@edatsu.com<br />
+                <strong>Phone:</strong> +234 90183 55951
                 </p>
                 </div>
             </Col>

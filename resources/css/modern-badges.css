@@ -38,6 +38,11 @@
   color: #fff;
   border: none;
 }
+.modern-badge.dark {
+  background: #1f2937;
+  color: #fff;
+  border: none;
+}
 .modern-badge .material-symbols-outlined {
   font-size: 1em;
   vertical-align: middle;

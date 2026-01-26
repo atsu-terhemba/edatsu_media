@@ -194,7 +194,7 @@ export default function Notifications() {
                                         ))}
                                     </ListGroup>
                                 ) : (
-                                    <div className='text-center py-5 rounded' style={{border: '1px solid #dee2e6'}}>
+                                    <div className='text-center py-5 rounded'>
                                         <span className='material-symbols-outlined text-muted' style={{fontSize: '3rem'}}>notifications</span>
                                         <h5 className='mt-3 text-muted'>No Notifications</h5>
                                         <p className='text-muted'>

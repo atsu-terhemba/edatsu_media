@@ -65,11 +65,23 @@ return(
         Toolshed
         </Link>
         </Nav.Item>
-        {/* <Nav.Item>
-        <Link href={route('pricing')} className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/subscription')}`}>
-         Pricing
+        <Nav.Item>
+        {auth?.id ? (
+            <Link href={route('subscription')} className={`nav-link text-light me-3 text-decoration-none poppins-light d-flex align-items-center gap-1 ${ActiveLink('/subscription')}`}>
+                Upgrade
+                <Badge bg="warning" text="dark" style={{fontSize: '0.65rem', padding: '2px 6px'}}>PRO</Badge>
+            </Link>
+        ) : (
+            <Link href={route('pricing')} className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/subscription')}`}>
+                Pricing
+            </Link>
+        )}
+        </Nav.Item>
+        <Nav.Item>
+        <Link href={route('advertise')} className={`nav-link text-light me-3 text-decoration-none poppins-light ${ActiveLink('/advertise')}`}>
+         Advertise
         </Link>
-        </Nav.Item> */}
+        </Nav.Item>
         
         {/* User Authenticated */}
         {(auth?.id)?

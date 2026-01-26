@@ -169,6 +169,9 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
     };
 
     const getDeadlineStatus = (deadline) => {
+        if (!deadline) {
+            return { status: 'unknown', color: 'secondary', icon: 'help', text: 'Unknown' };
+        }
         const deadlineDate = new Date(deadline);
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Reset time to start of day
@@ -185,6 +188,16 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
             return { status: 'active', color: 'success', icon: 'check_circle', text: 'Active' };
         }
     };
+
+    // Get filtered opportunities
+    const filteredOpportunities = opportunities.data?.filter(bookmark => {
+        if (!bookmark.opportunity) return false; // Skip bookmarks with deleted opportunities
+        if (filter === 'all') return true;
+        const status = getDeadlineStatus(bookmark.opportunity?.deadline).status;
+        if (filter === 'active') return status !== 'expired';
+        if (filter === 'expired') return status === 'expired';
+        return true;
+    }) || [];
 
     return (
         <AuthenticatedLayout>
@@ -272,15 +285,8 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                                     <BookmarksSkeleton count={5} />
                                 ) : opportunities.data && opportunities.data.length > 0 ? (
                                     <div>
-                                        {opportunities.data
-                                            .filter(bookmark => {
-                                                if (filter === 'all') return true;
-                                                const status = getDeadlineStatus(bookmark.opportunity?.deadline).status;
-                                                if (filter === 'active') return status !== 'expired';
-                                                if (filter === 'expired') return status === 'expired';
-                                                return true;
-                                            })
-                                            .map((bookmark, index) => (
+                                        {filteredOpportunities.length > 0 ? (
+                                            filteredOpportunities.map((bookmark, index) => (
                                             <Card 
                                                 key={bookmark.id} 
                                                 className='mb-3 opportunity-card'
@@ -288,7 +294,7 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                                                     border: '1px solid #dee2e6',
                                                     boxShadow: 'none',
                                                     position: 'relative',
-                                                    zIndex: opportunities.data.length - index
+                                                    zIndex: filteredOpportunities.length - index
                                                 }}
                                             >
                                                 <Card.Body className='p-3'>
@@ -305,7 +311,7 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
 
 
                                                             <div className='d-flex align-items-center gap-2 flex-wrap mb-2'>
-                                                                <span className='modern-badge primary'>
+                                                                <span className='modern-badge dark'>
                                                                     <span className='material-symbols-outlined'>calendar_month</span>
                                                                     {formatDate(bookmark.opportunity?.deadline)}
                                                                 </span>
@@ -385,7 +391,24 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                                                     </div>
                                                 </Card.Body>
                                             </Card>
-                                        ))}
+                                        ))
+                                        ) : (
+                                            <div className='text-center py-5 rounded' style={{border: '1px solid #dee2e6'}}>
+                                                <div className='mb-4'>
+                                                    <span className='material-symbols-outlined text-muted' style={{fontSize: '4rem'}}>filter_list_off</span>
+                                                </div>
+                                                <h5 className='text-muted mb-2'>No {filter === 'active' ? 'Active' : 'Expired'} Opportunities</h5>
+                                                <p className='text-muted mb-4'>There are no {filter === 'active' ? 'active' : 'expired'} opportunities in your bookmarks.</p>
+                                                <Button 
+                                                    variant="outline-secondary" 
+                                                    onClick={() => setFilter('all')}
+                                                    style={{borderRadius: '6px'}}
+                                                >
+                                                    <span className='material-symbols-outlined me-2' style={{fontSize: '16px', verticalAlign: 'middle'}}>list</span>
+                                                    Show All Bookmarks
+                                                </Button>
+                                            </div>
+                                        )}
                                         
                                         {/* Pagination */}
                                         {opportunities.last_page > 1 && (

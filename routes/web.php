@@ -63,7 +63,7 @@ Route::get('/terms', fn()=> Inertia::render('Terms'))->name('terms');
 Route::get('/privacy-policy', [App::class, 'initPrivacyPage'])->name('privacy');
 Route::get('/help', fn()=>Inertia::render('Help'))->name('help');
 Route::get('/sponsorship', [App::class, 'initSponsorshipPage'])->name('sponsorship');
-Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription');
+Route::get('/subscription', fn() => Inertia::render('Upgrade'))->name('subscription');
 Route::get('/pricing', fn() => Inertia::render('Subscription'))->name('pricing');
 
 // Search endpoints
