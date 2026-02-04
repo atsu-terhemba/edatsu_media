@@ -18,6 +18,24 @@ class RegisteredUserController extends Controller
     /**
      * Display the registration view.
      */
+    public function create(): Response
+    {
+        return $this->create_user();
+    }
+
+    /**
+     * Handle an incoming registration request.
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        return $this->store_user($request);
+    }
+
+    /**
+     * Display the registration view.
+     */
     public function create_user(): Response
     {
         return Inertia::render('Auth/RegisterUser');
