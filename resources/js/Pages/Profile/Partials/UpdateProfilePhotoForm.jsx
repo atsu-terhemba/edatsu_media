@@ -68,7 +68,7 @@ export default function UpdateProfilePhotoForm({ className = '' }) {
         formData.append('photo', selectedFile);
         formData.append('_token', csrfToken);
 
-        axios.post(route('profile.photo.update'), formData, {
+        axios.post('/profile/photo', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
                 'X-CSRF-TOKEN': csrfToken,
@@ -129,7 +129,7 @@ export default function UpdateProfilePhotoForm({ className = '' }) {
         }).then((result) => {
             if (result.isConfirmed) {
                 setDeleting(true);
-                axios.delete(route('profile.photo.delete'), {
+                axios.delete('/profile/photo', {
                     headers: {
                         'X-CSRF-TOKEN': csrfToken,
                     },
