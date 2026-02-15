@@ -26,6 +26,11 @@ export default function UserAvatar({ user, size = 40, className = '' }) {
     };
 
     const hasProfilePhoto = user?.profile_photo_path;
+    const r2Base = (import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '');
+    const photoPath = user?.profile_photo_path?.startsWith('profile-photos/')
+        ? user.profile_photo_path
+        : `profile-photos/${user?.profile_photo_path}`;
+    const profilePhotoUrl = `${r2Base}/${photoPath}`;
 
     const avatarStyle = {
         width: `${size}px`,
@@ -54,7 +59,7 @@ export default function UserAvatar({ user, size = 40, className = '' }) {
         <div className={className} style={avatarStyle}>
             {hasProfilePhoto ? (
                 <img 
-                    src={`${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/profile-photos/${user.profile_photo_path}`}
+                    src={profilePhotoUrl}
                     alt={user.name}
                     style={imageStyle}
                 />
