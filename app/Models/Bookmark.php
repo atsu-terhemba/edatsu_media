@@ -61,5 +61,16 @@ class Bookmark extends Model
         return $this->belongsTo(Product::class, 'post_id', 'id');
     }
 
-    
+    /**
+     * Get the related bookmarkable item based on post_type.
+     */
+    public function getBookmarkableAttribute()
+    {
+        return match ($this->post_type) {
+            'opp' => $this->opportunity,
+            'tool' => $this->product,
+            'event' => $this->event,
+            default => null,
+        };
+    }
 }

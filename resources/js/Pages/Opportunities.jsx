@@ -321,7 +321,7 @@ const Opportunities = () => {
                             <div className="px-4 pb-4 d-none d-lg-block">
                             
                         
-                        {/* <div className='subscribe-box'>
+                        <div className='subscribe-box'>
                          <h5 className="fw-bold mb-1">Subscribe</h5>
                          <p className='fs-8 text-muted'>
                          Subscribe to get funding & growth insights
@@ -333,7 +333,7 @@ const Opportunities = () => {
                             >
                             Subscribe
                             </button>
-                        </div> */}
+                        </div>
 
                                 <div className="">
                                         <Link 

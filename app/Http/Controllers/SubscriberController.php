@@ -599,12 +599,12 @@ class SubscriberController extends Controller
 
             $bookmark = Bookmark::where('id', $request->bookmark_id)
                 ->where('user_id', $user_id)
-                ->with('bookmarkable')
+                ->with(['opportunity', 'product', 'event'])
                 ->first();
 
             if (!$bookmark) {
                 return response()->json([
-                    'status' => 'error', 
+                    'status' => 'error',
                     'message' => 'Bookmark not found'
                 ], 404);
             }
@@ -616,13 +616,14 @@ class SubscriberController extends Controller
 
             // Send notification (email + push + database)
             $user = Auth::user();
+            $related = $bookmark->bookmarkable;
             $user->notify(new ReminderNotification(
                 'set',
-                $bookmark->bookmarkable->title ?? 'Unknown',
+                $related->title ?? 'Unknown',
                 $request->reminder_date,
                 $bookmark->id,
-                $bookmark->bookmarkable_id,
-                $bookmark->bookmarkable->slug ?? null
+                $bookmark->post_id,
+                $related->slug ?? null
             ));
 
             return response()->json([
@@ -652,12 +653,12 @@ class SubscriberController extends Controller
 
             $bookmark = Bookmark::where('id', $request->bookmark_id)
                 ->where('user_id', $user_id)
-                ->with('bookmarkable')
+                ->with(['opportunity', 'product', 'event'])
                 ->first();
 
             if (!$bookmark) {
                 return response()->json([
-                    'status' => 'error', 
+                    'status' => 'error',
                     'message' => 'Bookmark not found'
                 ], 404);
             }
@@ -669,13 +670,14 @@ class SubscriberController extends Controller
 
             // Send notification (email + push + database)
             $user = Auth::user();
+            $related = $bookmark->bookmarkable;
             $user->notify(new ReminderNotification(
                 'updated',
-                $bookmark->bookmarkable->title ?? 'Unknown',
+                $related->title ?? 'Unknown',
                 $request->reminder_date,
                 $bookmark->id,
-                $bookmark->bookmarkable_id,
-                $bookmark->bookmarkable->slug ?? null
+                $bookmark->post_id,
+                $related->slug ?? null
             ));
 
             return response()->json([
