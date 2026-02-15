@@ -42,6 +42,15 @@ class ProfileController extends Controller
     }
 
     /**
+     * Get the storage disk to use for profile photos.
+     */
+    private function getStorageDisk(): string
+    {
+        $r2Configured = env('R2_ACCESS_KEY_ID') && env('R2_BUCKET');
+        return $r2Configured ? 'r2' : 'public';
+    }
+
+    /**
      * Update the user's profile photo.
      */
     public function updatePhoto(Request $request)
@@ -51,25 +60,42 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+        $disk = $this->getStorageDisk();
 
         // Delete old photo if exists
         if ($user->profile_photo_path) {
-            Storage::disk('public')->delete($user->profile_photo_path);
+            try {
+                Storage::disk($disk)->delete('profile-photos/' . $user->profile_photo_path);
+            } catch (\Exception $e) {
+                \Log::warning("Failed to delete old profile photo: " . $e->getMessage());
+            }
         }
 
         // Store new photo
-        $path = $request->file('photo')->store('profile-photos', 'public');
+        $file = $request->file('photo');
+        $hashedFileName = md5($file->getClientOriginalName() . time()) . '.' . $file->getClientOriginalExtension();
+        $uploadPath = 'profile-photos/' . $hashedFileName;
+
+        try {
+            Storage::disk($disk)->put($uploadPath, file_get_contents($file));
+        } catch (\Exception $e) {
+            if ($disk === 'r2') {
+                \Log::warning("R2 upload failed for profile photo, using local: " . $e->getMessage());
+                Storage::disk('public')->put($uploadPath, file_get_contents($file));
+            } else {
+                throw $e;
+            }
+        }
 
         $user->update([
-            'profile_photo_path' => $path,
+            'profile_photo_path' => $hashedFileName,
         ]);
 
-        // Return JSON for axios requests, redirect for Inertia
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Profile photo updated successfully',
-                'path' => $path,
+                'path' => $hashedFileName,
             ]);
         }
 
@@ -84,11 +110,15 @@ class ProfileController extends Controller
         $user = $request->user();
 
         if ($user->profile_photo_path) {
-            Storage::disk('public')->delete($user->profile_photo_path);
+            $disk = $this->getStorageDisk();
+            try {
+                Storage::disk($disk)->delete('profile-photos/' . $user->profile_photo_path);
+            } catch (\Exception $e) {
+                \Log::warning("Failed to delete profile photo: " . $e->getMessage());
+            }
             $user->update(['profile_photo_path' => null]);
         }
 
-        // Return JSON for axios requests, redirect for Inertia
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,

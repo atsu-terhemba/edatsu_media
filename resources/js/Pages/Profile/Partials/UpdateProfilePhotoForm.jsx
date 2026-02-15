@@ -218,7 +218,7 @@ export default function UpdateProfilePhotoForm({ className = '' }) {
                             }}
                         >
                             <img 
-                                src={`/storage/${user.profile_photo_path}`} 
+                                src={`${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/profile-photos/${user.profile_photo_path}`}
                                 alt={user.name} 
                                 style={{
                                     width: '100%',
