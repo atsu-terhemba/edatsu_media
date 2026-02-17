@@ -53,7 +53,7 @@ Route::get('/', [App::class, 'initHomePage'])->name('home');
 Route::get('/opportunities', [OpportunityController::class, 'initOpportunitiesPage'])->name('opportunities');
 Route::get('/toolshed', [ToolShedController::class, 'initToolShedPage'])->name('toolshed');
 Route::get('/money-guide', [ToolShedController::class, 'initMoneyGuidePage'])->name('money_guide');
-Route::get('/subscribe', [SubscriptionController::class, 'index'])->name('subscribe');
+Route::get('/subscribe', [SubscriptionController::class, 'show'])->name('subscribe');
 Route::post('/subscribe', [SubscriptionController::class, 'mail_subscription'])->name('subscribe.post');
 Route::get('/feedback', [App::class, 'initFeedbackPage'])->name('feedback');
 Route::get('/advertise', [App::class, 'initAdvertisePage'])->name('advertise');
