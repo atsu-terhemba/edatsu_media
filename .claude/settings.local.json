@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)",
+      "Bash(git push:*)",
+      "Bash(git add:*)",
+      "Bash(npx vite:*)",
+      "Bash(curl:*)",
+      "WebFetch(domain:direct-service.edatsu.com)",
+      "Bash(xargs grep:*)"
+    ]
+  }
+}

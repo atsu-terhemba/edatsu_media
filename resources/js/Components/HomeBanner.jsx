@@ -1,50 +1,80 @@
 import { Fragment } from "react";
-import { Container, Row, Col, Button } from 'react-bootstrap';
-import { Link } from '@inertiajs/react';
+import { Container, Row, Col } from 'react-bootstrap';
 import FlatButton from './FlatButton';
 
 export default function HomeBanner() {
     return (
         <Fragment>
             <Container fluid={true}>
-                <Row className="footer-banner position-relative border-0">
+                <Row className="hero-banner position-relative border-0">
                     <div className="overlay d-flex align-items-center">
                         <Container>
-                            <Row>
-                                <Col sm={12}>
-                                    <div className="text-center bg-red-500">
-                                        <h1 
-                                            className="text-m-0 mb-3 p-0 text-light fw-bold" 
-                                            style={{ 
-                                                fontSize: 'clamp(1.75rem, 6vw, 2.5rem)',
-                                                lineHeight: '1.2'
-                                            }}
-                                        >
-                                        Opportunity for Entrepreneurs
-                                        </h1 >  
-                                        <p 
-                                            className="banner-subtitle text-light mb-4 px-2 px-sm-0"
+                            <Row className="justify-content-center">
+                                <Col xs={12} md={10} lg={7}>
+                                    <div className="text-center">
+                                        {/* Badge */}
+                                        <span
+                                            className="d-inline-block mb-3"
                                             style={{
-                                                fontSize: 'clamp(1rem, 3vw, 1.1rem)',
-                                                lineHeight: '1.5',
-                                                maxWidth: '600px',
-                                                margin: '0 auto 1.5rem'
+                                                background: 'rgba(255, 255, 255, 0.08)',
+                                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                                color: 'rgba(255, 255, 255, 0.85)',
+                                                fontSize: '13px',
+                                                fontWeight: 400,
+                                                padding: '6px 16px',
+                                                borderRadius: '980px',
                                             }}
                                         >
-                                            From funding and grants to software and market insights, we help entrepreneurs uncover strategic opportunities that fuel 10x growth
+                                            Trusted by 5,000+ Entrepreneurs
+                                        </span>
+
+                                        <h1
+                                            className="text-white mb-3"
+                                            style={{
+                                                fontSize: '44px',
+                                                fontWeight: 600,
+                                                lineHeight: 1.12,
+                                                letterSpacing: '-0.005em',
+                                            }}
+                                        >
+                                            Opportunity for{' '}
+                                            <span style={{ color: '#d97757' }}>Entrepreneurs</span>
+                                        </h1>
+
+                                        <p
+                                            className="mx-auto mb-4"
+                                            style={{
+                                                fontSize: '17px',
+                                                lineHeight: 1.47059,
+                                                fontWeight: 400,
+                                                letterSpacing: '-0.022em',
+                                                maxWidth: '520px',
+                                                color: 'rgba(255, 255, 255, 0.6)',
+                                            }}
+                                        >
+                                            From funding and grants to software and market insights, we help entrepreneurs uncover strategic opportunities that fuel growth.
                                         </p>
-                                        <div className="banner-buttons d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3">
+
+                                        <div className="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3 mt-3">
                                             <FlatButton
                                                 href="/opportunities"
-                                                variant="primary"
+                                                variant="light"
                                                 size="lg"
                                                 className="banner-btn-primary"
+                                                style={{
+                                                    background: '#fff',
+                                                    borderColor: '#fff',
+                                                    color: '#1d1d1f',
+                                                    fontWeight: 400,
+                                                    fontSize: '15px',
+                                                    padding: '11px 24px',
+                                                }}
                                             >
-                                               Find Opportunities
+                                                Find Opportunities
                                             </FlatButton>
                                             <FlatButton
                                                 href="/toolshed"
-                                                variant="outline-primary"
+                                                variant="outline-light"
                                                 size="lg"
                                                 className="banner-btn-secondary"
                                             >

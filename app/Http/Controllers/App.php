@@ -118,6 +118,16 @@ class App extends Controller
         return Inertia::render('Advertise');
     }
 
+    /**
+     * Initialize the sponsorship page
+     *
+     * @return \Inertia\Response
+     */
+    public function initSponsorshipPage()
+    {
+        return Inertia::render('Sponsorship');
+    }
+
 /**
  * Search opportunities with various filters
  * 

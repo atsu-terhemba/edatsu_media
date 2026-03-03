@@ -1,155 +1,325 @@
-import { Fragment } from "react"
+import { Fragment, useState } from "react"
 import { Link } from "@inertiajs/react";
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import { Button, Image } from "react-bootstrap";
+import { Image } from "react-bootstrap";
 import { Images } from "@/utils/Images";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+    faFacebook,
+    faInstagram,
+    faLinkedinIn,
+    faYoutube,
+} from '@fortawesome/free-brands-svg-icons';
 
+const languages = [
+    { code: 'en', label: 'English (US)' },
+    { code: 'en-gb', label: 'English (UK)' },
+    { code: 'fr', label: 'Français' },
+    { code: 'es', label: 'Español' },
+    { code: 'de', label: 'Deutsch' },
+    { code: 'pt', label: 'Português' },
+];
 
+export default function Footer() {
+    const [selectedLang, setSelectedLang] = useState('en');
 
-export default function Footer({auth}){
+    return (
+        <Fragment>
+            <footer style={{ background: '#0a0a0a' }}>
+                {/* Main Footer */}
+                <Container>
+                    <div style={{ paddingTop: '64px', paddingBottom: '40px' }}>
+                        <Row>
+                            {/* Brand Column */}
+                            <Col xs={12} md={4} className="mb-4 mb-md-0" style={{ paddingRight: '48px' }}>
+                                <Image
+                                    src={Images.app_logo_trans}
+                                    width="48"
+                                    className="img-fluid d-block mb-3"
+                                    alt="Edatsu Media"
+                                />
+                                <p style={{
+                                    fontSize: '13px',
+                                    color: 'rgba(255,255,255,0.5)',
+                                    lineHeight: 1.7,
+                                    fontWeight: 400,
+                                    margin: '0 0 24px 0',
+                                    maxWidth: '280px',
+                                }}>
+                                    Helping entrepreneurs discover funding opportunities, grants, accelerators, and essential business tools to launch and scale their ventures globally.
+                                </p>
 
-function handleCopyRSS(){
+                                {/* Social Icons */}
+                                <div className="d-flex gap-3">
+                                    {[
+                                        { icon: faFacebook, href: 'https://www.facebook.com/edatsu_media' },
+                                        { icon: faInstagram, href: 'https://www.instagram.com/edatsu_media/' },
+                                        { icon: faYoutube, href: 'https://www.youtube.com/channel/UCwIxkgCrdzsL3ApDjVgRLCQ' },
+                                        { icon: faLinkedinIn, href: 'https://www.linkedin.com/company/edatsu-media' },
+                                    ].map((social, i) => (
+                                        <a
+                                            key={i}
+                                            href={social.href}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{
+                                                width: '32px',
+                                                height: '32px',
+                                                borderRadius: '6px',
+                                                background: 'rgba(255,255,255,0.06)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                color: 'rgba(255,255,255,0.5)',
+                                                fontSize: '14px',
+                                                transition: 'all 0.15s ease',
+                                                textDecoration: 'none',
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
+                                                e.currentTarget.style.color = '#fff';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
+                                                e.currentTarget.style.color = 'rgba(255,255,255,0.5)';
+                                            }}
+                                        >
+                                            <FontAwesomeIcon icon={social.icon} />
+                                        </a>
+                                    ))}
+                                </div>
+                            </Col>
 
-}
+                            {/* Links Columns */}
+                            <Col xs={12} md={8}>
+                                <Row>
+                                    {/* Products */}
+                                    <Col xs={6} sm={4}>
+                                        <h6 style={{
+                                            fontSize: '12px',
+                                            fontWeight: 500,
+                                            color: 'rgba(255,255,255,0.35)',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.08em',
+                                            marginBottom: '20px',
+                                        }}>
+                                            Products
+                                        </h6>
+                                        <ul className="list-unstyled m-0">
+                                            {[
+                                                { label: 'Opportunities', href: '/opportunities' },
+                                                { label: 'Toolshed', href: '/toolshed' },
+                                                { label: 'Subscription', href: '/pricing' },
+                                                { label: 'Advertise', href: '/advertise' },
+                                                { label: 'Subscribe', href: '/subscribe' },
+                                                { label: 'Sponsorship', href: '/sponsorship' },
+                                            ].map((link, i) => (
+                                                <li key={i} style={{ marginBottom: '12px' }}>
+                                                    <Link
+                                                        href={link.href}
+                                                        style={{
+                                                            color: 'rgba(255,255,255,0.6)',
+                                                            textDecoration: 'none',
+                                                            fontSize: '14px',
+                                                            fontWeight: 400,
+                                                            transition: 'color 0.15s ease',
+                                                        }}
+                                                        onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+                                                    >
+                                                        {link.label}
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </Col>
 
-    return(
-<Fragment>
-    <Container fluid={true} className="footer pt-5 pb-3">
-    <Container>
-    <footer className="row pb-5">
-        {/* Logo and Description */}
-        <Col sm={3}>
-        <div className="mb-3">
-            <Image
-            src={Images.app_logo_trans}
-            width="80"
-            className="img-fluid d-block"
-            alt="logo"
-            />
-            <p className="m-0 p-0 fs-8">
-            The site design and logo of Edatsu Media are copyrighted properties of <a
-                href="https://www.edatsu.com"
-                target="_blank"
-                className="text-info text-decoration-none"
-                > Edatsu Technology Limited
-            </a>
-            </p>
-        </div>
-        </Col>
-        {/* Quick Links */}
-        <Col sm={3} className="d-none d-sm-block">
-        <h4 className="m-0 mb-2 p-0 poppins-bold">Quick Links</h4>
-        <div className="fs-9">
-            <ul className="list-unstyled">
-            <li>
-                <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="advertise">
-                Advertise
-                </Link>
-            </li>
-            <li>
-                <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="subscribe">
-                Subscribe
-                </Link>
-            </li>
-            <li>
-                <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="/subscription">
-                Pricing
-                </Link>
-            </li>
-            <li>
-                <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="/opportunities">
-                Opportunities
-                </Link>
-            </li>
-            <li>
-                <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="toolshed">
-                Toolshed
-                </Link>
-            </li>
-            <li>
-                <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="sponsorship">
-                Sponsorship
-                </Link>
-            </li>
-            </ul>
-        </div>
-        </Col>
-    {/* Site Info */}
-    <Col sm={3} className="d-none d-sm-block">
-    <h4 className="m-0 mb-2 p-0 poppins-bold">Site Info</h4>
-    <div className="fs-9">
-        <ul className="list-unstyled">
-        <li>
-            <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="about-us">
-            About
-            </Link>
-        </li>
-        <li>
-            <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="terms">
-            Terms Of Use
-            </Link>
-        </li>
-        <li>
-            <a target="_blank" className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="sitemap.xml">
-            Sitemap
-            </a>
-        </li>
-        <li>
-            <Link className="text-light text-decoration-none mb-1 d-inline-block" href="privacy-policy">
-            Privacy Policy
-            </Link>
-        </li>
-        <li>
-            <Button
-            variant="dark"
-            className="fs-9 poppins-light rounded mt-2 border-0"
-            id="copy-rss-btn"
-            style={{ border: '1px solid #495057' }}
-            onClick={handleCopyRSS}
-            >
-            <span className="material-symbols-outlined align-middle text-warning">rss_feed</span>
-            Copy RSS Feed
-            </Button>
-            <span id="copy-confirmation" style={{ display: 'none' }}>
-            Copied!
-            </span>
-        </li>
-        </ul>
-    </div>
-    </Col>
+                                    {/* Company */}
+                                    <Col xs={6} sm={4}>
+                                        <h6 style={{
+                                            fontSize: '12px',
+                                            fontWeight: 500,
+                                            color: 'rgba(255,255,255,0.35)',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.08em',
+                                            marginBottom: '20px',
+                                        }}>
+                                            Company
+                                        </h6>
+                                        <ul className="list-unstyled m-0">
+                                            {[
+                                                { label: 'About', href: '/about-us' },
+                                                { label: 'Terms of Use', href: '/terms' },
+                                                { label: 'Privacy Policy', href: '/privacy-policy' },
+                                                { label: 'Sitemap', href: '/sitemap.xml', external: true },
+                                            ].map((link, i) => (
+                                                <li key={i} style={{ marginBottom: '12px' }}>
+                                                    {link.external ? (
+                                                        <a
+                                                            href={link.href}
+                                                            target="_blank"
+                                                            style={{
+                                                                color: 'rgba(255,255,255,0.6)',
+                                                                textDecoration: 'none',
+                                                                fontSize: '14px',
+                                                                fontWeight: 400,
+                                                                transition: 'color 0.15s ease',
+                                                            }}
+                                                            onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+                                                        >
+                                                            {link.label}
+                                                        </a>
+                                                    ) : (
+                                                        <Link
+                                                            href={link.href}
+                                                            style={{
+                                                                color: 'rgba(255,255,255,0.6)',
+                                                                textDecoration: 'none',
+                                                                fontSize: '14px',
+                                                                fontWeight: 400,
+                                                                transition: 'color 0.15s ease',
+                                                            }}
+                                                            onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+                                                        >
+                                                            {link.label}
+                                                        </Link>
+                                                    )}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </Col>
 
-          {/* Support */}
-          <Col sm={3} className="d-none d-sm-block">
-            <h4 className="m-0 mb-2 p-0 poppins-bold">Support</h4>
-            <div className="fs-9">
-              <ul className="list-unstyled">
-                <li>
-                  <Link className="text-light text-decoration-none mb-1 d-inline-block poppins-light" href="help">
-                    Help Center
-                  </Link>
-                </li>
-                <li>
-                  <a className="text-light text-decoration-none d-inline-block mb-1 poppins-light" href="mailto:info@edatsu.com">
-                    info@edatsu.com
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </Col>
-        </footer>
+                                    {/* Support */}
+                                    <Col xs={6} sm={4} className="mt-4 mt-sm-0">
+                                        <h6 style={{
+                                            fontSize: '12px',
+                                            fontWeight: 500,
+                                            color: 'rgba(255,255,255,0.35)',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.08em',
+                                            marginBottom: '20px',
+                                        }}>
+                                            Support
+                                        </h6>
+                                        <ul className="list-unstyled m-0">
+                                            {[
+                                                { label: 'Help Center', href: '/help' },
+                                                { label: 'Contact Us', href: 'mailto:info@edatsu.com', external: true },
+                                                { label: 'Live Chat', href: '#', external: true },
+                                                { label: 'Commentary Policy', href: '/terms' },
+                                            ].map((link, i) => (
+                                                <li key={i} style={{ marginBottom: '12px' }}>
+                                                    {link.external ? (
+                                                        <a
+                                                            href={link.href}
+                                                            style={{
+                                                                color: 'rgba(255,255,255,0.6)',
+                                                                textDecoration: 'none',
+                                                                fontSize: '14px',
+                                                                fontWeight: 400,
+                                                                transition: 'color 0.15s ease',
+                                                            }}
+                                                            onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+                                                        >
+                                                            {link.label}
+                                                        </a>
+                                                    ) : (
+                                                        <Link
+                                                            href={link.href}
+                                                            style={{
+                                                                color: 'rgba(255,255,255,0.6)',
+                                                                textDecoration: 'none',
+                                                                fontSize: '14px',
+                                                                fontWeight: 400,
+                                                                transition: 'color 0.15s ease',
+                                                            }}
+                                                            onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+                                                        >
+                                                            {link.label}
+                                                        </Link>
+                                                    )}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </Col>
+                                </Row>
+                            </Col>
+                        </Row>
+                    </div>
 
-        {/* Copyright Section */}
-        <footer className="row" style={{ borderTop: '1px dashed gray' }}>
-          <Col sm={12}>
-            <div className="py-3">
-              <span className="fs-9">Edatsu Media &copy; {new Date().getFullYear()}</span>
-            </div>
-          </Col>
-        </footer>
-      </Container>
-    </Container>
+                    {/* Divider */}
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }} />
+
+                    {/* Bottom Bar */}
+                    <div
+                        style={{
+                            paddingTop: '20px',
+                            paddingBottom: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: '16px',
+                        }}
+                    >
+                        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', fontWeight: 400 }}>
+                            &copy; {new Date().getFullYear()} Edatsu Media. A product of{' '}
+                            <a
+                                href="https://www.edatsu.com"
+                                target="_blank"
+                                className="text-decoration-none"
+                                style={{ color: 'rgba(255,255,255,0.5)' }}
+                                onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
+                                onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}
+                            >
+                                Edatsu Technology Limited
+                            </a>
+                        </span>
+
+                        {/* Language Switcher */}
+                        <div className="d-flex align-items-center gap-2">
+                            <span
+                                className="material-symbols-outlined"
+                                style={{ fontSize: '16px', color: 'rgba(255,255,255,0.35)' }}
+                            >
+                                language
+                            </span>
+                            <select
+                                value={selectedLang}
+                                onChange={(e) => setSelectedLang(e.target.value)}
+                                style={{
+                                    background: 'transparent',
+                                    border: '1px solid rgba(255,255,255,0.12)',
+                                    borderRadius: '6px',
+                                    color: 'rgba(255,255,255,0.5)',
+                                    fontSize: '13px',
+                                    fontWeight: 400,
+                                    padding: '6px 12px',
+                                    outline: 'none',
+                                    cursor: 'pointer',
+                                    appearance: 'auto',
+                                }}
+                            >
+                                {languages.map((lang) => (
+                                    <option
+                                        key={lang.code}
+                                        value={lang.code}
+                                        style={{ background: '#111', color: '#fff' }}
+                                    >
+                                        {lang.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                </Container>
+            </footer>
         </Fragment>
     )
 }

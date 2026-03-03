@@ -19,7 +19,7 @@ const Subscription = () => {
         {
             id: 'free',
             name: 'Free',
-            price: { 
+            price: {
                 monthly: { USD: 0, NGN: 0 },
                 yearly: { USD: 0, NGN: 0 }
             },
@@ -44,12 +44,11 @@ const Subscription = () => {
                 'No export features'
             ],
             buttonText: 'Get Started Free',
-            buttonClass: 'btn-primary'
         },
         {
             id: 'premium',
             name: 'Pro',
-            price: { 
+            price: {
                 monthly: { USD: 2.11, NGN: 3000 },
                 yearly: { USD: 22.79, NGN: 32400 }
             },
@@ -62,13 +61,12 @@ const Subscription = () => {
                 { text: 'Smart reminders via push & email', icon: 'notifications_active', highlight: true },
                 { text: 'Google Calendar sync for deadlines', icon: 'calendar_month', highlight: true },
                 { text: 'Personalized AI Assistant', icon: 'smart_toy', highlight: true },
-                { text: 'Ad-free browsing experience', icon: 'block', highlight: false },
-                { text: 'Priority access to new opportunities', icon: 'bolt', highlight: false },
-                { text: 'Export saved items (PDF / CSV)', icon: 'download', highlight: false }
+                { text: 'Ad-free browsing experience', icon: 'block' },
+                { text: 'Priority access to new opportunities', icon: 'bolt' },
+                { text: 'Export saved items (PDF / CSV)', icon: 'download' }
             ],
             limitations: [],
             buttonText: 'Upgrade to Pro',
-            buttonClass: 'btn-success'
         }
     ];
 
@@ -78,14 +76,12 @@ const Subscription = () => {
 
     const handleSubscribe = async (plan) => {
         setIsProcessing(true);
-        
+
         try {
             if (plan.id === 'free') {
-                // Handle free plan signup - redirect to registration if not authenticated
                 if (!props.auth.user) {
                     window.location.href = '/register';
                 } else {
-                    // User is already registered, just update their plan
                     const response = await axios.post('/process-subscription', {
                         plan_id: plan.id,
                         plan_name: plan.name,
@@ -93,23 +89,20 @@ const Subscription = () => {
                         currency: currency,
                         billing_period: billingPeriod
                     });
-                    
+
                     if (response.data.success) {
                         alert('Welcome to the Free plan! You now have access to all basic features.');
                     }
                 }
             } else {
-                // Handle premium plan payment
                 if (!props.auth.user) {
-                    // Save selected plan and redirect to registration
-                    localStorage.setItem('selectedPlan', JSON.stringify({ 
-                        plan: plan, 
+                    localStorage.setItem('selectedPlan', JSON.stringify({
+                        plan: plan,
                         currency: currency,
                         billingPeriod: billingPeriod
                     }));
                     window.location.href = '/register';
                 } else {
-                    // Process premium subscription
                     const response = await axios.post('/process-subscription', {
                         plan_id: plan.id,
                         plan_name: plan.name,
@@ -117,9 +110,8 @@ const Subscription = () => {
                         currency: currency,
                         billing_period: billingPeriod
                     });
-                    
+
                     if (response.data.success) {
-                        // Redirect to payment gateway or show success message
                         if (response.data.payment_url) {
                             window.location.href = response.data.payment_url;
                         } else {
@@ -140,138 +132,132 @@ const Subscription = () => {
         setCurrency(currency === 'USD' ? 'NGN' : 'USD');
     };
 
+    const proFeatures = [
+        { icon: 'all_inclusive', title: 'Unlimited Saves', desc: 'Save as many opportunities and tools as you want. No limits, no restrictions.' },
+        { icon: 'notifications_active', title: 'Smart Reminders', desc: 'Push notifications and email alerts for deadlines. Never miss an application window.' },
+        { icon: 'calendar_month', title: 'Calendar Sync', desc: 'Automatically sync deadlines to your Google Calendar. All your dates in one place.' },
+        { icon: 'smart_toy', title: 'AI Assistant', desc: 'AI-powered recommendations tailored to your profile, goals, and interests.' },
+        { icon: 'block', title: 'Ad-Free', desc: 'Browse and research opportunities without any distractions whatsoever.' },
+        { icon: 'download', title: 'Export Data', desc: 'Download your saved opportunities as PDF or CSV. Share with your team.' },
+    ];
+
+    const faqs = [
+        { q: 'How do smart reminders work?', a: 'When you save an opportunity with a deadline, you can set custom reminders. We\'ll send you push notifications and email alerts before the deadline so you never miss an application window.' },
+        { q: 'How does Google Calendar sync work?', a: 'Connect your Google Calendar once, and we\'ll automatically add opportunity deadlines as calendar events alongside your other commitments.' },
+        { q: 'What can the AI Assistant do?', a: 'Your personalized AI assistant learns your preferences and goals to recommend the most relevant opportunities. Ask it questions like "Find grants for tech startups in Africa" and get instant, tailored results.' },
+        { q: 'Can I cancel my subscription anytime?', a: 'Absolutely! Cancel anytime with no questions asked. You\'ll keep Pro access until the end of your billing period.' },
+    ];
+
     return (
         <GuestLayout>
             <style>{`
-                .pricing-hero {
-                    padding: 4rem 0 3rem;
+                /* Hero */
+                .sub-hero {
+                    padding: 80px 0 60px;
                     text-align: center;
-                    position: relative;
-                    z-index: 1;
                 }
-                
-                .hero-badge {
+                .sub-hero-badge {
                     display: inline-flex;
                     align-items: center;
-                    gap: 0.5rem;
-                    background: rgba(255, 255, 255, 0.2);
-                    backdrop-filter: blur(10px);
-                    padding: 0.5rem 1.25rem;
-                    border-radius: 50px;
-                    font-size: 0.875rem;
+                    gap: 6px;
+                    background: rgba(255, 255, 255, 0.08);
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    color: rgba(255, 255, 255, 0.85);
+                    font-size: 13px;
+                    font-weight: 400;
+                    padding: 6px 16px;
+                    border-radius: 980px;
+                    margin-bottom: 20px;
+                }
+                .sub-hero h1 {
+                    font-size: 44px;
                     font-weight: 600;
-                    margin-bottom: 1.5rem;
-                    color: white;
+                    line-height: 1.12;
+                    letter-spacing: -0.005em;
+                    color: #fff;
+                    margin-bottom: 12px;
                 }
-                
-                .billing-toggle {
-                    display: inline-flex;
-                    align-items: center;
-                    background: rgba(255, 255, 255, 0.2);
-                    backdrop-filter: blur(10px);
-                    border-radius: 50px;
-                    padding: 4px;
+                .sub-hero p {
+                    font-size: 17px;
+                    line-height: 1.47;
+                    font-weight: 400;
+                    letter-spacing: -0.022em;
+                    color: rgba(255, 255, 255, 0.6);
+                    max-width: 520px;
+                    margin: 0 auto 28px;
                 }
-                
-                .toggle-btn {
+
+                /* Toggle Controls */
+                .sub-toggle-group {
                     display: inline-flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    padding: 0.625rem 1.5rem;
-                    border-radius: 50px;
+                    background: rgba(255, 255, 255, 0.1);
+                    backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px);
+                    border-radius: 980px;
+                    padding: 3px;
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                }
+                .sub-toggle-btn {
+                    padding: 8px 20px;
                     border: none;
                     background: transparent;
-                    color: rgba(255, 255, 255, 0.8);
-                }
-                
-                .toggle-btn.active {
-                    background: white;
-                    color: #374151;
-                }
-                    font-size: 0.9rem;
+                    border-radius: 980px;
+                    font-size: 14px;
                     font-weight: 500;
-                    color: #6b7280;
+                    color: rgba(255, 255, 255, 0.6);
                     cursor: pointer;
-                    transition: all 0.3s ease;
+                    transition: all 0.25s ease;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
                 }
-                
-                .toggle-btn.active {
-                    background: white;
-                    color: #1f2937;
+                .sub-toggle-btn.active {
+                    background: #fff;
+                    color: #1d1d1f;
+                    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+                }
+                .sub-save-pill {
+                    background: rgba(22, 163, 74, 0.15);
+                    color: #4ade80;
+                    padding: 2px 8px;
+                    border-radius: 980px;
+                    font-size: 11px;
                     font-weight: 600;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
                 }
-                
-                .toggle-btn .save-badge {
-                    background: #e9ecef;
-                    color: #374151;
-                    padding: 0.15rem 0.5rem;
-                    border-radius: 50px;
-                    font-size: 0.7rem;
-                    font-weight: 600;
+                .sub-toggle-btn.active .sub-save-pill {
+                    background: rgba(22, 163, 74, 0.1);
+                    color: #16a34a;
                 }
-                
-                .toggle-switch {
-                    position: relative;
-                    width: 52px;
-                    height: 28px;
-                    background: #e9ecef;
-                    border-radius: 50px;
+                .sub-currency-btn {
+                    padding: 8px 16px;
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    background: rgba(255, 255, 255, 0.06);
+                    border-radius: 980px;
+                    font-size: 13px;
+                    font-weight: 400;
+                    color: rgba(255, 255, 255, 0.7);
                     cursor: pointer;
-                    transition: background 0.3s ease;
+                    transition: all 0.2s ease;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
                 }
-                
-                .toggle-switch.active {
-                    background: #374151;
+                .sub-currency-btn:hover {
+                    background: rgba(255, 255, 255, 0.12);
+                    color: #fff;
                 }
-                
-                .toggle-switch::after {
-                    content: '';
-                    position: absolute;
-                    top: 3px;
-                    left: 3px;
-                    width: 22px;
-                    height: 22px;
-                    background: white;
-                    border-radius: 50%;
-                    transition: transform 0.3s ease;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+
+                /* Subscription Cards */
+                .sub-cards-section {
+                    padding: 64px 0 48px;
+                    background: #f5f5f7;
                 }
-                
-                .toggle-switch.active::after {
-                    transform: translateX(24px);
-                }
-                
-                .save-badge {
-                    background: rgba(255, 255, 255, 0.3);
-                    color: white;
-                    padding: 0.25rem 0.75rem;
-                    border-radius: 50px;
-                    font-size: 0.75rem;
-                    font-weight: 600;
-                }
-                
-                .currency-toggle {
-                    background: rgba(255, 255, 255, 0.15);
-                    backdrop-filter: blur(10px);
-                    border: 1px solid rgba(255, 255, 255, 0.25);
-                    border-radius: 50px;
-                    padding: 0.5rem 1rem;
-                    font-size: 0.875rem;
-                    color: white;
-                    transition: all 0.3s ease;
-                }
-                
-                .currency-toggle:hover {
-                    background: rgba(255, 255, 255, 0.25);
-                    color: white;
-                }
-                
-                .pricing-card {
-                    background: white;
+                .sub-card {
+                    background: #fff;
                     border-radius: 20px;
-                    padding: 2rem;
-                    border: 1px solid #e5e7eb;
+                    padding: 40px 32px 32px;
+                    border: 1px solid rgba(0, 0, 0, 0.04);
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
                     transition: all 0.3s ease;
                     position: relative;
                     height: 100%;
@@ -279,251 +265,332 @@ const Subscription = () => {
                     flex-direction: column;
                     max-width: 420px;
                     margin: 0 auto;
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+                    overflow: hidden;
                 }
-                
-                .pricing-card:hover {
-                    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+                .sub-card:hover {
+                    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+                    transform: translateY(-2px);
+                }
+                .sub-card.featured {
+                    border: 2px solid #1d1d1f;
+                    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+                }
+                .sub-card.featured:hover {
+                    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.14);
                     transform: translateY(-4px);
                 }
-                
-                .pricing-card.popular {
-                    border: 1px solid #e5e7eb;
-                    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-                }
-                
-                .popular-badge {
+                .sub-card-badge {
                     position: absolute;
-                    top: -12px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background: #dc2626;
-                    color: white;
-                    padding: 5px 14px;
-                    border-radius: 50px;
-                    font-size: 0.75rem;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    background: #1d1d1f;
+                    color: #fff;
+                    text-align: center;
+                    padding: 6px 0;
+                    font-size: 12px;
                     font-weight: 600;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.375rem;
-                    white-space: nowrap;
+                    letter-spacing: 0.04em;
+                    text-transform: uppercase;
                 }
-                
-                .plan-icon {
+                .sub-card.featured {
+                    padding-top: 56px;
+                }
+                .sub-card-icon {
                     width: 48px;
                     height: 48px;
-                    border-radius: 50%;
+                    border-radius: 12px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    margin-bottom: 1rem;
+                    margin-bottom: 20px;
                     font-size: 24px;
-                    background: #f3f4f6;
-                    color: #374151;
                 }
-                
-                .plan-icon.free {
-                    background: #f3f4f6;
-                    color: #6b7280;
+                .sub-card-icon.free {
+                    background: #f5f5f7;
+                    color: #86868b;
                 }
-                
-                .plan-icon.premium {
-                    background: #f3f4f6;
-                    color: #374151;
+                .sub-card-icon.pro {
+                    background: #1d1d1f;
+                    color: #fff;
                 }
-                
-                .price-display {
-                    font-size: 2.25rem;
-                    font-weight: 700;
-                    color: #1f2937;
-                    margin: 0.5rem 0;
-                    line-height: 1;
-                }
-                
-                .price-currency {
-                    font-size: 1rem;
+                .sub-card-name {
+                    font-size: 22px;
                     font-weight: 600;
-                    color: #1f2937;
+                    color: #1d1d1f;
+                    margin-bottom: 4px;
+                    letter-spacing: -0.01em;
                 }
-                
-                .price-period {
-                    font-size: 0.9rem;
-                    color: #6b7280;
+                .sub-card-desc {
+                    font-size: 15px;
+                    color: #86868b;
+                    margin-bottom: 24px;
+                    line-height: 1.5;
+                }
+                .sub-card-price {
+                    font-size: 48px;
+                    font-weight: 600;
+                    color: #1d1d1f;
+                    line-height: 1;
+                    letter-spacing: -0.025em;
+                    margin-bottom: 4px;
+                }
+                .sub-card-price-unit {
+                    font-size: 16px;
                     font-weight: 400;
+                    color: #86868b;
                 }
-                
-                .pricing-note {
-                    font-size: 0.8rem;
-                    color: #94a3b8;
-                    margin-top: 0.25rem;
+                .sub-card-price-note {
+                    font-size: 13px;
+                    color: #86868b;
+                    margin-bottom: 28px;
                 }
-                
-                .feature-list {
-                    flex-grow: 1;
-                    margin: 1.5rem 0;
+                .sub-card-divider {
+                    height: 1px;
+                    background: #f5f5f7;
+                    margin: 0 -32px 24px;
                 }
-                
-                .feature-item {
+                .sub-card-features-title {
+                    font-size: 12px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.06em;
+                    color: #86868b;
+                    margin-bottom: 16px;
+                }
+                .sub-card-feature {
                     display: flex;
                     align-items: flex-start;
-                    margin-bottom: 0.875rem;
-                    font-size: 0.9rem;
-                    color: #374151;
+                    gap: 10px;
+                    padding: 7px 0;
+                    font-size: 14px;
+                    color: #1d1d1f;
+                    line-height: 1.4;
                 }
-                
-                .feature-item.highlight-feature {
+                .sub-card-feature.highlighted {
                     font-weight: 500;
                 }
-                
-                .feature-icon {
+                .sub-card-feature-icon {
                     width: 20px;
                     height: 20px;
                     border-radius: 50%;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    margin-right: 0.75rem;
                     flex-shrink: 0;
-                    margin-top: 2px;
-                    background: #f3f4f6;
-                    color: #6b7280;
+                    margin-top: 1px;
                 }
-                
-                .feature-icon.check {
-                    background: #f3f4f6;
-                    color: #374151;
+                .sub-card-feature-icon.check {
+                    background: #f5f5f7;
+                    color: #1d1d1f;
                 }
-                
-                .feature-icon.premium-icon {
-                    background: #f3f4f6;
-                    color: #374151;
+                .sub-card-feature-icon.pro-check {
+                    background: #1d1d1f;
+                    color: #fff;
                 }
-                
-                .limitation-item {
+                .sub-card-limitation {
                     display: flex;
                     align-items: center;
-                    margin-bottom: 0.5rem;
-                    font-size: 0.85rem;
-                    color: #9ca3af;
+                    gap: 10px;
+                    padding: 5px 0;
+                    font-size: 13px;
+                    color: #86868b;
                 }
-                
-                .limitation-icon {
+                .sub-card-limitation-icon {
                     width: 18px;
                     height: 18px;
                     border-radius: 50%;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    margin-right: 0.75rem;
-                    background: #f3f4f6;
-                    color: #9ca3af;
                     flex-shrink: 0;
+                    background: #f5f5f7;
+                    color: #86868b;
                 }
-                
-                .btn-primary-dark {
-                    background: #374151;
-                    border: none;
-                    color: white;
-                    transition: all 0.3s ease;
-                }
-                
-                .btn-primary-dark:hover {
-                    background: #1f2937;
-                    color: white;
-                    transform: translateY(-1px);
-                }
-                
-                .btn-outline-dark {
-                    background: transparent;
-                    border: 1px solid #e5e7eb;
-                    color: #374151;
-                    transition: all 0.3s ease;
-                }
-                
-                .btn-outline-dark:hover {
-                    background: #f8fafc;
-                    border-color: #d1d5db;
-                }
-                
-                .features-section {
-                    background: #f8f9fa;
-                    padding: 4rem 0;
-                    margin-top: 3rem;
-                }
-                
-                .feature-highlight {
-                    background: white;
-                    border-radius: 16px;
-                    padding: 1.75rem;
+                .sub-card-btn {
+                    display: block;
+                    width: 100%;
+                    padding: 14px;
+                    border-radius: 980px;
+                    font-size: 15px;
+                    font-weight: 500;
                     text-align: center;
-                    border: 1px solid #e5e7eb;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    border: none;
+                    margin-top: auto;
+                }
+                .sub-card-btn.free-btn {
+                    background: #f5f5f7;
+                    color: #1d1d1f;
+                }
+                .sub-card-btn.free-btn:hover {
+                    background: #e8e8ed;
+                }
+                .sub-card-btn.pro-btn {
+                    background: #1d1d1f;
+                    color: #fff;
+                }
+                .sub-card-btn.pro-btn:hover {
+                    background: #000;
+                }
+
+                /* Why Pro Section */
+                .sub-why-section {
+                    padding: 80px 0;
+                    background: #fff;
+                }
+                .sub-why-label {
+                    font-size: 13px;
+                    font-weight: 500;
+                    text-transform: uppercase;
+                    letter-spacing: 0.04em;
+                    color: #86868b;
+                    margin-bottom: 8px;
+                }
+                .sub-why-title {
+                    font-size: 32px;
+                    font-weight: 600;
+                    color: #1d1d1f;
+                    letter-spacing: -0.01em;
+                    margin-bottom: 8px;
+                }
+                .sub-why-subtitle {
+                    font-size: 17px;
+                    color: #86868b;
+                    line-height: 1.47;
+                    max-width: 500px;
+                    margin: 0 auto 48px;
+                }
+                .sub-feature-card {
+                    background: #f5f5f7;
+                    border-radius: 18px;
+                    padding: 32px 24px;
+                    text-align: center;
                     height: 100%;
                     transition: all 0.3s ease;
                 }
-                
-                .feature-highlight:hover {
-                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+                .sub-feature-card:hover {
+                    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+                    transform: translateY(-2px);
                 }
-                
-                .feature-highlight-icon {
-                    background: #f3f4f6;
-                    color: #374151;
+                .sub-feature-card-icon {
                     width: 48px;
                     height: 48px;
-                    border-radius: 50%;
+                    border-radius: 12px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    margin: 0 auto 1rem;
+                    margin: 0 auto 16px;
                     font-size: 22px;
+                    background: #1d1d1f;
+                    color: #fff;
                 }
-                
-                .premium-badge-sm {
+                .sub-feature-card h5 {
+                    font-size: 17px;
+                    font-weight: 600;
+                    color: #1d1d1f;
+                    margin-bottom: 8px;
+                    letter-spacing: -0.01em;
+                }
+                .sub-feature-card p {
+                    font-size: 14px;
+                    color: #86868b;
+                    line-height: 1.5;
+                    margin: 0;
+                }
+
+                /* FAQ Section */
+                .sub-faq-section {
+                    padding: 80px 0;
+                    background: #f5f5f7;
+                }
+                .sub-faq-item {
+                    background: #fff;
+                    border-radius: 14px;
+                    margin-bottom: 12px;
+                    overflow: hidden;
+                    transition: all 0.2s ease;
+                }
+                .sub-faq-item:hover {
+                    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+                }
+                .sub-faq-q {
+                    padding: 20px 24px;
+                    font-size: 15px;
+                    font-weight: 600;
+                    color: #1d1d1f;
+                    cursor: pointer;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    user-select: none;
+                }
+                .sub-faq-a {
+                    padding: 0 24px 20px;
+                    font-size: 14px;
+                    color: #86868b;
+                    line-height: 1.6;
+                }
+
+                /* CTA */
+                .sub-cta-section {
+                    padding: 80px 0;
+                    background: #1d1d1f;
+                    text-align: center;
+                }
+                .sub-cta-section h2 {
+                    font-size: 32px;
+                    font-weight: 600;
+                    color: #fff;
+                    letter-spacing: -0.01em;
+                    margin-bottom: 12px;
+                }
+                .sub-cta-section p {
+                    font-size: 17px;
+                    color: rgba(255, 255, 255, 0.5);
+                    max-width: 480px;
+                    margin: 0 auto 32px;
+                    line-height: 1.47;
+                }
+                .sub-cta-btn {
                     display: inline-flex;
                     align-items: center;
-                    gap: 0.25rem;
-                    background: #e9ecef;
-                    color: #374151;
-                    padding: 0.25rem 0.75rem;
-                    border-radius: 50px;
-                    font-size: 0.75rem;
-                    font-weight: 600;
+                    gap: 8px;
+                    background: #fff;
+                    color: #1d1d1f;
+                    border: none;
+                    border-radius: 980px;
+                    padding: 14px 32px;
+                    font-size: 15px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
                 }
-                
+                .sub-cta-btn:hover {
+                    background: rgba(255, 255, 255, 0.9);
+                    transform: scale(1.02);
+                }
+                .sub-cta-note {
+                    font-size: 13px;
+                    color: rgba(255, 255, 255, 0.35);
+                    margin-top: 16px;
+                }
+
                 @media (max-width: 768px) {
-                    .pricing-hero {
-                        padding: 2rem 0 1rem;
-                    }
-                    
-                    .pricing-card {
-                        padding: 1.5rem;
-                        margin-bottom: 2rem;
-                    }
-                    
-                    .price-display {
-                        font-size: 2.25rem;
-                    }
-                    
-                    .billing-toggle {
-                        flex-wrap: wrap;
-                        justify-content: center;
-                    }
-                }
-                
-                @media (max-width: 576px) {
-                    .pricing-card {
-                        padding: 1.25rem;
-                    }
-                    
-                    .price-display {
-                        font-size: 2rem;
-                    }
-                    
-                    .plan-icon {
-                        width: 48px;
-                        height: 48px;
-                        font-size: 24px;
-                    }
+                    .sub-hero { padding: 56px 0 40px; }
+                    .sub-hero h1 { font-size: 32px; }
+                    .sub-hero p { font-size: 15px; }
+                    .sub-cards-section { padding: 40px 0 32px; }
+                    .sub-card { padding: 32px 24px 24px; }
+                    .sub-card.featured { padding-top: 48px; }
+                    .sub-card-price { font-size: 40px; }
+                    .sub-card-divider { margin: 0 -24px 20px; }
+                    .sub-why-section { padding: 56px 0; }
+                    .sub-why-title { font-size: 26px; }
+                    .sub-faq-section { padding: 56px 0; }
+                    .sub-cta-section { padding: 56px 0; }
+                    .sub-cta-section h2 { font-size: 26px; }
                 }
             `}</style>
 
@@ -531,391 +598,218 @@ const Subscription = () => {
                 title="Subscription Plans - Edatsu Media"
                 description="Choose the perfect plan for your business growth journey. Get access to exclusive opportunities, premium features, and priority support with Edatsu Media subscription plans."
                 keywords="subscription plans, business opportunities, premium access, Edatsu Media pricing, exclusive opportunities, business growth"
-                canonicalUrl={`${window.location.origin}/subscription`}
+                canonicalUrl={`${window.location.origin}/pricing`}
                 ogTitle="Subscription Plans - Edatsu Media"
                 ogDescription="Choose the perfect plan for your business growth journey. Get access to exclusive opportunities, premium features, and priority support."
                 twitterTitle="Subscription Plans - Edatsu Media"
-                twitterDescription="Choose the perfect plan for your business growth journey. Get access to exclusive opportunities, premium features, and priority support."
+                twitterDescription="Choose the perfect plan for your business growth journey."
             />
 
-            {/* Hero Section - Same as Home Banner */}
+            {/* Hero Section */}
             <Container fluid={true}>
-                <Row className="footer-banner position-relative border-0">
+                <Row className="hero-banner position-relative border-0">
                     <div className="overlay d-flex align-items-center">
                         <Container>
-                            <Row className="justify-content-center">
-                                <Col lg={8} className="text-center">
-                                    <div className="hero-badge">
-                                        Choose Your Plan
-                                    </div>
-                                    <h1 
-                                        className="text-m-0 mb-3 p-0 text-light fw-bold" 
-                                        style={{ 
-                                            fontSize: 'clamp(1.75rem, 6vw, 2.5rem)',
-                                            lineHeight: '1.2'
-                                        }}
-                                    >
-                                        Simple, Transparent Pricing
-                                    </h1>
-                                    <p 
-                                        className="banner-subtitle text-light mb-4 px-2 px-sm-0"
-                                        style={{
-                                            fontSize: 'clamp(1rem, 3vw, 1.1rem)',
-                                            lineHeight: '1.5',
-                                            maxWidth: '600px',
-                                            margin: '0 auto 1.5rem'
-                                        }}
-                                    >
-                                        Start for free and upgrade when you're ready. No hidden fees, cancel anytime.
-                                    </p>
-                                    
-                                    {/* Billing Toggle */}
-                                    <div className="billing-toggle">
-                                        <button 
-                                            className={`toggle-btn ${billingPeriod === 'monthly' ? 'active' : ''}`}
+                            <div className="sub-hero">
+                                <span className="sub-hero-badge">
+                                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>workspace_premium</span>
+                                    Choose Your Plan
+                                </span>
+
+                                <h1>
+                                    Simple, transparent{' '}
+                                    <span style={{ color: '#d97757' }}>pricing</span>
+                                </h1>
+
+                                <p>
+                                    Start for free and upgrade when you're ready. No hidden fees, cancel anytime.
+                                </p>
+
+                                {/* Billing Toggle */}
+                                <div className="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3">
+                                    <div className="sub-toggle-group">
+                                        <button
+                                            className={`sub-toggle-btn ${billingPeriod === 'monthly' ? 'active' : ''}`}
                                             onClick={() => setBillingPeriod('monthly')}
                                         >
                                             Monthly
                                         </button>
-                                        <button 
-                                            className={`toggle-btn ${billingPeriod === 'yearly' ? 'active' : ''}`}
+                                        <button
+                                            className={`sub-toggle-btn ${billingPeriod === 'yearly' ? 'active' : ''}`}
                                             onClick={() => setBillingPeriod('yearly')}
                                         >
                                             Yearly
-                                            <span className="save-badge">Save 10%</span>
+                                            <span className="sub-save-pill">Save 10%</span>
                                         </button>
                                     </div>
-                                    
-                                    <div className="mt-3">
-                                        <button 
-                                            className="currency-toggle btn"
-                                            onClick={toggleCurrency}
-                                            style={{color: 'rgba(255, 255, 255, 0.9)'}}
-                                        >
-                                            <span className="material-symbols-outlined me-2" style={{fontSize: '18px'}}>
-                                                currency_exchange
-                                            </span>
-                                            Switch to {currency === 'USD' ? 'NGN (₦)' : 'USD ($)'}
-                                        </button>
-                                    </div>
-                                </Col>
-                            </Row>
+
+                                    <button className="sub-currency-btn" onClick={toggleCurrency}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>currency_exchange</span>
+                                        {currency === 'USD' ? 'NGN (₦)' : 'USD ($)'}
+                                    </button>
+                                </div>
+                            </div>
                         </Container>
                     </div>
                 </Row>
             </Container>
 
-            {/* Pricing Cards */}
-            <Container className="py-5">
-                <Row className="justify-content-center g-4">
-                    {pricingPlans.map((plan) => (
-                        <Col lg={4} md={6} key={plan.id}>
-                            <div className={`pricing-card ${plan.popular ? 'popular' : ''}`}>
-                                {plan.popular && (
-                                    <div className="popular-badge">
-                                        Most Popular
-                                    </div>
-                                )}
-                                
-                                <div className={`plan-icon ${plan.id}`}>
-                                    <span className="material-symbols-outlined">
-                                        {plan.icon}
-                                    </span>
-                                </div>
-                                
-                                <div>
-                                    <h3 className="fw-bold mb-2">{plan.name}</h3>
-                                    <p className="text-muted mb-3">{plan.description}</p>
-                                    
-                                    <div className="price-display">
-                                        <span className="price-currency">
-                                            {currency === 'USD' ? '$' : '₦'}
-                                        </span>
-                                        {plan.price[billingPeriod][currency].toLocaleString()}
-                                        <span className="price-period">
-                                            {plan.price[billingPeriod][currency] > 0 ? ` /${billingPeriod === 'monthly' ? 'month' : 'year'}` : ''}
-                                        </span>
-                                    </div>
-                                    {plan.id === 'premium' && (
-                                        <p className="text-muted small mb-0">Cancel anytime • No hidden fees</p>
-                                    )}
-                                </div>
-                                
-                                <div className="feature-list">
-                                    <h6 className="fw-semibold mb-3 text-uppercase" style={{fontSize: '0.75rem', letterSpacing: '0.05em', color: '#64748b'}}>
-                                        {plan.id === 'premium' ? "Everything you need" : "What's included"}
-                                    </h6>
-                                    {plan.features.map((feature, index) => (
-                                        <div key={index} className={`feature-item ${feature.highlight ? 'highlight-feature' : ''}`}>
-                                            <div className={`feature-icon ${plan.id === 'premium' && feature.highlight ? 'premium-icon' : 'check'}`}>
-                                                <span className="material-symbols-outlined" style={{fontSize: '14px'}}>
-                                                    {feature.icon || 'check'}
-                                                </span>
-                                            </div>
-                                            <span style={{fontWeight: feature.highlight ? 600 : 400}}>
-                                                {feature.text}
-                                            </span>
-                                        </div>
-                                    ))}
-                                    
-                                    {plan.limitations.length > 0 && (
-                                        <>
-                                            <h6 className="fw-semibold mb-3 mt-4 text-uppercase" style={{fontSize: '0.75rem', letterSpacing: '0.05em', color: '#94a3b8'}}>
-                                                Limitations
-                                            </h6>
-                                            {plan.limitations.map((limitation, index) => (
-                                                <div key={index} className="limitation-item">
-                                                    <div className="limitation-icon">
-                                                        <span className="material-symbols-outlined" style={{fontSize: '12px'}}>
-                                                            close
-                                                        </span>
-                                                    </div>
-                                                    <span>{limitation}</span>
-                                                </div>
-                                            ))}
-                                        </>
-                                    )}
-                                </div>
-                                
-                                <button
-                                    className={`btn ${plan.buttonClass} w-100 fw-bold py-3`}
-                                    onClick={() => handleSubscribe(plan)}
-                                    disabled={isProcessing}
-                                    style={{marginTop: 'auto', borderRadius: '12px'}}
-                                >
-                                    {isProcessing ? (
-                                        <>
-                                            <span className="spinner-border spinner-border-sm me-2"></span>
-                                            Processing...
-                                        </>
-                                    ) : (
-                                        plan.buttonText
-                                    )}
-                                </button>
-                            </div>
-                        </Col>
-                    ))}
-                </Row>
-            </Container>
-
-            {/* Feature Highlights */}
-            <div className="features-section">
+            {/* Subscription Cards */}
+            <div className="sub-cards-section">
                 <Container>
-                    <Row className="text-center mb-5">
-                        <Col lg={8} className="mx-auto">
-                            <div className="premium-badge-sm mb-3">
-                                <span className="material-symbols-outlined" style={{fontSize: '14px'}}>workspace_premium</span>
-                                Pro Features
-                            </div>
-                            <h2 className="fw-bold mb-3">Why Go Pro?</h2>
-                            <p className="lead text-muted">
-                                Unlock powerful features designed to help you stay organized and never miss an opportunity.
-                            </p>
-                        </Col>
+                    <Row className="justify-content-center g-4">
+                        {pricingPlans.map((plan) => (
+                            <Col lg={4} md={6} key={plan.id}>
+                                <div className={`sub-card ${plan.popular ? 'featured' : ''}`}>
+                                    {plan.popular && (
+                                        <div className="sub-card-badge">Most Popular</div>
+                                    )}
+
+                                    <div className={`sub-card-icon ${plan.id === 'premium' ? 'pro' : 'free'}`}>
+                                        <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
+                                            {plan.icon}
+                                        </span>
+                                    </div>
+
+                                    <div className="sub-card-name">{plan.name}</div>
+                                    <div className="sub-card-desc">{plan.description}</div>
+
+                                    <div className="sub-card-price">
+                                        {plan.price[billingPeriod][currency] === 0 ? (
+                                            'Free'
+                                        ) : (
+                                            <>
+                                                {currency === 'USD' ? '$' : '₦'}
+                                                {plan.price[billingPeriod][currency].toLocaleString()}
+                                            </>
+                                        )}
+                                        {plan.price[billingPeriod][currency] > 0 && (
+                                            <span className="sub-card-price-unit">
+                                                /{billingPeriod === 'monthly' ? 'mo' : 'yr'}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="sub-card-price-note">
+                                        {plan.id === 'premium' ? 'Cancel anytime' : 'Forever free'}
+                                    </div>
+
+                                    <div className="sub-card-divider" />
+
+                                    <div className="sub-card-features-title">
+                                        {plan.id === 'premium' ? "Everything you need" : "What's included"}
+                                    </div>
+
+                                    <div style={{ flex: 1, marginBottom: '24px' }}>
+                                        {plan.features.map((feature, index) => (
+                                            <div key={index} className={`sub-card-feature ${feature.highlight ? 'highlighted' : ''}`}>
+                                                <div className={`sub-card-feature-icon ${plan.id === 'premium' ? 'pro-check' : 'check'}`}>
+                                                    <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>check</span>
+                                                </div>
+                                                <span>{feature.text}</span>
+                                            </div>
+                                        ))}
+
+                                        {plan.limitations.length > 0 && (
+                                            <div style={{ marginTop: '16px' }}>
+                                                {plan.limitations.map((limitation, index) => (
+                                                    <div key={index} className="sub-card-limitation">
+                                                        <div className="sub-card-limitation-icon">
+                                                            <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>close</span>
+                                                        </div>
+                                                        <span>{limitation}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <button
+                                        className={`sub-card-btn ${plan.id === 'premium' ? 'pro-btn' : 'free-btn'}`}
+                                        onClick={() => handleSubscribe(plan)}
+                                        disabled={isProcessing}
+                                    >
+                                        {isProcessing ? (
+                                            <>
+                                                <span className="spinner-border spinner-border-sm me-2"></span>
+                                                Processing...
+                                            </>
+                                        ) : (
+                                            plan.buttonText
+                                        )}
+                                    </button>
+                                </div>
+                            </Col>
+                        ))}
                     </Row>
-                    
-                    <Row className="g-4">
-                        <Col lg={4} md={6}>
-                            <div className="feature-highlight">
-                                <div className="feature-highlight-icon">
-                                    <span className="material-symbols-outlined">all_inclusive</span>
+                </Container>
+            </div>
+
+            {/* Why Go Pro */}
+            <div className="sub-why-section">
+                <Container>
+                    <div className="text-center">
+                        <div className="sub-why-label">Pro Features</div>
+                        <h2 className="sub-why-title">Why Go Pro?</h2>
+                        <p className="sub-why-subtitle">
+                            Powerful features designed to help you stay organized and never miss an opportunity.
+                        </p>
+                    </div>
+
+                    <Row className="g-3">
+                        {proFeatures.map((feat, i) => (
+                            <Col lg={4} md={6} key={i}>
+                                <div className="sub-feature-card">
+                                    <div className="sub-feature-card-icon">
+                                        <span className="material-symbols-outlined">{feat.icon}</span>
+                                    </div>
+                                    <h5>{feat.title}</h5>
+                                    <p>{feat.desc}</p>
                                 </div>
-                                <h5 className="fw-bold mb-3">Unlimited Saves</h5>
-                                <p className="text-muted">
-                                    Save as many opportunities and tools as you want. No limits, no restrictions. Build your personal database.
-                                </p>
+                            </Col>
+                        ))}
+                    </Row>
+                </Container>
+            </div>
+
+            {/* FAQ */}
+            <div className="sub-faq-section">
+                <Container>
+                    <Row className="justify-content-center">
+                        <Col lg={7}>
+                            <div className="text-center mb-5">
+                                <h2 className="sub-why-title">Frequently Asked Questions</h2>
                             </div>
-                        </Col>
-                        
-                        <Col lg={4} md={6}>
-                            <div className="feature-highlight">
-                                <div className="feature-highlight-icon">
-                                    <span className="material-symbols-outlined">notifications_active</span>
-                                </div>
-                                <h5 className="fw-bold mb-3">Smart Reminders</h5>
-                                <p className="text-muted">
-                                    Get push notifications and email alerts for deadlines and key dates. Never miss an application window again.
-                                </p>
-                            </div>
-                        </Col>
-                        
-                        <Col lg={4} md={6}>
-                            <div className="feature-highlight">
-                                <div className="feature-highlight-icon">
-                                    <span className="material-symbols-outlined">calendar_month</span>
-                                </div>
-                                <h5 className="fw-bold mb-3">Google Calendar Sync</h5>
-                                <p className="text-muted">
-                                    Automatically sync deadlines to your Google Calendar. Stay organized with all your dates in one place.
-                                </p>
-                            </div>
-                        </Col>
-                        
-                        <Col lg={4} md={6}>
-                            <div className="feature-highlight">
-                                <div className="feature-highlight-icon">
-                                    <span className="material-symbols-outlined">smart_toy</span>
-                                </div>
-                                <h5 className="fw-bold mb-3">Personalized AI Assistant</h5>
-                                <p className="text-muted">
-                                    Get AI-powered recommendations tailored to your profile. Ask questions, get insights, and discover opportunities matched to you.
-                                </p>
-                            </div>
-                        </Col>
-                        
-                        <Col lg={4} md={6}>
-                            <div className="feature-highlight">
-                                <div className="feature-highlight-icon">
-                                    <span className="material-symbols-outlined">block</span>
-                                </div>
-                                <h5 className="fw-bold mb-3">Ad-Free Experience</h5>
-                                <p className="text-muted">
-                                    Browse and research opportunities without distractions. Enjoy a clean, focused browsing experience.
-                                </p>
-                            </div>
-                        </Col>
-                        
-                        <Col lg={4} md={6}>
-                            <div className="feature-highlight">
-                                <div className="feature-highlight-icon">
-                                    <span className="material-symbols-outlined">bolt</span>
-                                </div>
-                                <h5 className="fw-bold mb-3">Priority Access</h5>
-                                <p className="text-muted">
-                                    Get early access to newly listed opportunities before they're available to free users. Apply first, win more.
-                                </p>
-                            </div>
-                        </Col>
-                        
-                        <Col lg={4} md={6}>
-                            <div className="feature-highlight">
-                                <div className="feature-highlight-icon">
-                                    <span className="material-symbols-outlined">download</span>
-                                </div>
-                                <h5 className="fw-bold mb-3">Export Your Data</h5>
-                                <p className="text-muted">
-                                    Download your saved opportunities as PDF or CSV. Share with your team or keep offline records.
-                                </p>
-                            </div>
+
+                            {faqs.map((faq, i) => (
+                                <details key={i} className="sub-faq-item">
+                                    <summary className="sub-faq-q">
+                                        {faq.q}
+                                        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#86868b' }}>expand_more</span>
+                                    </summary>
+                                    <div className="sub-faq-a">{faq.a}</div>
+                                </details>
+                            ))}
                         </Col>
                     </Row>
                 </Container>
             </div>
 
-            {/* FAQ Section */}
-            <Container className="my-5">
-                <Row className="justify-content-center">
-                    <Col lg={8}>
-                        <h2 className="text-center fw-bold mb-5">Frequently Asked Questions</h2>
-                        
-                        <div className="accordion" id="faqAccordion">
-                            <div className="accordion-item border-0 mb-3" style={{borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'}}>
-                                <h3 className="accordion-header">
-                                    <button className="accordion-button fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-                                        How do smart reminders work?
-                                    </button>
-                                </h3>
-                                <div id="faq1" className="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
-                                    <div className="accordion-body">
-                                        When you save an opportunity with a deadline, you can set custom reminders. We'll send you push notifications and email alerts before the deadline so you never miss an application window. You control when and how you want to be reminded.
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="accordion-item border-0 mb-3" style={{borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'}}>
-                                <h3 className="accordion-header">
-                                    <button className="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-                                        How does Google Calendar sync work?
-                                    </button>
-                                </h3>
-                                <div id="faq2" className="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                    <div className="accordion-body">
-                                        Connect your Google Calendar once, and we'll automatically add opportunity deadlines as calendar events. You'll see all your important dates right in your calendar alongside your other commitments.
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="accordion-item border-0 mb-3" style={{borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'}}>
-                                <h3 className="accordion-header">
-                                    <button className="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
-                                        What export formats are available?
-                                    </button>
-                                </h3>
-                                <div id="faq3" className="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                    <div className="accordion-body">
-                                        Premium users can export their saved opportunities and tools as PDF (great for printing or sharing) or CSV (perfect for spreadsheets and data analysis). Export your entire list or select specific items.
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="accordion-item border-0 mb-3" style={{borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'}}>
-                                <h3 className="accordion-header">
-                                    <button className="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
-                                        What can the AI Assistant do?
-                                    </button>
-                                </h3>
-                                <div id="faq4" className="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                    <div className="accordion-body">
-                                        Your personalized AI assistant learns your preferences and goals to recommend the most relevant opportunities. Ask it questions like "Find grants for tech startups in Africa" or "What opportunities match my profile?" and get instant, tailored results.
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="accordion-item border-0 mb-3" style={{borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'}}>
-                                <h3 className="accordion-header">
-                                    <button className="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
-                                        What does priority access mean?
-                                    </button>
-                                </h3>
-                                <div id="faq5" className="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                    <div className="accordion-body">
-                                        Premium members get early access to newly listed opportunities. When hot opportunities are added, you'll see them first—giving you a head start on applications before the crowd.
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="accordion-item border-0 mb-3" style={{borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'}}>
-                                <h3 className="accordion-header">
-                                    <button className="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
-                                        Can I cancel my subscription anytime?
-                                    </button>
-                                </h3>
-                                <div id="faq6" className="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                    <div className="accordion-body">
-                                        Absolutely! Cancel anytime with no questions asked. You'll keep Premium access until the end of your billing period. Your saved opportunities will remain accessible on the free plan (up to 10 items).
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </Col>
-                </Row>
-            </Container>
-
-            {/* CTA Section */}
-            <div style={{
-                background: '#f3f4f6',
-                padding: '4rem 0',
-                marginTop: '2rem',
-                textAlign: 'center'
-            }}>
+            {/* CTA */}
+            <div className="sub-cta-section">
                 <Container>
-                    <Row className="justify-content-center">
-                        <Col lg={8}>
-                            <h2 className="fw-bold mb-3" style={{color: '#1f2937'}}>Ready to Never Miss an Opportunity?</h2>
-                            <p className="lead mb-4" style={{color: '#6b7280'}}>
-                                Join thousands of ambitious professionals who stay organized and ahead of deadlines.
-                            </p>
-                            <button 
-                                className="btn btn-success btn-lg fw-bold px-5 py-3"
-                                onClick={() => handleSubscribe(pricingPlans[1])}
-                                disabled={isProcessing}
-                                style={{borderRadius: '12px'}}
-                            >
-                                Start Pro for {currency === 'USD' ? '$' : '₦'}{pricingPlans[1].price[billingPeriod][currency].toLocaleString()}/{billingPeriod === 'monthly' ? 'month' : 'year'}
-                            </button>
-                            <p className="mt-3 small" style={{color: '#6b7280'}}>No credit card required - Cancel anytime</p>
-                        </Col>
-                    </Row>
+                    <h2>Ready to Never Miss an Opportunity?</h2>
+                    <p>
+                        Join thousands of ambitious professionals who stay organized and ahead of deadlines.
+                    </p>
+                    <button
+                        className="sub-cta-btn"
+                        onClick={() => handleSubscribe(pricingPlans[1])}
+                        disabled={isProcessing}
+                    >
+                        Start Pro for {currency === 'USD' ? '$' : '₦'}{pricingPlans[1].price[billingPeriod][currency].toLocaleString()}/{billingPeriod === 'monthly' ? 'mo' : 'yr'}
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_forward</span>
+                    </button>
+                    <div className="sub-cta-note">No credit card required</div>
                 </Container>
             </div>
 

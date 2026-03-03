@@ -1,61 +1,78 @@
-import { Fragment, useState } from "react";
-import { Container, Row, Col, Button, Form, InputGroup } from 'react-bootstrap';
-import { Link, usePage } from '@inertiajs/react';
+import { Fragment } from "react";
+import { Container, Row, Col } from 'react-bootstrap';
+import { usePage } from '@inertiajs/react';
+import FlatButton from '@/Components/FlatButton';
 
-export default function SubFooter(){
+export default function SubFooter() {
+    const user = usePage().props.auth.user;
 
-  const user = usePage().props.auth.user;
-  const [email, setEmail] = useState('');
-  const [isSubscribing, setIsSubscribing] = useState(false);
-
-  const handleSubscribe = (e) => {
-    e.preventDefault();
-    if (!email) return;
-    
-    setIsSubscribing(true);
-    // Here you would typically make an API call to subscribe the user
-    // For now, we'll just simulate the process
-    setTimeout(() => {
-      setIsSubscribing(false);
-      setEmail('');
-      // You could show a success message here
-    }, 1000);
-  };
-  
     return (
-<Fragment>
-<Container fluid={true}>
-      <Row className="footer-banner position-relative border-0">
-        <div className="overlay d-flex align-items-center">
-          <Container>
-            <Row>
-                            <Col sm={2}></Col>
-              <Col sm={8}>
-                <div className="text-center">
-                   <h4 className="text-m-0 p-0 text-light fw-bold" style={{ fontSize: '2.5em' }}>
-                    Network for Entrepreneurs
-                    </h4>      
-                  <p className="text-light poppins-light" style={{ fontSize: '0.95em', opacity: '0.8' }}>
-                    Join over 5,000+ elite entrepreneurs in our community
-                  </p>
-                  
-                  {!user &&
-                  <Link
-                    href="sign-up"
-                    className="btn py-3 text-decoration-none shadow-sm btn-outline-light text-light poppins-semibold px-4 border-light mt-2"
-                    style={{ borderRadius: '8px' }}
-                  >
-                    Create Free Account
-                  </Link>
-                  }
-                </div>
-              </Col>
-              <Col sm={2}></Col>
-            </Row>
-          </Container>
-        </div>
-      </Row>
-    </Container>
-</Fragment>
-    )
+        <Fragment>
+            <Container fluid={true}>
+                <Row className="footer-banner position-relative border-0">
+                    <div className="overlay d-flex align-items-center">
+                        <Container>
+                            <Row className="justify-content-center">
+                                <Col sm={12} md={8} lg={6}>
+                                    <div className="text-center py-5">
+                                        {/* Badge */}
+                                        <span
+                                            className="d-inline-block mb-3"
+                                            style={{
+                                                background: 'rgba(255, 255, 255, 0.08)',
+                                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                                color: 'rgba(255, 255, 255, 0.85)',
+                                                fontSize: '11px',
+                                                fontWeight: 500,
+                                                padding: '5px 14px',
+                                                borderRadius: '980px',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.06em',
+                                            }}
+                                        >
+                                            Join the Community
+                                        </span>
+
+                                        <h4
+                                            className="text-white mb-3"
+                                            style={{
+                                                fontSize: '44px',
+                                                fontWeight: 600,
+                                                letterSpacing: '-0.005em',
+                                                lineHeight: 1.12,
+                                            }}
+                                        >
+                                            Network for{' '}
+                                            <span style={{ color: '#d97757' }}>Entrepreneurs</span>
+                                        </h4>
+                                        <p
+                                            className="mb-4"
+                                            style={{
+                                                fontSize: '15px',
+                                                color: 'rgba(255, 255, 255, 0.6)',
+                                                lineHeight: 1.5,
+                                                fontWeight: 400,
+                                            }}
+                                        >
+                                            Join over 5,000+ elite entrepreneurs in our community
+                                        </p>
+
+                                        {!user && (
+                                            <FlatButton
+                                                href="/sign-up"
+                                                variant="light"
+                                                size="lg"
+                                            >
+                                                Create Free Account
+                                            </FlatButton>
+                                        )}
+                                    </div>
+                                </Col>
+                            </Row>
+                        </Container>
+                    </div>
+                </Row>
+            </Container>
+        </Fragment>
+    );
 }

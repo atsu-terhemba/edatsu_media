@@ -1,21 +1,23 @@
 ﻿/****************************************/
-/* Universal Poppins font application (except headers and icons) */
-* {
-    font-family: "Poppins", sans-serif !important;
+/* Modern typography with Poppins */
+:root {
+    --font-sans: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --text-primary: #1d1d1f;
+    --text-secondary: #86868b;
+    --text-tertiary: #6e6e73;
 }
 
-/* Keep existing header fonts and icon fonts */
-h1, h2, h3, h4, h5, h6,
-.dm-serif-text-regular,
-.dm-serif-text-regular-italic,
-.custom-title-montserrat,
-.custom-title-garamond,
+* {
+    font-family: var(--font-sans) !important;
+}
+
+/* Preserve icon fonts */
 .material-icons,
 .material-icons-outlined,
 .material-symbols-outlined,
 i[class*="material-"],
 i[class*="fa-"],
-.fa,
+.fa, .fas, .far, .fab,
 [class*="fa-"],
 .bi,
 [class*="bi-"] {
@@ -23,25 +25,27 @@ i[class*="fa-"],
 }
 
 body {
-    line-height: 1.6;
-    color: #202122;
-    background-color: #FFF;
+    font-family: var(--font-sans);
+    font-size: 17px;
+    line-height: 1.47059;
+    font-weight: 400;
+    letter-spacing: -0.022em;
+    color: var(--text-primary);
+    background-color: #fff;
     margin: 0;
     padding: 0;
-    font-family: "Poppins", sans-serif;
-    /* font-family: "Inter"; */
-    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     font-optical-sizing: auto;
     font-style: normal;
-    font-variation-settings: "wdth" 100;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Override Bootstrap and other framework fonts */
-.btn, .form-control, .form-select, .dropdown-item, .nav-link, 
-.badge, .alert, .card, .modal, .tooltip, .popover, 
+.btn, .form-control, .form-select, .dropdown-item, .nav-link,
+.badge, .alert, .card, .modal, .tooltip, .popover,
 p, span, div, a, li, td, th, label, input, textarea, select {
-    font-family: "Poppins", sans-serif !important;
+    font-family: var(--font-sans) !important;
 }
 
 /* Ensure Material Icons and other icon fonts work properly */
@@ -393,11 +397,17 @@ a {
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-weight: 400;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+    color: var(--text-primary);
 }
-h1 { font-size: 28px; }
-h2 { font-size: 22px; }
-h3, h4, h5, h6 { font-size: 18px; }
+h1 { font-size: 32px; font-weight: 600; }
+h2 { font-size: 24px; }
+h3 { font-size: 21px; }
+h4 { font-size: 19px; }
+h5 { font-size: 17px; }
+h6 { font-size: 15px; }
 
 pre, code {
     font-family: 'Menlo', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
@@ -420,12 +430,15 @@ a:hover {
 }
 
 p {
-    letter-spacing: 0.5px;
+    letter-spacing: -0.016em;
+    line-height: 1.47059;
+    color: var(--text-tertiary);
+    font-size: 17px;
 }
 
 .header, .footer {
-    background-color: #252422;
-    color: #adb5bd;
+    background-color: #111827;
+    color: #9ca3af;
 }
 
 ul.menu-list li {
@@ -504,6 +517,19 @@ ul.menu-list li:last-child {
     background-image: url('/public/img/defaults/banner_6.jpg');
 }
 
+.hero-banner {
+    background-image: url('/public/img/defaults/banner_business.jpg');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    min-height: 460px !important;
+    border: 0;
+}
+
+.hero-banner .overlay {
+    padding: 56px 0;
+}
+
 .footer-banner {
     background-image: url('/public/img/defaults/banner_5.jpg');
 }
@@ -578,8 +604,8 @@ ul.category-list li:last-child{
 .share-panel ul { list-style: none; }
 .share-panel li { margin: 13px; }
 
-.fs-9 { font-size: 0.9em; }
-.fs-8 { font-size: 0.8em; }
+.fs-9 { font-size: 14px; }
+.fs-8 { font-size: 12px; }
 
 ul.label-list {
     padding: 0;
@@ -655,9 +681,10 @@ ul.label-list li {
 .login-indicator { background-color: #00FF00; }
 
 .overlay {
-    background-color: rgba(0, 0, 0, 0.8);
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.85) 100%);
     position: absolute;
     top: 0;
+    left: 0;
     right: 0;
     bottom: 0;
 }
@@ -1070,108 +1097,97 @@ search toggle effect**/
 
 .banner-btn-primary,
 .banner-btn-secondary {
-    min-width: 200px;
-    padding: 0.875rem 2rem;
-    font-weight: 600;
+    min-width: 180px;
+    padding: 14px 28px;
+    font-weight: 400;
 }
 
 /* Additional responsive breakpoints for better mobile experience */
 @media (max-width: 576px) {
+    .hero-banner {
+        min-height: 380px !important;
+    }
+
+    .hero-banner .overlay {
+        padding: 40px 0;
+    }
+
+    .hero-banner h1 {
+        font-size: 28px !important;
+    }
+
+    .hero-banner p {
+        font-size: 15px !important;
+    }
+
     .footer-banner {
         min-height: 400px !important;
-        padding: 2rem 0;
+        padding: 32px 0;
     }
-    
-    .banner-title {
-        font-size: 1.75rem !important;
-        line-height: 1.3;
-        margin-bottom: 1rem;
-    }
-    
-    .banner-subtitle {
-        font-size: 1rem !important;
-        padding: 0 1rem;
-        line-height: 1.4;
-    }
-    
-    .banner-buttons {
-        margin-top: 1.5rem;
-        padding: 0 1rem;
-    }
-    
+
     .banner-btn-primary,
     .banner-btn-secondary {
         min-width: 100%;
         width: 100%;
         max-width: 280px;
-        padding: 1rem 1.5rem;
-        font-size: 1rem;
+        padding: 14px 24px;
+        font-size: 15px;
     }
-    
+
     .content-section {
-        padding: 1rem 0.5rem;
+        padding: 16px 8px;
     }
-    
+
     .sidebar-card {
-        margin-bottom: 1rem;
-        padding: 1rem;
+        margin-bottom: 16px;
+        padding: 16px;
     }
-    
+
     .action-button {
-        padding: 0.75rem 0.5rem;
-        font-size: 0.875rem;
+        padding: 12px 8px;
+        font-size: 14px;
     }
-    
+
     .subscription-card {
         text-align: center;
-        padding: 1.5rem 1rem;
+        padding: 24px 16px;
     }
-    
-    /* Success Section Mobile Styles */
-    .section-title {
-        font-size: 1.5rem !important;
-        line-height: 1.3;
-    }
-    
-    .section-subtitle {
-        font-size: 0.95rem !important;
-        line-height: 1.4;
-    }
-    
-    /* Card responsive adjustments */
+
     .card {
-        margin-bottom: 1.5rem;
+        margin-bottom: 16px;
     }
-    
+
     .card-body h4 {
-        font-size: 1.15rem !important;
+        font-size: 17px !important;
     }
-    
+
     .card-body p {
-        font-size: 0.9rem !important;
+        font-size: 14px !important;
     }
 }
 
 /* Tablet optimizations */
 @media (min-width: 577px) and (max-width: 768px) {
+    .hero-banner {
+        min-height: 420px !important;
+    }
+
+    .hero-banner .overlay {
+        padding: 48px 0;
+    }
+
+    .hero-banner h1 {
+        font-size: 34px !important;
+    }
+
     .footer-banner {
         min-height: 450px !important;
     }
-    
-    .banner-title {
-        font-size: 2rem !important;
-        line-height: 1.25;
-    }
-    
-    .banner-subtitle {
-        font-size: 1.075rem !important;
-        padding: 0 2rem;
-    }
-    
+
     .banner-btn-primary,
     .banner-btn-secondary {
-        min-width: 180px;
-        padding: 0.875rem 1.75rem;
+        min-width: 170px;
+        padding: 12px 24px;
     }
 }
 
@@ -2579,20 +2595,23 @@ SKELETAL LOADER
 
 /* Base flat button styles */
 .btn-flat {
-    font-family: "Poppins", sans-serif !important;
+    font-family: var(--font-sans) !important;
     font-weight: 500 !important;
-    border-radius: 2px !important;
-    border: 1px solid !important;
-    padding: 10px 20px !important;
-    transition: all 0.2s ease !important;
+    border-radius: 980px !important;
+    border: none !important;
+    padding: 11px 22px !important;
+    transition: all 0.15s ease !important;
     text-decoration: none !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 8px !important;
-    letter-spacing: 0.5px !important;
+    gap: 6px !important;
+    letter-spacing: -0.01em !important;
     text-transform: none !important;
     box-shadow: none !important;
+    font-size: 17px !important;
+    line-height: 1.17648 !important;
+    cursor: pointer !important;
 }
 
 .btn-flat:hover {
@@ -2611,36 +2630,36 @@ SKELETAL LOADER
 
 /* Primary flat button */
 .btn-flat-primary {
-    background-color: #0078d4 !important;
-    border-color: #0078d4 !important;
+    background-color: #dc2626 !important;
+    border-color: #dc2626 !important;
     color: #ffffff !important;
 }
 
 .btn-flat-primary:hover {
-    background-color: #106ebe !important;
-    border-color: #106ebe !important;
+    background-color: #b91c1c !important;
+    border-color: #b91c1c !important;
     color: #ffffff !important;
 }
 
 .btn-flat-primary:focus {
-    box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.25) !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.3) !important;
 }
 
 /* Secondary flat button */
 .btn-flat-secondary {
-    background-color: #f8f9fa !important;
-    border-color: #dee2e6 !important;
-    color: #212529 !important;
+    background-color: #f5f5f7 !important;
+    border-color: #e8e8ed !important;
+    color: #1d1d1f !important;
 }
 
 .btn-flat-secondary:hover {
-    background-color: #e9ecef !important;
-    border-color: #adb5bd !important;
-    color: #212529 !important;
+    background-color: #e8e8ed !important;
+    border-color: #d2d2d7 !important;
+    color: #1d1d1f !important;
 }
 
 .btn-flat-secondary:focus {
-    box-shadow: 0 0 0 2px rgba(173, 181, 189, 0.25) !important;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08) !important;
 }
 
 /* Success flat button */
@@ -2748,37 +2767,49 @@ SKELETAL LOADER
 /* Outline flat buttons */
 .btn-flat-outline-primary {
     background-color: transparent !important;
-    border-color: #0078d4 !important;
-    color: #0078d4 !important;
+    border: 1px solid #dc2626 !important;
+    color: #dc2626 !important;
 }
 
 .btn-flat-outline-primary:hover {
-    background-color: #0078d4 !important;
-    border-color: #0078d4 !important;
+    background-color: #dc2626 !important;
+    border-color: #dc2626 !important;
     color: #ffffff !important;
 }
 
 .btn-flat-outline-secondary {
     background-color: transparent !important;
-    border-color: #6c757d !important;
-    color: #6c757d !important;
+    border: 1px solid #86868b !important;
+    color: #86868b !important;
 }
 
 .btn-flat-outline-secondary:hover {
-    background-color: #6c757d !important;
-    border-color: #6c757d !important;
+    background-color: #86868b !important;
+    border-color: #86868b !important;
+    color: #ffffff !important;
+}
+
+.btn-flat-outline-light {
+    background-color: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    color: #ffffff !important;
+}
+
+.btn-flat-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.6) !important;
     color: #ffffff !important;
 }
 
 /* Flat button sizes */
 .btn-flat-sm {
-    padding: 6px 12px !important;
-    font-size: 0.875rem !important;
+    padding: 8px 16px !important;
+    font-size: 14px !important;
 }
 
 .btn-flat-lg {
-    padding: 12px 24px !important;
-    font-size: 1.125rem !important;
+    padding: 14px 28px !important;
+    font-size: 17px !important;
 }
 
 /* Disabled state */
