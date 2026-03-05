@@ -1,0 +1,14 @@
+.git
+node_modules
+vendor
+.env
+.env.local
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+tests
+.claude
+*.md
+bitbucket-pipelines.yml
+docker-compose.yml

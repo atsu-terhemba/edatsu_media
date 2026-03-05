@@ -1,0 +1,92 @@
+image: php:8.2-cli
+
+definitions:
+  steps:
+    - step: &build-and-test
+        name: Build & Test
+        caches:
+          - composer
+          - node
+        script:
+          # Install system deps
+          - apt-get update && apt-get install -y git zip unzip libzip-dev libpng-dev libgmp-dev nodejs npm
+          - docker-php-ext-install pdo pdo_mysql zip gd bcmath gmp
+
+          # Install Composer
+          - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+          # PHP dependencies
+          - composer install --no-interaction --prefer-dist --optimize-autoloader
+
+          # Node dependencies + build
+          - npm ci
+          - npm run build
+
+          # Verify artisan works
+          - php artisan --version
+          - php artisan route:list --compact
+
+    - step: &deploy
+        name: Deploy to Production
+        deployment: production
+        script:
+          # Install system deps
+          - apt-get update && apt-get install -y git zip unzip libzip-dev libpng-dev libgmp-dev nodejs npm openssh-client
+          - docker-php-ext-install pdo pdo_mysql zip gd bcmath gmp
+
+          # Install Composer
+          - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+          # PHP dependencies (production)
+          - composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+          # Node dependencies + build
+          - npm ci
+          - npm run build
+          - rm -rf node_modules
+
+          # Deploy via SSH to the server
+          # Set these in Bitbucket > Repository Settings > Pipelines > Repository Variables:
+          #   SSH_PRIVATE_KEY - base64 encoded private key
+          #   DEPLOY_HOST     - server IP or hostname
+          #   DEPLOY_USER     - SSH username
+          #   DEPLOY_PATH     - app path on server (e.g. /var/www/edatsu)
+          - mkdir -p ~/.ssh
+          - echo $SSH_PRIVATE_KEY | base64 -d > ~/.ssh/id_rsa
+          - chmod 600 ~/.ssh/id_rsa
+          - ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts 2>/dev/null
+
+          # Sync files to server (exclude dev files)
+          - apt-get install -y rsync
+          - rsync -azP --delete
+              --exclude='.git'
+              --exclude='node_modules'
+              --exclude='.env'
+              --exclude='storage/logs/*'
+              --exclude='storage/framework/cache/*'
+              --exclude='storage/framework/sessions/*'
+              --exclude='storage/framework/views/*'
+              ./ ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/
+
+          # Run post-deploy commands on server
+          - ssh ${DEPLOY_USER}@${DEPLOY_HOST} "cd ${DEPLOY_PATH} &&
+              php artisan config:clear &&
+              php artisan cache:clear &&
+              php artisan route:clear &&
+              php artisan view:clear &&
+              php artisan migrate --force &&
+              php artisan config:cache &&
+              php artisan route:cache &&
+              php artisan view:cache &&
+              php artisan storage:link 2>/dev/null;
+              echo 'Deploy complete'"
+
+pipelines:
+  branches:
+    main:
+      - step: *build-and-test
+      - step: *deploy
+
+  pull-requests:
+    '**':
+      - step: *build-and-test
