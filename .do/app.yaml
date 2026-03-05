@@ -1,0 +1,53 @@
+spec:
+  name: edatsu-media
+  region: nyc
+
+  services:
+    - name: web
+      source_dir: /
+      dockerfile_path: Dockerfile
+      http_port: 8080
+      instance_count: 1
+      instance_size_slug: basic-xxs
+      routes:
+        - path: /
+      envs:
+        - key: PORT
+          value: "8080"
+          type: GENERAL
+        - key: APP_ENV
+          value: production
+          type: GENERAL
+        - key: APP_DEBUG
+          value: "false"
+          type: GENERAL
+        - key: APP_KEY
+          value: "${APP_KEY}"
+          type: SECRET
+        - key: APP_URL
+          value: "${APP_URL}"
+          type: GENERAL
+        - key: DB_CONNECTION
+          value: mysql
+          type: GENERAL
+        - key: DB_HOST
+          value: "${DB_HOST}"
+          type: SECRET
+        - key: DB_PORT
+          value: "${DB_PORT}"
+          type: GENERAL
+        - key: DB_DATABASE
+          value: "${DB_DATABASE}"
+          type: GENERAL
+        - key: DB_USERNAME
+          value: "${DB_USERNAME}"
+          type: SECRET
+        - key: DB_PASSWORD
+          value: "${DB_PASSWORD}"
+          type: SECRET
+        - key: VAPID_PUBLIC_KEY
+          value: "${VAPID_PUBLIC_KEY}"
+          type: GENERAL
+        - key: VAPID_PRIVATE_KEY
+          value: "${VAPID_PRIVATE_KEY}"
+          type: SECRET

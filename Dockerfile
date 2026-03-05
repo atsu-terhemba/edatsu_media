@@ -50,7 +50,11 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-EXPOSE 80
+# Support Digital Ocean App Platform's dynamic PORT
+RUN echo 'Listen ${PORT:-80}' > /etc/apache2/ports.conf \
+    && sed -ri 's/VirtualHost \*:80/VirtualHost *:${PORT:-80}/' /etc/apache2/sites-available/*.conf
+
+EXPOSE 8080
 
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["apache2-foreground"]
