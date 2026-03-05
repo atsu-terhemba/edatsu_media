@@ -1,136 +1,95 @@
 import React from 'react';
-import { Card } from 'react-bootstrap';
 
 const ToolshedSkeleton = ({ count = 6 }) => {
   return (
     <>
       {[...Array(count)].map((_, index) => (
         <div key={index} className="col-md-6 col-lg-4">
-          <Card 
-            className="h-100 border-0 shadow-sm position-relative tool-card"
-            style={{ 
-              transition: 'transform 0.2s'
+          <div
+            style={{
+              background: '#fff',
+              border: '1px solid #f0f0f0',
+              borderRadius: '16px',
+              padding: '24px',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: '320px',
             }}
           >
-            <Card.Body className="p-4 d-flex flex-column" style={{ height: '400px' }}>
-              {/* Image/Icon Skeleton */}
-              <div className="mb-3">
-                <div 
-                  className="rounded skeleton-loader"
-                  style={{ 
-                    width: '60px', 
-                    height: '60px',
-                    backgroundColor: '#e5e7eb'
-                  }}
-                />
-              </div>
-              
-              {/* Title Skeleton */}
-              <div className="mb-3">
-                <div 
-                  className="skeleton-loader mb-2"
-                  style={{
-                    height: '24px',
-                    width: '85%',
-                    backgroundColor: '#e5e7eb',
-                    borderRadius: '4px'
-                  }}
-                />
-                <div 
+            {/* Icon Skeleton */}
+            <div
+              className="skeleton-loader"
+              style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '14px',
+                marginBottom: '16px',
+              }}
+            />
+
+            {/* Rating Skeleton */}
+            <div className="d-flex gap-1 mb-2">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <div
+                  key={s}
                   className="skeleton-loader"
-                  style={{
-                    height: '24px',
-                    width: '60%',
-                    backgroundColor: '#e5e7eb',
-                    borderRadius: '4px'
-                  }}
+                  style={{ width: '14px', height: '14px', borderRadius: '2px' }}
                 />
+              ))}
+              <div
+                className="skeleton-loader"
+                style={{ width: '40px', height: '14px', borderRadius: '4px', marginLeft: '4px' }}
+              />
+            </div>
+
+            {/* Title Skeleton */}
+            <div
+              className="skeleton-loader"
+              style={{
+                height: '18px',
+                width: '75%',
+                borderRadius: '6px',
+                marginBottom: '12px',
+              }}
+            />
+
+            {/* Description Skeleton */}
+            <div style={{ marginBottom: '16px', flexGrow: 1 }}>
+              <div
+                className="skeleton-loader"
+                style={{ height: '13px', width: '100%', borderRadius: '4px', marginBottom: '6px' }}
+              />
+              <div
+                className="skeleton-loader"
+                style={{ height: '13px', width: '85%', borderRadius: '4px' }}
+              />
+            </div>
+
+            {/* Actions Skeleton */}
+            <div className="d-flex justify-content-between align-items-center" style={{ paddingTop: '12px', borderTop: '1px solid #f5f5f7' }}>
+              <div className="d-flex gap-2">
+                <div className="skeleton-loader" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                <div className="skeleton-loader" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
               </div>
-              
-              {/* Description Skeleton */}
-              <div className="mb-4 flex-grow-1">
-                <div 
-                  className="skeleton-loader mb-2"
-                  style={{
-                    height: '14px',
-                    width: '100%',
-                    backgroundColor: '#e5e7eb',
-                    borderRadius: '4px'
-                  }}
-                />
-                <div 
-                  className="skeleton-loader mb-2"
-                  style={{
-                    height: '14px',
-                    width: '95%',
-                    backgroundColor: '#e5e7eb',
-                    borderRadius: '4px'
-                  }}
-                />
-                <div 
-                  className="skeleton-loader"
-                  style={{
-                    height: '14px',
-                    width: '80%',
-                    backgroundColor: '#e5e7eb',
-                    borderRadius: '4px'
-                  }}
-                />
-              </div>
-              
-              {/* Price and Rating Section Skeleton */}
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                  <div 
-                    className="skeleton-loader mb-2"
-                    style={{
-                      height: '20px',
-                      width: '50px',
-                      backgroundColor: '#e5e7eb',
-                      borderRadius: '4px'
-                    }}
-                  />
-                  <div 
-                    className="skeleton-loader"
-                    style={{
-                      height: '14px',
-                      width: '100px',
-                      backgroundColor: '#e5e7eb',
-                      borderRadius: '4px'
-                    }}
-                  />
-                </div>
-              </div>
-              
-              {/* Button Skeleton */}
-              <div className="mt-auto">
-                <div 
-                  className="skeleton-loader"
-                  style={{
-                    height: '44px',
-                    width: '100%',
-                    backgroundColor: '#e5e7eb',
-                    borderRadius: '8px'
-                  }}
-                />
-              </div>
-            </Card.Body>
-          </Card>
+              <div className="skeleton-loader" style={{ width: '90px', height: '34px', borderRadius: '9999px' }} />
+            </div>
+          </div>
         </div>
       ))}
-      
-      <style jsx>{`
+
+      <style>{`
         .skeleton-loader {
           animation: shimmer 1.5s infinite;
           background: linear-gradient(
             90deg,
-            #e5e7eb 0%,
-            #f3f4f6 40%,
-            #e5e7eb 80%
+            #f0f0f0 0%,
+            #f8f8f8 40%,
+            #f0f0f0 80%
           );
           background-size: 200% 100%;
         }
-        
+
         @keyframes shimmer {
           0% {
             background-position: 200% 0;
@@ -138,10 +97,6 @@ const ToolshedSkeleton = ({ count = 6 }) => {
           100% {
             background-position: -200% 0;
           }
-        }
-        
-        .tool-card:hover {
-          transform: translateY(-2px);
         }
       `}</style>
     </>

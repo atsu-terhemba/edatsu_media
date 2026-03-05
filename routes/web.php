@@ -31,6 +31,7 @@ use App\Http\Controllers\Directory;
 use App\Http\Controllers\TrendingController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\Admin\AdManagementController;
+use App\Http\Controllers\SitemapController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -45,6 +46,9 @@ use Inertia\Inertia;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+// Sitemap
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
 // Home route
 Route::get('/', [App::class, 'initHomePage'])->name('home');
@@ -63,8 +67,8 @@ Route::get('/terms', fn()=> Inertia::render('Terms'))->name('terms');
 Route::get('/privacy-policy', [App::class, 'initPrivacyPage'])->name('privacy');
 Route::get('/help', fn()=>Inertia::render('Help'))->name('help');
 Route::get('/sponsorship', [App::class, 'initSponsorshipPage'])->name('sponsorship');
-Route::get('/subscription', fn() => Inertia::render('Upgrade'))->name('subscription');
-Route::get('/pricing', fn() => Inertia::render('Subscription'))->name('pricing');
+Route::get('/subscription', fn() => Inertia::render('Subscription'))->name('pricing');
+Route::get('/upgrade-plan', fn() => Inertia::render('Upgrade'))->name('subscription');
 
 // Search endpoints
 Route::get('/search-opportunities', [App::class, 'searchOpportunities']);
@@ -127,11 +131,23 @@ Route::middleware('auth')->group(function () {
     Route::post('/bookmark-opps', [App::class, 'bookmark']);
     Route::post('/bookmark-tools', [App::class, 'bookmark']);
     Route::put('/remove-bookmark-feed', [SubscriberController::class, 'removeBookmark']);
+    Route::put('/remove-bookmarks-bulk', [SubscriberController::class, 'removeBookmarksBulk']);
+    Route::get('/export-bookmarked-opportunities', [SubscriberController::class, 'exportBookmarkedOpportunities'])->name('subscriber.export_bookmarked_opportunities');
+    Route::get('/export-bookmarked-tools', [SubscriberController::class, 'exportBookmarkedTools'])->name('subscriber.export_bookmarked_tools');
     
     // Bookmark Reminders
     Route::post('/set-bookmark-reminder', [SubscriberController::class, 'setBookmarkReminder']);
     Route::post('/update-bookmark-reminder', [SubscriberController::class, 'updateBookmarkReminder']);
     Route::post('/remove-bookmark-reminder', [SubscriberController::class, 'removeBookmarkReminder']);
+
+    // Notification API endpoints
+    Route::get('/api/notifications', [SubscriberController::class, 'getNotifications']);
+    Route::put('/api/notifications/mark-all-read', [SubscriberController::class, 'markAllNotificationsAsRead']);
+    Route::put('/api/notifications/{id}/read', [SubscriberController::class, 'markNotificationAsRead']);
+
+    // Push notification subscription
+    Route::post('/api/push/subscribe', [SubscriberController::class, 'subscribePush']);
+    Route::post('/api/push/unsubscribe', [SubscriberController::class, 'unsubscribePush']);
     
     // User activity tracking
     Route::post('/track-activity', [UserActivityController::class, 'store']);
@@ -159,6 +175,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin-store-product', [ProductController::class, 'store']);
     Route::post('/admin-update-product/{id}', [ProductController::class, 'update']);
     Route::get('/admin-delete-product/{id}', [ProductController::class, 'destroy']);
+    Route::get('/admin-bulk-upload-product', [ProductController::class, 'showBulkUpload'])->name('admin.bulk_upload_product');
+    Route::get('/admin-bulk-product-template', [ProductController::class, 'downloadTemplate'])->name('admin.bulk_product_template');
+    Route::post('/admin-bulk-store-products', [ProductController::class, 'bulkStore'])->name('admin.bulk_store_products');
     
     // Opportunity management
     Route::get('/admin-post-opportunity', [OpportunityController::class, 'show'])->name('admin.opp');

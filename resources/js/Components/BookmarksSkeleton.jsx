@@ -1,99 +1,45 @@
 import React from 'react';
-import { Card } from 'react-bootstrap';
 
 const BookmarksSkeleton = ({ count = 3 }) => {
     return (
         <>
             {[...Array(count)].map((_, index) => (
-                <Card 
-                    key={index} 
-                    className='mb-3'
+                <div
+                    key={index}
                     style={{
-                        border: '1px solid #dee2e6',
-                        boxShadow: 'none'
+                        padding: '20px',
+                        borderRadius: '16px',
+                        border: '1px solid #f0f0f0',
+                        background: '#fff',
+                        marginBottom: '12px',
                     }}
                 >
-                    <Card.Body className='p-3'>
-                        <div className='d-flex align-items-start justify-content-between'>
-                            <div className='flex-grow-1'>
-                                {/* Title Skeleton */}
-                                <div 
-                                    className="skeleton-loader mb-2"
-                                    style={{
-                                        height: '20px',
-                                        width: '70%',
-                                        backgroundColor: '#e5e7eb',
-                                        borderRadius: '4px'
-                                    }}
-                                />
-                                
-                                {/* Badges Skeleton */}
-                                <div className='d-flex align-items-center gap-2 mb-2'>
-                                    <div 
-                                        className="skeleton-loader"
-                                        style={{
-                                            height: '24px',
-                                            width: '80px',
-                                            backgroundColor: '#e5e7eb',
-                                            borderRadius: '4px'
-                                        }}
-                                    />
-                                    <div 
-                                        className="skeleton-loader"
-                                        style={{
-                                            height: '24px',
-                                            width: '100px',
-                                            backgroundColor: '#e5e7eb',
-                                            borderRadius: '4px'
-                                        }}
-                                    />
-                                </div>
-                                
-                                {/* Date Skeleton */}
-                                <div 
-                                    className="skeleton-loader"
-                                    style={{
-                                        height: '16px',
-                                        width: '150px',
-                                        backgroundColor: '#e5e7eb',
-                                        borderRadius: '4px'
-                                    }}
-                                />
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                        <div style={{ flex: 1 }}>
+                            {/* Title */}
+                            <div className="skeleton-loader" style={{ height: '18px', width: '65%', borderRadius: '6px', marginBottom: '12px' }} />
+                            {/* Badges */}
+                            <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
+                                <div className="skeleton-loader" style={{ height: '24px', width: '100px', borderRadius: '9999px' }} />
+                                <div className="skeleton-loader" style={{ height: '24px', width: '80px', borderRadius: '9999px' }} />
                             </div>
-                            
-                            {/* Button Skeleton */}
-                            <div 
-                                className="skeleton-loader"
-                                style={{
-                                    height: '32px',
-                                    width: '32px',
-                                    backgroundColor: '#e5e7eb',
-                                    borderRadius: '6px'
-                                }}
-                            />
+                            {/* Meta */}
+                            <div className="skeleton-loader" style={{ height: '14px', width: '140px', borderRadius: '4px' }} />
                         </div>
-                    </Card.Body>
-                </Card>
+                        {/* Menu button */}
+                        <div className="skeleton-loader" style={{ width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0 }} />
+                    </div>
+                </div>
             ))}
-            
-            <style jsx>{`
+
+            <style>{`
                 @keyframes shimmer {
-                    0% {
-                        background-position: -1000px 0;
-                    }
-                    100% {
-                        background-position: 1000px 0;
-                    }
+                    0% { background-position: -1000px 0; }
+                    100% { background-position: 1000px 0; }
                 }
-                
                 .skeleton-loader {
                     animation: shimmer 2s infinite linear;
-                    background: linear-gradient(
-                        to right,
-                        #e5e7eb 0%,
-                        #f3f4f6 50%,
-                        #e5e7eb 100%
-                    );
+                    background: linear-gradient(to right, #f0f0f0 0%, #f8f8f8 50%, #f0f0f0 100%);
                     background-size: 1000px 100%;
                 }
             `}</style>

@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
-import { Button } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 
@@ -19,95 +18,47 @@ export default function UpdateProfilePhotoForm({ className = '' }) {
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
-        
         if (!file) return;
 
-        // Validate file type
         if (!file.type.startsWith('image/')) {
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'error',
-                title: 'Please select an image file.',
-                showConfirmButton: false,
-                timer: 4000,
-            });
+            Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Please select an image file.', showConfirmButton: false, timer: 4000 });
             return;
         }
 
-        // Validate file size (max 2MB)
         if (file.size > 2 * 1024 * 1024) {
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'error',
-                title: 'Image must be less than 2MB.',
-                showConfirmButton: false,
-                timer: 4000,
-            });
+            Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Image must be less than 2MB.', showConfirmButton: false, timer: 4000 });
             return;
         }
 
         setSelectedFile(file);
-
-        // Create preview
         const reader = new FileReader();
-        reader.onload = (e) => {
-            setPhotoPreview(e.target.result);
-        };
+        reader.onload = (e) => setPhotoPreview(e.target.result);
         reader.readAsDataURL(file);
     };
 
     const uploadPhoto = () => {
         if (!selectedFile) return;
-
         setUploading(true);
 
-        // Use FormData with axios for more reliable file uploads
         const formData = new FormData();
         formData.append('photo', selectedFile);
         formData.append('_token', csrfToken);
 
         axios.post('/profile/photo', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-                'X-CSRF-TOKEN': csrfToken,
-            },
+            headers: { 'Content-Type': 'multipart/form-data', 'X-CSRF-TOKEN': csrfToken },
         })
         .then(() => {
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'success',
-                title: 'Profile photo updated successfully!',
-                showConfirmButton: false,
-                timer: 4000,
-                timerProgressBar: true,
-            });
-            // Clear the preview and file
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Profile photo updated successfully!', showConfirmButton: false, timer: 4000, timerProgressBar: true });
             setPhotoPreview(null);
             setSelectedFile(null);
             fileInputRef.current.value = '';
-            // Reload to refresh user data
             router.reload({ only: ['auth'] });
         })
         .catch((error) => {
-            console.error('Upload error:', error);
-            const errorMessage = error.response?.data?.errors?.photo?.[0] 
-                || error.response?.data?.message 
-                || 'Failed to update photo. Please try again.';
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'error',
-                title: errorMessage,
-                showConfirmButton: false,
-                timer: 4000,
-            });
+            const errorMessage = error.response?.data?.errors?.photo?.[0] || error.response?.data?.message || 'Failed to update photo. Please try again.';
+            Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: errorMessage, showConfirmButton: false, timer: 4000 });
         })
-        .finally(() => {
-            setUploading(false);
-        });
+        .finally(() => setUploading(false));
     };
 
     const cancelPreview = () => {
@@ -122,45 +73,22 @@ export default function UpdateProfilePhotoForm({ className = '' }) {
             text: "Are you sure you want to remove your profile photo?",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#86868b',
             confirmButtonText: 'Yes, remove it',
             cancelButtonText: 'Cancel'
         }).then((result) => {
             if (result.isConfirmed) {
                 setDeleting(true);
-                axios.delete('/profile/photo', {
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken,
-                    },
-                })
+                axios.delete('/profile/photo', { headers: { 'X-CSRF-TOKEN': csrfToken } })
                 .then(() => {
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'success',
-                        title: 'Profile photo removed successfully!',
-                        showConfirmButton: false,
-                        timer: 4000,
-                        timerProgressBar: true,
-                    });
-                    // Reload to refresh user data
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Profile photo removed successfully!', showConfirmButton: false, timer: 4000, timerProgressBar: true });
                     router.reload({ only: ['auth'] });
                 })
-                .catch((error) => {
-                    console.error('Delete error:', error);
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'error',
-                        title: 'Failed to remove photo. Please try again.',
-                        showConfirmButton: false,
-                        timer: 4000,
-                    });
+                .catch(() => {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Failed to remove photo. Please try again.', showConfirmButton: false, timer: 4000 });
                 })
-                .finally(() => {
-                    setDeleting(false);
-                });
+                .finally(() => setDeleting(false));
             }
         });
     };
@@ -171,98 +99,83 @@ export default function UpdateProfilePhotoForm({ className = '' }) {
     };
 
     const getBackgroundColor = () => {
-        if (!user?.name) return '#6c757d';
-        
-        const colors = [
-            '#007bff', '#28a745', '#17a2b8', '#ffc107',
-            '#dc3545', '#6f42c1', '#fd7e14', '#20c997',
-        ];
-        
-        const charCode = user.name.charCodeAt(0);
-        return colors[charCode % colors.length];
+        if (!user?.name) return '#86868b';
+        const colors = ['#000', '#374151', '#1e3a5f', '#3f3f46', '#44403c', '#1e293b', '#27272a', '#292524'];
+        return colors[user.name.charCodeAt(0) % colors.length];
     };
 
     return (
         <section className={className}>
             <div className="text-center">
-                <div className="position-relative d-inline-block mb-3">
-                    {/* Show preview if selected, otherwise show current photo or initials */}
+                <div style={{ position: 'relative', display: 'inline-block', marginBottom: '16px' }}>
+                    {/* Photo / Preview / Initials */}
                     {photoPreview ? (
-                        <div 
-                            className="rounded-circle position-relative"
-                            style={{
-                                width: '150px',
-                                height: '150px',
-                                border: '3px solid #0d6efd',
-                                overflow: 'hidden'
-                            }}
-                        >
-                            <img 
-                                src={photoPreview} 
-                                alt="Preview" 
-                                style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'cover'
-                                }}
-                            />
+                        <div style={{
+                            width: '120px',
+                            height: '120px',
+                            borderRadius: '50%',
+                            border: '2px solid #f97316',
+                            overflow: 'hidden',
+                        }}>
+                            <img src={photoPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                     ) : user.profile_photo_path ? (
-                        <div 
-                            className="rounded-circle position-relative"
-                            style={{
-                                width: '150px',
-                                height: '150px',
-                                border: '2px solid rgba(255, 255, 255, 0.2)',
-                                overflow: 'hidden'
-                            }}
-                        >
-                            <img 
+                        <div style={{
+                            width: '120px',
+                            height: '120px',
+                            borderRadius: '50%',
+                            border: '2px solid #f0f0f0',
+                            overflow: 'hidden',
+                        }}>
+                            <img
                                 src={`${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/${user.profile_photo_path.startsWith('profile-photos/') ? user.profile_photo_path : `profile-photos/${user.profile_photo_path}`}`}
-                                alt={user.name} 
-                                style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'cover'
-                                }}
+                                alt={user.name}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />
                         </div>
                     ) : (
-                        <div 
-                            className="rounded-circle d-flex align-items-center justify-content-center position-relative"
-                            style={{
-                                width: '150px',
-                                height: '150px',
-                                border: '2px solid rgba(255, 255, 255, 0.2)',
-                                backgroundColor: getBackgroundColor(),
-                                color: 'white',
-                                fontWeight: '600',
-                                fontSize: '67.5px',
-                                textTransform: 'uppercase'
-                            }}
-                        >
+                        <div style={{
+                            width: '120px',
+                            height: '120px',
+                            borderRadius: '50%',
+                            border: '2px solid #f0f0f0',
+                            backgroundColor: getBackgroundColor(),
+                            color: '#fff',
+                            fontWeight: 600,
+                            fontSize: '48px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            textTransform: 'uppercase',
+                        }}>
                             {getInitial()}
                         </div>
                     )}
-                    
+
+                    {/* Camera button */}
                     {!photoPreview && (
-                        <Button
+                        <button
                             onClick={selectNewPhoto}
                             disabled={uploading}
-                            className="position-absolute rounded-circle d-flex align-items-center justify-content-center"
                             style={{
-                                width: '45px',
-                                height: '45px',
-                                bottom: '5px',
-                                right: '5px',
-                                border: '3px solid white',
-                                backgroundColor: '#0d6efd',
-                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-                                padding: 0
+                                position: 'absolute',
+                                bottom: '2px',
+                                right: '2px',
+                                width: '36px',
+                                height: '36px',
+                                borderRadius: '50%',
+                                background: '#000',
+                                border: '3px solid #fff',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                                transition: 'all 0.15s ease',
                             }}
                         >
-                            <span className="material-symbols-outlined text-white" style={{ fontSize: '1.2rem' }}>photo_camera</span>
-                        </Button>
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#fff' }}>photo_camera</span>
+                        </button>
                     )}
                 </div>
 
@@ -274,74 +187,94 @@ export default function UpdateProfilePhotoForm({ className = '' }) {
                     onChange={handleFileChange}
                 />
 
-                {/* Show Save/Cancel buttons when there's a preview */}
+                {/* Save / Cancel preview buttons */}
                 {photoPreview && (
                     <div className="d-flex justify-content-center gap-2 mb-3">
-                        <Button
-                            variant="primary"
-                            size="sm"
+                        <button
                             onClick={uploadPhoto}
                             disabled={uploading}
                             style={{
-                                borderRadius: '6px',
-                                fontSize: '0.875rem',
-                                padding: '0.5rem 1.5rem'
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '8px 20px',
+                                borderRadius: '9999px',
+                                fontSize: '13px',
+                                fontWeight: 500,
+                                background: '#000',
+                                color: '#fff',
+                                border: 'none',
+                                cursor: uploading ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.15s ease',
+                                opacity: uploading ? 0.5 : 1,
                             }}
                         >
                             {uploading ? (
-                                <>
-                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                    Saving...
-                                </>
+                                <><span className="spinner-border spinner-border-sm" /> Saving...</>
                             ) : (
-                                <>
-                                    <span className="material-symbols-outlined me-1" style={{ fontSize: '16px', verticalAlign: 'middle' }}>save</span>
-                                    Save Photo
-                                </>
+                                <><span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check</span> Save Photo</>
                             )}
-                        </Button>
-                        <Button
-                            variant="outline-secondary"
-                            size="sm"
+                        </button>
+                        <button
                             onClick={cancelPreview}
                             disabled={uploading}
                             style={{
-                                borderRadius: '6px',
-                                fontSize: '0.875rem',
-                                padding: '0.5rem 1.5rem'
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '8px 20px',
+                                borderRadius: '9999px',
+                                fontSize: '13px',
+                                fontWeight: 500,
+                                background: 'transparent',
+                                color: '#86868b',
+                                border: '1px solid #e5e5e7',
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
                             }}
                         >
-                            <span className="material-symbols-outlined me-1" style={{ fontSize: '16px', verticalAlign: 'middle' }}>close</span>
                             Cancel
-                        </Button>
+                        </button>
                     </div>
                 )}
 
-                <div className="mt-2">
-                    <p className="text-muted mb-1" style={{ fontSize: '0.875rem' }}>
-                        <strong>{user.name}</strong>
+                {/* User info */}
+                <div style={{ marginTop: '4px' }}>
+                    <p style={{ fontSize: '16px', fontWeight: 600, color: '#000', margin: '0 0 2px' }}>
+                        {user.name}
                     </p>
-                    <p className="text-muted mb-0" style={{ fontSize: '0.75rem' }}>
+                    <p style={{ fontSize: '13px', color: '#86868b', margin: 0 }}>
                         {user.email}
                     </p>
                 </div>
 
+                {/* Remove photo */}
                 {user.profile_photo_path && !photoPreview && (
-                    <Button
-                        variant="outline-danger"
-                        size="sm"
+                    <button
                         onClick={deleteProfilePhoto}
                         disabled={deleting}
-                        className="mt-3"
                         style={{
-                            borderRadius: '6px',
-                            fontSize: '0.75rem',
-                            padding: '0.4rem 1rem'
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            marginTop: '14px',
+                            padding: '8px 18px',
+                            borderRadius: '9999px',
+                            fontSize: '13px',
+                            fontWeight: 500,
+                            background: '#dc2626',
+                            color: '#fff',
+                            border: 'none',
+                            cursor: deleting ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.15s ease',
+                            opacity: deleting ? 0.5 : 1,
                         }}
+                        onMouseEnter={(e) => { if (!deleting) e.currentTarget.style.background = '#b91c1c'; }}
+                        onMouseLeave={(e) => { if (!deleting) e.currentTarget.style.background = '#dc2626'; }}
                     >
-                        <span className="material-symbols-outlined me-1" style={{ fontSize: '14px', verticalAlign: 'middle' }}>delete</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>delete</span>
                         Remove Photo
-                    </Button>
+                    </button>
                 )}
             </div>
         </section>

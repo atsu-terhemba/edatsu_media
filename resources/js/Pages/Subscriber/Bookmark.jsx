@@ -142,14 +142,12 @@ export default function Bookmark() {
 
             <Container fluid={true}>
                 <Container>
-                    <Row>
-                        <Col sm={3} className="d-none d-md-block">
-                            <div className='my-3 fs-9'>
-                                <SubscriberSideNav/>
-                            </div>
+                    <Row className="g-4" style={{ paddingTop: '80px' }}>
+                        <Col md={3} className="d-none d-md-block">
+                            <SubscriberSideNav/>
                         </Col>
-                        <Col sm={6} xs={12}>
-                            <div className='border px-3 py-4 rounded my-3 text-center'>
+                        <Col md={9} xs={12}>
+                            <div className='border px-3 py-4 rounded text-center'>
                                 <h2 className='poppins-semibold m-0 py-0'>Bookmark</h2>
                             </div>
                             <div>
@@ -210,9 +208,6 @@ export default function Bookmark() {
                                     />
                                 }
                             </div>
-                        </Col>
-                        <Col sm={3}>
-                            {/* <div>main content</div> */}
                         </Col>
                     </Row>
                 </Container>

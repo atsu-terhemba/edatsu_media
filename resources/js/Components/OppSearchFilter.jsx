@@ -1,15 +1,73 @@
 import React, { useEffect, useState } from 'react';
 import Select from 'react-select'
-import ClickEffectButton from './ClickEffectButton';
 
+
+const selectStyles = {
+    control: (base, state) => ({
+        ...base,
+        borderRadius: '12px',
+        border: state.isFocused ? '1px solid #000' : '1px solid #e5e5e5',
+        boxShadow: 'none',
+        padding: '4px 4px',
+        fontSize: '13px',
+        minHeight: '40px',
+        transition: 'border-color 0.15s ease',
+        '&:hover': {
+            borderColor: '#000',
+        },
+    }),
+    placeholder: (base) => ({
+        ...base,
+        color: '#86868b',
+        fontSize: '13px',
+    }),
+    option: (base, state) => ({
+        ...base,
+        fontSize: '13px',
+        backgroundColor: state.isSelected ? '#000' : state.isFocused ? '#f5f5f7' : '#fff',
+        color: state.isSelected ? '#fff' : '#000',
+        '&:active': {
+            backgroundColor: '#000',
+            color: '#fff',
+        },
+    }),
+    multiValue: (base) => ({
+        ...base,
+        backgroundColor: '#f5f5f7',
+        borderRadius: '8px',
+    }),
+    multiValueLabel: (base) => ({
+        ...base,
+        color: '#000',
+        fontSize: '12px',
+        fontWeight: 500,
+    }),
+    multiValueRemove: (base) => ({
+        ...base,
+        color: '#86868b',
+        '&:hover': {
+            backgroundColor: '#000',
+            color: '#fff',
+            borderRadius: '0 8px 8px 0',
+        },
+    }),
+    menu: (base) => ({
+        ...base,
+        borderRadius: '12px',
+        border: '1px solid #f0f0f0',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+        overflow: 'hidden',
+    }),
+    indicatorSeparator: () => ({ display: 'none' }),
+};
 
 const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_data, setFilterData, categories, continents, countries, brands, initSearch}) => {
-    
+
     const [isFilterVisible, setIsFilterVisible] = useState(false);
     const [categoryOptions, setCategoryOptions] = useState('');
     const [continentOptions, setContinentOptions] = useState('');
     const [countryOptions, setCountryOptions] = useState('');
-    const [brandOptions, setBrandOptions] = useState('');   
+    const [brandOptions, setBrandOptions] = useState('');
 
     function setStateFromData(data, setOptions){
         if (data) {
@@ -69,10 +127,8 @@ const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_dat
         setIsFilterVisible(!isFilterVisible);
     };
 
-    /**update selection**/
     function updateSelection( selectedOption, fieldName){
         setFilterData((prevData) => {
-            // If selectedOption is null/undefined or has empty value, reset the field
             if (!selectedOption || selectedOption.value === '') {
                 return { ...prevData, [fieldName]: null };
             }
@@ -89,184 +145,190 @@ const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_dat
     }
 
     function handleSearchClick(e) {
-        // Call the original search function
         initSearch(e);
-        
-        // Scroll to top smoothly
         setTimeout(() => {
-            window.scrollTo({ 
-                top: 0, 
-                behavior: 'smooth' 
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
             });
         }, 100);
     }
 
     return (
         <form onSubmit={initSearch} id="search_keyword">
-            <div className="row">
-                <div className="col-sm-12 col-12">
-                    <div className='mb-3'>
-                        <input
-                            type='text'
-                            className="form-control py-3 fs-9 text-secondary"
-                            name="search_keyword"
-                            placeholder="Search Keywords"
-                            id="keyword"
-                            value={searchKeyword}
-                            onChange={(e) => updateInput(e)}
-                        />
-                    </div>
-                </div>
-                <div className="col-sm-12 col-12">
-                    <div className='mb-3'>
-                        <ClickEffectButton id="search-btn" 
-                        type="submit"
-                        className='w-100 h-50 bg-dark border-0 h-50 py-3' 
-                        onClick={handleSearchClick}>
-                        {isloading == 'search-btn' ? 'Searching..' : 'Search'}
-                        </ClickEffectButton>
-                    </div>
-                </div>
+            {/* Search Input */}
+            <div className="mb-3">
+                <input
+                    type='text'
+                    name="search_keyword"
+                    placeholder="Search keywords..."
+                    id="keyword"
+                    value={searchKeyword}
+                    onChange={(e) => updateInput(e)}
+                    style={{
+                        width: '100%',
+                        padding: '10px 16px',
+                        borderRadius: '12px',
+                        border: '1px solid #e5e5e5',
+                        fontSize: '13px',
+                        color: '#000',
+                        outline: 'none',
+                        transition: 'border-color 0.15s ease',
+                    }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = '#000'}
+                    onBlur={(e) => e.currentTarget.style.borderColor = '#e5e5e5'}
+                />
             </div>
 
-            <div className="py-3 px-3 border bg-white rounded d-flex justify-content-between">
-                <div>
-                    {/* <span className="material-symbols-outlined align-middle">
-                        filter_alt
-                    </span> */}
-                    <span className="fs-9 text-dark">
-                      Toggle  Filters
-                    </span>
-                </div>
+            {/* Search Button */}
+            <div className="mb-4">
+                <button
+                    id="search-btn"
+                    type="submit"
+                    onClick={handleSearchClick}
+                    style={{
+                        width: '100%',
+                        padding: '10px 24px',
+                        borderRadius: '9999px',
+                        border: 'none',
+                        background: '#000',
+                        color: '#fff',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#333'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = '#000'}
+                >
+                    {isloading == 'search-btn' ? 'Searching...' : 'Search'}
+                </button>
+            </div>
+
+            {/* Toggle Filters */}
+            <div
+                className="d-flex justify-content-between align-items-center"
+                style={{
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    border: '1px solid #f0f0f0',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                }}
+                onClick={toggleFilterPanel}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#e5e5e5'}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = '#f0f0f0'}
+            >
+                <span style={{ fontSize: '13px', fontWeight: 500, color: '#000' }}>
+                    Toggle Filters
+                </span>
                 <span
-                    className="material-symbols-outlined cursor d-block align-middle"
-                    style={{ cursor: 'pointer' }}
-                    id="filter-toggle"
-                    onClick={toggleFilterPanel}
+                    className="material-symbols-outlined"
+                    style={{
+                        fontSize: '20px',
+                        color: isFilterVisible ? '#f97316' : '#86868b',
+                        transition: 'color 0.15s ease',
+                    }}
                 >
                     {isFilterVisible ? 'toggle_on' : 'toggle_off'}
                 </span>
             </div>
 
             {isFilterVisible && (
-                <div id="filter-panel" className="bg-white border rounded px-3 py-3 my-3" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                    <div className="row">
-                        <div className="col-sm-12">
-                            {/* <label className='poppins-semibold fs-9 mb-2'>Program Status</label> */}
-                            <Select
-                                placeholder="Select Program Status"
-                                value={filter_data?.program_status}
-                                name="program_status"
-                                options={programStatus}
-                                className="fs-9 mb-3"
-                                classNamePrefix="Select"
-                                onChange={(e) => updateSelection(e, 'program_status')}
-                            />
-                        </div>
-                        <div className="col-sm-12">
-                            {/* <label className='poppins-semibold fs-9 mb-2'>Categories</label> */}
-                            <Select
-                                isMulti
-                                placeholder="Select Categories"
-                                value={filter_data?.categories}
-                                name="categories"
-                                options={categoryOptions}
-                                className="fs-9 mb-3"
-                                classNamePrefix="select"
-                                onChange={(e) => updateSelection(e, 'categories')}
-                            />
-                        </div>
+                <div
+                    style={{
+                        marginTop: '12px',
+                        padding: '16px',
+                        borderRadius: '12px',
+                        border: '1px solid #f0f0f0',
+                        maxHeight: '300px',
+                        overflowY: 'auto',
+                    }}
+                >
+                    <div className="mb-3">
+                        <Select
+                            placeholder="Program Status"
+                            value={filter_data?.program_status}
+                            name="program_status"
+                            options={programStatus}
+                            styles={selectStyles}
+                            onChange={(e) => updateSelection(e, 'program_status')}
+                        />
                     </div>
-
-                    <div className="row">
-                        <div className="col-sm-12">
-                            {/* <label className='poppins-semibold fs-9 mb-2'>Continents</label> */}
-                            <Select
-                                isMulti
-                                placeholder="Select Continents"
-                                value={filter_data?.continents}
-                                name="continents"
-                                options={continentOptions}
-                                className="fs-9 mb-3"
-                                classNamePrefix="select"
-                                onChange={(e) => updateSelection(e, 'continents')}
-                            />
-                        </div>
-                        <div className="col-sm-12">
-                            {/* <label className='poppins-semibold fs-9 mb-2'>Countries</label> */}
-                            <Select
-                                isMulti
-                                value={filter_data?.countries}
-                                placeholder="Select Countries"
-                                name="countries"
-                                options={countryOptions}
-                                className="fs-9 mb-3"
-                                classNamePrefix="select"
-                                onChange={(e) => updateSelection(e, 'countries')}
-                            />
-                        </div>
+                    <div className="mb-3">
+                        <Select
+                            isMulti
+                            placeholder="Categories"
+                            value={filter_data?.categories}
+                            name="categories"
+                            options={categoryOptions}
+                            styles={selectStyles}
+                            onChange={(e) => updateSelection(e, 'categories')}
+                        />
                     </div>
-
-                    <div className="row">
-                        <div className="col-sm-12">
-                                {/* <label className='poppins-semibold fs-9 mb-2'>Brands</label> */}
-                                <Select
-                                isMulti
-                                value={filter_data?.brands}
-                                placeholder="Select Brands"
-                                name="brands"
-                                options={brandOptions}
-                                className="fs-9 mb-3"
-                                classNamePrefix="select"
-                                onChange={(e) => updateSelection(e, 'brands')}
-                            />
-                        </div>
-                        <div className="col-sm-12">
-                            {/* <label className='poppins-semibold fs-9 mb-2'>Published</label> */}
-                            <Select
-                                value={filter_data?.datePosted}
-                                placeholder="Date Posted"
-                                name="datePosted"
-                                options={dateOptions}
-                                className="fs-9 mb-3"
-                                classNamePrefix="select"
-                                onChange={(e) => updateSelection(e, 'datePosted')}
-                            />
-                        </div>
+                    <div className="mb-3">
+                        <Select
+                            isMulti
+                            placeholder="Continents"
+                            value={filter_data?.continents}
+                            name="continents"
+                            options={continentOptions}
+                            styles={selectStyles}
+                            onChange={(e) => updateSelection(e, 'continents')}
+                        />
                     </div>
-
-                    <div className="row">
-                        <div className="col-sm-12">
-                            {/* <label className='poppins-semibold fs-9 mb-2'>Month</label> */}
-                            <Select
-                                value={filter_data?.month}
-                                placeholder="Select Month"
-                                name="month"
-                                options={monthOptions}
-                                className="fs-9 mb-3"
-                                classNamePrefix="select"
-                                onChange={(e) => updateSelection(e, 'month')}
-                            />
-                        </div>
-                        <div className="col-sm-12">
-                            {/* <label className='poppins-semibold fs-9 mb-2'>Year</label> */}
-                            <Select
-                                value={filter_data?.year}
-                                placeholder="Select Year"
-                                name="year"
-                                options={yearOptions}
-                                className="fs-9 mb-3"
-                                classNamePrefix="select"
-                                onChange={(e) => updateSelection(e, 'year')}
-                            />
-                        </div>
+                    <div className="mb-3">
+                        <Select
+                            isMulti
+                            value={filter_data?.countries}
+                            placeholder="Countries"
+                            name="countries"
+                            options={countryOptions}
+                            styles={selectStyles}
+                            onChange={(e) => updateSelection(e, 'countries')}
+                        />
                     </div>
-                    {/* <ClickEffectButton id="filter-btn" 
-                    type="submit"
-                    className='w-100 h-50 bg-dark border-0 h-50 py-3' 
-                    onClick={initSearch}>
-                    {isloading == 'filter-btn' ? 'Filtering...' : 'Filter'}
-                    </ClickEffectButton> */}
+                    <div className="mb-3">
+                        <Select
+                            isMulti
+                            value={filter_data?.brands}
+                            placeholder="Brands"
+                            name="brands"
+                            options={brandOptions}
+                            styles={selectStyles}
+                            onChange={(e) => updateSelection(e, 'brands')}
+                        />
+                    </div>
+                    <div className="mb-3">
+                        <Select
+                            value={filter_data?.datePosted}
+                            placeholder="Date Posted"
+                            name="datePosted"
+                            options={dateOptions}
+                            styles={selectStyles}
+                            onChange={(e) => updateSelection(e, 'datePosted')}
+                        />
+                    </div>
+                    <div className="mb-3">
+                        <Select
+                            value={filter_data?.month}
+                            placeholder="Month"
+                            name="month"
+                            options={monthOptions}
+                            styles={selectStyles}
+                            onChange={(e) => updateSelection(e, 'month')}
+                        />
+                    </div>
+                    <div>
+                        <Select
+                            value={filter_data?.year}
+                            placeholder="Year"
+                            name="year"
+                            options={yearOptions}
+                            styles={selectStyles}
+                            onChange={(e) => updateSelection(e, 'year')}
+                        />
+                    </div>
                 </div>
             )}
         </form>

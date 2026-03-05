@@ -1,46 +1,106 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Container, Row, Col, Card, Badge, Button, Form, InputGroup, Table, Pagination, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { Head, Link, router } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { Container, Row, Col } from 'react-bootstrap';
+import { Head, router } from '@inertiajs/react';
+import { useState } from 'react';
 import AdminSideNav from './Components/SideNav';
-import { 
-    Users, UserPlus, Search, Filter, Eye, Edit, Trash2, Download, Mail,
-    Smartphone, Monitor, Tablet, Wifi, WifiOff, Chrome, Globe, Clock,
-    MapPin, Activity
-} from 'lucide-react';
+
+function StatCard({ icon, label, value, subtitle }) {
+    const [hovered, setHovered] = useState(false);
+
+    return (
+        <Col md={6} lg={3}>
+            <div
+                onMouseEnter={() => setHovered(true)}
+                onMouseLeave={() => setHovered(false)}
+                style={{
+                    padding: '24px',
+                    borderRadius: '16px',
+                    background: '#fff',
+                    border: `1px solid ${hovered ? '#e0e0e0' : '#f0f0f0'}`,
+                    height: '100%',
+                    transition: 'all 0.3s ease',
+                    transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
+                    boxShadow: hovered ? '0 8px 30px rgba(0,0,0,0.06)' : 'none',
+                }}
+            >
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <div>
+                        <span style={{
+                            fontSize: '11px',
+                            fontWeight: 500,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.15em',
+                            color: '#86868b',
+                            display: 'block',
+                        }}>
+                            {label}
+                        </span>
+                        <div style={{
+                            marginTop: '10px',
+                            fontSize: '32px',
+                            fontWeight: 600,
+                            color: '#000',
+                            lineHeight: 1,
+                            letterSpacing: '-0.02em',
+                        }}>
+                            {value.toLocaleString()}
+                        </div>
+                    </div>
+                    <span style={{
+                        width: '44px',
+                        height: '44px',
+                        borderRadius: '50%',
+                        background: '#f5f5f7',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'transform 0.3s ease',
+                        transform: hovered ? 'scale(1.08)' : 'scale(1)',
+                    }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#000' }}>
+                            {icon}
+                        </span>
+                    </span>
+                </div>
+                {subtitle && (
+                    <div style={{ marginTop: '12px' }}>
+                        <span style={{ fontSize: '12px', color: '#86868b' }}>{subtitle}</span>
+                    </div>
+                )}
+            </div>
+        </Col>
+    );
+}
 
 export default function AdminUsers({ users, statistics, filters }) {
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [perPage, setPerPage] = useState(filters.per_page || 10);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Handle search
     const handleSearch = (e) => {
         e.preventDefault();
         setIsLoading(true);
-        router.get(route('admin.users'), { 
-            search: searchTerm, 
-            per_page: perPage 
+        router.get(route('admin.users'), {
+            search: searchTerm,
+            per_page: perPage
         }, {
             preserveState: true,
             onFinish: () => setIsLoading(false)
         });
     };
 
-    // Handle per page change
     const handlePerPageChange = (newPerPage) => {
         setPerPage(newPerPage);
         setIsLoading(true);
-        router.get(route('admin.users'), { 
-            search: searchTerm, 
-            per_page: newPerPage 
+        router.get(route('admin.users'), {
+            search: searchTerm,
+            per_page: newPerPage
         }, {
             preserveState: true,
             onFinish: () => setIsLoading(false)
         });
     };
 
-    // Clear filters
     const clearFilters = () => {
         setSearchTerm('');
         setIsLoading(true);
@@ -50,121 +110,60 @@ export default function AdminUsers({ users, statistics, filters }) {
         });
     };
 
-    // Get device icon
-    const getDeviceIcon = (deviceType) => {
-        switch (deviceType) {
-            case 'mobile':
-                return <Smartphone size={16} />;
-            case 'tablet':
-                return <Tablet size={16} />;
-            case 'desktop':
-            default:
-                return <Monitor size={16} />;
-        }
-    };
-
-    // Get browser icon (simplified)
-    const getBrowserIcon = (browser) => {
-        return <Globe size={14} />;
-    };
-
-    // Format last seen
-    const formatLastSeen = (lastSeen, isOnline) => {
-        if (isOnline) {
-            return <Badge bg="success" className="d-flex align-items-center gap-1">
-                <Wifi size={12} />
-                Online
-            </Badge>;
-        }
-        
-        if (!lastSeen) {
-            return <Badge bg="secondary">Never</Badge>;
-        }
-
-        const date = new Date(lastSeen);
-        const now = new Date();
-        const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-        
-        if (diffInMinutes < 60) {
-            return <Badge bg="warning">{diffInMinutes}m ago</Badge>;
-        } else if (diffInMinutes < 1440) {
-            return <Badge bg="info">{Math.floor(diffInMinutes / 60)}h ago</Badge>;
-        } else {
-            return <Badge bg="secondary">{Math.floor(diffInMinutes / 1440)}d ago</Badge>;
-        }
-    };
-
-    // Check if user is online
     const isUserOnline = (user) => {
-        return user.is_online && user.last_seen_at && 
-               new Date() - new Date(user.last_seen_at) < 5 * 60 * 1000; // 5 minutes
+        return user.is_online && user.last_seen_at &&
+            new Date() - new Date(user.last_seen_at) < 5 * 60 * 1000;
     };
 
-    // Format date
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            month: 'short', day: 'numeric', year: 'numeric',
         });
     };
 
-    // Get user avatar initials
-    const getUserInitials = (name) => {
-        return name
-            .split(' ')
-            .map(word => word.charAt(0))
-            .join('')
-            .toUpperCase()
-            .slice(0, 2);
+    const formatLastSeen = (lastSeen, isOnline) => {
+        if (isOnline) return 'Online';
+        if (!lastSeen) return 'Never';
+        const date = new Date(lastSeen);
+        const now = new Date();
+        const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+        if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+        if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+        return `${Math.floor(diffInMinutes / 1440)}d ago`;
     };
 
-    // Get role badge variant
-    const getRoleBadgeVariant = (role) => {
-        switch (role) {
-            case 'admin':
-                return 'danger';
-            case 'subscriber':
-                return 'primary';
-            default:
-                return 'secondary';
+    const getInitialColor = (name) => {
+        const colors = ['#000', '#374151', '#1e3a5f', '#3f3f46', '#44403c', '#1e293b', '#27272a', '#292524'];
+        return colors[name.charCodeAt(0) % colors.length];
+    };
+
+    const getDeviceIcon = (deviceType) => {
+        switch (deviceType) {
+            case 'mobile': return 'smartphone';
+            case 'tablet': return 'tablet';
+            default: return 'desktop_windows';
         }
     };
 
-    // Statistics cards
-    const StatCard = ({ icon: Icon, title, value, color, subtitle }) => (
-        <Card className="stat-card h-100 border-0 shadow-sm">
-            <Card.Body className="p-4">
-                <div className="d-flex align-items-center">
-                    <div className={`stat-icon bg-${color} me-3`}>
-                        <Icon size={20} color="white" />
-                    </div>
-                    <div>
-                        <h3 className="stat-number mb-0">{value.toLocaleString()}</h3>
-                        <h6 className="stat-title mb-0">{title}</h6>
-                        {subtitle && <small className="text-muted">{subtitle}</small>}
-                    </div>
-                </div>
-            </Card.Body>
-        </Card>
-    );
-
-    // Pagination component
     const renderPagination = () => {
         if (!users.links || users.links.length <= 3) return null;
 
         return (
-            <div className="d-flex justify-content-between align-items-center mt-4">
-                <div className="text-muted">
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginTop: '20px',
+                flexWrap: 'wrap',
+                gap: '12px',
+            }}>
+                <span style={{ fontSize: '13px', color: '#86868b' }}>
                     Showing {users.from} to {users.to} of {users.total} results
-                </div>
-                <Pagination className="mb-0">
+                </span>
+                <div style={{ display: 'flex', gap: '4px' }}>
                     {users.links.map((link, index) => (
-                        <Pagination.Item
+                        <button
                             key={index}
-                            active={link.active}
                             disabled={!link.url}
                             onClick={() => {
                                 if (link.url) {
@@ -175,11 +174,21 @@ export default function AdminUsers({ users, statistics, filters }) {
                                     });
                                 }
                             }}
-                        >
-                            <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                        </Pagination.Item>
+                            style={{
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                border: 'none',
+                                background: link.active ? '#000' : '#f5f5f7',
+                                color: link.active ? '#fff' : !link.url ? '#d1d1d6' : '#6e6e73',
+                                fontSize: '13px',
+                                fontWeight: link.active ? 600 : 400,
+                                cursor: link.url ? 'pointer' : 'default',
+                                transition: 'all 0.15s ease',
+                            }}
+                            dangerouslySetInnerHTML={{ __html: link.label }}
+                        />
                     ))}
-                </Pagination>
+                </div>
             </div>
         );
     };
@@ -188,255 +197,388 @@ export default function AdminUsers({ users, statistics, filters }) {
         <AuthenticatedLayout>
             <Head title="All Users - Admin" />
 
-            <div className="users-page">
-                <Container fluid={true}>
-                    <Container>
-                        <Row>
-                            <Col sm={3}>
-                                <div className='my-3 fs-9'>
-                                    <AdminSideNav/>
+            <Container fluid={true}>
+                <Container>
+                    <Row className="g-4" style={{ paddingTop: '96px', paddingBottom: '64px' }}>
+                        <Col md={3} className="d-none d-md-block">
+                            <AdminSideNav />
+                        </Col>
+                        <Col md={9} xs={12}>
+                            {/* Header */}
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'flex-start',
+                                marginBottom: '32px',
+                                flexWrap: 'wrap',
+                                gap: '16px',
+                            }}>
+                                <div>
+                                    <h2 style={{
+                                        fontSize: 'clamp(24px, 4vw, 28px)',
+                                        fontWeight: 600,
+                                        color: '#000',
+                                        letterSpacing: '-0.02em',
+                                        marginBottom: '6px',
+                                    }}>
+                                        All Users
+                                    </h2>
+                                    <p style={{ fontSize: '14px', color: '#86868b', margin: 0 }}>
+                                        Manage and monitor all platform users
+                                    </p>
                                 </div>
-                            </Col>
-                            <Col sm={9}>
-                            <div className='my-3'>
-                                {/* Header */}
-                                <div className="d-flex justify-content-between align-items-center mb-4">
-                                    <div>
-                                        <h1 className="poppins-bold mb-2">All Users</h1>
-                                        <p className="text-muted">Manage and monitor all platform users</p>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            padding: '8px 18px',
+                                            borderRadius: '9999px',
+                                            border: '1px solid #e5e5e7',
+                                            background: '#fff',
+                                            fontSize: '13px',
+                                            fontWeight: 500,
+                                            color: '#000',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.15s ease',
+                                        }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f7'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}
+                                    >
+                                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>download</span>
+                                        Export
+                                    </button>
+                                    <button
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            padding: '8px 18px',
+                                            borderRadius: '9999px',
+                                            border: 'none',
+                                            background: '#000',
+                                            fontSize: '13px',
+                                            fontWeight: 500,
+                                            color: '#fff',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.15s ease',
+                                        }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.background = '#333'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.background = '#000'; }}
+                                    >
+                                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>mail</span>
+                                        Bulk Email
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Stat Cards */}
+                            <Row className="g-3 mb-4">
+                                <StatCard icon="group" label="Total Users" value={statistics.total_users} subtitle="All registered users" />
+                                <StatCard icon="radio_button_checked" label="Online Now" value={statistics.online_users} subtitle="Currently active" />
+                                <StatCard icon="smartphone" label="Mobile Users" value={statistics.mobile_users} subtitle="Online via mobile" />
+                                <StatCard icon="desktop_windows" label="Desktop Users" value={statistics.desktop_users} subtitle="Online via desktop" />
+                            </Row>
+
+                            {/* Search & Filters */}
+                            <div style={{
+                                background: '#fff',
+                                border: '1px solid #f0f0f0',
+                                borderRadius: '16px',
+                                padding: '20px 24px',
+                                marginBottom: '20px',
+                            }}>
+                                <form onSubmit={handleSearch} style={{
+                                    display: 'flex',
+                                    gap: '12px',
+                                    alignItems: 'center',
+                                    flexWrap: 'wrap',
+                                }}>
+                                    <div style={{ flex: '1 1 280px', position: 'relative' }}>
+                                        <span className="material-symbols-outlined" style={{
+                                            position: 'absolute',
+                                            left: '14px',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            fontSize: '18px',
+                                            color: '#86868b',
+                                        }}>
+                                            search
+                                        </span>
+                                        <input
+                                            type="text"
+                                            placeholder="Search by name, email, or role..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '10px 14px 10px 42px',
+                                                borderRadius: '12px',
+                                                border: '1px solid #e5e5e7',
+                                                fontSize: '14px',
+                                                background: '#fff',
+                                                color: '#000',
+                                                outline: 'none',
+                                            }}
+                                            onFocus={(e) => e.currentTarget.style.borderColor = '#000'}
+                                            onBlur={(e) => e.currentTarget.style.borderColor = '#e5e5e7'}
+                                        />
                                     </div>
-                                    <div className="d-flex gap-2">
-                                        <Button variant="outline-success" size="sm">
-                                            <Download size={16} className="me-1" />
-                                            Export
-                                        </Button>
-                                        <Button variant="primary" size="sm">
-                                            <Mail size={16} className="me-1" />
-                                            Bulk Email
-                                        </Button>
-                                    </div>
+                                    <select
+                                        value={perPage}
+                                        onChange={(e) => handlePerPageChange(e.target.value)}
+                                        style={{
+                                            padding: '10px 14px',
+                                            borderRadius: '12px',
+                                            border: '1px solid #e5e5e7',
+                                            fontSize: '14px',
+                                            background: '#fff',
+                                            color: '#000',
+                                            outline: 'none',
+                                            cursor: 'pointer',
+                                        }}
+                                    >
+                                        <option value="10">10 per page</option>
+                                        <option value="25">25 per page</option>
+                                        <option value="50">50 per page</option>
+                                        <option value="100">100 per page</option>
+                                    </select>
+                                    <button
+                                        type="submit"
+                                        disabled={isLoading}
+                                        style={{
+                                            padding: '10px 20px',
+                                            borderRadius: '9999px',
+                                            border: 'none',
+                                            background: '#000',
+                                            color: '#fff',
+                                            fontSize: '13px',
+                                            fontWeight: 500,
+                                            cursor: isLoading ? 'not-allowed' : 'pointer',
+                                            transition: 'all 0.15s ease',
+                                        }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.background = '#333'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.background = '#000'; }}
+                                    >
+                                        {isLoading ? 'Searching...' : 'Search'}
+                                    </button>
+                                    {(searchTerm || filters.search) && (
+                                        <button
+                                            type="button"
+                                            onClick={clearFilters}
+                                            style={{
+                                                padding: '10px 20px',
+                                                borderRadius: '9999px',
+                                                border: '1px solid #e5e5e7',
+                                                background: '#fff',
+                                                color: '#6e6e73',
+                                                fontSize: '13px',
+                                                fontWeight: 500,
+                                                cursor: 'pointer',
+                                                transition: 'all 0.15s ease',
+                                            }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f7'; e.currentTarget.style.color = '#000'; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#6e6e73'; }}
+                                        >
+                                            Clear
+                                        </button>
+                                    )}
+                                </form>
+                            </div>
+
+                            {/* Users Table */}
+                            <div style={{
+                                background: '#fff',
+                                border: '1px solid #f0f0f0',
+                                borderRadius: '16px',
+                                padding: '28px',
+                            }}>
+                                <div style={{ marginBottom: '20px' }}>
+                                    <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#000', margin: '0 0 4px' }}>
+                                        Users
+                                    </h3>
+                                    <span style={{ fontSize: '13px', color: '#86868b' }}>
+                                        {users.total} total users
+                                    </span>
                                 </div>
 
-                                {/* Statistics Cards */}
-                                <Row className="mb-4">
-                                    <Col lg={3} md={6} className="mb-3">
-                                        <StatCard
-                                            icon={Users}
-                                            title="Total Users"
-                                            value={statistics.total_users}
-                                            color="primary"
-                                            subtitle="All registered users"
-                                        />
-                                    </Col>
-                                    <Col lg={3} md={6} className="mb-3">
-                                        <StatCard
-                                            icon={Activity}
-                                            title="Online Now"
-                                            value={statistics.online_users}
-                                            color="success"
-                                            subtitle="Currently active"
-                                        />
-                                    </Col>
-                                    <Col lg={3} md={6} className="mb-3">
-                                        <StatCard
-                                            icon={Smartphone}
-                                            title="Mobile Users"
-                                            value={statistics.mobile_users}
-                                            color="info"
-                                            subtitle="Online via mobile"
-                                        />
-                                    </Col>
-                                    <Col lg={3} md={6} className="mb-3">
-                                        <StatCard
-                                            icon={Monitor}
-                                            title="Desktop Users"
-                                            value={statistics.desktop_users}
-                                            color="warning"
-                                            subtitle="Online via desktop"
-                                        />
-                                    </Col>
-                                </Row>
-
-                                {/* Filters and Search */}
-                                <Card className="border-0 shadow-sm mb-4">
-                                    <Card.Body>
-                                        <Row className="align-items-end">
-                                            <Col md={6}>
-                                                <Form onSubmit={handleSearch}>
-                                                    <InputGroup>
-                                                        <Form.Control
-                                                            type="text"
-                                                            placeholder="Search by name, email, or role..."
-                                                            value={searchTerm}
-                                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                                        />
-                                                        <Button 
-                                                            variant="outline-primary" 
-                                                            type="submit"
-                                                            disabled={isLoading}
-                                                        >
-                                                            <Search size={16} />
-                                                        </Button>
-                                                    </InputGroup>
-                                                </Form>
-                                            </Col>
-                                            <Col md={3}>
-                                                <Form.Select
-                                                    value={perPage}
-                                                    onChange={(e) => handlePerPageChange(e.target.value)}
-                                                >
-                                                    <option value="10">10 per page</option>
-                                                    <option value="25">25 per page</option>
-                                                    <option value="50">50 per page</option>
-                                                    <option value="100">100 per page</option>
-                                                </Form.Select>
-                                            </Col>
-                                            <Col md={3}>
-                                                <div className="d-flex gap-2">
-                                                    <Button 
-                                                        variant="outline-secondary" 
-                                                        onClick={clearFilters}
-                                                        size="sm"
-                                                    >
-                                                        Clear Filters
-                                                    </Button>
-                                                </div>
-                                            </Col>
-                                        </Row>
-                                    </Card.Body>
-                                </Card>
-
-                                {/* Users Table */}
-                                <Card className="border-0 shadow-sm">
-                                    <Card.Body className="p-0">
-                                        <div className="table-responsive">
-                                            <Table className="table-hover mb-0">
-                                                <thead>
-                                                    <tr>
-                                                        <th className="border-0 text-muted fw-normal px-4 py-3">User</th>
-                                                        <th className="border-0 text-muted fw-normal py-3">Email</th>
-                                                        <th className="border-0 text-muted fw-normal py-3">Status</th>
-                                                        <th className="border-0 text-muted fw-normal py-3">Device</th>
-                                                        <th className="border-0 text-muted fw-normal py-3">Last Seen</th>
-                                                        <th className="border-0 text-muted fw-normal py-3">Role</th>
-                                                        <th className="border-0 text-muted fw-normal py-3">Actions</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {isLoading ? (
-                                                        <tr>
-                                                            <td colSpan="7" className="text-center py-5">
-                                                                <div className="spinner-border text-primary" role="status">
-                                                                    <span className="visually-hidden">Loading...</span>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    ) : users.data.length > 0 ? (
-                                                        users.data.map((user) => (
-                                                            <tr key={user.id}>
-                                                                <td className="border-0 px-4 py-3">
-                                                                    <div className="d-flex align-items-center">
-                                                                        <div className={`user-avatar me-3 ${isUserOnline(user) ? 'online' : ''}`}>
-                                                                            {getUserInitials(user.name)}
-                                                                            {isUserOnline(user) && (
-                                                                                <div className="online-indicator"></div>
-                                                                            )}
-                                                                        </div>
-                                                                        <div>
-                                                                            <div className="fw-medium">{user.name}</div>
-                                                                            <small className="text-muted">ID: {user.id}</small>
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
-                                                                <td className="border-0 py-3">
-                                                                    <span className="text-break">{user.email}</span>
-                                                                </td>
-                                                                <td className="border-0 py-3">
-                                                                    {formatLastSeen(user.last_seen_at, user.is_online)}
-                                                                </td>
-                                                                <td className="border-0 py-3">
-                                                                    {user.device_type ? (
-                                                                        <OverlayTrigger
-                                                                            placement="top"
-                                                                            overlay={
-                                                                                <Tooltip>
-                                                                                    {user.device_name || `${user.operating_system} - ${user.browser}`}
-                                                                                </Tooltip>
-                                                                            }
-                                                                        >
-                                                                            <div className="d-flex align-items-center gap-2">
-                                                                                {getDeviceIcon(user.device_type)}
-                                                                                <small className="text-muted">
-                                                                                    {user.operating_system}
-                                                                                </small>
-                                                                                {getBrowserIcon(user.browser)}
-                                                                            </div>
-                                                                        </OverlayTrigger>
-                                                                    ) : (
-                                                                        <span className="text-muted">-</span>
-                                                                    )}
-                                                                </td>
-                                                                <td className="border-0 py-3">
-                                                                    <div>
-                                                                        <div className="small">
-                                                                            {user.last_seen_at ? formatDate(user.last_seen_at) : 'Never'}
-                                                                        </div>
-                                                                        <small className="text-muted">
-                                                                            Joined: {formatDate(user.created_at)}
-                                                                        </small>
-                                                                    </div>
-                                                                </td>
-                                                                <td className="border-0 py-3">
-                                                                    <Badge bg={getRoleBadgeVariant(user.role)}>
-                                                                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                                                                    </Badge>
-                                                                </td>
-                                                                <td className="border-0 py-3">
-                                                                    <div className="d-flex gap-1">
-                                                                        <OverlayTrigger
-                                                                            placement="top"
-                                                                            overlay={<Tooltip>View Details</Tooltip>}
-                                                                        >
-                                                                            <Button variant="outline-primary" size="sm">
-                                                                                <Eye size={14} />
-                                                                            </Button>
-                                                                        </OverlayTrigger>
-                                                                        <OverlayTrigger
-                                                                            placement="top"
-                                                                            overlay={<Tooltip>Edit User</Tooltip>}
-                                                                        >
-                                                                            <Button variant="outline-secondary" size="sm">
-                                                                                <Edit size={14} />
-                                                                            </Button>
-                                                                        </OverlayTrigger>
-                                                                        <OverlayTrigger
-                                                                            placement="top"
-                                                                            overlay={<Tooltip>Delete User</Tooltip>}
-                                                                        >
-                                                                            <Button variant="outline-danger" size="sm">
-                                                                                <Trash2 size={14} />
-                                                                            </Button>
-                                                                        </OverlayTrigger>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        ))
-                                                    ) : (
-                                                        <tr>
-                                                            <td colSpan="7" className="text-center py-5">
-                                                                <div className="text-muted">
-                                                                    <Users size={48} className="mb-3 opacity-50" />
-                                                                    <h5>No users found</h5>
-                                                                    <p>Try adjusting your search criteria.</p>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    )}
-                                                </tbody>
-                                            </Table>
+                                {isLoading ? (
+                                    <div style={{ textAlign: 'center', padding: '48px 0' }}>
+                                        <div style={{
+                                            width: '32px',
+                                            height: '32px',
+                                            border: '3px solid #f0f0f0',
+                                            borderTopColor: '#000',
+                                            borderRadius: '50%',
+                                            animation: 'spin 0.8s linear infinite',
+                                            margin: '0 auto 12px',
+                                        }} />
+                                        <span style={{ fontSize: '13px', color: '#86868b' }}>Loading users...</span>
+                                    </div>
+                                ) : users.data.length > 0 ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                        {/* Header row */}
+                                        <div style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: '2fr 2fr 1fr 1fr 80px',
+                                            gap: '16px',
+                                            padding: '8px 14px',
+                                            fontSize: '11px',
+                                            fontWeight: 500,
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.1em',
+                                            color: '#86868b',
+                                        }}>
+                                            <span>User</span>
+                                            <span>Email</span>
+                                            <span>Status</span>
+                                            <span>Joined</span>
+                                            <span>Role</span>
                                         </div>
-                                    </Card.Body>
-                                </Card>
+
+                                        {users.data.map((user) => {
+                                            const online = isUserOnline(user);
+                                            return (
+                                                <div
+                                                    key={user.id}
+                                                    style={{
+                                                        display: 'grid',
+                                                        gridTemplateColumns: '2fr 2fr 1fr 1fr 80px',
+                                                        gap: '16px',
+                                                        padding: '12px 14px',
+                                                        borderRadius: '12px',
+                                                        alignItems: 'center',
+                                                        transition: 'background 0.15s ease',
+                                                    }}
+                                                    onMouseEnter={(e) => e.currentTarget.style.background = '#fafafa'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                                >
+                                                    {/* User */}
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                                                        <div style={{ position: 'relative', flexShrink: 0 }}>
+                                                            <div style={{
+                                                                width: '36px',
+                                                                height: '36px',
+                                                                borderRadius: '50%',
+                                                                background: getInitialColor(user.name),
+                                                                color: '#fff',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                fontSize: '13px',
+                                                                fontWeight: 600,
+                                                            }}>
+                                                                {user.name.charAt(0).toUpperCase()}
+                                                            </div>
+                                                            {online && (
+                                                                <span style={{
+                                                                    position: 'absolute',
+                                                                    bottom: '0',
+                                                                    right: '0',
+                                                                    width: '10px',
+                                                                    height: '10px',
+                                                                    borderRadius: '50%',
+                                                                    background: '#16a34a',
+                                                                    border: '2px solid #fff',
+                                                                }} />
+                                                            )}
+                                                        </div>
+                                                        <div style={{ minWidth: 0 }}>
+                                                            <div style={{
+                                                                fontSize: '14px',
+                                                                fontWeight: 500,
+                                                                color: '#000',
+                                                                overflow: 'hidden',
+                                                                textOverflow: 'ellipsis',
+                                                                whiteSpace: 'nowrap',
+                                                            }}>
+                                                                {user.name}
+                                                            </div>
+                                                            {user.device_type && (
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                                                                    <span className="material-symbols-outlined" style={{ fontSize: '12px', color: '#b0b0b5' }}>
+                                                                        {getDeviceIcon(user.device_type)}
+                                                                    </span>
+                                                                    <span style={{ fontSize: '11px', color: '#b0b0b5' }}>
+                                                                        {user.operating_system || user.device_type}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Email */}
+                                                    <span style={{
+                                                        fontSize: '13px',
+                                                        color: '#86868b',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        whiteSpace: 'nowrap',
+                                                    }}>
+                                                        {user.email}
+                                                    </span>
+
+                                                    {/* Status */}
+                                                    <div>
+                                                        <span style={{
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            gap: '4px',
+                                                            fontSize: '12px',
+                                                            fontWeight: 500,
+                                                            color: online ? '#16a34a' : '#86868b',
+                                                            background: online ? '#f0fdf4' : '#f5f5f7',
+                                                            padding: '3px 10px',
+                                                            borderRadius: '9999px',
+                                                        }}>
+                                                            <span style={{
+                                                                width: '5px',
+                                                                height: '5px',
+                                                                borderRadius: '50%',
+                                                                background: online ? '#16a34a' : '#d1d1d6',
+                                                            }} />
+                                                            {formatLastSeen(user.last_seen_at, online)}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Joined */}
+                                                    <span style={{ fontSize: '13px', color: '#86868b' }}>
+                                                        {formatDate(user.created_at)}
+                                                    </span>
+
+                                                    {/* Role */}
+                                                    <span style={{
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        fontSize: '12px',
+                                                        fontWeight: 500,
+                                                        color: user.role === 'admin' ? '#dc2626' : '#000',
+                                                        background: user.role === 'admin' ? '#fef2f2' : '#f5f5f7',
+                                                        padding: '3px 10px',
+                                                        borderRadius: '9999px',
+                                                        textTransform: 'capitalize',
+                                                        width: 'fit-content',
+                                                    }}>
+                                                        {user.role}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div style={{ textAlign: 'center', padding: '48px 0' }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '48px', color: '#d1d1d6', marginBottom: '12px', display: 'block' }}>
+                                            group_off
+                                        </span>
+                                        <h5 style={{ fontSize: '16px', fontWeight: 600, color: '#000', marginBottom: '4px' }}>
+                                            No users found
+                                        </h5>
+                                        <p style={{ fontSize: '13px', color: '#86868b', margin: 0 }}>
+                                            Try adjusting your search criteria.
+                                        </p>
+                                    </div>
+                                )}
 
                                 {/* Pagination */}
                                 {renderPagination()}
@@ -445,122 +587,10 @@ export default function AdminUsers({ users, statistics, filters }) {
                     </Row>
                 </Container>
             </Container>
-            </div>
 
-            {/* Additional Styles */}
-            <style jsx>{`
-                .user-avatar {
-                    width: 40px;
-                    height: 40px;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: white;
-                    font-weight: 600;
-                    font-size: 0.875rem;
-                    position: relative;
-                }
-                
-                .user-avatar.online {
-                    border: 2px solid #48bb78;
-                }
-                
-                .online-indicator {
-                    position: absolute;
-                    bottom: -2px;
-                    right: -2px;
-                    width: 12px;
-                    height: 12px;
-                    background: #48bb78;
-                    border: 2px solid white;
-                    border-radius: 50%;
-                    animation: pulse 2s infinite;
-                }
-                
-                @keyframes pulse {
-                    0% {
-                        box-shadow: 0 0 0 0 rgba(72, 187, 120, 0.7);
-                    }
-                    70% {
-                        box-shadow: 0 0 0 10px rgba(72, 187, 120, 0);
-                    }
-                    100% {
-                        box-shadow: 0 0 0 0 rgba(72, 187, 120, 0);
-                    }
-                }
-                
-                .stat-card {
-                    transition: transform 0.2s ease, box-shadow 0.2s ease;
-                }
-                
-                .stat-card:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
-                }
-                
-                .stat-icon {
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 8px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                
-                .stat-number {
-                    font-size: 1.5rem;
-                    font-weight: 700;
-                    color: #2d3748;
-                    line-height: 1;
-                }
-                
-                .stat-title {
-                    color: #4a5568;
-                    font-weight: 600;
-                    font-size: 0.875rem;
-                }
-                
-                .table th {
-                    font-size: 0.875rem;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                    font-weight: 500;
-                }
-                
-                .table td {
-                    vertical-align: middle;
-                }
-                
-                .text-break {
-                    word-break: break-word;
-                }
-                
-                .pagination .page-item .page-link {
-                    border: none;
-                    color: #667eea;
-                    font-weight: 500;
-                }
-                
-                .pagination .page-item.active .page-link {
-                    background-color: #667eea;
-                    border-color: #667eea;
-                }
-                
-                .pagination .page-item:hover .page-link {
-                    background-color: #f8f9fa;
-                    color: #5a67d8;
-                }
-                
-                .device-info {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                }
-                
-                .badge {
-                    font-size: 0.75rem;
+            <style>{`
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
                 }
             `}</style>
         </AuthenticatedLayout>

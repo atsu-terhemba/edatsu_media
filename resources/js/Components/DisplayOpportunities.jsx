@@ -1,80 +1,71 @@
-import React, { useEffect, useCallback, useMemo, useState, Suspense } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { Image } from "react-bootstrap";
 import Swal from 'sweetalert2';
-import { getDaysLeft,  toggleShare, createSharingLinks, bookmark, pageLink } from "@/utils/Index";
-import { router } from '@inertiajs/react'
+import { getDaysLeft, toggleShare, bookmark, pageLink } from "@/utils/Index";
 
 const DisplayOpportunities = ({ data, isAuthenticated }) => {
   const [loadedImages, setLoadedImages] = useState({});
 
-  // Fallback image URL - replace with your actual fallback image
   const fallbackImageUrl = "/img/logo/main_2.png";
 
-  // Function to show authentication modal
   const showAuthModal = () => {
     Swal.fire({
         title: '',
         html: `
             <div style="text-align: center; padding: 20px;">
-                <p style="margin-bottom: 20px; color: #374151; font-size: 16px; font-weight: 500;">
+                <p style="margin-bottom: 20px; color: #000; font-size: 16px; font-weight: 600;">
                     Join thousands of entrepreneurs accessing exclusive features
                 </p>
-                            
+
                 <div style="display: flex; flex-direction: column; gap: 12px; max-width: 320px; margin: 0 auto;">
-                    <a href="/auth/google" 
-                       style="display: flex; align-items: center; justify-content: center; gap: 12px; 
-                              padding: 14px 20px; background: #4285f4; color: white; text-decoration: none; 
-                              border-radius: 10px; font-weight: 600; font-size: 15px; transition: all 0.3s ease;
-                              box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);"
-                       onmouseover="this.style.background='#3367d6'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(66, 133, 244, 0.4)'" 
-                       onmouseout="this.style.background='#4285f4'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(66, 133, 244, 0.3)'">
-                        <img src="https://developers.google.com/identity/images/g-logo.png" 
-                             width="22" height="22" style="background: white; padding: 3px; border-radius: 3px;">
+                    <a href="/auth/google"
+                       style="display: flex; align-items: center; justify-content: center; gap: 12px;
+                              padding: 12px 20px; background: #000; color: white; text-decoration: none;
+                              border-radius: 9999px; font-weight: 500; font-size: 14px; transition: all 0.15s ease;"
+                       onmouseover="this.style.background='#333'"
+                       onmouseout="this.style.background='#000'">
+                        <img src="https://developers.google.com/identity/images/g-logo.png"
+                             width="18" height="18" style="background: white; padding: 2px; border-radius: 3px;">
                         Continue with Google
                     </a>
-                    
-                    <a href="/auth/linkedin" 
-                       style="display: flex; align-items: center; justify-content: center; gap: 12px; 
-                              padding: 14px 20px; background: #0077b5; color: white; text-decoration: none; 
-                              border-radius: 10px; font-weight: 600; font-size: 15px; transition: all 0.3s ease;
-                              box-shadow: 0 2px 8px rgba(0, 119, 181, 0.3);"
-                       onmouseover="this.style.background='#005885'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(0, 119, 181, 0.4)'" 
-                       onmouseout="this.style.background='#0077b5'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 119, 181, 0.3)'">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+
+                    <a href="/auth/linkedin"
+                       style="display: flex; align-items: center; justify-content: center; gap: 12px;
+                              padding: 12px 20px; background: #0077b5; color: white; text-decoration: none;
+                              border-radius: 9999px; font-weight: 500; font-size: 14px; transition: all 0.15s ease;"
+                       onmouseover="this.style.background='#005885'"
+                       onmouseout="this.style.background='#0077b5'">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
                             <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                         </svg>
                         Continue with LinkedIn
                     </a>
-                    
-                    <div style="margin: 15px 0; color: #9ca3af; font-size: 14px; font-weight: 500;">or use email</div>
-                    
+
+                    <div style="margin: 12px 0; color: #86868b; font-size: 13px; font-weight: 400;">or use email</div>
+
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <a href="/login" 
-                           style="display: flex; align-items: center; justify-content: center; gap: 8px; 
-                                  padding: 12px 16px; background: transparent; color: #374151; text-decoration: none; 
-                                  border: 2px solid #e5e7eb; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease;"
-                           onmouseover="this.style.borderColor='#9ca3af'; this.style.backgroundColor='#f9fafb'; this.style.transform='translateY(-1px)'" 
-                           onmouseout="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='transparent'; this.style.transform='translateY(0)'">
+                        <a href="/login"
+                           style="display: flex; align-items: center; justify-content: center;
+                                  padding: 10px 16px; background: transparent; color: #000; text-decoration: none;
+                                  border: 1px solid #e5e5e5; border-radius: 9999px; font-weight: 500; font-size: 13px; transition: all 0.15s ease;"
+                           onmouseover="this.style.borderColor='#000'; this.style.backgroundColor='#000'; this.style.color='#fff'"
+                           onmouseout="this.style.borderColor='#e5e5e5'; this.style.backgroundColor='transparent'; this.style.color='#000'">
                             Login
                         </a>
-                        
-                        <a href="/register" 
-                           style="display: flex; align-items: center; justify-content: center; gap: 8px; 
-                                  padding: 12px 16px; background: #059669; color: white; text-decoration: none; 
-                                  border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease;
-                                  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);"
-                           onmouseover="this.style.background='#047857'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(5, 150, 105, 0.4)'" 
-                           onmouseout="this.style.background='#059669'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(5, 150, 105, 0.3)'">
+
+                        <a href="/register"
+                           style="display: flex; align-items: center; justify-content: center;
+                                  padding: 10px 16px; background: #000; color: white; text-decoration: none;
+                                  border-radius: 9999px; font-weight: 500; font-size: 13px; transition: all 0.15s ease;"
+                           onmouseover="this.style.background='#333'"
+                           onmouseout="this.style.background='#000'">
                             Sign Up
                         </a>
                     </div>
                 </div>
-                
-                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
-                    <p style="color: #6b7280; font-size: 12px; margin: 0;">
-                        Secure • Free Forever • Instant Access
-                    </p>
-                    <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0 0;">
+
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #f0f0f0;">
+                    <p style="color: #86868b; font-size: 11px; margin: 0;">
                         By continuing, you agree to our Terms of Service and Privacy Policy
                     </p>
                 </div>
@@ -82,7 +73,7 @@ const DisplayOpportunities = ({ data, isAuthenticated }) => {
         `,
         showConfirmButton: false,
         showCloseButton: true,
-        width: '480px',
+        width: '420px',
         padding: '0',
         background: 'white',
         customClass: {
@@ -92,7 +83,6 @@ const DisplayOpportunities = ({ data, isAuthenticated }) => {
     });
   };
 
-  // Custom bookmark handler that checks authentication first
   const handleBookmark = (e) => {
     if (!isAuthenticated) {
       e.preventDefault();
@@ -100,13 +90,12 @@ const DisplayOpportunities = ({ data, isAuthenticated }) => {
       return;
     }
     bookmark(e.currentTarget);
-  }; 
+  };
 
   const handleImageError = (e) => {
     e.target.src = fallbackImageUrl;
   };
 
-  // Reset loaded images when data changes (pagination)
   useEffect(() => {
     setLoadedImages({});
   }, [data]);
@@ -116,10 +105,7 @@ const DisplayOpportunities = ({ data, isAuthenticated }) => {
     let timer;
 
     const setupObserver = () => {
-      // Clean up previous observer if it exists
-      if (observer) {
-        observer.disconnect();
-      }
+      if (observer) observer.disconnect();
 
       observer = new IntersectionObserver(
         (entries) => {
@@ -127,21 +113,16 @@ const DisplayOpportunities = ({ data, isAuthenticated }) => {
             if (entry.isIntersecting) {
               const img = entry.target;
               const dataSrc = img.dataset.src;
-              
+
               if (dataSrc && (img.src.includes('data:image') || img.src.includes('R0lGODlh'))) {
                 img.src = dataSrc;
-                
-                // Set onload handler to handle successful loading
                 img.onload = () => {
                   img.classList.remove("lazy-load");
                   const id = img.dataset.id;
                   setLoadedImages(prev => ({...prev, [id]: true}));
                 };
-                
-                // Set onerror handler to use fallback
                 img.onerror = handleImageError;
               }
-              
               observer.unobserve(img);
             }
           });
@@ -149,10 +130,8 @@ const DisplayOpportunities = ({ data, isAuthenticated }) => {
         { rootMargin: "200px" }
       );
 
-      // Get all lazy-load images and observe them
       const lazyImages = document.querySelectorAll(".lazy-load");
       lazyImages.forEach(img => {
-        // Reset image src to placeholder if it's not already
         if (!img.src.includes('data:image') && !img.src.includes('R0lGODlh')) {
           img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
         }
@@ -160,305 +139,215 @@ const DisplayOpportunities = ({ data, isAuthenticated }) => {
       });
     };
 
-    // Use a timeout to ensure DOM is ready with new data
-    timer = setTimeout(() => {
-      setupObserver();
-    }, 100); // Slightly increased delay
+    timer = setTimeout(() => { setupObserver(); }, 100);
 
-    // Cleanup function
     return () => {
       if (timer) clearTimeout(timer);
       if (observer) observer.disconnect();
     };
-  }, [data]); // This effect runs whenever data changes
-
-  const Toast = Swal.mixin({
-    toast: true,
-    position: "top-end",
-    showConfirmButton: false,
-    timer: 3000,
-    timerProgressBar: true,
-    didOpen: (toast) => {
-      toast.onmouseenter = Swal.stopTimer;
-      toast.onmouseleave = Swal.resumeTimer;
-    }
-  });
+  }, [data]);
 
   const isValidImage = (img) => {
     return img && typeof img === 'string' && img.trim() !== '';
   };
 
-  const truncateText = (text, length) => {
-    if (!text) return '';
-    return text.length > length ? text.substring(0, length) + '...' : text;
-  };
-
   function convertToProperNoun(input) {
-    // Check if input is null, undefined, or not a string
-    if (!input || typeof input !== 'string') {
-        return ''; // Return an empty string or handle the case as needed
-    }
-    // Split the input string on commas first
+    if (!input || typeof input !== 'string') return '';
+
     let items = input.split(',');
-    let output = "";
-
-    // Process each item
-    let badges = items.map((item, index) => {
-        // Split the item on spaces, underscores, or hyphens
+    return items.map((item, index) => {
         let words = item.trim().split(/[\s_-]+/);
-
-        // Capitalize the first letter of each word
-        let capitalizedWords = words.map(word => 
+        let capitalizedWords = words.map(word =>
             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
         );
+        let output = capitalizedWords.join(" ");
 
-        // Join the capitalized words back into a string
-        output = capitalizedWords.join(" ");
-
-        // Create a badge for each output
-        return (<span key={index} className='data-labels poppins-semibold text-secondary my-1 py-1 me-1 fs-8'>
-        {output}
-        </span>);
+        return (
+            <span
+                key={index}
+                style={{
+                    display: 'inline-block',
+                    padding: '2px 10px',
+                    borderRadius: '9999px',
+                    background: '#f5f5f7',
+                    fontSize: '11px',
+                    fontWeight: 500,
+                    color: '#86868b',
+                    marginRight: '4px',
+                    marginBottom: '4px',
+                }}
+            >
+                {output}
+            </span>
+        );
     });
-
-    return badges;
   }
 
+  const stripAndTruncate = (html, maxLength = 150) => {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    const plainText = tempDiv.textContent || tempDiv.innerText || '';
+    return plainText.length > maxLength
+      ? plainText.slice(0, maxLength).trim() + '...'
+      : plainText;
+  };
 
-const stripAndTruncate = (html, maxLength = 150) => {
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = html;
-  const plainText = tempDiv.textContent || tempDiv.innerText || '';
-  return plainText.length > maxLength
-    ? plainText.slice(0, maxLength).trim() + '...'
-    : plainText;
-};
-
-
-  // Function to handle image loading manually
-  const handleImageLoad = useCallback((imageId, imageSrc) => {
+  const handleImageLoad = useCallback((imageId) => {
     return () => {
-      setLoadedImages(prev => ({
-        ...prev,
-        [imageId]: true
-      }));
+      setLoadedImages(prev => ({ ...prev, [imageId]: true }));
     };
   }, []);
 
   return (
-    <div className="" id="results-container">
-      <style>{`
-        .share-btn:hover,
-        .share-btn:focus,
-        .share-btn:active {
-          background-color: transparent !important;
-          border-color: transparent !important;
-          color: #374151 !important;
-          transform: none !important;
-          border: none !important;
-          box-shadow: none !important;
-        }
-        
-        .share-btn:hover .material-symbols-outlined {
-          font-weight: 600 !important;
-          color: #374151 !important;
-        }
-        
-        .bookmark-btn:hover,
-        .bookmark-btn:focus,
-        .bookmark-btn:active {
-          background-color: transparent !important;
-          border-color: transparent !important;
-          transform: none !important;
-          border: none !important;
-          box-shadow: none !important;
-        }
-        
-        .bookmark-btn:hover .material-symbols-outlined {
-          font-weight: 600 !important;
-          font-variation-settings: "FILL" 1, "wght" 600, "GRAD" 0, "opsz" 24 !important;
-        }
-        
-        .bookmark-btn:hover svg,
-        .bookmark-btn:hover .material-symbols-outlined {
-          fill: inherit !important;
-        }
-      `}</style>
+    <div id="results-container">
       {data?.map((o, index) => {
         const hasImage = o.cover_img && isValidImage(o.cover_img);
-        const imageCol = hasImage ? 'col-sm-2 col-4' : '';
-        const bodyCol = hasImage ? 'col-sm-10 col-8' : 'col-sm-12 col-12';
-        // Use unique ID that includes the opportunity ID to ensure uniqueness across pagination
         const imageId = `img-${o.id}-${index}`;
-        
+
         return (
-          <div key={`${o.id}-${index}`} className="feed-panel text-wrap w-100 position-relative border-bottom">
-            <div className="row  d-flex align-items-center ">
+          <div
+            key={`${o.id}-${index}`}
+            style={{
+                padding: '16px 0',
+                borderBottom: '1px solid #f0f0f0',
+                transition: 'background-color 0.15s ease',
+            }}
+          >
+            <div className="d-flex align-items-start gap-3">
+              {/* Image */}
               {hasImage && (
-                <div className={imageCol}>
-                  <div className="image-container py-3">
-                    <Image
-                      src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
-                      data-src={`${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/uploads/opp/${o.cover_img}`}
-                      data-id={imageId}
-                      alt={`Cover image for ${o.title}`}
-                      className="img-fluid w-100 h-100 object-fit-cover lazy-load rounded"
-                      onError={handleImageError}
-                      onLoad={handleImageLoad(imageId, o.cover_img)}
-                    />
-                  </div>
+                <div style={{ flexShrink: 0 }}>
+                  <Image
+                    src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+                    data-src={`${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/uploads/opp/${o.cover_img}`}
+                    data-id={imageId}
+                    alt={`Cover image for ${o.title}`}
+                    className="lazy-load"
+                    onError={handleImageError}
+                    onLoad={handleImageLoad(imageId)}
+                    style={{
+                        width: '72px',
+                        height: '72px',
+                        objectFit: 'cover',
+                        borderRadius: '12px',
+                        border: '1px solid #f0f0f0',
+                    }}
+                  />
                 </div>
               )}
-              <div className={bodyCol}>
-                <div className="py-3">
-                  <div className="d-flex align-items-center gap-2 mb-2">
-                    <a 
-                    // onClick={(e) => {
-                    //     e.preventDefault()
-                    //     router.visit(`${pageLink(o.slug, o.id)}`, {
-                    //       preserveState: true,
-                    //       preserveScroll: true,
-                    //     })
-                    //   }}
-                    target="_blank"
-                    className="text-decoration-none text-dark flex-grow-1" 
-                    href={pageLink('op', o.slug, o.id)}>
-                      <h2 className="inline-block page-title m-0 p-0 poppins-semibold fs-9">
-                        {o.title}
-                      </h2>
-                    </a>
-                    {o.is_trending && (
-                      <span 
-                        className="trending-badge d-flex align-items-center gap-1 px-2 py-1 rounded-pill text-white" 
-                        style={{
-                          background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
-                          fontSize: '10px',
-                          fontWeight: '600',
-                          boxShadow: '0 2px 4px rgba(238, 90, 36, 0.3)',
-                          animation: 'pulse 2s infinite'
-                        }}
-                        title={`Trending since ${new Date(o.trending_since).toLocaleDateString()}`}
-                      >
-                        🔥 Trending
-                      </span>
-                    )}
-                  </div>
-                  
-                  {o.continent_name && (
-                    <div className="mb-2">
-                      {convertToProperNoun(o.continent_name)}
-                    </div>
-                  )}
-                  
-                  <div className="overflow-hidden truncate d-none d-sm-block">
-                    {/* <p className="p-0 m-0 text-secondary d-block fs-8"
-                    dangerouslySetInnerHTML={{ __html: truncateText(o.description, 150) }}>
-                    </p> */}
-                    <p className="p-0 m-0 text-secondary d-block fs-8">
-                      {stripAndTruncate(o.description, 150)}
-                    </p>
-                  </div>
-                  
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div className="">
-                      <p className="m-0 fs-8 poppins-semibold p-0">
-                        {getDaysLeft(o.deadline)}
-                      </p>
-                    </div>
 
-                    <div className="d-flex align-items-center gap-3">
-                      {/* Share Button */}
-                      <div className="position-relative">
-                        <div className="position-absolute share-panel d-none" style={{
-                          top: 'auto',
-                          right: '0px',
-                          bottom: '45px',
-                          zIndex: 1050,
-                          minWidth: '280px'
-                        }}></div>
-                        <button 
-                          className="btn p-0 share-btn"
-                          data-title={o.title} 
-                          data-id={o.id} 
-                          onClick={(e) => toggleShare(e.currentTarget)}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.color = '#6b7280';
-                            e.currentTarget.style.borderColor = 'transparent';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.color = '#6b7280';
-                            e.currentTarget.style.borderColor = 'transparent';
-                          }}
-                          onFocus={(e) => {
-                            e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.color = '#6b7280';
-                            e.currentTarget.style.borderColor = 'transparent';
-                            e.currentTarget.style.boxShadow = 'none';
-                          }}
-                          onBlur={(e) => {
-                            e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.color = '#6b7280';
-                            e.currentTarget.style.borderColor = 'transparent';
-                          }}
-                          style={{ 
-                            border: 'none',
-                            background: 'transparent',
-                            color: '#6b7280',
-                            boxShadow: 'none'
-                          }}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: '22px', fontWeight: '400', color: 'inherit' }}>
-                            share
-                          </span>
-                        </button>
-                      </div>
-                      
-                      {/* Bookmark Button - Filled */}
-                      <button 
-                        className="btn p-0 bookmark-btn"
-                        data-id={o.id}
+              {/* Content */}
+              <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                {/* Title + Trending */}
+                <div className="d-flex align-items-center gap-2 mb-1">
+                  <a
+                    target="_blank"
+                    href={pageLink('op', o.slug, o.id)}
+                    style={{
+                        textDecoration: 'none',
+                        color: '#000',
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        lineHeight: 1.3,
+                        transition: 'color 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#86868b'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = '#000'}
+                  >
+                    {o.title}
+                  </a>
+                  {o.is_trending && (
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '2px',
+                        padding: '2px 8px',
+                        borderRadius: '9999px',
+                        background: '#000',
+                        color: '#fff',
+                        fontSize: '10px',
+                        fontWeight: 500,
+                        flexShrink: 0,
+                      }}
+                    >
+                      Trending
+                    </span>
+                  )}
+                </div>
+
+                {/* Region badges */}
+                {o.continent_name && (
+                  <div className="mb-1">
+                    {convertToProperNoun(o.continent_name)}
+                  </div>
+                )}
+
+                {/* Description - desktop only */}
+                <p
+                  className="d-none d-sm-block"
+                  style={{
+                    fontSize: '13px',
+                    color: '#86868b',
+                    lineHeight: 1.5,
+                    margin: '4px 0',
+                  }}
+                >
+                  {stripAndTruncate(o.description, 150)}
+                </p>
+
+                {/* Footer: days left + actions */}
+                <div className="d-flex justify-content-between align-items-center mt-1">
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#000' }}>
+                    {getDaysLeft(o.deadline)}
+                  </span>
+
+                  <div className="d-flex align-items-center gap-2">
+                    {/* Share */}
+                    <div className="position-relative">
+                      <div className="position-absolute share-panel d-none" style={{
+                        top: 'auto', right: '0px', bottom: '35px', zIndex: 1050, minWidth: '280px'
+                      }}></div>
+                      <button
+                        className="btn p-0"
                         data-title={o.title}
-                        data-type="opp"
-                        data-url={pageLink('op', o.id, o.slug)}
-                        onClick={handleBookmark}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = 'transparent';
-                          e.currentTarget.style.borderColor = 'transparent';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'transparent';
-                          e.currentTarget.style.borderColor = 'transparent';
-                        }}
-                        onFocus={(e) => {
-                          e.currentTarget.style.background = 'transparent';
-                          e.currentTarget.style.borderColor = 'transparent';
-                          e.currentTarget.style.boxShadow = 'none';
-                        }}
-                        onBlur={(e) => {
-                          e.currentTarget.style.background = 'transparent';
-                          e.currentTarget.style.borderColor = 'transparent';
-                        }}
-                        style={{ 
-                          border: 'none',
-                          background: 'transparent',
-                          boxShadow: 'none'
-                        }}
+                        data-id={o.id}
+                        onClick={(e) => toggleShare(e.currentTarget)}
+                        style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}
                       >
-                        <span 
-                          className="material-symbols-outlined" 
-                          style={{ 
-                            fontSize: '22px',
-                            fontWeight: '400',
-                            fontVariationSettings: '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24',
-                            color: (o.is_bookmarked === 1) ? '#FFD700' : '#6b7280'
-                          }}
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#86868b', transition: 'color 0.15s ease' }}
+                          onMouseEnter={(e) => e.currentTarget.style.color = '#000'}
+                          onMouseLeave={(e) => e.currentTarget.style.color = '#86868b'}
                         >
-                          bookmark
+                          share
                         </span>
                       </button>
                     </div>
+
+                    {/* Bookmark */}
+                    <button
+                      className="btn p-0"
+                      data-id={o.id}
+                      data-title={o.title}
+                      data-type="opp"
+                      data-url={pageLink('op', o.id, o.slug)}
+                      onClick={handleBookmark}
+                      style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}
+                    >
+                      <span
+                        className="material-symbols-outlined"
+                        style={{
+                          fontSize: '18px',
+                          fontVariationSettings: '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24',
+                          color: (o.is_bookmarked === 1) ? '#f97316' : '#86868b',
+                          transition: 'color 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = '#f97316'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = (o.is_bookmarked === 1) ? '#f97316' : '#86868b'}
+                      >
+                        bookmark
+                      </span>
+                    </button>
                   </div>
                 </div>
               </div>

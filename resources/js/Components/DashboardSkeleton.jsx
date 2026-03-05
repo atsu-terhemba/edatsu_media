@@ -1,232 +1,94 @@
 import React from 'react';
+import { Row, Col } from 'react-bootstrap';
 
 const DashboardSkeleton = () => {
     return (
         <>
             {/* Header Skeleton */}
-            <div className='px-4 py-3 rounded my-3' style={{border: '1px solid #dee2e6'}}>
-                <div className='d-flex justify-content-between align-items-center'>
-                    <div 
-                        className="skeleton-loader"
-                        style={{
-                            height: '28px',
-                            width: '200px',
-                            backgroundColor: '#e5e7eb',
-                            borderRadius: '4px'
-                        }}
-                    />
-                    <div 
-                        className="skeleton-loader"
-                        style={{
-                            height: '32px',
-                            width: '80px',
-                            backgroundColor: '#e5e7eb',
-                            borderRadius: '6px'
-                        }}
-                    />
-                </div>
+            <div style={{ paddingBottom: '24px' }}>
+                <div className="skeleton-loader" style={{ height: '28px', width: '220px', borderRadius: '6px', marginBottom: '8px' }} />
+                <div className="skeleton-loader" style={{ height: '16px', width: '300px', borderRadius: '4px' }} />
             </div>
 
-            {/* Expiring Soon Section Skeleton */}
-            <div className='mb-3'>
-                <div className='p-3 rounded' style={{border: '1px solid #dee2e6'}}>
-                    <div 
-                        className="skeleton-loader mb-3"
-                        style={{
-                            height: '24px',
-                            width: '250px',
-                            backgroundColor: '#e5e7eb',
-                            borderRadius: '4px'
-                        }}
-                    />
-                    {[...Array(2)].map((_, index) => (
-                        <div key={index} className='d-flex justify-content-between align-items-center py-2' style={{borderBottom: index === 0 ? '1px solid #dee2e6' : 'none'}}>
-                            <div className='flex-grow-1'>
-                                <div 
-                                    className="skeleton-loader mb-2"
-                                    style={{
-                                        height: '18px',
-                                        width: '60%',
-                                        backgroundColor: '#e5e7eb',
-                                        borderRadius: '4px'
-                                    }}
-                                />
-                                <div 
-                                    className="skeleton-loader"
-                                    style={{
-                                        height: '14px',
-                                        width: '40%',
-                                        backgroundColor: '#e5e7eb',
-                                        borderRadius: '4px'
-                                    }}
-                                />
+            {/* Stats Cards Skeleton */}
+            <Row className="g-3 mb-4">
+                {[0, 1, 2].map((i) => (
+                    <Col md={4} key={i}>
+                        <div style={{
+                            padding: '28px',
+                            borderRadius: '16px',
+                            border: '1px solid #f0f0f0',
+                            background: '#fff',
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <div className="skeleton-loader" style={{ height: '12px', width: '80px', borderRadius: '4px', marginBottom: '10px' }} />
+                                    <div style={{ marginBottom: '10px' }} />
+                                    <div className="skeleton-loader" style={{ height: '32px', width: '48px', borderRadius: '6px' }} />
+                                </div>
+                                <div className="skeleton-loader" style={{ width: '44px', height: '44px', borderRadius: '12px' }} />
                             </div>
-                            <div 
-                                className="skeleton-loader"
-                                style={{
-                                    height: '32px',
-                                    width: '32px',
-                                    backgroundColor: '#e5e7eb',
-                                    borderRadius: '6px'
-                                }}
-                            />
+                            <div className="skeleton-loader" style={{ height: '24px', width: '120px', borderRadius: '9999px', marginTop: '14px' }} />
                         </div>
-                    ))}
-                </div>
-            </div>
+                    </Col>
+                ))}
+            </Row>
 
-            {/* Reminders Section Skeleton */}
-            <div className='mb-3'>
-                <div className='p-3 rounded' style={{border: '1px solid #dee2e6'}}>
-                    <div 
-                        className="skeleton-loader mb-3"
-                        style={{
-                            height: '24px',
-                            width: '200px',
-                            backgroundColor: '#e5e7eb',
-                            borderRadius: '4px'
-                        }}
-                    />
-                    {[...Array(2)].map((_, index) => (
-                        <div key={index} className='d-flex justify-content-between align-items-center py-2' style={{borderBottom: index === 0 ? '1px solid #dee2e6' : 'none'}}>
-                            <div className='flex-grow-1'>
-                                <div 
-                                    className="skeleton-loader mb-2"
-                                    style={{
-                                        height: '18px',
-                                        width: '70%',
-                                        backgroundColor: '#e5e7eb',
-                                        borderRadius: '4px'
-                                    }}
-                                />
-                                <div 
-                                    className="skeleton-loader mb-1"
-                                    style={{
-                                        height: '14px',
-                                        width: '50%',
-                                        backgroundColor: '#e5e7eb',
-                                        borderRadius: '4px'
-                                    }}
-                                />
-                                <div 
-                                    className="skeleton-loader"
-                                    style={{
-                                        height: '14px',
-                                        width: '45%',
-                                        backgroundColor: '#e5e7eb',
-                                        borderRadius: '4px'
-                                    }}
-                                />
-                            </div>
-                            <div 
-                                className="skeleton-loader"
-                                style={{
-                                    height: '32px',
-                                    width: '32px',
-                                    backgroundColor: '#e5e7eb',
-                                    borderRadius: '6px'
-                                }}
-                            />
+            {/* Expiring Section Skeleton */}
+            <div style={{
+                padding: '24px',
+                borderRadius: '16px',
+                border: '1px solid #f0f0f0',
+                marginBottom: '16px',
+            }}>
+                <div className="skeleton-loader" style={{ height: '12px', width: '100px', borderRadius: '4px', marginBottom: '6px' }} />
+                <div style={{ marginBottom: '16px' }} />
+                {[0, 1].map((i) => (
+                    <div key={i} style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '14px 0',
+                        borderBottom: i === 0 ? '1px solid #f5f5f7' : 'none',
+                    }}>
+                        <div style={{ flex: 1 }}>
+                            <div className="skeleton-loader" style={{ height: '16px', width: '60%', borderRadius: '4px', marginBottom: '6px' }} />
+                            <div className="skeleton-loader" style={{ height: '12px', width: '35%', borderRadius: '4px' }} />
                         </div>
-                    ))}
-                </div>
+                        <div className="skeleton-loader" style={{ width: '32px', height: '32px', borderRadius: '9999px', flexShrink: 0, marginLeft: '12px' }} />
+                    </div>
+                ))}
             </div>
 
             {/* Activity Section Skeleton */}
-            <div className='p-3 rounded' style={{border: '1px solid #dee2e6'}}>
-                <div 
-                    className="skeleton-loader mb-3"
-                    style={{
-                        height: '24px',
-                        width: '150px',
-                        backgroundColor: '#e5e7eb',
-                        borderRadius: '4px'
-                    }}
-                />
-                
-                <div className='mb-3 pb-3' style={{borderBottom: '1px solid #dee2e6'}}>
-                    <div className='d-flex justify-content-between align-items-center mb-2'>
-                        <div className='d-flex align-items-center gap-2'>
-                            <div 
-                                className="skeleton-loader"
-                                style={{
-                                    height: '32px',
-                                    width: '32px',
-                                    backgroundColor: '#e5e7eb',
-                                    borderRadius: '4px'
-                                }}
-                            />
-                            <div 
-                                className="skeleton-loader"
-                                style={{
-                                    height: '32px',
-                                    width: '40px',
-                                    backgroundColor: '#e5e7eb',
-                                    borderRadius: '4px'
-                                }}
-                            />
+            <div style={{
+                padding: '24px',
+                borderRadius: '16px',
+                border: '1px solid #f0f0f0',
+                marginBottom: '32px',
+            }}>
+                <div className="skeleton-loader" style={{ height: '12px', width: '90px', borderRadius: '4px', marginBottom: '6px' }} />
+                <div style={{ marginBottom: '16px' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div className="skeleton-loader" style={{ width: '44px', height: '44px', borderRadius: '12px' }} />
+                        <div>
+                            <div className="skeleton-loader" style={{ height: '24px', width: '40px', borderRadius: '4px', marginBottom: '4px' }} />
+                            <div className="skeleton-loader" style={{ height: '12px', width: '140px', borderRadius: '4px' }} />
                         </div>
-                        <div 
-                            className="skeleton-loader"
-                            style={{
-                                height: '32px',
-                                width: '80px',
-                                backgroundColor: '#e5e7eb',
-                                borderRadius: '6px'
-                            }}
-                        />
                     </div>
-                    <div 
-                        className="skeleton-loader"
-                        style={{
-                            height: '14px',
-                            width: '180px',
-                            backgroundColor: '#e5e7eb',
-                            borderRadius: '4px'
-                        }}
-                    />
-                </div>
-                
-                <div>
-                    <div 
-                        className="skeleton-loader mb-2"
-                        style={{
-                            height: '14px',
-                            width: '250px',
-                            backgroundColor: '#e5e7eb',
-                            borderRadius: '4px'
-                        }}
-                    />
-                    <div 
-                        className="skeleton-loader"
-                        style={{
-                            height: '14px',
-                            width: '200px',
-                            backgroundColor: '#e5e7eb',
-                            borderRadius: '4px'
-                        }}
-                    />
+                    <div className="skeleton-loader" style={{ height: '36px', width: '90px', borderRadius: '9999px' }} />
                 </div>
             </div>
 
-            <style jsx>{`
+            <style>{`
                 @keyframes shimmer {
-                    0% {
-                        background-position: -1000px 0;
-                    }
-                    100% {
-                        background-position: 1000px 0;
-                    }
+                    0% { background-position: -1000px 0; }
+                    100% { background-position: 1000px 0; }
                 }
-                
                 .skeleton-loader {
                     animation: shimmer 2s infinite linear;
-                    background: linear-gradient(
-                        to right,
-                        #e5e7eb 0%,
-                        #f3f4f6 50%,
-                        #e5e7eb 100%
-                    );
+                    background: linear-gradient(to right, #f0f0f0 0%, #f8f8f8 50%, #f0f0f0 100%);
                     background-size: 1000px 100%;
                 }
             `}</style>

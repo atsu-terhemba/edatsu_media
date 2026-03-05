@@ -22,6 +22,7 @@ use App\Models\Tag;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use App\Notifications\ReminderNotification;
+use App\Models\PushSubscription;
 
 class SubscriberController extends Controller
 {
@@ -150,6 +151,90 @@ class SubscriberController extends Controller
         return Inertia::render('Subscriber/BookmarkedOpportunities', [
             'opportunities' => $opportunities
         ]);
+    }
+
+    function exportBookmarkedOpportunities(){
+        $user_id = Auth::user()->id;
+
+        $bookmarks = Bookmark::with('opportunity')
+            ->where('user_id', $user_id)
+            ->where('removed', 0)
+            ->where('post_type', 'opp')
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="bookmarked_opportunities_' . date('Y-m-d') . '.csv"',
+        ];
+
+        $callback = function() use ($bookmarks) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Title', 'Deadline', 'Status', 'Saved On', 'Reminder', 'URL']);
+
+            foreach ($bookmarks as $bookmark) {
+                $opp = $bookmark->opportunity;
+                if (!$opp) continue;
+
+                $deadline = $opp->deadline ? \Carbon\Carbon::parse($opp->deadline) : null;
+                $now = now()->startOfDay();
+                $status = 'Unknown';
+                if ($deadline) {
+                    $diff = $now->diffInDays($deadline, false);
+                    if ($diff < 0) $status = 'Expired';
+                    elseif ($diff <= 7) $status = 'Expiring Soon';
+                    else $status = 'Active';
+                }
+
+                fputcsv($file, [
+                    $opp->title,
+                    $deadline ? $deadline->format('M d, Y') : 'N/A',
+                    $status,
+                    \Carbon\Carbon::parse($bookmark->created_at)->format('M d, Y'),
+                    $bookmark->reminder_date ? \Carbon\Carbon::parse($bookmark->reminder_date)->format('M d, Y H:i') : 'None',
+                    url("/op/{$opp->id}/{$opp->slug}"),
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    function exportBookmarkedTools(){
+        $user_id = Auth::user()->id;
+
+        $bookmarks = Bookmark::with('product')
+            ->where('user_id', $user_id)
+            ->where('removed', 0)
+            ->where('post_type', 'tool')
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="bookmarked_tools_' . date('Y-m-d') . '.csv"',
+        ];
+
+        $callback = function() use ($bookmarks) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Name', 'Rating', 'Saved On', 'URL']);
+
+            foreach ($bookmarks as $bookmark) {
+                $product = $bookmark->product;
+                if (!$product) continue;
+
+                fputcsv($file, [
+                    $product->product_name,
+                    $product->ratings ? $product->ratings . '/5' : 'Unrated',
+                    \Carbon\Carbon::parse($bookmark->created_at)->format('M d, Y'),
+                    url("/product/{$product->id}/{$product->slug}"),
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     function bookmarkedTools(){
@@ -375,6 +460,18 @@ class SubscriberController extends Controller
             }
         }
 
+        public function removeBookmarksBulk(Request $request){
+            $ids = $request->input('ids', []);
+            $user_id = Auth::user()->id;
+            $count = Bookmark::whereIn('id', $ids)
+                ->where('user_id', $user_id)
+                ->update(['removed' => 1]);
+            if($count > 0){
+                return response()->json(['status' => 'success', 'message' => $count . ' bookmark(s) removed']);
+            }
+            return response()->json(['status' => 'error', 'message' => 'No bookmarks removed']);
+        }
+
         /**
          * Get dashboard statistics via API
          */
@@ -446,6 +543,10 @@ class SubscriberController extends Controller
                 $query->where('is_read', false);
             } elseif ($filter === 'read') {
                 $query->where('is_read', true);
+            }
+
+            if ($request->has('limit')) {
+                $query->limit((int) $request->get('limit'));
             }
 
             $notifications = $query->get();
@@ -721,10 +822,51 @@ class SubscriberController extends Controller
             ]);
 
             return response()->json([
-                'status' => 'success', 
+                'status' => 'success',
                 'message' => 'Reminder removed successfully'
             ]);
         }
 
+        public function subscribePush(Request $request)
+        {
+            $validator = Validator::make($request->all(), [
+                'endpoint' => 'required|url',
+                'keys.p256dh' => 'required|string',
+                'keys.auth' => 'required|string',
+            ]);
 
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            $userId = Auth::user()->id;
+
+            PushSubscription::updateOrCreate(
+                ['endpoint' => $request->endpoint, 'user_id' => $userId],
+                [
+                    'p256dh_key' => $request->input('keys.p256dh'),
+                    'auth_token' => $request->input('keys.auth'),
+                    'content_encoding' => $request->input('content_encoding', 'aesgcm'),
+                ]
+            );
+
+            return response()->json(['status' => 'success']);
+        }
+
+        public function unsubscribePush(Request $request)
+        {
+            $validator = Validator::make($request->all(), [
+                'endpoint' => 'required|url',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            PushSubscription::where('user_id', Auth::user()->id)
+                ->where('endpoint', $request->endpoint)
+                ->delete();
+
+            return response()->json(['status' => 'success']);
+        }
 }

@@ -1,6 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import '../../../css/custom-badges.css';
-import { Container, Row, Col, Button, Card, Spinner, Alert } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 import { Head } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import SubscriberSideNav from './Components/SideNav';
@@ -9,10 +8,109 @@ import axios from 'axios';
 import Footer from '@/Components/Footer';
 import DashboardSkeleton from '@/Components/DashboardSkeleton';
 
+// Eyebrow + orange bar pattern
+function SectionEyebrow({ text }) {
+    return (
+        <div style={{ marginBottom: '16px' }}>
+            <span style={{
+                fontSize: '11px',
+                fontWeight: 500,
+                textTransform: 'uppercase',
+                letterSpacing: '0.15em',
+                color: '#86868b',
+            }}>
+                {text}
+            </span>
+        </div>
+    );
+}
+
+// Stat card component
+function StatCard({ label, value, icon, badge }) {
+    const [hovered, setHovered] = useState(false);
+
+    return (
+        <Col md={4}>
+            <div
+                onMouseEnter={() => setHovered(true)}
+                onMouseLeave={() => setHovered(false)}
+                style={{
+                    padding: '28px',
+                    borderRadius: '16px',
+                    background: '#fff',
+                    border: `1px solid ${hovered ? '#e0e0e0' : '#f0f0f0'}`,
+                    height: '100%',
+                    transition: 'all 0.3s ease',
+                    transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
+                    boxShadow: hovered ? '0 8px 30px rgba(0,0,0,0.06)' : 'none',
+                }}
+            >
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <div>
+                        <span style={{
+                            fontSize: '11px',
+                            fontWeight: 500,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.15em',
+                            color: '#86868b',
+                            display: 'block',
+                        }}>
+                            {label}
+                        </span>
+                        <span style={{
+                            marginTop: '10px',
+                            fontSize: '32px',
+                            fontWeight: 600,
+                            color: '#000',
+                            lineHeight: 1,
+                        }}>
+                            {value}
+                        </span>
+                    </div>
+                    <span style={{
+                        width: '44px',
+                        height: '44px',
+                        borderRadius: '50%',
+                        background: '#f5f5f7',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'transform 0.3s ease',
+                        transform: hovered ? 'scale(1.08)' : 'scale(1)',
+                    }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#000' }}>
+                            {icon}
+                        </span>
+                    </span>
+                </div>
+                {badge && (
+                    <div style={{ marginTop: '14px' }}>
+                        <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '12px',
+                            fontWeight: 500,
+                            color: '#86868b',
+                            background: '#f5f5f7',
+                            padding: '4px 10px',
+                            borderRadius: '9999px',
+                        }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>{badge.icon}</span>
+                            {badge.text}
+                        </span>
+                    </div>
+                )}
+            </div>
+        </Col>
+    );
+}
+
 export default function Dashboard() {
     const [subscriberData, setSubscriberData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [refreshHovered, setRefreshHovered] = useState(false);
 
     useEffect(() => {
         fetchSubscriberDetails();
@@ -21,9 +119,9 @@ export default function Dashboard() {
     const fetchSubscriberDetails = async () => {
         try {
             setLoading(true);
-            setError(null); // Reset error state
+            setError(null);
             const response = await axios.get('/api/subscriber/details');
-            
+
             if (response.data.success) {
                 setSubscriberData(response.data.data);
             } else {
@@ -45,17 +143,16 @@ export default function Dashboard() {
         }
     };
 
+    // Loading state
     if (loading) {
         return (
             <AuthenticatedLayout>
                 <Head title="Dashboard" />
                 <Container fluid={true}>
                     <Container>
-                        <Row className="g-4">
+                        <Row className="g-4" style={{ paddingTop: '80px' }}>
                             <Col md={3} className="d-none d-md-block">
-                                <div className='my-3 fs-9' style={{position: 'sticky', top: '20px'}}>
-                                    <SubscriberSideNav/>
-                                </div>
+                                <SubscriberSideNav />
                             </Col>
                             <Col md={9} xs={12}>
                                 <DashboardSkeleton />
@@ -67,29 +164,52 @@ export default function Dashboard() {
         );
     }
 
+    // Error state
     if (error) {
         return (
             <AuthenticatedLayout>
                 <Head title="Dashboard" />
                 <Container fluid={true}>
                     <Container>
-                        <Row className="g-4">
+                        <Row className="g-4" style={{ paddingTop: '80px' }}>
                             <Col md={3} className="d-none d-md-block">
-                                <div className='my-3 fs-9' style={{position: 'sticky', top: '20px'}}>
-                                    <SubscriberSideNav/>
-                                </div>
+                                <SubscriberSideNav />
                             </Col>
                             <Col md={9} xs={12}>
-                                <div className='py-3 rounded my-3' style={{border: '1px solid #dee2e6'}}>
-                                    <h4 className='m-0' style={{fontWeight: 'normal'}}>Dashboard</h4>
-                                </div>
-                                <Alert variant="danger" className="text-center">
-                                    <Alert.Heading>Oops! Something went wrong</Alert.Heading>
-                                    <p>{error}</p>
-                                    <Button variant="outline-danger" onClick={fetchSubscriberDetails}>
+                                <div style={{ padding: '16px 24px', textAlign: 'center' }}>
+                                    <span className="material-symbols-outlined" style={{
+                                        fontSize: '48px',
+                                        color: '#86868b',
+                                        marginBottom: '16px',
+                                        display: 'block',
+                                    }}>
+                                        error_outline
+                                    </span>
+                                    <h3 style={{ fontSize: '20px', fontWeight: 600, color: '#000', marginBottom: '8px' }}>
+                                        Something went wrong
+                                    </h3>
+                                    <p style={{ fontSize: '14px', color: '#86868b', marginBottom: '24px', maxWidth: '400px', margin: '0 auto 24px' }}>
+                                        {error}
+                                    </p>
+                                    <button
+                                        onClick={fetchSubscriberDetails}
+                                        style={{
+                                            padding: '10px 32px',
+                                            borderRadius: '9999px',
+                                            fontSize: '14px',
+                                            fontWeight: 500,
+                                            background: '#000',
+                                            color: '#fff',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            transition: 'background 0.15s ease',
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = '#333'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = '#000'}
+                                    >
                                         Try Again
-                                    </Button>
-                                </Alert>
+                                    </button>
+                                </div>
                             </Col>
                         </Row>
                     </Container>
@@ -104,176 +224,281 @@ export default function Dashboard() {
 
             <Container fluid={true}>
                 <Container>
-                    <Row className="g-4">
+                    <Row className="g-4" style={{ paddingTop: '80px' }}>
+                        {/* Sidebar */}
                         <Col md={3} className="d-none d-md-block">
-                            <div className='my-3 fs-9' style={{position: 'sticky', top: '20px'}}>
-                                <SubscriberSideNav/>
-                            </div>
+                            <SubscriberSideNav />
                         </Col>
+
+                        {/* Main Content */}
                         <Col md={9} xs={12}>
                             {/* Header */}
-                            <div className='py-3 px-3 rounded my-3' style={{border: '1px solid #dee2e6'}}>
-                                <div className='d-flex justify-content-between align-items-center'>
-                                    <h4 className='m-0 p-0 fw-bold'>
-                                        Hi, <Link href={route('profile.edit')} className='text-decoration-none text-dark'>{subscriberData?.user?.name}</Link>!
-                                    </h4>
-                                    <Button 
-                                        variant="outline-secondary" 
-                                        size="sm"
+                            <div style={{ paddingBottom: '24px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div>
+                                        <h1 style={{
+                                            fontSize: '28px',
+                                            fontWeight: 600,
+                                            color: '#000',
+                                            margin: 0,
+                                            letterSpacing: '-0.01em',
+                                        }}>
+                                            Hi, <Link href={route('profile.edit')} style={{ textDecoration: 'none', color: '#000' }}>
+                                                {subscriberData?.user?.name}
+                                            </Link>
+                                        </h1>
+                                        <p style={{ fontSize: '14px', color: '#86868b', margin: '6px 0 0' }}>
+                                            Here's what's happening with your opportunities
+                                        </p>
+                                    </div>
+                                    <button
                                         onClick={fetchSubscriberDetails}
                                         disabled={loading}
-                                        style={{borderRadius: '6px'}}
+                                        onMouseEnter={() => setRefreshHovered(true)}
+                                        onMouseLeave={() => setRefreshHovered(false)}
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            padding: '8px 20px',
+                                            borderRadius: '9999px',
+                                            fontSize: '13px',
+                                            fontWeight: 500,
+                                            background: refreshHovered ? '#000' : '#fff',
+                                            color: refreshHovered ? '#fff' : '#000',
+                                            border: '1px solid #e0e0e0',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.15s ease',
+                                        }}
                                     >
-                                        <span className={`material-symbols-outlined${loading ? ' spin' : ''} me-1`} style={{fontSize: '16px', verticalAlign: 'middle'}}>refresh</span>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                                            refresh
+                                        </span>
                                         Refresh
-                                    </Button>
+                                    </button>
                                 </div>
                             </div>
 
                             {/* Stats Cards */}
-                            <Row className='mb-3 g-3'>
-                                <Col md={4}>
-                                    <div className='p-3 rounded h-100' style={{border: '1px solid #dee2e6', minHeight: '120px'}}>
-                                        <div className='d-flex align-items-start justify-content-between'>
-                                            <div>
-                                                <small className='text-muted d-block mb-1'>
-                                                    Upcoming Opportunities
-                                                </small>
-                                                <h2 className='mb-0'>{subscriberData?.stats?.upcomingOpportunities || 0}</h2>
-                                            </div>
-                                            <span className='material-symbols-outlined text-primary' style={{fontSize: '1.5rem'}}>event</span>
-                                        </div>
-                                        {subscriberData?.stats?.upcomingOpportunities > 0 && (
-                                            <div className='mt-2'>
-                                                <span className='upcoming-badge'>
-                                                    <span className='material-symbols-outlined'>event_upcoming</span>
-                                                    Upcoming & Expiring
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </Col>
-                                <Col md={4}>
-                                    <div className='p-3 rounded h-100' style={{border: '1px solid #dee2e6', minHeight: '120px'}}>
-                                        <div className='d-flex align-items-start justify-content-between'>
-                                            <div>
-                                                <small className='text-muted d-block mb-1'>
-                                                    This Month
-                                                </small>
-                                                <h2 className='mb-0'>{subscriberData?.stats?.monthlyBookmarks || 0}</h2>
-                                            </div>
-                                            <span className='material-symbols-outlined text-success' style={{fontSize: '1.5rem'}}>monitoring</span>
-                                        </div>
-                                        <small className='text-muted d-block mt-2'>
-                                            New bookmarks added
-                                        </small>
-                                    </div>
-                                </Col>
-                                <Col md={4}>
-                                    <div className='p-3 rounded h-100' style={{border: '1px solid #dee2e6', minHeight: '120px'}}>
-                                        <div className='d-flex align-items-start justify-content-between'>
-                                            <div>
-                                                <small className='text-muted d-block mb-1'>
-                                                    Active Reminders
-                                                </small>
-                                                <h2 className='mb-0'>{subscriberData?.upcomingReminders?.length || 0}</h2>
-                                            </div>
-                                            <span className='material-symbols-outlined text-warning' style={{fontSize: '1.5rem'}}>notifications</span>
-                                        </div>
-                                        <small className='text-muted d-block mt-2'>
-                                            Upcoming notifications
-                                        </small>
-                                    </div>
-                                </Col>
+                            <Row className="g-3 mb-4">
+                                <StatCard
+                                    label="Upcoming"
+                                    value={subscriberData?.stats?.upcomingOpportunities || 0}
+                                    icon="event"
+                                    badge={subscriberData?.stats?.upcomingOpportunities > 0 ? {
+                                        icon: 'schedule',
+                                        text: 'With deadlines',
+                                    } : null}
+                                />
+                                <StatCard
+                                    label="Saved"
+                                    value={subscriberData?.stats?.totalBookmarks || 0}
+                                    icon="bookmark"
+                                    badge={null}
+                                />
+                                <StatCard
+                                    label="Reminders"
+                                    value={subscriberData?.upcomingReminders?.length || 0}
+                                    icon="notifications_active"
+                                    badge={subscriberData?.upcomingReminders?.length > 0 ? {
+                                        icon: 'alarm',
+                                        text: 'Active',
+                                    } : null}
+                                />
                             </Row>
 
                             {/* Expiring Soon Opportunities */}
                             {subscriberData?.expiringSoonOpportunities?.length > 0 && (
-                                <div className='mb-3'>
-                                    <div className='p-3 rounded' style={{border: '1px solid #dee2e6'}}>
-                                        <h6 className='mb-3 fw-bold' style={{color: '#dc3545', fontSize: '0.9em'}}>
-                                            Opportunities Expiring Soon
-                                        </h6>
-                                        {subscriberData.expiringSoonOpportunities.slice(0, 3).map((opportunity, index) => (
-                                            <div 
-                                                key={opportunity.id} 
-                                                className='d-flex justify-content-between align-items-center py-2'
-                                                style={{borderBottom: index < subscriberData.expiringSoonOpportunities.slice(0, 3).length - 1 ? '1px solid #dee2e6' : 'none'}}
-                                            >
-                                                <div>
-                                                    <div className='text-truncate'>{opportunity.title}</div>
-                                                    <small className='d-block text-muted'>
-                                                        Deadline: {new Date(opportunity.deadline).toLocaleDateString()}
-                                                    </small>
+                                <div style={{
+                                    padding: '24px',
+                                    borderRadius: '16px',
+                                    border: '1px solid #f0f0f0',
+                                    background: '#fff',
+                                    marginBottom: '16px',
+                                }}>
+                                    <SectionEyebrow text="Expiring Soon" />
+                                    {subscriberData.expiringSoonOpportunities.slice(0, 3).map((opportunity, index) => (
+                                        <div
+                                            key={opportunity.id}
+                                            style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                padding: '14px 0',
+                                                borderBottom: index < subscriberData.expiringSoonOpportunities.slice(0, 3).length - 1 ? '1px solid #f5f5f7' : 'none',
+                                            }}
+                                        >
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <div style={{
+                                                    fontSize: '14px',
+                                                    fontWeight: 500,
+                                                    color: '#000',
+                                                    whiteSpace: 'nowrap',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                }}>
+                                                    {opportunity.title}
                                                 </div>
-                                                <Link
-                                                    href={`/op/${opportunity.id}/${opportunity.slug}`}
-                                                    className='btn btn-sm btn-outline-secondary'
-                                                    style={{borderRadius: '6px'}}
-                                                >
-                                                    <span className='material-symbols-outlined' style={{fontSize: '16px'}}>arrow_forward</span>
-                                                </Link>
+                                                <span style={{ fontSize: '12px', color: '#86868b' }}>
+                                                    Deadline: {new Date(opportunity.deadline).toLocaleDateString()}
+                                                </span>
                                             </div>
-                                        ))}
-                                    </div>
+                                            <Link
+                                                href={`/op/${opportunity.id}/${opportunity.slug}`}
+                                                style={{
+                                                    width: '32px',
+                                                    height: '32px',
+                                                    borderRadius: '9999px',
+                                                    background: '#000',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    flexShrink: 0,
+                                                    marginLeft: '12px',
+                                                    transition: 'background 0.15s ease',
+                                                }}
+                                            >
+                                                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#fff' }}>
+                                                    arrow_forward
+                                                </span>
+                                            </Link>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
 
-
-
                             {/* Upcoming Reminders */}
                             {subscriberData?.upcomingReminders?.length > 0 && (
-                                <div className='mb-3'>
-                                    <div className='p-3 rounded' style={{border: '1px solid #dee2e6'}}>
-                                        <h6 className='mb-3' style={{color: '#0d6efd', fontWeight: 'normal'}}>
-                                            Upcoming Reminders
-                                        </h6>
-                                        {subscriberData.upcomingReminders.map((bookmark, index) => (
-                                            <div 
-                                                key={bookmark.id} 
-                                                className='d-flex justify-content-between align-items-center py-2'
-                                                style={{borderBottom: index < subscriberData.upcomingReminders.length - 1 ? '1px solid #dee2e6' : 'none'}}
-                                            >
-                                                <div className='flex-grow-1'>
-                                                    <div className='d-block'>{bookmark.opportunity?.title}</div>
-                                                    <small className='text-muted d-block'>
-                                                        <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>event_available</span>
-                                                        Reminder: {new Date(bookmark.reminder_date).toLocaleDateString()} at {new Date(bookmark.reminder_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                                    </small>
-                                                    <small className='text-danger d-block'>
-                                                        <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>alarm</span>
-                                                        Deadline: {new Date(bookmark.opportunity?.deadline).toLocaleDateString()}
-                                                    </small>
+                                <div style={{
+                                    padding: '24px',
+                                    borderRadius: '16px',
+                                    border: '1px solid #f0f0f0',
+                                    background: '#fff',
+                                    marginBottom: '16px',
+                                }}>
+                                    <SectionEyebrow text="Upcoming Reminders" />
+                                    {subscriberData.upcomingReminders.map((bookmark, index) => (
+                                        <div
+                                            key={bookmark.id}
+                                            style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                padding: '14px 0',
+                                                borderBottom: index < subscriberData.upcomingReminders.length - 1 ? '1px solid #f5f5f7' : 'none',
+                                            }}
+                                        >
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <div style={{
+                                                    fontSize: '14px',
+                                                    fontWeight: 500,
+                                                    color: '#000',
+                                                }}>
+                                                    {bookmark.opportunity?.title}
                                                 </div>
-                                                <Link 
-                                                    href={`/op/${bookmark.opportunity?.id}/${bookmark.opportunity?.slug}`}
-                                                    className='btn btn-sm btn-outline-secondary ms-2'
-                                                    style={{borderRadius: '6px'}}
-                                                >
-                                                    <span className='material-symbols-outlined' style={{fontSize: '16px'}}>arrow_forward</span>
-                                                </Link>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
+                                                    <span style={{ fontSize: '12px', color: '#86868b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>event_available</span>
+                                                        Reminder: {new Date(bookmark.reminder_date).toLocaleDateString()} at {new Date(bookmark.reminder_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </span>
+                                                    <span style={{ fontSize: '12px', color: '#f97316', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>alarm</span>
+                                                        Deadline: {new Date(bookmark.opportunity?.deadline).toLocaleDateString()}
+                                                    </span>
+                                                </div>
                                             </div>
-                                        ))}
-                                    </div>
+                                            <Link
+                                                href={`/op/${bookmark.opportunity?.id}/${bookmark.opportunity?.slug}`}
+                                                style={{
+                                                    width: '32px',
+                                                    height: '32px',
+                                                    borderRadius: '9999px',
+                                                    background: '#000',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    flexShrink: 0,
+                                                    marginLeft: '12px',
+                                                    transition: 'background 0.15s ease',
+                                                }}
+                                            >
+                                                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#fff' }}>
+                                                    arrow_forward
+                                                </span>
+                                            </Link>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
 
                             {/* Activity Summary */}
-                            <div className='p-3 rounded' style={{border: '1px solid #dee2e6'}}>
-                                <h6 className='mb-3' style={{fontWeight: 'normal'}}>Your Activity</h6>
-                                
-                                <div className='mb-3'>
-                                    <div className='d-flex justify-content-between align-items-center mb-2'>
+                            <div style={{
+                                padding: '24px',
+                                borderRadius: '16px',
+                                border: '1px solid #f0f0f0',
+                                background: '#fff',
+                                marginBottom: '32px',
+                            }}>
+                                <SectionEyebrow text="Your Activity" />
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <span style={{
+                                            width: '44px',
+                                            height: '44px',
+                                            borderRadius: '50%',
+                                            background: '#f5f5f7',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#000' }}>
+                                                event
+                                            </span>
+                                        </span>
                                         <div>
-                                            <span className='material-symbols-outlined text-primary me-2' style={{fontSize: '1.5rem', verticalAlign: 'middle'}}>event</span>
-                                            <span className='h4 mb-0'>{subscriberData?.stats?.upcomingOpportunities || 0}</span>
+                                            <span style={{ fontSize: '24px', fontWeight: 600, color: '#000' }}>
+                                                {subscriberData?.stats?.upcomingOpportunities || 0}
+                                            </span>
+                                            <span style={{ display: 'block', fontSize: '12px', color: '#86868b' }}>
+                                                Upcoming Opportunities
+                                            </span>
                                         </div>
-                                        <Link href={route('subscriber.bookmarked_opportunities')} className='btn btn-outline-secondary btn-sm' style={{borderRadius: '6px'}}>
-                                            View All
-                                            <span className='material-symbols-outlined ms-1' style={{fontSize: '16px', verticalAlign: 'middle'}}>arrow_forward</span>
-                                        </Link>
                                     </div>
-                                    <small className='text-muted'>Upcoming Opportunities</small>
+                                    <Link
+                                        href={route('subscriber.bookmarked_opportunities')}
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                            padding: '8px 20px',
+                                            borderRadius: '9999px',
+                                            fontSize: '13px',
+                                            fontWeight: 500,
+                                            color: '#000',
+                                            border: '1px solid #e0e0e0',
+                                            textDecoration: 'none',
+                                            transition: 'all 0.15s ease',
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = '#000';
+                                            e.currentTarget.style.color = '#fff';
+                                            e.currentTarget.style.borderColor = '#000';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'transparent';
+                                            e.currentTarget.style.color = '#000';
+                                            e.currentTarget.style.borderColor = '#e0e0e0';
+                                        }}
+                                    >
+                                        View All
+                                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                                            arrow_forward
+                                        </span>
+                                    </Link>
                                 </div>
                             </div>
                         </Col>

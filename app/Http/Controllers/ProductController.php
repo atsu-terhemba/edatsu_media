@@ -1437,7 +1437,290 @@ public function store(Request $request)
         ]);
     }
 
-   
+    /**
+     * Show the bulk upload page
+     */
+    /**
+     * Soft delete a product
+     */
+    public function destroy($id)
+    {
+        try {
+            $product = Product::findOrFail($id);
+            $product->deleted = 1;
+            $product->deleted_at = now();
+            $product->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Product deleted successfully',
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error deleting product: " . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to delete product',
+            ], 500);
+        }
+    }
+
+    public function showBulkUpload()
+    {
+        return Inertia::render('Admin/BulkUploadProduct');
+    }
+
+    /**
+     * Download Excel template for bulk product upload
+     */
+    public function downloadTemplate()
+    {
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Products Template');
+
+        // Headers
+        $headers = ['title', 'description', 'direct_link', 'youtube_link', 'categories', 'tags', 'brand_labels', 'meta_keywords', 'meta_description'];
+        foreach ($headers as $col => $header) {
+            $cell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col + 1) . '1';
+            $sheet->setCellValue($cell, $header);
+            $sheet->getStyle($cell)->getFont()->setBold(true);
+        }
+
+        // Auto-size columns
+        foreach (range('A', 'I') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Example row
+        $sheet->setCellValue('A2', 'Example Product Title');
+        $sheet->setCellValue('B2', 'A detailed product description goes here.');
+        $sheet->setCellValue('C2', 'https://example.com/product');
+        $sheet->setCellValue('D2', 'https://www.youtube.com/watch?v=example');
+        $sheet->setCellValue('E2', 'Category One, Category Two');
+        $sheet->setCellValue('F2', 'tag1, tag2');
+        $sheet->setCellValue('G2', 'Brand A, Brand B');
+        $sheet->setCellValue('H2', 'product, tool, software');
+        $sheet->setCellValue('I2', 'Meta description for SEO');
+
+        // Style example row as italic/gray
+        $sheet->getStyle('A2:I2')->getFont()->setItalic(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FF888888'));
+
+        // Add instructions sheet
+        $instructions = $spreadsheet->createSheet();
+        $instructions->setTitle('Instructions');
+        $instructions->setCellValue('A1', 'Bulk Product Upload Instructions');
+        $instructions->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $instructions->setCellValue('A3', 'Required columns:');
+        $instructions->getStyle('A3')->getFont()->setBold(true);
+        $instructions->setCellValue('A4', '- title: Product name (required)');
+        $instructions->setCellValue('A5', '- description: Product description (required)');
+        $instructions->setCellValue('A7', 'Optional columns:');
+        $instructions->getStyle('A7')->getFont()->setBold(true);
+        $instructions->setCellValue('A8', '- direct_link: Direct URL to the product');
+        $instructions->setCellValue('A9', '- youtube_link: YouTube video URL (auto-converted to embed format)');
+        $instructions->setCellValue('A10', '- categories: Comma-separated category names (must match existing categories)');
+        $instructions->setCellValue('A11', '- tags: Comma-separated tag names (must match existing tags)');
+        $instructions->setCellValue('A12', '- brand_labels: Comma-separated brand label names (must match existing labels)');
+        $instructions->setCellValue('A13', '- meta_keywords: SEO keywords');
+        $instructions->setCellValue('A14', '- meta_description: SEO description');
+        $instructions->setCellValue('A16', 'Notes:');
+        $instructions->getStyle('A16')->getFont()->setBold(true);
+        $instructions->setCellValue('A17', '- Delete the example row (row 2) before uploading');
+        $instructions->setCellValue('A18', '- Category, tag, and brand label names are matched case-insensitively');
+        $instructions->setCellValue('A19', '- Unmatched category/tag/brand names will be skipped (product still created)');
+        $instructions->getColumnDimension('A')->setWidth(80);
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+        $fileName = 'product_upload_template.xlsx';
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx');
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save($tempFile);
+
+        return response()->download($tempFile, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Bulk store products from Excel upload
+     */
+    public function bulkStore(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls|max:10240',
+        ]);
+
+        try {
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($request->file('file')->getPathname());
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray(null, true, true, true);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not read the Excel file. Please ensure it is a valid .xlsx file.',
+            ], 422);
+        }
+
+        if (count($rows) < 2) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The file appears to be empty. Please add product data below the header row.',
+            ], 422);
+        }
+
+        // Parse headers from first row
+        $headerRow = array_shift($rows);
+        $headers = array_map(function ($h) {
+            return strtolower(trim($h ?? ''));
+        }, $headerRow);
+
+        $requiredHeaders = ['title', 'description'];
+        foreach ($requiredHeaders as $req) {
+            if (!in_array($req, $headers)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Missing required column: {$req}. Please use the provided template.",
+                ], 422);
+            }
+        }
+
+        // Build column index map (letter -> header name)
+        $colMap = [];
+        foreach ($headers as $letter => $name) {
+            if ($name) $colMap[$name] = $letter;
+        }
+
+        // Preload taxonomy lookups (case-insensitive)
+        $allCategories = ProductCategory::where('deleted', 0)->get()->keyBy(fn($c) => strtolower($c->name));
+        $allTags = Tag::where('deleted', 0)->get()->keyBy(fn($t) => strtolower($t->name));
+        $allBrandLabels = BrandLabel::where('deleted', 0)->get()->keyBy(fn($b) => strtolower($b->name));
+
+        $created = 0;
+        $errors = [];
+        $userId = Auth::id();
+        $userRole = Auth::user()->role;
+
+        DB::beginTransaction();
+        try {
+            $rowNum = 1; // data row counter (excluding header)
+            foreach ($rows as $row) {
+                $rowNum++;
+                $title = trim($row[$colMap['title'] ?? ''] ?? '');
+                $description = trim($row[$colMap['description'] ?? ''] ?? '');
+
+                // Skip completely empty rows
+                if (empty($title) && empty($description)) {
+                    continue;
+                }
+
+                if (empty($title)) {
+                    $errors[] = "Row {$rowNum}: Title is required.";
+                    continue;
+                }
+                if (empty($description)) {
+                    $errors[] = "Row {$rowNum}: Description is required.";
+                    continue;
+                }
+
+                // Check for duplicate slug
+                $slug = $this->createSlug($title);
+                if (Product::where('slug', $slug)->exists()) {
+                    $slug = $slug . '-' . uniqid();
+                }
+
+                $product = new Product();
+                $product->u_id = $userId;
+                $product->user_role = $userRole;
+                $product->product_name = $title;
+                $product->product_description = $description;
+                $product->slug = $slug;
+                $product->direct_link = trim($row[$colMap['direct_link'] ?? ''] ?? '') ?: null;
+
+                // Convert YouTube URL
+                $ytLink = trim($row[$colMap['youtube_link'] ?? ''] ?? '');
+                if ($ytLink) {
+                    if (str_contains($ytLink, 'watch?v=')) {
+                        $ytLink = str_replace('watch?v=', 'embed/', $ytLink);
+                    } elseif (str_contains($ytLink, 'youtu.be/')) {
+                        $ytLink = str_replace('youtu.be/', 'youtube.com/embed/', $ytLink);
+                    }
+                }
+                $product->youtube_link = $ytLink ?: null;
+                $product->meta_keywords = trim($row[$colMap['meta_keywords'] ?? ''] ?? '') ?: null;
+                $product->meta_description = trim($row[$colMap['meta_description'] ?? ''] ?? '') ?: null;
+                $product->save();
+
+                $postId = $product->id;
+
+                // Process categories
+                $this->bulkInsertTaxonomy(
+                    $row[$colMap['categories'] ?? ''] ?? '',
+                    $allCategories, 'category_selections', 'category_id', $postId, $userId
+                );
+
+                // Process tags
+                $this->bulkInsertTaxonomy(
+                    $row[$colMap['tags'] ?? ''] ?? '',
+                    $allTags, 'tags_selections', 'tag_id', $postId, $userId
+                );
+
+                // Process brand labels
+                $this->bulkInsertTaxonomy(
+                    $row[$colMap['brand_labels'] ?? ''] ?? '',
+                    $allBrandLabels, 'brand_labels_selections', 'brand_label_id', $postId, $userId
+                );
+
+                $created++;
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Bulk product upload error: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred during import. No products were created.',
+                'errors' => [$e->getMessage()],
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$created} product(s) created successfully.",
+            'created' => $created,
+            'errors' => $errors,
+        ]);
+    }
+
+    /**
+     * Helper: insert taxonomy relations from comma-separated names
+     */
+    private function bulkInsertTaxonomy($namesStr, $lookup, $table, $columnName, $postId, $userId)
+    {
+        if (empty($namesStr)) return;
+
+        $names = array_filter(array_map('trim', explode(',', $namesStr)));
+        $insertData = [];
+
+        foreach ($names as $name) {
+            $key = strtolower($name);
+            if (isset($lookup[$key])) {
+                $insertData[] = [
+                    'user_id' => $userId,
+                    'post_id' => $postId,
+                    $columnName => $lookup[$key]->id,
+                    'post_type' => 'products',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+        }
+
+        if (!empty($insertData)) {
+            DB::table($table)->insert($insertData);
+        }
+    }
 
 
 }

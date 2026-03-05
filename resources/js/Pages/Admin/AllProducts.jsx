@@ -1,15 +1,58 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Container, Row, Col, Card, Badge, Button, Form, InputGroup, Table, Pagination, Image, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { Head, Link, router } from '@inertiajs/react';
+import { Container, Row, Col } from 'react-bootstrap';
+import { Head, Link } from '@inertiajs/react';
 import AdminSideNav from './Components/SideNav';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { 
-    Package, Plus, Search, Filter, Eye, Edit, Trash2, Download, RotateCcw,
-    ExternalLink, TrendingUp, BarChart3, Users, Clock, Star, MessageSquare
-} from 'lucide-react';
 import axios from 'axios';
 import { Toast } from '@/utils/Index';
 import DefaultPagination from '@/Components/DefaultPagination';
+
+function StatCard({ icon, label, value, subtitle }) {
+    const [hovered, setHovered] = useState(false);
+    return (
+        <Col md={6} lg={3}>
+            <div
+                onMouseEnter={() => setHovered(true)}
+                onMouseLeave={() => setHovered(false)}
+                style={{
+                    padding: '24px',
+                    borderRadius: '16px',
+                    background: '#fff',
+                    border: `1px solid ${hovered ? '#e0e0e0' : '#f0f0f0'}`,
+                    height: '100%',
+                    transition: 'all 0.3s ease',
+                    transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
+                    boxShadow: hovered ? '0 8px 30px rgba(0,0,0,0.06)' : 'none',
+                }}
+            >
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <div>
+                        <span style={{
+                            fontSize: '11px', fontWeight: 500, textTransform: 'uppercase',
+                            letterSpacing: '0.15em', color: '#86868b', display: 'block',
+                        }}>{label}</span>
+                        <div style={{
+                            marginTop: '10px', fontSize: '32px', fontWeight: 600,
+                            color: '#000', lineHeight: 1, letterSpacing: '-0.02em',
+                        }}>{typeof value === 'number' ? value.toLocaleString() : value}</div>
+                    </div>
+                    <span style={{
+                        width: '44px', height: '44px', borderRadius: '50%', background: '#f5f5f7',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'transform 0.3s ease', transform: hovered ? 'scale(1.08)' : 'scale(1)',
+                    }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#000' }}>{icon}</span>
+                    </span>
+                </div>
+                {subtitle && (
+                    <div style={{ marginTop: '12px' }}>
+                        <span style={{ fontSize: '12px', color: '#86868b' }}>{subtitle}</span>
+                    </div>
+                )}
+            </div>
+        </Col>
+    );
+}
 
 export default function AllProducts({ products, statistics, categories, filters }) {
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
@@ -23,353 +66,426 @@ export default function AllProducts({ products, statistics, categories, filters 
     const [perPage, setPerPage] = useState(12);
     const paginationContainerRef = useRef(null);
 
-    // Load initial data like AllOppty.jsx
     useEffect(() => {
         axios.get('/fetch-all-products')
-        .then((response) => {
-            const { data, links, current_page, per_page } = response.data;
-            setProductData(data);
-            setPagination(links);
-            setCurrentPage(current_page); 
-            setPerPage(per_page);
-        })
-        .catch((error) => {
-            console.error("Error fetching initial products:", error);
-            Toast.fire({
-                icon: "error",
-                title: 'Error loading products'
+            .then((response) => {
+                const { data, links, current_page, per_page } = response.data;
+                setProductData(data);
+                setPagination(links);
+                setCurrentPage(current_page);
+                setPerPage(per_page);
+            })
+            .catch(() => {
+                Toast.fire({ icon: "error", title: 'Error loading products' });
             });
-        });
     }, []);
 
-    // Handle pagination like AllOppty.jsx
     function triggerPagination(url) {
         const container = paginationContainerRef.current;
         const containerPosition = container ? container.getBoundingClientRect().top + window.scrollY : 0;
         setIsLoading(true);
-        
         axios.get(url)
-        .then((response) => {
-            const { data, links, current_page, per_page } = response.data;
-            setProductData(data); 
-            setPagination(links);
-            setCurrentPage(current_page); 
-            setPerPage(per_page);
-            setTimeout(() => {
-                window.scrollTo({
-                    top: containerPosition,
-                    behavior: 'instant'
-                });
-            }, 100);
-        })
-        .catch((error) => {
-            console.error('Pagination error:', error);
-            Toast.fire({
-                icon: "error",
-                title: 'Error loading products'
-            });
-        })
-        .finally(() => {
-            setIsLoading(false);
-        });
+            .then((response) => {
+                const { data, links, current_page, per_page } = response.data;
+                setProductData(data);
+                setPagination(links);
+                setCurrentPage(current_page);
+                setPerPage(per_page);
+                setTimeout(() => {
+                    window.scrollTo({ top: containerPosition, behavior: 'instant' });
+                }, 100);
+            })
+            .catch(() => {
+                Toast.fire({ icon: "error", title: 'Error loading products' });
+            })
+            .finally(() => setIsLoading(false));
     }
 
-    // Check if product is deleted
-    const isProductDeleted = (product) => {
-        return product.deleted == 1 || product.deleted_at;
-    };
+    const isProductDeleted = (product) => product.deleted == 1 || product.deleted_at;
 
-    // Status display function like AllOppty.jsx
-    const toggleStatus = (product) => {
-        if (isProductDeleted(product)) {
-            return <span className='badge rounded-pill text-bg-danger'>Deleted</span>;
-        }
-        return <span className='badge rounded-pill text-bg-success'>Active</span>;
-    };
-
-    // Filter change handler
-    const handleFilterChange = (filterType, value) => {
-        if (filterType === 'search') {
-            setSearchTerm(value);
-        } else if (filterType === 'status') {
-            setStatusFilter(value);
-        } else if (filterType === 'category') {
-            setCategoryFilter(value);
-        } else if (filterType === 'per_page') {
-            setPerPageFilter(value);
-        }
-    };
-
-    // Apply filters
-    const applyFilters = () => {
-        setIsLoading(true);
-        
-        router.get(route('admin.all_products'), {
-            search: searchTerm,
-            status: statusFilter,
-            category: categoryFilter,
-            per_page: perPageFilter
-        }, {
-            preserveState: true,
-            onSuccess: () => setIsLoading(false),
-            onError: () => {
-                setIsLoading(false);
-                Toast.fire({
-                    icon: "error",
-                    title: 'Error applying filters'
-                });
-            }
-        });
-    };
-
-    // Clear filters
-    const clearFilters = () => {
-        setSearchTerm('');
-        setStatusFilter('');
-        setCategoryFilter('');
-        setPerPageFilter(12);
-        
-        router.get(route('admin.all_products'), {}, {
-            preserveState: true
-        });
-    };
-
-    // CRUD operations handler like AllOppty.jsx
-    const initCrud = async (e) => {
-        e?.preventDefault();
-        const url = e.target.href;
-        axios.get(url).then((res) => {
-            console.log(res);
-            if (res.data.status == 'success') {
-                Toast.fire({
-                    icon: "success",
-                    title: res.data.message
-                });
-                // Refresh the page data
-                window.location.reload();
-            }
-        }).catch((err) => {
-            console.log(err);
-            Toast.fire({
-                icon: "error",
-                title: 'Ops! something went wrong.'
+    const handleDelete = (e, productId) => {
+        e.preventDefault();
+        if (!confirm('Are you sure you want to delete this product?')) return;
+        axios.get(`/admin-delete-product/${productId}`)
+            .then((res) => {
+                if (res.data.status === 'success') {
+                    Toast.fire({ icon: "success", title: res.data.message });
+                    setProductData(prev => prev.map(p =>
+                        p.id === productId ? { ...p, deleted: 1, deleted_at: new Date().toISOString() } : p
+                    ));
+                }
+            })
+            .catch(() => {
+                Toast.fire({ icon: "error", title: 'Something went wrong.' });
             });
-        })
+    };
+
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            month: 'short', day: 'numeric', year: 'numeric',
+        });
+    };
+
+    const getInitialColor = (name) => {
+        if (!name) return '#000';
+        const colors = ['#000', '#374151', '#1e3a5f', '#3f3f46', '#44403c', '#1e293b', '#27272a', '#292524'];
+        return colors[name.charCodeAt(0) % colors.length];
     };
 
     return (
         <>
             <Head title="All Products" />
             <AuthenticatedLayout>
-                <Container>
-                    <Row>
-                        <Col sm={3}>
-                            <div className='my-3 fs-9'>
+                <Container fluid={true}>
+                    <Container>
+                        <Row className="g-4" style={{ paddingTop: '96px', paddingBottom: '64px' }}>
+                            <Col md={3} className="d-none d-md-block">
                                 <AdminSideNav />
-                            </div>
-                        </Col>
-                        <Col sm={9}>
-                            <div className="px-3 py-2 rounded border text-center bg-white my-3">
-                                <h2 className="poppins-semibold m-0 p-0 py-3">All Products</h2>
-                            </div>
+                            </Col>
+                            <Col md={9} xs={12}>
+                                {/* Header */}
+                                <div style={{
+                                    display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+                                    marginBottom: '32px', flexWrap: 'wrap', gap: '16px',
+                                }}>
+                                    <div>
+                                        <h2 style={{
+                                            fontSize: 'clamp(24px, 4vw, 28px)', fontWeight: 600,
+                                            color: '#000', letterSpacing: '-0.02em', marginBottom: '6px',
+                                        }}>All Products</h2>
+                                        <p style={{ fontSize: '14px', color: '#86868b', margin: 0 }}>
+                                            Manage all toolshed products
+                                        </p>
+                                    </div>
+                                    <Link
+                                        href={route('admin.products')}
+                                        style={{
+                                            display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                            padding: '8px 18px', borderRadius: '9999px', border: 'none',
+                                            background: '#000', fontSize: '13px', fontWeight: 500,
+                                            color: '#fff', textDecoration: 'none', transition: 'all 0.15s ease',
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = '#333'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = '#000'}
+                                    >
+                                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
+                                        New Product
+                                    </Link>
+                                </div>
 
-                            {/* Statistics Cards */}
-                            <Row className="mb-4">
-                                <Col md={3} sm={6} className="mb-3">
-                                    <Card className="border-0 shadow-sm h-100">
-                                        <Card.Body className="text-center">
-                                            <Package className="text-primary mb-2" size={32} />
-                                            <h4 className="mb-0">{statistics.total_products}</h4>
-                                            <small className="text-muted">Total Products</small>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col md={3} sm={6} className="mb-3">
-                                    <Card className="border-0 shadow-sm h-100">
-                                        <Card.Body className="text-center">
-                                            <TrendingUp className="text-success mb-2" size={32} />
-                                            <h4 className="mb-0">{statistics.active_products}</h4>
-                                            <small className="text-muted">Active Products</small>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col md={3} sm={6} className="mb-3">
-                                    <Card className="border-0 shadow-sm h-100">
-                                        <Card.Body className="text-center">
-                                            <Trash2 className="text-danger mb-2" size={32} />
-                                            <h4 className="mb-0">{statistics.deleted_products}</h4>
-                                            <small className="text-muted">Deleted Products</small>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col md={3} sm={6} className="mb-3">
-                                    <Card className="border-0 shadow-sm h-100">
-                                        <Card.Body className="text-center">
-                                            <Eye className="text-info mb-2" size={32} />
-                                            <h4 className="mb-0">{statistics.total_views.toLocaleString()}</h4>
-                                            <small className="text-muted">Total Views</small>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                            </Row>
+                                {/* Stat Cards */}
+                                <Row className="g-3 mb-4">
+                                    <StatCard icon="inventory_2" label="Total" value={statistics.total_products} subtitle="All products" />
+                                    <StatCard icon="check_circle" label="Active" value={statistics.active_products} subtitle="Published" />
+                                    <StatCard icon="delete" label="Deleted" value={statistics.deleted_products} subtitle="Removed" />
+                                    <StatCard icon="visibility" label="Views" value={statistics.total_views} subtitle="Total views" />
+                                </Row>
 
-                            {/* Filters */}
-                            <Card className="mb-4">
-                                <Card.Body>
-                                    <Row>
-                                        <Col md={4} className="mb-3">
-                                            <Form.Group>
-                                                <Form.Label>Search Products</Form.Label>
-                                                <InputGroup>
-                                                    <Form.Control
-                                                        type="text"
-                                                        placeholder="Search by name, description, or author..."
-                                                        value={searchTerm}
-                                                        onChange={(e) => handleFilterChange('search', e.target.value)}
-                                                    />
-                                                    <Button 
-                                                        variant="outline-primary" 
-                                                        onClick={applyFilters}
-                                                        disabled={isLoading}
-                                                    >
-                                                        <Search size={16} />
-                                                    </Button>
-                                                </InputGroup>
-                                            </Form.Group>
-                                        </Col>
-                                        <Col md={2} className="mb-3">
-                                            <Form.Group>
-                                                <Form.Label>Status</Form.Label>
-                                                <Form.Select
-                                                    value={statusFilter}
-                                                    onChange={(e) => handleFilterChange('status', e.target.value)}
-                                                >
-                                                    <option value="">All Status</option>
-                                                    <option value="active">Active</option>
-                                                    <option value="deleted">Deleted</option>
-                                                </Form.Select>
-                                            </Form.Group>
-                                        </Col>
-                                        <Col md={2} className="mb-3">
-                                            <Form.Group>
-                                                <Form.Label>Category</Form.Label>
-                                                <Form.Select
-                                                    value={categoryFilter}
-                                                    onChange={(e) => handleFilterChange('category', e.target.value)}
-                                                >
-                                                    <option value="">All Categories</option>
-                                                    {categories.map(category => (
-                                                        <option key={category.id} value={category.id}>
-                                                            {category.name}
-                                                        </option>
-                                                    ))}
-                                                </Form.Select>
-                                            </Form.Group>
-                                        </Col>
-                                        <Col md={2} className="mb-3">
-                                            <Form.Group>
-                                                <Form.Label>Per Page</Form.Label>
-                                                <Form.Select
-                                                    value={perPageFilter}
-                                                    onChange={(e) => handleFilterChange('per_page', e.target.value)}
-                                                >
-                                                    <option value="12">12</option>
-                                                    <option value="24">24</option>
-                                                    <option value="48">48</option>
-                                                    <option value="100">100</option>
-                                                </Form.Select>
-                                            </Form.Group>
-                                        </Col>
-                                        <Col md={2} className="mb-3 d-flex align-items-end">
-                                            <Button 
-                                                variant="outline-secondary" 
-                                                onClick={clearFilters}
-                                                className="w-100"
+                                {/* Filters */}
+                                <div style={{
+                                    background: '#fff', border: '1px solid #f0f0f0',
+                                    borderRadius: '16px', padding: '20px 24px', marginBottom: '20px',
+                                }}>
+                                    <div style={{
+                                        display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap',
+                                    }}>
+                                        <div style={{ flex: '1 1 220px', position: 'relative' }}>
+                                            <span className="material-symbols-outlined" style={{
+                                                position: 'absolute', left: '14px', top: '50%',
+                                                transform: 'translateY(-50%)', fontSize: '18px', color: '#86868b',
+                                            }}>search</span>
+                                            <input
+                                                type="text"
+                                                placeholder="Search products..."
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                                style={{
+                                                    width: '100%', padding: '10px 14px 10px 42px',
+                                                    borderRadius: '12px', border: '1px solid #e5e5e7',
+                                                    fontSize: '14px', background: '#fff', color: '#000', outline: 'none',
+                                                }}
+                                                onFocus={(e) => e.currentTarget.style.borderColor = '#000'}
+                                                onBlur={(e) => e.currentTarget.style.borderColor = '#e5e5e7'}
+                                            />
+                                        </div>
+                                        <select
+                                            value={statusFilter}
+                                            onChange={(e) => setStatusFilter(e.target.value)}
+                                            style={{
+                                                padding: '10px 14px', borderRadius: '12px',
+                                                border: '1px solid #e5e5e7', fontSize: '14px',
+                                                background: '#fff', color: '#000', outline: 'none', cursor: 'pointer',
+                                            }}
+                                        >
+                                            <option value="">All Status</option>
+                                            <option value="active">Active</option>
+                                            <option value="deleted">Deleted</option>
+                                        </select>
+                                        <select
+                                            value={categoryFilter}
+                                            onChange={(e) => setCategoryFilter(e.target.value)}
+                                            style={{
+                                                padding: '10px 14px', borderRadius: '12px',
+                                                border: '1px solid #e5e5e7', fontSize: '14px',
+                                                background: '#fff', color: '#000', outline: 'none', cursor: 'pointer',
+                                            }}
+                                        >
+                                            <option value="">All Categories</option>
+                                            {categories.map(cat => (
+                                                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                            ))}
+                                        </select>
+                                        <select
+                                            value={perPageFilter}
+                                            onChange={(e) => setPerPageFilter(e.target.value)}
+                                            style={{
+                                                padding: '10px 14px', borderRadius: '12px',
+                                                border: '1px solid #e5e5e7', fontSize: '14px',
+                                                background: '#fff', color: '#000', outline: 'none', cursor: 'pointer',
+                                            }}
+                                        >
+                                            <option value="12">12 per page</option>
+                                            <option value="24">24 per page</option>
+                                            <option value="48">48 per page</option>
+                                            <option value="100">100 per page</option>
+                                        </select>
+                                        {(searchTerm || statusFilter || categoryFilter) && (
+                                            <button
+                                                onClick={() => {
+                                                    setSearchTerm(''); setStatusFilter(''); setCategoryFilter('');
+                                                    setPerPageFilter(12);
+                                                    axios.get('/fetch-all-products').then((response) => {
+                                                        const { data, links, current_page, per_page } = response.data;
+                                                        setProductData(data); setPagination(links);
+                                                        setCurrentPage(current_page); setPerPage(per_page);
+                                                    });
+                                                }}
+                                                style={{
+                                                    padding: '10px 20px', borderRadius: '9999px',
+                                                    border: '1px solid #e5e5e7', background: '#fff',
+                                                    color: '#6e6e73', fontSize: '13px', fontWeight: 500,
+                                                    cursor: 'pointer', transition: 'all 0.15s ease',
+                                                }}
+                                                onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f7'; e.currentTarget.style.color = '#000'; }}
+                                                onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#6e6e73'; }}
                                             >
                                                 Clear
-                                            </Button>
-                                        </Col>
-                                    </Row>
-                                </Card.Body>
-                            </Card>
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
 
-                            {/* Products Table */}
-                            <div className='table table-responsive fs-9'>
-                                <table className='table table-bordered table-hover'>
-                                    <thead className='table-dark poppins-semibold'>
-                                        <tr>
-                                            <th scope='col' className='poppins-regular'>#</th>
-                                            <th scope='col' className='poppins-regular'>Product Name</th>
-                                            <th scope='col' className='poppins-regular'>Status</th>
-                                            <th scope='col' className='poppins-regular'>Views</th>
-                                            <th scope='col' className='poppins-regular'>Author</th>
-                                            <th scope='col' className='poppins-regular'>Created</th>
-                                            <th scope='col' className='poppins-regular'>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {productData?.map((product, index) => (
-                                            <tr key={product.id}>
-                                                <td>{(currentPage - 1) * perPage + index + 1}</td>
-                                                <td>
-                                                    <div>
-                                                        <strong>{product.product_name}</strong>
-                                                        {product.categories && (
-                                                            <div>
-                                                                <small className="text-muted">
+                                {/* Products Table */}
+                                <div style={{
+                                    background: '#fff', border: '1px solid #f0f0f0',
+                                    borderRadius: '16px', padding: '28px',
+                                }}>
+                                    <div style={{ marginBottom: '20px' }}>
+                                        <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#000', margin: '0 0 4px' }}>
+                                            Products
+                                        </h3>
+                                        <span style={{ fontSize: '13px', color: '#86868b' }}>
+                                            {productData.length} products on this page
+                                        </span>
+                                    </div>
+
+                                    {isLoading ? (
+                                        <div style={{ textAlign: 'center', padding: '48px 0' }}>
+                                            <div style={{
+                                                width: '32px', height: '32px',
+                                                border: '3px solid #f0f0f0', borderTopColor: '#000',
+                                                borderRadius: '50%', animation: 'spin 0.8s linear infinite',
+                                                margin: '0 auto 12px',
+                                            }} />
+                                            <span style={{ fontSize: '13px', color: '#86868b' }}>Loading...</span>
+                                        </div>
+                                    ) : productData.length > 0 ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                            {/* Header row */}
+                                            <div style={{
+                                                display: 'grid',
+                                                gridTemplateColumns: '40px 2fr 1fr 80px 1fr 100px',
+                                                gap: '12px', padding: '8px 14px',
+                                                fontSize: '11px', fontWeight: 500, textTransform: 'uppercase',
+                                                letterSpacing: '0.1em', color: '#86868b',
+                                            }}>
+                                                <span>#</span>
+                                                <span>Product</span>
+                                                <span>Author</span>
+                                                <span>Views</span>
+                                                <span>Created</span>
+                                                <span style={{ textAlign: 'right' }}>Actions</span>
+                                            </div>
+
+                                            {productData.map((product, index) => {
+                                                const deleted = isProductDeleted(product);
+                                                return (
+                                                    <div
+                                                        key={product.id}
+                                                        style={{
+                                                            display: 'grid',
+                                                            gridTemplateColumns: '40px 2fr 1fr 80px 1fr 100px',
+                                                            gap: '12px', padding: '12px 14px',
+                                                            borderRadius: '12px', alignItems: 'center',
+                                                            transition: 'background 0.15s ease',
+                                                            opacity: deleted ? 0.5 : 1,
+                                                        }}
+                                                        onMouseEnter={(e) => e.currentTarget.style.background = '#fafafa'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                                    >
+                                                        {/* # */}
+                                                        <span style={{ fontSize: '13px', color: '#86868b' }}>
+                                                            {(currentPage - 1) * perPage + index + 1}
+                                                        </span>
+
+                                                        {/* Product Name + Status */}
+                                                        <div style={{ minWidth: 0 }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                <span style={{
+                                                                    fontSize: '14px', fontWeight: 500, color: '#000',
+                                                                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                                                }}>
+                                                                    {product.product_name}
+                                                                </span>
+                                                                <span style={{
+                                                                    display: 'inline-flex', alignItems: 'center', gap: '4px',
+                                                                    fontSize: '11px', fontWeight: 500, flexShrink: 0,
+                                                                    color: deleted ? '#dc2626' : '#16a34a',
+                                                                    background: deleted ? '#fef2f2' : '#f0fdf4',
+                                                                    padding: '2px 8px', borderRadius: '9999px',
+                                                                }}>
+                                                                    <span style={{
+                                                                        width: '5px', height: '5px', borderRadius: '50%',
+                                                                        background: deleted ? '#dc2626' : '#16a34a',
+                                                                    }} />
+                                                                    {deleted ? 'Deleted' : 'Active'}
+                                                                </span>
+                                                            </div>
+                                                            {product.categories && (
+                                                                <span style={{ fontSize: '12px', color: '#b0b0b5' }}>
                                                                     {product.categories.split(',').slice(0, 2).join(', ')}
                                                                     {product.categories.split(',').length > 2 && '...'}
-                                                                </small>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td>{toggleStatus(product)}</td>
-                                                <td>{product.views || 0}</td>
-                                                <td>{product.user_name || 'Unknown'}</td>
-                                                <td>{new Date(product.created_at).toLocaleDateString()}</td>
-                                                <td className='text-center'>
-                                                    <div className="dropdown">
-                                                        <button className="btn fs-9" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                            <span className="material-symbols-outlined align-middle">
-                                                                more_vert
-                                                            </span>
-                                                        </button>
-                                                        <ul className="dropdown-menu dropdown-menu-dark fs-9">
-                                                            <li><Link className="dropdown-item" href={`/admin-edit-product/${product.id}`}>Edit</Link></li>
-                                                            {product.source_url && (
-                                                                <li><a className="dropdown-item" href={product.source_url} target="_blank" rel="noopener noreferrer">View Source</a></li>
+                                                                </span>
                                                             )}
-                                                            {product.direct_link && (
-                                                                <li><a className="dropdown-item" href={product.direct_link} target="_blank" rel="noopener noreferrer">Direct Link</a></li>
-                                                            )}
-                                                            <li><Link className="dropdown-item" href={`/ts/${product.id}/${product.slug}`}>Preview</Link></li>
-                                                            {isProductDeleted(product) ? (
-                                                                <li><a className="dropdown-item" href={`/admin-restore-product/${product.id}`} onClick={(e) => initCrud(e)}>Restore</a></li>
-                                                            ) : (
-                                                                <li><a className="dropdown-item text-danger" href={`/admin-delete-product/${product.id}`} onClick={(e) => initCrud(e)}>Delete</a></li>
-                                                            )}
-                                                        </ul>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>    
-                                </table>
-                            </div>
+                                                        </div>
 
-                            {/* Pagination */}
-                            {(pagination.length > 0) && (
-                                <div ref={paginationContainerRef}>
-                                    <DefaultPagination 
-                                        pagination={pagination} 
-                                        triggerPagination={triggerPagination}
-                                    />
+                                                        {/* Author */}
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                                                            <div style={{
+                                                                width: '28px', height: '28px', borderRadius: '50%',
+                                                                background: getInitialColor(product.user_name || 'U'),
+                                                                color: '#fff', display: 'flex', alignItems: 'center',
+                                                                justifyContent: 'center', fontSize: '11px', fontWeight: 600, flexShrink: 0,
+                                                            }}>
+                                                                {(product.user_name || 'U').charAt(0).toUpperCase()}
+                                                            </div>
+                                                            <span style={{
+                                                                fontSize: '13px', color: '#86868b',
+                                                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                                            }}>
+                                                                {product.user_name || 'Unknown'}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Views */}
+                                                        <span style={{ fontSize: '13px', color: '#86868b' }}>
+                                                            {(product.views || 0).toLocaleString()}
+                                                        </span>
+
+                                                        {/* Created */}
+                                                        <span style={{ fontSize: '13px', color: '#86868b' }}>
+                                                            {formatDate(product.created_at)}
+                                                        </span>
+
+                                                        {/* Actions */}
+                                                        <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                                                            {/* Preview */}
+                                                            <Link
+                                                                href={`/ts/${product.id}/${product.slug}`}
+                                                                style={{
+                                                                    width: '32px', height: '32px', borderRadius: '8px',
+                                                                    background: '#f5f5f7', display: 'flex',
+                                                                    alignItems: 'center', justifyContent: 'center',
+                                                                    textDecoration: 'none', transition: 'all 0.15s ease',
+                                                                }}
+                                                                title="Preview"
+                                                                onMouseEnter={(e) => e.currentTarget.style.background = '#e5e5e7'}
+                                                                onMouseLeave={(e) => e.currentTarget.style.background = '#f5f5f7'}
+                                                            >
+                                                                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#6e6e73' }}>visibility</span>
+                                                            </Link>
+                                                            {/* Edit */}
+                                                            <Link
+                                                                href={`/admin-edit-product/${product.id}`}
+                                                                style={{
+                                                                    width: '32px', height: '32px', borderRadius: '8px',
+                                                                    background: '#f5f5f7', display: 'flex',
+                                                                    alignItems: 'center', justifyContent: 'center',
+                                                                    textDecoration: 'none', transition: 'all 0.15s ease',
+                                                                }}
+                                                                title="Edit"
+                                                                onMouseEnter={(e) => e.currentTarget.style.background = '#e5e5e7'}
+                                                                onMouseLeave={(e) => e.currentTarget.style.background = '#f5f5f7'}
+                                                            >
+                                                                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#6e6e73' }}>edit</span>
+                                                            </Link>
+                                                            {/* Delete */}
+                                                            {!deleted && (
+                                                                <button
+                                                                    onClick={(e) => handleDelete(e, product.id)}
+                                                                    style={{
+                                                                        width: '32px', height: '32px', borderRadius: '8px',
+                                                                        background: '#fef2f2', display: 'flex',
+                                                                        alignItems: 'center', justifyContent: 'center',
+                                                                        border: 'none', cursor: 'pointer',
+                                                                        transition: 'all 0.15s ease',
+                                                                    }}
+                                                                    title="Delete"
+                                                                    onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'}
+                                                                    onMouseLeave={(e) => e.currentTarget.style.background = '#fef2f2'}
+                                                                >
+                                                                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#dc2626' }}>delete</span>
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <div style={{ textAlign: 'center', padding: '48px 0' }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '48px', color: '#d1d1d6', display: 'block', marginBottom: '12px' }}>
+                                                inventory_2
+                                            </span>
+                                            <h5 style={{ fontSize: '16px', fontWeight: 600, color: '#000', marginBottom: '4px' }}>
+                                                No products found
+                                            </h5>
+                                            <p style={{ fontSize: '13px', color: '#86868b', margin: 0 }}>
+                                                Try adjusting your filters or create a new product.
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Pagination */}
+                                    {pagination.length > 0 && (
+                                        <div ref={paginationContainerRef} style={{ marginTop: '20px' }}>
+                                            <DefaultPagination
+                                                pagination={pagination}
+                                                triggerPagination={triggerPagination}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </Col>
-                    </Row>
+                            </Col>
+                        </Row>
+                    </Container>
                 </Container>
+
+                <style>{`
+                    @keyframes spin {
+                        to { transform: rotate(360deg); }
+                    }
+                `}</style>
             </AuthenticatedLayout>
         </>
     );

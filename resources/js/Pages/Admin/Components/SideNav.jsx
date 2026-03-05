@@ -1,177 +1,220 @@
-import ListGroup from 'react-bootstrap/ListGroup';
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { useState } from 'react';
 
-export default function AdminSideNav(){
-
+export default function AdminSideNav() {
+    const { url } = usePage();
 
     const [openMenus, setOpenMenus] = useState({
         generalOptions: false,
         opportunityPosts: false,
         toolshedPosts: false,
-        moneyGuidePosts: false,
-      });
-    
-      const toggleMenu = (menu) => {
-        setOpenMenus((prevState) => ({
-          ...prevState,
-          [menu]: !prevState[menu],
-        }));
-      };
+    });
 
-    return(
-        <>
-        <ListGroup>
-      {/* Dashboard */}
-      <ListGroup.Item as={Link} href={route('admin.dashboard')} className='d-flex justify-content-between align-items-center'>
-        <div>
-          <span className="material-symbols-outlined">dashboard</span>
-        </div>
-        <div>Dashboard</div>
-      </ListGroup.Item>
+    const toggleMenu = (menu) => {
+        setOpenMenus(prev => ({ ...prev, [menu]: !prev[menu] }));
+    };
 
-      {/* Users */}
-      <ListGroup.Item as={Link} href={route('admin.users')} className='d-flex justify-content-between align-items-center'>
-        <div>
-          <span className="material-symbols-outlined">group</span>
-        </div>
-        <div>Users</div>
-      </ListGroup.Item>
+    const isActive = (href) => {
+        try {
+            const path = new URL(href, window.location.origin).pathname;
+            return url.startsWith(path);
+        } catch { return false; }
+    };
 
-      {/* Ads Management */}
-      <ListGroup.Item as={Link} href={route('admin.ads')} className='d-flex justify-content-between align-items-center'>
-        <div>
-          <span className="material-symbols-outlined">ads_click</span>
-        </div>
-        <div>Ads Management</div>
-      </ListGroup.Item>
+    const navItems = [
+        { href: route('admin.dashboard'), icon: 'dashboard', label: 'Dashboard' },
+        { href: route('admin.users'), icon: 'group', label: 'Users' },
+        { href: route('admin.ads'), icon: 'ads_click', label: 'Ads' },
+    ];
 
-      {/* RSS Feed - COMMENTED: No page exists yet */}
-      {/* <ListGroup.Item as={Link} href="#" className='d-flex justify-content-between align-items-center'>
-        <div>
-          <span className="material-symbols-outlined">rss_feed</span>
-        </div>
-        <div>RSS Feed</div>
-      </ListGroup.Item> */}
+    const expandableMenus = [
+        {
+            key: 'generalOptions',
+            icon: 'settings',
+            label: 'General',
+            items: [
+                { href: route('admin.brand-labels'), label: 'Brand Labels' },
+                { href: route('admin.tag'), label: 'Tags' },
+                { href: route('admin.regions'), label: 'Regions' },
+                { href: route('admin.continent'), label: 'Continents' },
+                { href: route('admin.countries'), label: 'Countries' },
+            ],
+        },
+        {
+            key: 'opportunityPosts',
+            icon: 'post_add',
+            label: 'Opportunities',
+            items: [
+                { href: route('admin.opp'), label: 'Create Post' },
+                { href: route('admin.all_opp_post'), label: 'All Posts' },
+                { href: route('admin.categories'), label: 'Categories' },
+            ],
+        },
+        {
+            key: 'toolshedPosts',
+            icon: 'build',
+            label: 'Toolshed',
+            items: [
+                { href: route('admin.products'), label: 'Create Product' },
+                { href: route('admin.bulk_upload_product'), label: 'Bulk Upload' },
+                { href: route('admin.all_products'), label: 'All Products' },
+                { href: route('admin.product_categories'), label: 'Categories' },
+            ],
+        },
+    ];
 
-      {/* General Options */}
-      <ListGroup.Item
-        action
-        onClick={() => toggleMenu('generalOptions')}
-        className='d-flex justify-content-between align-items-center'
-      >
-        <div>
-          <span className="material-symbols-outlined">settings</span>
-        </div>
-        <div>
-          General Options <i className={`fas fa-caret-${openMenus.generalOptions ? 'down' : 'right'}`}></i>
-        </div>
-      </ListGroup.Item>
-      {openMenus.generalOptions && (
-        <ListGroup>
-          <ListGroup.Item as={Link} href={route('admin.brand-labels')} className='text-decoration-none'>
-            Create Brand Labels
-          </ListGroup.Item>
-          <ListGroup.Item as={Link} href={route('admin.tag')} className='text-decoration-none'>
-            Create Tags
-          </ListGroup.Item>
-          <ListGroup.Item as={Link} href={route('admin.regions')} className='text-decoration-none'>
-            Create Regions
-          </ListGroup.Item>
-          <ListGroup.Item as={Link} href={route('admin.continent')} className='text-decoration-none'>
-            Create Continent
-          </ListGroup.Item>
-          <ListGroup.Item as={Link} href={route('admin.countries')} className='text-decoration-none'>
-            Create Countries
-          </ListGroup.Item>
-        </ListGroup>
-      )}
+    const linkStyle = (active) => ({
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        padding: '10px 14px',
+        borderRadius: '12px',
+        textDecoration: 'none',
+        fontSize: '14px',
+        fontWeight: 500,
+        color: active ? '#000' : '#6e6e73',
+        background: active ? '#f5f5f7' : 'transparent',
+        transition: 'all 0.15s ease',
+    });
 
-      {/* Opportunity Posts */}
-      <ListGroup.Item
-        action
-        onClick={() => toggleMenu('opportunityPosts')}
-        className='d-flex justify-content-between align-items-center'
-      >
-        <div>
-          <span className="material-symbols-outlined">post_add</span>
-        </div>
-        <div>
-          Opportunity Posts <i className={`fas fa-caret-${openMenus.opportunityPosts ? 'down' : 'right'}`}></i>
-        </div>
-      </ListGroup.Item>
-      {openMenus.opportunityPosts && (
-        <ListGroup>
-          <ListGroup.Item as={Link} href={route('admin.opp')} className='text-decoration-none'>
-            Create Post
-          </ListGroup.Item>
-          <ListGroup.Item as={Link} href={route('admin.all_opp_post')} className='text-decoration-none'>
-            All Posts
-          </ListGroup.Item>
-          <ListGroup.Item as={Link} href={route('admin.categories')} className='text-decoration-none'>
-            Create Categories
-          </ListGroup.Item>
-        </ListGroup>
-      )}
+    const iconWrapStyle = (active) => ({
+        width: '36px',
+        height: '36px',
+        borderRadius: '10px',
+        background: active ? '#000' : '#f5f5f7',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.15s ease',
+    });
 
-       {/*MoneyGuide Posts - COMMENTED: Routes not properly implemented yet */}
-       {/* <ListGroup.Item
-        action
-        onClick={() => toggleMenu('moneyGuidePosts')}
-        className='d-flex justify-content-between align-items-center'
-      >
-        <div>
-          <span className="material-symbols-outlined">post_add</span>
-        </div>
-        <div>
-          Money Guide <i className={`fas fa-caret-${openMenus.moneyGuidePosts ? 'down' : 'right'}`}></i>
-        </div>
-      </ListGroup.Item>
-      {openMenus.moneyGuidePosts && (
-        <ListGroup>
-          <ListGroup.Item as={Link} href={route('admin.opp')} className='text-decoration-none'>
-            Create Post
-          </ListGroup.Item>
-          <ListGroup.Item as={Link} href={route('admin.all_opp_post')} className='text-decoration-none'>
-            All Posts
-          </ListGroup.Item>
-          <ListGroup.Item as={Link} href={route('admin.categories')} className='text-decoration-none'>
-            Create Categories
-          </ListGroup.Item>
-        </ListGroup>
-      )} */}
+    return (
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {navItems.map((item) => {
+                const active = isActive(item.href);
+                return (
+                    <Link
+                        key={item.label}
+                        href={item.href}
+                        style={linkStyle(active)}
+                        onMouseEnter={(e) => { if (!active) { e.currentTarget.style.background = '#f5f5f7'; e.currentTarget.style.color = '#000'; }}}
+                        onMouseLeave={(e) => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6e6e73'; }}}
+                    >
+                        <span style={iconWrapStyle(active)}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: active ? '#fff' : '#6e6e73' }}>
+                                {item.icon}
+                            </span>
+                        </span>
+                        <span>{item.label}</span>
+                    </Link>
+                );
+            })}
 
+            <div style={{ height: '1px', background: '#f0f0f0', margin: '8px 0' }} />
 
+            {expandableMenus.map((menu) => (
+                <div key={menu.key}>
+                    <button
+                        onClick={() => toggleMenu(menu.key)}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            width: '100%',
+                            gap: '12px',
+                            padding: '10px 14px',
+                            borderRadius: '12px',
+                            border: 'none',
+                            background: openMenus[menu.key] ? '#f5f5f7' : 'transparent',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            color: openMenus[menu.key] ? '#000' : '#6e6e73',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f7'; e.currentTarget.style.color = '#000'; }}
+                        onMouseLeave={(e) => { if (!openMenus[menu.key]) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6e6e73'; }}}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <span style={iconWrapStyle(openMenus[menu.key])}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: openMenus[menu.key] ? '#fff' : '#6e6e73' }}>
+                                    {menu.icon}
+                                </span>
+                            </span>
+                            <span>{menu.label}</span>
+                        </div>
+                        <span className="material-symbols-outlined" style={{
+                            fontSize: '18px',
+                            transition: 'transform 0.2s ease',
+                            transform: openMenus[menu.key] ? 'rotate(180deg)' : 'rotate(0)',
+                        }}>
+                            expand_more
+                        </span>
+                    </button>
 
+                    {openMenus[menu.key] && (
+                        <div style={{ marginLeft: '48px', display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px', marginBottom: '4px' }}>
+                            {menu.items.map((sub) => {
+                                const subActive = isActive(sub.href);
+                                return (
+                                    <Link
+                                        key={sub.label}
+                                        href={sub.href}
+                                        style={{
+                                            display: 'block',
+                                            padding: '8px 14px',
+                                            borderRadius: '10px',
+                                            textDecoration: 'none',
+                                            fontSize: '13px',
+                                            fontWeight: subActive ? 500 : 400,
+                                            color: subActive ? '#000' : '#86868b',
+                                            background: subActive ? '#f5f5f7' : 'transparent',
+                                            transition: 'all 0.15s ease',
+                                        }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f7'; e.currentTarget.style.color = '#000'; }}
+                                        onMouseLeave={(e) => { if (!subActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#86868b'; }}}
+                                    >
+                                        {sub.label}
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            ))}
 
+            <div style={{ height: '1px', background: '#f0f0f0', margin: '8px 0' }} />
 
-      {/* Toolshed Posts */}
-      <ListGroup.Item
-        action
-        onClick={() => toggleMenu('toolshedPosts')}
-        className='d-flex justify-content-between align-items-center'
-      >
-        <div>
-          <span className="material-symbols-outlined">build</span>
-        </div>
-        <div>
-          Toolshed Posts <i className={`fas fa-caret-${openMenus.toolshedPosts ? 'down' : 'right'}`}></i>
-        </div>
-      </ListGroup.Item>
-      {openMenus.toolshedPosts && (
-        <ListGroup>
-          <ListGroup.Item as={Link} href={route('admin.products')} className='text-decoration-none'>
-            Create Product
-          </ListGroup.Item>
-          <ListGroup.Item as={Link} href={route('admin.all_products')} className='text-decoration-none'>
-            All Products
-          </ListGroup.Item>
-          <ListGroup.Item as={Link} href={route('admin.product_categories')} className='text-decoration-none'>
-            Product Categories
-          </ListGroup.Item>
-        </ListGroup>
-      )}
-    </ListGroup>
-        </>
-    )
+            <Link
+                href={route('logout')}
+                method="post"
+                as="button"
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '10px 14px',
+                    borderRadius: '12px',
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: '#6e6e73',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    width: '100%',
+                    textAlign: 'left',
+                    transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f7'; e.currentTarget.style.color = '#000'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6e6e73'; }}
+            >
+                <span style={iconWrapStyle(false)}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#6e6e73' }}>logout</span>
+                </span>
+                <span>Logout</span>
+            </Link>
+        </nav>
+    );
 }

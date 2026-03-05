@@ -1,7 +1,6 @@
 import { Fragment } from "react";
 import { Container, Row, Col } from 'react-bootstrap';
-import { usePage } from '@inertiajs/react';
-import FlatButton from '@/Components/FlatButton';
+import { usePage, Link } from '@inertiajs/react';
 
 export default function SubFooter() {
     const user = usePage().props.auth.user;
@@ -14,57 +13,75 @@ export default function SubFooter() {
                         <Container>
                             <Row className="justify-content-center">
                                 <Col sm={12} md={8} lg={6}>
-                                    <div className="text-center py-5">
-                                        {/* Badge */}
-                                        <span
-                                            className="d-inline-block mb-3"
-                                            style={{
-                                                background: 'rgba(255, 255, 255, 0.08)',
-                                                border: '1px solid rgba(255, 255, 255, 0.2)',
-                                                color: 'rgba(255, 255, 255, 0.85)',
-                                                fontSize: '11px',
-                                                fontWeight: 500,
-                                                padding: '5px 14px',
-                                                borderRadius: '980px',
-                                                textTransform: 'uppercase',
-                                                letterSpacing: '0.06em',
-                                            }}
-                                        >
-                                            Join the Community
-                                        </span>
+                                    <div className="text-center py-5 d-flex flex-column align-items-center">
+                                        {/* Eyebrow with orange bar */}
+                                        <div className="d-flex flex-column align-items-center mb-4">
+                                            <span
+                                                className="section-eyebrow"
+                                                style={{ color: 'rgba(255, 255, 255, 0.5)' }}
+                                            >
+                                                Join the Community
+                                            </span>
+                                            <div className="eyebrow-bar" />
+                                        </div>
 
+                                        {/* Heading */}
                                         <h4
-                                            className="text-white mb-3"
+                                            className="text-white mb-4"
                                             style={{
-                                                fontSize: '44px',
+                                                fontSize: 'clamp(30px, 5vw, 44px)',
                                                 fontWeight: 600,
-                                                letterSpacing: '-0.005em',
-                                                lineHeight: 1.12,
+                                                letterSpacing: '-0.015em',
+                                                lineHeight: 1.1,
                                             }}
                                         >
                                             Network for{' '}
-                                            <span style={{ color: '#d97757' }}>Entrepreneurs</span>
+                                            <span style={{ color: '#f97316' }}>Entrepreneurs</span>
                                         </h4>
+
+                                        {/* Description */}
                                         <p
                                             className="mb-4"
                                             style={{
-                                                fontSize: '15px',
+                                                fontSize: '14px',
                                                 color: 'rgba(255, 255, 255, 0.6)',
-                                                lineHeight: 1.5,
+                                                lineHeight: 1.625,
                                                 fontWeight: 400,
+                                                maxWidth: '420px',
                                             }}
                                         >
                                             Join over 5,000+ elite entrepreneurs in our community
                                         </p>
 
+                                        {/* CTA Button */}
                                         {!user && (
-                                            <FlatButton
+                                            <Link
                                                 href="/sign-up"
-                                                variant="light"
-                                                size="lg"
+                                                style={{
+                                                    background: '#fff',
+                                                    color: '#000',
+                                                    fontWeight: 500,
+                                                    fontSize: '14px',
+                                                    padding: '12px 32px',
+                                                    borderRadius: '9999px',
+                                                    textDecoration: 'none',
+                                                    transition: 'all 0.15s ease',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.background = '#f1f1f1';
+                                                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(255,255,255,0.2)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.background = '#fff';
+                                                    e.currentTarget.style.boxShadow = 'none';
+                                                }}
                                             >
                                                 Create Free Account
-                                            </FlatButton>
+                                                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>arrow_forward</span>
+                                            </Link>
                                         )}
                                     </div>
                                 </Col>

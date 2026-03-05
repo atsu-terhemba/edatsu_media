@@ -83,14 +83,12 @@ export default function Messages() {
 
             <Container fluid={true}>
                 <Container>
-                    <Row>
-                        <Col sm={3} className="d-none d-md-block">
-                            <div className='my-3 fs-9'>
-                                <SubscriberSideNav/>
-                            </div>
+                    <Row className="g-4" style={{ paddingTop: '80px' }}>
+                        <Col md={3} className="d-none d-md-block">
+                            <SubscriberSideNav/>
                         </Col>
-                        <Col sm={9} xs={12}>
-                            <div className='border px-3 py-4 rounded my-3'>
+                        <Col md={9} xs={12}>
+                            <div className='border px-3 py-4 rounded'>
                                 <div className='d-flex justify-content-between align-items-center mb-3'>
                                     <h2 className='poppins-semibold m-0'>
                                         Messages 

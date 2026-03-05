@@ -5,32 +5,18 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Bookmark;
 use App\Models\Notification;
+use App\Services\WebPushService;
 use Carbon\Carbon;
 
 class ProcessBookmarkReminders extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'bookmarks:process-reminders';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Process due bookmark reminders and send notifications';
 
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
         $this->info('Processing bookmark reminders...');
 
-        // Get all bookmarks with due reminders
         $dueReminders = Bookmark::with(['opportunity', 'event', 'product'])
             ->pendingReminders()
             ->get();
@@ -39,7 +25,6 @@ class ProcessBookmarkReminders extends Command
 
         foreach ($dueReminders as $bookmark) {
             try {
-                // Determine the type and title of the bookmarked item
                 $itemTitle = '';
                 $itemType = '';
                 $actionUrl = '';
@@ -59,7 +44,7 @@ class ProcessBookmarkReminders extends Command
                 }
 
                 if ($itemTitle) {
-                    // Create notification
+                    // Create in-app notification
                     Notification::create([
                         'user_id' => $bookmark->user_id,
                         'title' => 'Bookmark Reminder',
@@ -73,7 +58,21 @@ class ProcessBookmarkReminders extends Command
                         ]
                     ]);
 
-                    // Mark reminder as sent
+                    // Send push notification
+                    try {
+                        $pushService = app(WebPushService::class);
+                        $pushService->sendToUser($bookmark->user_id, [
+                            'title' => 'Bookmark Reminder',
+                            'body' => "Don't forget about: {$itemTitle}",
+                            'icon' => '/img/logo.png',
+                            'badge' => '/img/logo.png',
+                            'url' => $actionUrl,
+                            'tag' => 'reminder-' . $bookmark->id,
+                        ]);
+                    } catch (\Exception $e) {
+                        $this->warn("Push notification failed for bookmark {$bookmark->id}: " . $e->getMessage());
+                    }
+
                     $bookmark->markReminderSent();
                     $processedCount++;
 

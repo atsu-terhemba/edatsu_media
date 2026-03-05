@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Container, Row, Col, Card, Badge, Button, ListGroup } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 import { Head } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import SubscriberSideNav from './Components/SideNav';
@@ -9,7 +9,7 @@ import NotificationsSkeleton from '@/Components/NotificationsSkeleton';
 export default function Notifications() {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('all'); // all, unread, read
+    const [filter, setFilter] = useState('all');
 
     useEffect(() => {
         fetchNotifications();
@@ -30,7 +30,7 @@ export default function Notifications() {
     const markAsRead = async (notificationId) => {
         try {
             await axios.put(`/api/notifications/${notificationId}/read`);
-            fetchNotifications(); // Refresh notifications
+            fetchNotifications();
         } catch (error) {
             console.error('Error marking notification as read:', error);
         }
@@ -39,36 +39,52 @@ export default function Notifications() {
     const markAllAsRead = async () => {
         try {
             await axios.put('/api/notifications/mark-all-read');
-            fetchNotifications(); // Refresh notifications
+            fetchNotifications();
         } catch (error) {
             console.error('Error marking all notifications as read:', error);
         }
     };
 
     const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleString('en-US', {
-            year: 'numeric',
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        if (diffDays < 7) return `${diffDays}d ago`;
+
+        return date.toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
         });
     };
 
     const getNotificationIcon = (type) => {
         switch (type) {
             case 'success':
-                return { icon: 'check_circle', class: 'text-success', fill: true };
+                return { icon: 'check_circle', bg: '#f0fdf4', color: '#16a34a' };
             case 'warning':
-                return { icon: 'warning', class: 'text-warning', fill: true };
+                return { icon: 'warning', bg: '#fffbeb', color: '#d97706' };
             case 'error':
-                return { icon: 'cancel', class: 'text-danger', fill: true };
+                return { icon: 'cancel', bg: '#fef2f2', color: '#dc2626' };
             default:
-                return { icon: 'info', class: 'text-primary', fill: true };
+                return { icon: 'info', bg: '#f5f5f7', color: '#000' };
         }
     };
 
     const unreadCount = notifications.filter(n => !n.is_read).length;
+
+    const filters = [
+        { id: 'all', label: 'All' },
+        { id: 'unread', label: `Unread${unreadCount > 0 ? ` (${unreadCount})` : ''}` },
+        { id: 'read', label: 'Read' },
+    ];
 
     return (
         <AuthenticatedLayout>
@@ -76,135 +92,288 @@ export default function Notifications() {
 
             <Container fluid={true}>
                 <Container>
-                    <Row>
-                        <Col sm={3} className="d-none d-md-block">
-                            <div className='my-3 fs-9'>
-                                <SubscriberSideNav/>
-                            </div>
+                    <Row className="g-4" style={{ paddingTop: '96px', paddingBottom: '64px' }}>
+                        <Col md={3} className="d-none d-md-block">
+                            <SubscriberSideNav />
                         </Col>
-                        <Col sm={6} xs={12}>
-                            <div className='py-3 px-3 rounded my-3' style={{border: '1px solid #dee2e6'}}>
-                                <div className='d-flex justify-content-between align-items-center mb-3'>
-                                    <h4 className='m-0 fw-bold' style={{fontWeight: 'normal'}}>
-                                        Notifications 
-                                        {unreadCount > 0 && (
-                                            <Badge bg="danger" className='ms-2'>{unreadCount}</Badge>
-                                        )}
-                                    </h4>
-                                    <div className='d-flex gap-2'>
-                                        <Button 
-                                            variant="outline-secondary" 
-                                            size="sm"
+                        <Col md={9} xs={12}>
+                            {/* Header */}
+                            <div style={{ marginBottom: '28px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                    {unreadCount > 0 && (
+                                        <button
                                             onClick={markAllAsRead}
-                                            disabled={unreadCount === 0}
-                                            style={{borderRadius: '6px'}}
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                padding: '8px 16px',
+                                                border: '1px solid #e5e5e7',
+                                                borderRadius: '9999px',
+                                                background: '#fff',
+                                                fontSize: '13px',
+                                                fontWeight: 500,
+                                                color: '#000',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.15s ease',
+                                            }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f7'; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}
                                         >
-                                            <span className='material-symbols-outlined me-1' style={{fontSize: '16px', verticalAlign: 'middle'}}>done_all</span>
-                                            Mark All Read
-                                        </Button>
-                                    </div>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>done_all</span>
+                                            Mark all read
+                                        </button>
+                                    )}
                                 </div>
 
-                                {/* Filter Buttons */}
-                                <div className='mb-3'>
-                                    <Button 
-                                        variant={filter === 'all' ? 'secondary' : 'outline-secondary'}
-                                        size="sm"
-                                        className='me-2'
-                                        onClick={() => setFilter('all')}
-                                        style={{borderRadius: '6px'}}
+                                <h2 style={{
+                                    fontSize: 'clamp(24px, 4vw, 28px)',
+                                    fontWeight: 600,
+                                    color: '#000',
+                                    letterSpacing: '-0.02em',
+                                    marginTop: '12px',
+                                    marginBottom: '0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                }}>
+                                    Notifications
+                                    {unreadCount > 0 && (
+                                        <span style={{
+                                            fontSize: '13px',
+                                            fontWeight: 600,
+                                            background: '#000',
+                                            color: '#fff',
+                                            padding: '2px 10px',
+                                            borderRadius: '9999px',
+                                            lineHeight: '20px',
+                                        }}>
+                                            {unreadCount}
+                                        </span>
+                                    )}
+                                </h2>
+                            </div>
+
+                            {/* Filter pills */}
+                            <div style={{
+                                display: 'inline-flex',
+                                background: '#f5f5f7',
+                                borderRadius: '9999px',
+                                padding: '3px',
+                                marginBottom: '24px',
+                            }}>
+                                {filters.map((f) => (
+                                    <button
+                                        key={f.id}
+                                        onClick={() => setFilter(f.id)}
+                                        style={{
+                                            padding: '7px 18px',
+                                            border: 'none',
+                                            borderRadius: '9999px',
+                                            fontSize: '13px',
+                                            fontWeight: 500,
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease',
+                                            background: filter === f.id ? '#fff' : 'transparent',
+                                            color: filter === f.id ? '#000' : '#86868b',
+                                            boxShadow: filter === f.id ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                                        }}
                                     >
-                                        All
-                                    </Button>
-                                    <Button 
-                                        variant={filter === 'unread' ? 'secondary' : 'outline-secondary'}
-                                        size="sm"
-                                        className='me-2'
-                                        onClick={() => setFilter('unread')}
-                                        style={{borderRadius: '6px'}}
-                                    >
-                                        Unread ({unreadCount})
-                                    </Button>
-                                    <Button 
-                                        variant={filter === 'read' ? 'secondary' : 'outline-secondary'}
-                                        size="sm"
-                                        onClick={() => setFilter('read')}
-                                        style={{borderRadius: '6px'}}
-                                    >
-                                        Read
-                                    </Button>
-                                </div>
-                                
-                                {loading ? (
-                                    <NotificationsSkeleton count={5} />
-                                ) : notifications.length > 0 ? (
-                                    <ListGroup variant="flush" className="border-0">
-                                        {notifications.map((notification) => (
-                                            <ListGroup.Item 
-                                                key={notification.id} 
-                                                className={`d-flex justify-content-between align-items-start ${!notification.is_read ? 'border-start border-3' : ''}`}
+                                        {f.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Notifications list */}
+                            {loading ? (
+                                <NotificationsSkeleton count={5} />
+                            ) : notifications.length > 0 ? (
+                                <div>
+                                    {notifications.map((notification) => {
+                                        const iconData = getNotificationIcon(notification.type);
+                                        const isUnread = !notification.is_read;
+
+                                        return (
+                                            <div
+                                                key={notification.id}
                                                 style={{
-                                                    border: 'none',
-                                                    borderLeft: !notification.is_read ? '3px solid #0d6efd' : 'none',
-                                                    marginBottom: '0.5rem',
-                                                    borderRadius: '6px',
-                                                    backgroundColor: 'transparent'
+                                                    display: 'flex',
+                                                    alignItems: 'flex-start',
+                                                    gap: '14px',
+                                                    padding: '18px 20px',
+                                                    borderRadius: '16px',
+                                                    background: isUnread ? '#fafafa' : '#fff',
+                                                    border: `1px solid ${isUnread ? '#e8e8ed' : '#f0f0f0'}`,
+                                                    marginBottom: '8px',
+                                                    transition: 'all 0.2s ease',
+                                                    position: 'relative',
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.borderColor = '#d1d5db';
+                                                    e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.04)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.borderColor = isUnread ? '#e8e8ed' : '#f0f0f0';
+                                                    e.currentTarget.style.boxShadow = 'none';
                                                 }}
                                             >
-                                                <div className='d-flex align-items-start'>
-                                                    <span className={`material-symbols-outlined ${getNotificationIcon(notification.type).class} me-3 mt-1`} style={{fontSize: '1.2rem', fontVariationSettings: getNotificationIcon(notification.type).fill ? "'FILL' 1" : "'FILL' 0"}}>{ getNotificationIcon(notification.type).icon}</span>
-                                                    <div className='flex-grow-1'>
-                                                        <h6 className='mb-1'>
-                                                            {notification.title}
-                                                            {!notification.is_read && (
-                                                                <Badge bg="primary" className='ms-2 fs-9'>New</Badge>
-                                                            )}
-                                                        </h6>
-                                                        <p className='mb-1 fs-8'>{notification.message}</p>
-                                                        <small className='text-muted'>
+                                                {/* Unread indicator dot */}
+                                                {isUnread && (
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        top: '22px',
+                                                        left: '8px',
+                                                        width: '6px',
+                                                        height: '6px',
+                                                        borderRadius: '50%',
+                                                        background: '#f97316',
+                                                    }} />
+                                                )}
+
+                                                {/* Icon */}
+                                                <div style={{
+                                                    width: '40px',
+                                                    height: '40px',
+                                                    borderRadius: '50%',
+                                                    background: iconData.bg,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    flexShrink: 0,
+                                                }}>
+                                                    <span className="material-symbols-outlined" style={{
+                                                        fontSize: '20px',
+                                                        color: iconData.color,
+                                                        fontVariationSettings: "'FILL' 1",
+                                                    }}>
+                                                        {iconData.icon}
+                                                    </span>
+                                                </div>
+
+                                                {/* Content */}
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <div style={{
+                                                        fontSize: '14px',
+                                                        fontWeight: isUnread ? 600 : 500,
+                                                        color: '#000',
+                                                        marginBottom: '4px',
+                                                        lineHeight: 1.4,
+                                                    }}>
+                                                        {notification.title}
+                                                    </div>
+                                                    <div style={{
+                                                        fontSize: '13px',
+                                                        color: '#86868b',
+                                                        lineHeight: 1.5,
+                                                        marginBottom: '8px',
+                                                    }}>
+                                                        {notification.message}
+                                                    </div>
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '12px',
+                                                    }}>
+                                                        <span style={{
+                                                            fontSize: '12px',
+                                                            color: '#b0b0b5',
+                                                        }}>
                                                             {formatDate(notification.created_at)}
-                                                        </small>
+                                                        </span>
+
+                                                        {notification.action_url && (
+                                                            <a
+                                                                href={notification.action_url}
+                                                                style={{
+                                                                    fontSize: '12px',
+                                                                    fontWeight: 500,
+                                                                    color: '#000',
+                                                                    textDecoration: 'none',
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '3px',
+                                                                    transition: 'color 0.15s ease',
+                                                                }}
+                                                                onMouseEnter={(e) => { e.currentTarget.style.color = '#f97316'; }}
+                                                                onMouseLeave={(e) => { e.currentTarget.style.color = '#000'; }}
+                                                            >
+                                                                View
+                                                                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>arrow_forward</span>
+                                                            </a>
+                                                        )}
+
+                                                        {isUnread && (
+                                                            <button
+                                                                onClick={() => markAsRead(notification.id)}
+                                                                style={{
+                                                                    fontSize: '12px',
+                                                                    fontWeight: 500,
+                                                                    color: '#86868b',
+                                                                    background: 'none',
+                                                                    border: 'none',
+                                                                    cursor: 'pointer',
+                                                                    padding: 0,
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '3px',
+                                                                    transition: 'color 0.15s ease',
+                                                                }}
+                                                                onMouseEnter={(e) => { e.currentTarget.style.color = '#000'; }}
+                                                                onMouseLeave={(e) => { e.currentTarget.style.color = '#86868b'; }}
+                                                            >
+                                                                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>check</span>
+                                                                Mark read
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
-                                                <div className='d-flex flex-column gap-1'>
-                                                    {notification.action_url && (
-                                                        <Button 
-                                                            href={notification.action_url}
-                                                            variant="outline-secondary" 
-                                                            size="sm"
-                                                            style={{borderRadius: '6px'}}
-                                                        >
-                                                            <span className='material-symbols-outlined me-1' style={{fontSize: '16px', verticalAlign: 'middle'}}>arrow_forward</span>
-                                                            View
-                                                        </Button>
-                                                    )}
-                                                    {!notification.is_read && (
-                                                        <Button 
-                                                            variant="outline-secondary" 
-                                                            size="sm"
-                                                            onClick={() => markAsRead(notification.id)}
-                                                            style={{borderRadius: '6px'}}
-                                                        >
-                                                            <span className='material-symbols-outlined me-1' style={{fontSize: '16px', verticalAlign: 'middle'}}>check</span>
-                                                            Mark Read
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            </ListGroup.Item>
-                                        ))}
-                                    </ListGroup>
-                                ) : (
-                                    <div className='text-center py-5 rounded'>
-                                        <span className='material-symbols-outlined text-muted' style={{fontSize: '3rem'}}>notifications</span>
-                                        <h5 className='mt-3 text-muted'>No Notifications</h5>
-                                        <p className='text-muted'>
-                                            {filter === 'unread' ? 'No unread notifications.' : 'You have no notifications yet.'}
-                                        </p>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div style={{
+                                    textAlign: 'center',
+                                    padding: '80px 24px',
+                                    background: '#f5f5f7',
+                                    borderRadius: '20px',
+                                }}>
+                                    <div style={{
+                                        width: '64px',
+                                        height: '64px',
+                                        borderRadius: '50%',
+                                        background: '#e8e8ed',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        margin: '0 auto 20px',
+                                    }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '28px', color: '#86868b' }}>
+                                            notifications
+                                        </span>
                                     </div>
-                                )}
-                            </div>
-                        </Col>
-                        <Col sm={3}>
+                                    <h3 style={{
+                                        fontSize: '18px',
+                                        fontWeight: 600,
+                                        color: '#000',
+                                        marginBottom: '8px',
+                                    }}>
+                                        No notifications
+                                    </h3>
+                                    <p style={{
+                                        fontSize: '14px',
+                                        color: '#86868b',
+                                        margin: 0,
+                                        maxWidth: '320px',
+                                        marginLeft: 'auto',
+                                        marginRight: 'auto',
+                                    }}>
+                                        {filter === 'unread'
+                                            ? "You're all caught up. No unread notifications."
+                                            : "You don't have any notifications yet. They'll show up here."}
+                                    </p>
+                                </div>
+                            )}
                         </Col>
                     </Row>
                 </Container>

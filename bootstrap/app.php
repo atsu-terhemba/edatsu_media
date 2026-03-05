@@ -31,12 +31,12 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (TokenMismatchException $e, $request) {
-            if ($request->expectsJson()) {
+            if ($request->expectsJson() || $request->header('X-Inertia')) {
                 return response()->json([
-                    'message' => 'Your session has expired. Please try again.',
+                    'message' => 'Your session has expired. Please refresh the page.',
                 ], 419);
             }
 
-            return redirect()->back()->with('error', 'Your session expired. Please try again.');
+            return response()->view('errors.419', [], 419);
         });
     })->create();

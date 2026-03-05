@@ -3,6 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Edatsu">
     <meta name="application-name" content="Edatsu Media">
     
     <!-- Primary SEO Meta Tags -->
@@ -34,26 +37,58 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{{asset('img/icons/favicon-32x32.png')}}">
     <link rel="icon" type="image/png" sizes="96x96" href="{{asset('img/icons/favicon-96x96.png')}}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{asset('img/icons/favicon-16x16.png')}}">        
-    <link rel="manifest" href="/manifest-en.json">
-    <meta name="msapplication-TileColor" content="#ffffff">
+    <link rel="manifest" id="manifest-link" href="/manifest-en.json">
+    <meta name="msapplication-TileColor" content="#000000">
     <meta name="msapplication-TileImage" content="img/icons/ms-icon-144x144.png">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#000000">
     
+    <!-- hrefLang for multilingual SEO -->
+    <link rel="alternate" hreflang="en" href="https://www.edatsu.com{{ request()->getPathInfo() }}">
+    <link rel="alternate" hreflang="fr" href="https://www.edatsu.com{{ request()->getPathInfo() }}">
+    <link rel="alternate" hreflang="es" href="https://www.edatsu.com{{ request()->getPathInfo() }}">
+    <link rel="alternate" hreflang="de" href="https://www.edatsu.com{{ request()->getPathInfo() }}">
+    <link rel="alternate" hreflang="pt" href="https://www.edatsu.com{{ request()->getPathInfo() }}">
+    <link rel="alternate" hreflang="x-default" href="https://www.edatsu.com{{ request()->getPathInfo() }}">
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Edatsu Media">
     <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="fr_FR">
+    <meta property="og:locale:alternate" content="es_ES">
+    <meta property="og:locale:alternate" content="de_DE">
+    <meta property="og:locale:alternate" content="pt_BR">
     <meta property="og:title" content="Edatsu Media - Funding Opportunities & Business Tools">
     <meta property="og:description" content="Discover funding opportunities, grants, accelerators, and essential business tools to launch and scale your venture.">
     <meta property="og:image" content="{{asset('img/logo/default_logo.jpg')}}">
-    <meta property="og:url" content="https://www.edatsu.com">
-    
+    <meta property="og:url" content="https://www.edatsu.com{{ request()->getPathInfo() }}">
+
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@edatsumedia">
     <meta name="twitter:title" content="Edatsu Media - Funding Opportunities & Business Tools">
     <meta name="twitter:description" content="Discover funding opportunities, grants, accelerators, and essential business tools for entrepreneurs.">
     <meta name="twitter:image" content="{{asset('img/logo/default_logo.jpg')}}">
+
+    <!-- JSON-LD Organization Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Edatsu Media",
+        "url": "https://www.edatsu.com",
+        "logo": "{{ asset('img/logo/default_logo.jpg') }}",
+        "description": "Edatsu Media helps entrepreneurs discover funding opportunities, grants, accelerators, and essential business tools.",
+        "sameAs": [
+            "https://twitter.com/edatsumedia"
+        ],
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "url": "https://www.edatsu.com/help"
+        }
+    }
+    </script>
     
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7365396698208751" crossorigin="anonymous"></script>
@@ -115,10 +150,7 @@
         gtag('js', new Date());
         gtag('config', 'G-1Z7BZW1CTX');
     </script>
-    <!--google adsense-->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7365396698208751"
-     crossorigin="anonymous"></script>
-    <!--google adsense-->
+    <!-- AdSense loaded via AdBanner component -->
     <script>
     //--update page manifest-->
     const manifestLink = document.getElementById('manifest-link');

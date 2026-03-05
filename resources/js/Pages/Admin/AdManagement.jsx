@@ -4,9 +4,48 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Container, Row, Col } from 'react-bootstrap';
 import AdminSideNav from './Components/SideNav';
 
+const labelStyle = {
+    display: 'block', fontSize: '12px', fontWeight: 500, color: '#86868b',
+    textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px',
+};
+const inputStyle = {
+    width: '100%', padding: '10px 14px', borderRadius: '12px',
+    border: '1px solid #e5e5e7', fontSize: '14px', background: '#fff',
+    color: '#000', outline: 'none', transition: 'border-color 0.15s ease',
+};
+const focusH = (e) => { e.currentTarget.style.borderColor = '#000'; };
+const blurH = (e) => { e.currentTarget.style.borderColor = '#e5e5e7'; };
+
+function Toggle({ checked, onChange, label }) {
+    return (
+        <button
+            type="button"
+            onClick={onChange}
+            style={{
+                display: 'flex', alignItems: 'center', gap: '12px',
+                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+            }}
+        >
+            <span style={{
+                width: '44px', height: '24px', borderRadius: '9999px',
+                background: checked ? '#000' : '#d1d1d6', position: 'relative',
+                transition: 'background 0.2s ease', flexShrink: 0,
+            }}>
+                <span style={{
+                    width: '20px', height: '20px', borderRadius: '50%', background: '#fff',
+                    position: 'absolute', top: '2px',
+                    left: checked ? '22px' : '2px', transition: 'left 0.2s ease',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                }} />
+            </span>
+            <span style={{ fontSize: '14px', fontWeight: 500, color: '#000' }}>{label}</span>
+        </button>
+    );
+}
+
 export default function AdManagement({ globalSettings, adSettings }) {
     const { flash } = usePage().props;
-    const [showAddModal, setShowAddModal] = useState(false);
+    const [showModal, setShowModal] = useState(false);
     const [editingAd, setEditingAd] = useState(null);
 
     const globalForm = useForm({
@@ -15,68 +54,53 @@ export default function AdManagement({ globalSettings, adSettings }) {
     });
 
     const adForm = useForm({
-        slot_name: '',
-        page: 'all',
-        position: 'top',
-        size: 'responsive',
-        ad_code: '',
-        is_active: true,
-        order: 0
+        slot_name: '', page: 'all', position: 'top', size: 'responsive',
+        ad_code: '', is_active: true, order: 0,
     });
 
     const toggleGlobalAds = () => {
-        router.post('/admin/ads/toggle', {
-            ads_enabled: !globalSettings.ads_enabled
-        }, {
-            preserveScroll: true
-        });
+        router.post('/admin/ads/toggle', { ads_enabled: !globalSettings.ads_enabled }, { preserveScroll: true });
     };
-
+    const togglePlaceholders = () => {
+        router.post('/admin/ads/toggle-placeholders', {}, { preserveScroll: true });
+    };
     const updateGlobalSettings = (e) => {
         e.preventDefault();
-        globalForm.post('/admin/ads/global-settings', {
-            preserveScroll: true
-        });
+        globalForm.post('/admin/ads/global-settings', { preserveScroll: true });
     };
-
-    const handleAddAd = (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        adForm.post('/admin/ads', {
-            onSuccess: () => {
-                setShowAddModal(false);
-                adForm.reset();
-            }
-        });
-    };
-
-    const handleUpdateAd = (e) => {
-        e.preventDefault();
-        adForm.put(`/admin/ads/${editingAd.id}`, {
-            onSuccess: () => {
-                setEditingAd(null);
-                adForm.reset();
-            }
-        });
-    };
-
-    const deleteAd = (id) => {
-        if (confirm('Are you sure you want to delete this ad slot?')) {
-            adForm.delete(`/admin/ads/${id}`, {
-                preserveScroll: true
+        if (editingAd) {
+            adForm.put(`/admin/ads/${editingAd.id}`, {
+                onSuccess: () => { setEditingAd(null); setShowModal(false); adForm.reset(); }
+            });
+        } else {
+            adForm.post('/admin/ads', {
+                onSuccess: () => { setShowModal(false); adForm.reset(); }
             });
         }
     };
-
-    const toggleAdActive = (id) => {
-        adForm.post(`/admin/ads/${id}/toggle`, {
-            preserveScroll: true
-        });
+    const deleteAd = (id) => {
+        if (confirm('Delete this ad slot?')) adForm.delete(`/admin/ads/${id}`, { preserveScroll: true });
     };
-
+    const toggleAdActive = (id) => {
+        adForm.post(`/admin/ads/${id}/toggle`, { preserveScroll: true });
+    };
     const toggleAdVisible = (id) => {
-        router.post(`/admin/ads/${id}/toggle-visibility`, {}, {
-            preserveScroll: true
-        });
+        router.post(`/admin/ads/${id}/toggle-visibility`, {}, { preserveScroll: true });
+    };
+    const openEdit = (ad) => {
+        setEditingAd(ad);
+        adForm.setData(ad);
+        setShowModal(true);
+    };
+    const openAdd = () => {
+        setEditingAd(null);
+        adForm.reset();
+        setShowModal(true);
+    };
+    const closeModal = () => {
+        setShowModal(false); setEditingAd(null); adForm.reset();
     };
 
     const adSizes = [
@@ -88,342 +112,367 @@ export default function AdManagement({ globalSettings, adSettings }) {
         { value: 'wide-skyscraper', label: 'Wide Skyscraper (160x600)' },
         { value: 'half-page', label: 'Half Page (300x600)' },
         { value: 'mobile-banner', label: 'Mobile Banner (320x50)' },
-        { value: 'large-mobile-banner', label: 'Large Mobile Banner (320x100)' }
+        { value: 'large-mobile-banner', label: 'Large Mobile Banner (320x100)' },
     ];
-
     const pages = [
-        { value: 'all', label: 'All Pages' },
-        { value: 'toolshed', label: 'Toolshed' },
-        { value: 'tool-view', label: 'Tool View' },
-        { value: 'opportunities', label: 'Opportunities' },
-        { value: 'opp-view', label: 'Opportunity View' }
+        { value: 'all', label: 'All Pages' }, { value: 'toolshed', label: 'Toolshed' },
+        { value: 'tool-view', label: 'Tool View' }, { value: 'opportunities', label: 'Opportunities' },
+        { value: 'opp-view', label: 'Opportunity View' },
     ];
-
     const positions = [
-        { value: 'top', label: 'Top of Page' },
-        { value: 'sidebar-right', label: 'Right Sidebar' },
-        { value: 'sidebar-left', label: 'Left Sidebar' },
-        { value: 'in-content-top', label: 'In Content (Top)' },
-        { value: 'in-content-middle', label: 'In Content (Middle)' },
-        { value: 'in-content-bottom', label: 'In Content (Bottom)' },
-        { value: 'bottom', label: 'Bottom of Page' },
-        { value: 'between-items', label: 'Between Items' }
+        { value: 'top', label: 'Top of Page' }, { value: 'sidebar-right', label: 'Right Sidebar' },
+        { value: 'sidebar-left', label: 'Left Sidebar' }, { value: 'in-content-top', label: 'In Content (Top)' },
+        { value: 'in-content-middle', label: 'In Content (Middle)' }, { value: 'in-content-bottom', label: 'In Content (Bottom)' },
+        { value: 'bottom', label: 'Bottom of Page' }, { value: 'between-items', label: 'Between Items' },
     ];
 
     return (
         <AuthenticatedLayout>
             <Head title="Ad Management" />
-            
             <Container fluid={true}>
                 <Container>
-                    <Row>
-                        <Col sm={3}>
-                            <div className='my-3 fs-9'>
-                                <AdminSideNav/>
-                            </div>
+                    <Row className="g-4" style={{ paddingTop: '96px', paddingBottom: '64px' }}>
+                        <Col md={3} className="d-none d-md-block">
+                            <AdminSideNav />
                         </Col>
-                        <Col sm={9}>
-                            <div className='my-3'>
-                                <div className="row mb-4">
-                                    <div className="col">
-                                        <h2 className="mb-0">Ad Management</h2>
-                                        <p className="text-muted">Manage Google AdSense placements across your website</p>
+                        <Col md={9} xs={12}>
+                            {/* Header */}
+                            <div style={{ marginBottom: '32px' }}>
+                                <h2 style={{ fontSize: 'clamp(24px, 4vw, 28px)', fontWeight: 600, color: '#000', letterSpacing: '-0.02em', marginBottom: '6px' }}>
+                                    Ad Management
+                                </h2>
+                                <p style={{ fontSize: '14px', color: '#86868b', margin: 0 }}>
+                                    Manage Google AdSense placements across your website
+                                </p>
+                            </div>
+
+                            {/* Flash Message */}
+                            {flash?.success && (
+                                <div style={{
+                                    background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px',
+                                    padding: '14px 20px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px',
+                                }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#16a34a' }}>check_circle</span>
+                                    <span style={{ fontSize: '14px', color: '#166534' }}>{flash.success}</span>
+                                </div>
+                            )}
+
+                            {/* Global Settings */}
+                            <div style={{
+                                background: '#000', borderRadius: '16px', padding: '28px', marginBottom: '20px',
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+                                    <span style={{
+                                        width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255,255,255,0.1)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#fff' }}>settings</span>
+                                    </span>
+                                    <div>
+                                        <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#fff', margin: 0 }}>Global Settings</h3>
+                                        <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Master controls for all ads</span>
                                     </div>
                                 </div>
 
-                {flash?.success && (
-                    <div className="alert alert-success alert-dismissible fade show" role="alert">
-                        {flash.success}
-                        <button type="button" className="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                )}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                                        <div>
+                                            <span style={{ fontSize: '14px', color: '#fff', fontWeight: 500 }}>Master Ads Toggle</span>
+                                            <span style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+                                                {globalSettings.ads_enabled ? 'Ads are currently live' : 'Ads are turned off'}
+                                            </span>
+                                        </div>
+                                        <button type="button" onClick={toggleGlobalAds} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                                            <span style={{
+                                                width: '44px', height: '24px', borderRadius: '9999px',
+                                                background: globalSettings.ads_enabled ? '#16a34a' : 'rgba(255,255,255,0.2)',
+                                                position: 'relative', transition: 'background 0.2s ease',
+                                            }}>
+                                                <span style={{
+                                                    width: '20px', height: '20px', borderRadius: '50%', background: '#fff',
+                                                    position: 'absolute', top: '2px',
+                                                    left: globalSettings.ads_enabled ? '22px' : '2px', transition: 'left 0.2s ease',
+                                                }} />
+                                            </span>
+                                            <span style={{ fontSize: '13px', fontWeight: 500, color: globalSettings.ads_enabled ? '#16a34a' : 'rgba(255,255,255,0.5)' }}>
+                                                {globalSettings.ads_enabled ? 'Enabled' : 'Disabled'}
+                                            </span>
+                                        </button>
+                                    </div>
 
-                {/* Global Settings Card */}
-                <div className="card mb-4">
-                    <div className="card-header bg-primary text-white">
-                        <h5 className="mb-3">Global Ad Settings</h5>
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                            <span>Master Ads Toggle</span>
-                            <div className="form-check form-switch">
-                                <input
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    role="switch"
-                                    checked={globalSettings.ads_enabled}
-                                    onChange={toggleGlobalAds}
-                                    style={{ fontSize: '1.5rem', cursor: 'pointer' }}
-                                />
-                                <label className="form-check-label text-white ms-2">
-                                    <strong>{globalSettings.ads_enabled ? 'Ads Enabled' : 'Ads Disabled'}</strong>
-                                </label>
-                            </div>
-                        </div>
-                        <div className="d-flex justify-content-between align-items-center">
-                            <span>Show Placeholders</span>
-                            <div className="form-check form-switch">
-                                <input
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    role="switch"
-                                    checked={globalSettings.show_placeholders !== false}
-                                    onChange={() => router.post('/admin/ads/toggle-placeholders', {}, { preserveScroll: true })}
-                                    style={{ fontSize: '1.5rem', cursor: 'pointer' }}
-                                />
-                                <label className="form-check-label text-white ms-2">
-                                    <strong>{globalSettings.show_placeholders !== false ? 'Placeholders Shown' : 'Placeholders Hidden'}</strong>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="card-body">
-                        <form onSubmit={updateGlobalSettings}>
-                            <div className="mb-3">
-                                <label className="form-label">AdSense Publisher ID</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    placeholder="ca-pub-XXXXXXXXXXXXXXXX"
-                                    value={globalForm.data.adsense_publisher_id}
-                                    onChange={e => globalForm.setData('adsense_publisher_id', e.target.value)}
-                                />
-                                <small className="text-muted">Your Google AdSense publisher ID</small>
-                            </div>
-                            <button type="submit" className="btn btn-primary" disabled={globalForm.processing}>
-                                Save Global Settings
-                            </button>
-                        </form>
-                    </div>
-                </div>
+                                    <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)' }} />
 
-                {/* Ad Slots Management */}
-                <div className="card">
-                    <div className="card-header d-flex justify-content-between align-items-center">
-                        <h5 className="mb-0">Ad Slots ({adSettings.length})</h5>
-                        <button className="btn btn-success btn-sm" onClick={() => setShowAddModal(true)}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '18px', verticalAlign: 'middle' }}>add</span>
-                            Add New Ad Slot
-                        </button>
-                    </div>
-                    <div className="card-body">
-                        <div className="table-responsive">
-                            <table className="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Slot Name</th>
-                                        <th>Page</th>
-                                        <th>Position</th>
-                                        <th>Size</th>
-                                        <th>Status</th>
-                                        <th>Visible</th>
-                                        <th>Order</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {adSettings.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="8" className="text-center text-muted py-4">
-                                                No ad slots configured yet. Click "Add New Ad Slot" to get started.
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        adSettings.map(ad => (
-                                            <tr key={ad.id}>
-                                                <td><strong>{ad.slot_name}</strong></td>
-                                                <td><span className="badge bg-secondary">{ad.page}</span></td>
-                                                <td>{ad.position}</td>
-                                                <td>{ad.size}</td>
-                                                <td>
-                                                    <span className={`badge ${ad.is_active ? 'bg-success' : 'bg-danger'}`}>
-                                                        {ad.is_active ? 'Active' : 'Inactive'}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <span className={`badge ${ad.is_visible ? 'bg-info' : 'bg-warning'}`}>
-                                                        {ad.is_visible ? 'Shown' : 'Hidden'}
-                                                    </span>
-                                                </td>
-                                                <td>{ad.order}</td>
-                                                <td>
-                                                    <div className="btn-group btn-group-sm">
-                                                        <button
-                                                            className="btn btn-outline-primary"
-                                                            onClick={() => {
-                                                                setEditingAd(ad);
-                                                                adForm.setData(ad);
-                                                            }}
-                                                            title="Edit"
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                                        <div>
+                                            <span style={{ fontSize: '14px', color: '#fff', fontWeight: 500 }}>Show Placeholders</span>
+                                            <span style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+                                                Display placeholder boxes where ads will appear
+                                            </span>
+                                        </div>
+                                        <button type="button" onClick={togglePlaceholders} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                                            <span style={{
+                                                width: '44px', height: '24px', borderRadius: '9999px',
+                                                background: globalSettings.show_placeholders !== false ? '#f97316' : 'rgba(255,255,255,0.2)',
+                                                position: 'relative', transition: 'background 0.2s ease',
+                                            }}>
+                                                <span style={{
+                                                    width: '20px', height: '20px', borderRadius: '50%', background: '#fff',
+                                                    position: 'absolute', top: '2px',
+                                                    left: globalSettings.show_placeholders !== false ? '22px' : '2px', transition: 'left 0.2s ease',
+                                                }} />
+                                            </span>
+                                            <span style={{ fontSize: '13px', fontWeight: 500, color: globalSettings.show_placeholders !== false ? '#f97316' : 'rgba(255,255,255,0.5)' }}>
+                                                {globalSettings.show_placeholders !== false ? 'Shown' : 'Hidden'}
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <form onSubmit={updateGlobalSettings}>
+                                    <label style={{ ...labelStyle, color: 'rgba(255,255,255,0.5)' }}>AdSense Publisher ID</label>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <input
+                                            type="text"
+                                            placeholder="ca-pub-XXXXXXXXXXXXXXXX"
+                                            value={globalForm.data.adsense_publisher_id}
+                                            onChange={e => globalForm.setData('adsense_publisher_id', e.target.value)}
+                                            style={{ ...inputStyle, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', flex: 1 }}
+                                            onFocus={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)'}
+                                            onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'}
+                                        />
+                                        <button type="submit" disabled={globalForm.processing} style={{
+                                            padding: '10px 24px', borderRadius: '9999px', border: 'none',
+                                            background: '#fff', color: '#000', fontSize: '13px', fontWeight: 500,
+                                            cursor: globalForm.processing ? 'not-allowed' : 'pointer', transition: 'all 0.15s ease', flexShrink: 0,
+                                        }}
+                                            onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f7'}
+                                            onMouseLeave={(e) => e.currentTarget.style.background = '#fff'}
+                                        >
+                                            Save
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            {/* Ad Slots */}
+                            <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: '16px', padding: '28px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+                                    <div>
+                                        <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#000', margin: '0 0 4px' }}>
+                                            Ad Slots
+                                        </h3>
+                                        <span style={{ fontSize: '13px', color: '#86868b' }}>{adSettings.length} slot{adSettings.length !== 1 ? 's' : ''} configured</span>
+                                    </div>
+                                    <button onClick={openAdd} style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                        padding: '8px 18px', borderRadius: '9999px', border: 'none',
+                                        background: '#000', color: '#fff', fontSize: '13px', fontWeight: 500,
+                                        cursor: 'pointer', transition: 'all 0.15s ease',
+                                    }}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = '#333'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = '#000'}
+                                    >
+                                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
+                                        Add Slot
+                                    </button>
+                                </div>
+
+                                {adSettings.length === 0 ? (
+                                    <div style={{ textAlign: 'center', padding: '48px 0' }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '48px', color: '#d1d1d6', display: 'block', marginBottom: '12px' }}>ad_units</span>
+                                        <p style={{ fontSize: '14px', color: '#86868b', margin: 0 }}>No ad slots yet. Click "Add Slot" to get started.</p>
+                                    </div>
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        {adSettings.map(ad => (
+                                            <div key={ad.id} style={{
+                                                padding: '16px 20px', borderRadius: '12px', border: '1px solid #f0f0f0',
+                                                transition: 'all 0.15s ease',
+                                            }}
+                                                onMouseEnter={(e) => { e.currentTarget.style.background = '#fafafa'; e.currentTarget.style.borderColor = '#e5e5e7'; }}
+                                                onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#f0f0f0'; }}
+                                            >
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' }}>
+                                                    <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                                                            <span style={{ fontSize: '14px', fontWeight: 600, color: '#000' }}>{ad.slot_name}</span>
+                                                            <span style={{
+                                                                fontSize: '11px', fontWeight: 500, padding: '2px 8px', borderRadius: '9999px',
+                                                                color: ad.is_active ? '#16a34a' : '#dc2626',
+                                                                background: ad.is_active ? '#f0fdf4' : '#fef2f2',
+                                                            }}>
+                                                                {ad.is_active ? 'Active' : 'Inactive'}
+                                                            </span>
+                                                            {ad.ad_code && (
+                                                                <span style={{
+                                                                    fontSize: '11px', fontWeight: 500, padding: '2px 8px', borderRadius: '9999px',
+                                                                    color: '#000', background: '#f5f5f7',
+                                                                }}>
+                                                                    Has Code
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                                                            {[
+                                                                { icon: 'web', val: pages.find(p => p.value === ad.page)?.label || ad.page },
+                                                                { icon: 'pin_drop', val: positions.find(p => p.value === ad.position)?.label || ad.position },
+                                                                { icon: 'aspect_ratio', val: adSizes.find(s => s.value === ad.size)?.label || ad.size },
+                                                                { icon: 'sort', val: `Order: ${ad.order}` },
+                                                            ].map((meta, i) => (
+                                                                <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#86868b' }}>
+                                                                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>{meta.icon}</span>
+                                                                    {meta.val}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                                                        <button onClick={() => openEdit(ad)} title="Edit" style={{
+                                                            width: '32px', height: '32px', borderRadius: '8px', background: '#f5f5f7',
+                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                            border: 'none', cursor: 'pointer', transition: 'all 0.15s ease',
+                                                        }}
+                                                            onMouseEnter={(e) => e.currentTarget.style.background = '#e5e5e7'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.background = '#f5f5f7'}
                                                         >
-                                                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span>
+                                                            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#6e6e73' }}>edit</span>
                                                         </button>
-                                                        <button
-                                                            className={`btn btn-outline-${ad.is_active ? 'warning' : 'success'}`}
-                                                            onClick={() => toggleAdActive(ad.id)}
-                                                            title={ad.is_active ? 'Deactivate Ad' : 'Activate Ad'}
+                                                        <button onClick={() => toggleAdActive(ad.id)} title={ad.is_active ? 'Deactivate' : 'Activate'} style={{
+                                                            width: '32px', height: '32px', borderRadius: '8px',
+                                                            background: ad.is_active ? '#f0fdf4' : '#f5f5f7',
+                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                            border: 'none', cursor: 'pointer', transition: 'all 0.15s ease',
+                                                        }}
+                                                            onMouseEnter={(e) => e.currentTarget.style.background = ad.is_active ? '#bbf7d0' : '#e5e5e7'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.background = ad.is_active ? '#f0fdf4' : '#f5f5f7'}
                                                         >
-                                                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-                                                                {ad.is_active ? 'visibility_off' : 'visibility'}
+                                                            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: ad.is_active ? '#16a34a' : '#6e6e73' }}>
+                                                                {ad.is_active ? 'toggle_on' : 'toggle_off'}
                                                             </span>
                                                         </button>
-                                                        <button
-                                                            className={`btn btn-outline-${ad.is_visible ? 'secondary' : 'info'}`}
-                                                            onClick={() => toggleAdVisible(ad.id)}
-                                                            title={ad.is_visible ? 'Hide Placeholder' : 'Show Placeholder'}
+                                                        <button onClick={() => deleteAd(ad.id)} title="Delete" style={{
+                                                            width: '32px', height: '32px', borderRadius: '8px', background: '#fef2f2',
+                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                            border: 'none', cursor: 'pointer', transition: 'all 0.15s ease',
+                                                        }}
+                                                            onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.background = '#fef2f2'}
                                                         >
-                                                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-                                                                {ad.is_visible ? 'hide_source' : 'web'}
-                                                            </span>
-                                                        </button>
-                                                        <button
-                                                            className="btn btn-outline-danger"
-                                                            onClick={() => deleteAd(ad.id)}
-                                                            title="Delete"
-                                                        >
-                                                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
+                                                            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#dc2626' }}>delete</span>
                                                         </button>
                                                     </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-            {/* Add/Edit Modal */}
-            {(showAddModal || editingAd) && (
-                <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                    <div className="modal-dialog modal-lg">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">{editingAd ? 'Edit Ad Slot' : 'Add New Ad Slot'}</h5>
-                                <button 
-                                    type="button" 
-                                    className="btn-close" 
-                                    onClick={() => {
-                                        setShowAddModal(false);
-                                        setEditingAd(null);
-                                        adForm.reset();
-                                    }}
-                                ></button>
-                            </div>
-                            <form onSubmit={editingAd ? handleUpdateAd : handleAddAd}>
-                                <div className="modal-body">
-                                    <div className="row">
-                                        <div className="col-md-6 mb-3">
-                                            <label className="form-label">Slot Name *</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                placeholder="e.g., home_top_banner"
-                                                value={adForm.data.slot_name}
-                                                onChange={e => adForm.setData('slot_name', e.target.value)}
-                                                required
-                                            />
-                                        </div>
-                                        <div className="col-md-6 mb-3">
-                                            <label className="form-label">Page *</label>
-                                            <select
-                                                className="form-select"
-                                                value={adForm.data.page}
-                                                onChange={e => adForm.setData('page', e.target.value)}
-                                                required
-                                            >
-                                                {pages.map(page => (
-                                                    <option key={page.value} value={page.value}>{page.label}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div className="col-md-6 mb-3">
-                                            <label className="form-label">Position *</label>
-                                            <select
-                                                className="form-select"
-                                                value={adForm.data.position}
-                                                onChange={e => adForm.setData('position', e.target.value)}
-                                                required
-                                            >
-                                                {positions.map(pos => (
-                                                    <option key={pos.value} value={pos.value}>{pos.label}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div className="col-md-6 mb-3">
-                                            <label className="form-label">Ad Size *</label>
-                                            <select
-                                                className="form-select"
-                                                value={adForm.data.size}
-                                                onChange={e => adForm.setData('size', e.target.value)}
-                                                required
-                                            >
-                                                {adSizes.map(size => (
-                                                    <option key={size.value} value={size.value}>{size.label}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div className="col-md-6 mb-3">
-                                            <label className="form-label">Display Order</label>
-                                            <input
-                                                type="number"
-                                                className="form-control"
-                                                value={adForm.data.order}
-                                                onChange={e => adForm.setData('order', parseInt(e.target.value))}
-                                            />
-                                        </div>
-                                        <div className="col-md-6 mb-3">
-                                            <label className="form-label">Status</label>
-                                            <div className="form-check form-switch mt-2">
-                                                <input
-                                                    className="form-check-input"
-                                                    type="checkbox"
-                                                    checked={adForm.data.is_active}
-                                                    onChange={e => adForm.setData('is_active', e.target.checked)}
-                                                />
-                                                <label className="form-check-label">
-                                                    {adForm.data.is_active ? 'Active' : 'Inactive'}
-                                                </label>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="col-12 mb-3">
-                                            <label className="form-label">Ad Code (Leave empty for placeholder)</label>
-                                            <textarea
-                                                className="form-control font-monospace"
-                                                rows="6"
-                                                placeholder="Paste your Google AdSense code here..."
-                                                value={adForm.data.ad_code}
-                                                onChange={e => adForm.setData('ad_code', e.target.value)}
-                                            />
-                                            <small className="text-muted">The HTML code from Google AdSense</small>
-                                        </div>
+                                        ))}
                                     </div>
-                                </div>
-                                <div className="modal-footer">
-                                    <button 
-                                        type="button" 
-                                        className="btn btn-secondary" 
-                                        onClick={() => {
-                                            setShowAddModal(false);
-                                            setEditingAd(null);
-                                            adForm.reset();
-                                        }}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button type="submit" className="btn btn-primary" disabled={adForm.processing}>
-                                        {editingAd ? 'Update' : 'Create'} Ad Slot
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            )}
+                                )}
                             </div>
                         </Col>
                     </Row>
                 </Container>
             </Container>
+
+            {/* Modal */}
+            {showModal && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 9999,
+                    background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px',
+                }} onClick={closeModal}>
+                    <div style={{
+                        background: '#fff', borderRadius: '20px', width: '100%', maxWidth: '640px',
+                        maxHeight: '90vh', overflowY: 'auto',
+                    }} onClick={(e) => e.stopPropagation()}>
+                        <div style={{ padding: '24px 28px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#000', margin: 0 }}>
+                                {editingAd ? 'Edit Ad Slot' : 'Add New Ad Slot'}
+                            </h3>
+                            <button onClick={closeModal} style={{
+                                width: '32px', height: '32px', borderRadius: '50%', background: '#f5f5f7',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                border: 'none', cursor: 'pointer',
+                            }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#6e6e73' }}>close</span>
+                            </button>
+                        </div>
+                        <form onSubmit={handleSubmit}>
+                            <div style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                    <div>
+                                        <label style={labelStyle}>Slot Name *</label>
+                                        <input type="text" placeholder="e.g., home_top_banner" value={adForm.data.slot_name}
+                                            onChange={e => adForm.setData('slot_name', e.target.value)} required
+                                            style={inputStyle} onFocus={focusH} onBlur={blurH} />
+                                    </div>
+                                    <div>
+                                        <label style={labelStyle}>Page *</label>
+                                        <select value={adForm.data.page} onChange={e => adForm.setData('page', e.target.value)}
+                                            style={{ ...inputStyle, cursor: 'pointer' }}>
+                                            {pages.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style={labelStyle}>Position *</label>
+                                        <select value={adForm.data.position} onChange={e => adForm.setData('position', e.target.value)}
+                                            style={{ ...inputStyle, cursor: 'pointer' }}>
+                                            {positions.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style={labelStyle}>Ad Size *</label>
+                                        <select value={adForm.data.size} onChange={e => adForm.setData('size', e.target.value)}
+                                            style={{ ...inputStyle, cursor: 'pointer' }}>
+                                            {adSizes.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style={labelStyle}>Display Order</label>
+                                        <input type="number" value={adForm.data.order}
+                                            onChange={e => adForm.setData('order', parseInt(e.target.value) || 0)}
+                                            style={inputStyle} onFocus={focusH} onBlur={blurH} />
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: '4px' }}>
+                                        <Toggle checked={adForm.data.is_active}
+                                            onChange={() => adForm.setData('is_active', !adForm.data.is_active)}
+                                            label={adForm.data.is_active ? 'Active' : 'Inactive'} />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label style={labelStyle}>Ad Code</label>
+                                    <textarea
+                                        rows="6" placeholder="Paste your Google AdSense ad unit code here..."
+                                        value={adForm.data.ad_code || ''}
+                                        onChange={e => adForm.setData('ad_code', e.target.value)}
+                                        style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '13px', resize: 'vertical', minHeight: '120px' }}
+                                        onFocus={focusH} onBlur={blurH}
+                                    />
+                                    <span style={{ display: 'block', fontSize: '12px', color: '#b0b0b5', marginTop: '4px' }}>
+                                        Paste the full ad unit code from Google AdSense. Leave empty for placeholder only.
+                                    </span>
+                                </div>
+                            </div>
+                            <div style={{
+                                padding: '16px 28px 24px', display: 'flex', gap: '8px', justifyContent: 'flex-end',
+                            }}>
+                                <button type="button" onClick={closeModal} style={{
+                                    padding: '10px 24px', borderRadius: '9999px', border: '1px solid #e5e5e7',
+                                    background: '#fff', color: '#6e6e73', fontSize: '13px', fontWeight: 500, cursor: 'pointer',
+                                }}>Cancel</button>
+                                <button type="submit" disabled={adForm.processing} style={{
+                                    padding: '10px 24px', borderRadius: '9999px', border: 'none',
+                                    background: '#000', color: '#fff', fontSize: '13px', fontWeight: 500,
+                                    cursor: adForm.processing ? 'not-allowed' : 'pointer', transition: 'all 0.15s ease',
+                                }}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = '#333'}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = '#000'}
+                                >
+                                    {editingAd ? 'Update' : 'Create'} Ad Slot
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </AuthenticatedLayout>
     );
 }

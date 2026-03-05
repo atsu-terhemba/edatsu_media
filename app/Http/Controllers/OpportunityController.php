@@ -966,5 +966,23 @@ function store(Request $request)
         return response()->json($opportunities);
     }
 
+    /**
+     * Soft delete an opportunity
+     */
+    public function destroy($id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized']);
+        }
 
+        $op = Oppty::find($id);
+        if ($op) {
+            $op->status = 'archived';
+            $op->deleted_at = now();
+            $op->save();
+            return response()->json(['status' => 'success', 'message' => 'Opportunity deleted']);
+        }
+
+        return response()->json(['status' => 'error', 'message' => 'Opportunity not found']);
+    }
 }

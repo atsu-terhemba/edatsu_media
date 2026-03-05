@@ -3,6 +3,7 @@ import '../css/app.css';
 import '../css/style.css';
 import './bootstrap';
 import "sweetalert2/dist/sweetalert2.min.css";
+import './i18n';
 
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
@@ -30,3 +31,8 @@ createInertiaApp({
         showSpinner: true,
     },
 });
+
+// Register service worker for push notifications (browser only)
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+}

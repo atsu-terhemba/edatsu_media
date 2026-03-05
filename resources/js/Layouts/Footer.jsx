@@ -22,12 +22,29 @@ const languages = [
     { code: 'pt', label: 'Português' },
 ];
 
+const footerLinkStyle = {
+    color: 'rgba(255, 255, 255, 0.45)',
+    textDecoration: 'none',
+    fontSize: '14px',
+    fontWeight: 400,
+    transition: 'color 0.15s ease',
+};
+
+const sectionTitleStyle = {
+    fontSize: '12px',
+    fontWeight: 500,
+    color: 'rgba(255, 255, 255, 0.4)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.15em',
+    marginBottom: '20px',
+};
+
 export default function Footer() {
     const [selectedLang, setSelectedLang] = useState('en');
 
     return (
         <Fragment>
-            <footer style={{ background: '#0a0a0a' }}>
+            <footer style={{ background: '#000' }}>
                 {/* Main Footer */}
                 <Container>
                     <div style={{ paddingTop: '64px', paddingBottom: '40px' }}>
@@ -41,9 +58,9 @@ export default function Footer() {
                                     alt="Edatsu Media"
                                 />
                                 <p style={{
-                                    fontSize: '13px',
-                                    color: 'rgba(255,255,255,0.5)',
-                                    lineHeight: 1.7,
+                                    fontSize: '14px',
+                                    color: 'rgba(255,255,255,0.45)',
+                                    lineHeight: 1.625,
                                     fontWeight: 400,
                                     margin: '0 0 24px 0',
                                     maxWidth: '280px',
@@ -67,23 +84,26 @@ export default function Footer() {
                                             style={{
                                                 width: '32px',
                                                 height: '32px',
-                                                borderRadius: '6px',
-                                                background: 'rgba(255,255,255,0.06)',
+                                                borderRadius: '50%',
+                                                background: 'rgba(255,255,255,0.03)',
+                                                border: '1px solid rgba(255,255,255,0.06)',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                color: 'rgba(255,255,255,0.5)',
+                                                color: 'rgba(255,255,255,0.4)',
                                                 fontSize: '14px',
                                                 transition: 'all 0.15s ease',
                                                 textDecoration: 'none',
                                             }}
                                             onMouseEnter={(e) => {
-                                                e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
+                                                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
                                                 e.currentTarget.style.color = '#fff';
                                             }}
                                             onMouseLeave={(e) => {
-                                                e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
-                                                e.currentTarget.style.color = 'rgba(255,255,255,0.5)';
+                                                e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
+                                                e.currentTarget.style.color = 'rgba(255,255,255,0.4)';
                                             }}
                                         >
                                             <FontAwesomeIcon icon={social.icon} />
@@ -97,21 +117,12 @@ export default function Footer() {
                                 <Row>
                                     {/* Products */}
                                     <Col xs={6} sm={4}>
-                                        <h6 style={{
-                                            fontSize: '12px',
-                                            fontWeight: 500,
-                                            color: 'rgba(255,255,255,0.35)',
-                                            textTransform: 'uppercase',
-                                            letterSpacing: '0.08em',
-                                            marginBottom: '20px',
-                                        }}>
-                                            Products
-                                        </h6>
+                                        <h6 style={sectionTitleStyle}>Products</h6>
                                         <ul className="list-unstyled m-0">
                                             {[
                                                 { label: 'Opportunities', href: '/opportunities' },
                                                 { label: 'Toolshed', href: '/toolshed' },
-                                                { label: 'Subscription', href: '/pricing' },
+                                                { label: 'Subscription', href: '/subscription' },
                                                 { label: 'Advertise', href: '/advertise' },
                                                 { label: 'Subscribe', href: '/subscribe' },
                                                 { label: 'Sponsorship', href: '/sponsorship' },
@@ -119,15 +130,9 @@ export default function Footer() {
                                                 <li key={i} style={{ marginBottom: '12px' }}>
                                                     <Link
                                                         href={link.href}
-                                                        style={{
-                                                            color: 'rgba(255,255,255,0.6)',
-                                                            textDecoration: 'none',
-                                                            fontSize: '14px',
-                                                            fontWeight: 400,
-                                                            transition: 'color 0.15s ease',
-                                                        }}
+                                                        style={footerLinkStyle}
                                                         onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
-                                                        onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
                                                     >
                                                         {link.label}
                                                     </Link>
@@ -138,16 +143,7 @@ export default function Footer() {
 
                                     {/* Company */}
                                     <Col xs={6} sm={4}>
-                                        <h6 style={{
-                                            fontSize: '12px',
-                                            fontWeight: 500,
-                                            color: 'rgba(255,255,255,0.35)',
-                                            textTransform: 'uppercase',
-                                            letterSpacing: '0.08em',
-                                            marginBottom: '20px',
-                                        }}>
-                                            Company
-                                        </h6>
+                                        <h6 style={sectionTitleStyle}>Company</h6>
                                         <ul className="list-unstyled m-0">
                                             {[
                                                 { label: 'About', href: '/about-us' },
@@ -160,30 +156,18 @@ export default function Footer() {
                                                         <a
                                                             href={link.href}
                                                             target="_blank"
-                                                            style={{
-                                                                color: 'rgba(255,255,255,0.6)',
-                                                                textDecoration: 'none',
-                                                                fontSize: '14px',
-                                                                fontWeight: 400,
-                                                                transition: 'color 0.15s ease',
-                                                            }}
+                                                            style={footerLinkStyle}
                                                             onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
-                                                            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
                                                         >
                                                             {link.label}
                                                         </a>
                                                     ) : (
                                                         <Link
                                                             href={link.href}
-                                                            style={{
-                                                                color: 'rgba(255,255,255,0.6)',
-                                                                textDecoration: 'none',
-                                                                fontSize: '14px',
-                                                                fontWeight: 400,
-                                                                transition: 'color 0.15s ease',
-                                                            }}
+                                                            style={footerLinkStyle}
                                                             onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
-                                                            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
                                                         >
                                                             {link.label}
                                                         </Link>
@@ -195,16 +179,7 @@ export default function Footer() {
 
                                     {/* Support */}
                                     <Col xs={6} sm={4} className="mt-4 mt-sm-0">
-                                        <h6 style={{
-                                            fontSize: '12px',
-                                            fontWeight: 500,
-                                            color: 'rgba(255,255,255,0.35)',
-                                            textTransform: 'uppercase',
-                                            letterSpacing: '0.08em',
-                                            marginBottom: '20px',
-                                        }}>
-                                            Support
-                                        </h6>
+                                        <h6 style={sectionTitleStyle}>Support</h6>
                                         <ul className="list-unstyled m-0">
                                             {[
                                                 { label: 'Help Center', href: '/help' },
@@ -216,30 +191,18 @@ export default function Footer() {
                                                     {link.external ? (
                                                         <a
                                                             href={link.href}
-                                                            style={{
-                                                                color: 'rgba(255,255,255,0.6)',
-                                                                textDecoration: 'none',
-                                                                fontSize: '14px',
-                                                                fontWeight: 400,
-                                                                transition: 'color 0.15s ease',
-                                                            }}
+                                                            style={footerLinkStyle}
                                                             onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
-                                                            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
                                                         >
                                                             {link.label}
                                                         </a>
                                                     ) : (
                                                         <Link
                                                             href={link.href}
-                                                            style={{
-                                                                color: 'rgba(255,255,255,0.6)',
-                                                                textDecoration: 'none',
-                                                                fontSize: '14px',
-                                                                fontWeight: 400,
-                                                                transition: 'color 0.15s ease',
-                                                            }}
+                                                            style={footerLinkStyle}
                                                             onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
-                                                            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
                                                         >
                                                             {link.label}
                                                         </Link>
@@ -254,7 +217,7 @@ export default function Footer() {
                     </div>
 
                     {/* Divider */}
-                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }} />
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }} />
 
                     {/* Bottom Bar */}
                     <div
@@ -268,15 +231,15 @@ export default function Footer() {
                             gap: '16px',
                         }}
                     >
-                        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', fontWeight: 400 }}>
+                        <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', fontWeight: 400 }}>
                             &copy; {new Date().getFullYear()} Edatsu Media. A product of{' '}
                             <a
                                 href="https://www.edatsu.com"
                                 target="_blank"
                                 className="text-decoration-none"
-                                style={{ color: 'rgba(255,255,255,0.5)' }}
+                                style={{ color: 'rgba(255,255,255,0.45)', transition: 'color 0.15s ease' }}
                                 onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
-                                onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}
+                                onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
                             >
                                 Edatsu Technology Limited
                             </a>
@@ -295,10 +258,10 @@ export default function Footer() {
                                 onChange={(e) => setSelectedLang(e.target.value)}
                                 style={{
                                     background: 'transparent',
-                                    border: '1px solid rgba(255,255,255,0.12)',
-                                    borderRadius: '6px',
-                                    color: 'rgba(255,255,255,0.5)',
-                                    fontSize: '13px',
+                                    border: '1px solid rgba(255,255,255,0.06)',
+                                    borderRadius: '8px',
+                                    color: 'rgba(255,255,255,0.45)',
+                                    fontSize: '12px',
                                     fontWeight: 400,
                                     padding: '6px 12px',
                                     outline: 'none',

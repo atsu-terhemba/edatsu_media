@@ -49,8 +49,8 @@ const Subscription = () => {
             id: 'premium',
             name: 'Pro',
             price: {
-                monthly: { USD: 2.11, NGN: 3000 },
-                yearly: { USD: 22.79, NGN: 32400 }
+                monthly: { USD: 3.68, NGN: 5000 },
+                yearly: { USD: 39.74, NGN: 54000 }
             },
             period: billingPeriod === 'monthly' ? 'month' : 'year',
             description: 'Supercharge your opportunity hunting',
@@ -148,609 +148,489 @@ const Subscription = () => {
         { q: 'Can I cancel my subscription anytime?', a: 'Absolutely! Cancel anytime with no questions asked. You\'ll keep Pro access until the end of your billing period.' },
     ];
 
+    const [openFaq, setOpenFaq] = useState(null);
+
     return (
         <GuestLayout>
-            <style>{`
-                /* Hero */
-                .sub-hero {
-                    padding: 80px 0 60px;
-                    text-align: center;
-                }
-                .sub-hero-badge {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 6px;
-                    background: rgba(255, 255, 255, 0.08);
-                    border: 1px solid rgba(255, 255, 255, 0.15);
-                    color: rgba(255, 255, 255, 0.85);
-                    font-size: 13px;
-                    font-weight: 400;
-                    padding: 6px 16px;
-                    border-radius: 980px;
-                    margin-bottom: 20px;
-                }
-                .sub-hero h1 {
-                    font-size: 44px;
-                    font-weight: 600;
-                    line-height: 1.12;
-                    letter-spacing: -0.005em;
-                    color: #fff;
-                    margin-bottom: 12px;
-                }
-                .sub-hero p {
-                    font-size: 17px;
-                    line-height: 1.47;
-                    font-weight: 400;
-                    letter-spacing: -0.022em;
-                    color: rgba(255, 255, 255, 0.6);
-                    max-width: 520px;
-                    margin: 0 auto 28px;
-                }
-
-                /* Toggle Controls */
-                .sub-toggle-group {
-                    display: inline-flex;
-                    background: rgba(255, 255, 255, 0.1);
-                    backdrop-filter: blur(12px);
-                    -webkit-backdrop-filter: blur(12px);
-                    border-radius: 980px;
-                    padding: 3px;
-                    border: 1px solid rgba(255, 255, 255, 0.08);
-                }
-                .sub-toggle-btn {
-                    padding: 8px 20px;
-                    border: none;
-                    background: transparent;
-                    border-radius: 980px;
-                    font-size: 14px;
-                    font-weight: 500;
-                    color: rgba(255, 255, 255, 0.6);
-                    cursor: pointer;
-                    transition: all 0.25s ease;
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 6px;
-                }
-                .sub-toggle-btn.active {
-                    background: #fff;
-                    color: #1d1d1f;
-                    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
-                }
-                .sub-save-pill {
-                    background: rgba(22, 163, 74, 0.15);
-                    color: #4ade80;
-                    padding: 2px 8px;
-                    border-radius: 980px;
-                    font-size: 11px;
-                    font-weight: 600;
-                }
-                .sub-toggle-btn.active .sub-save-pill {
-                    background: rgba(22, 163, 74, 0.1);
-                    color: #16a34a;
-                }
-                .sub-currency-btn {
-                    padding: 8px 16px;
-                    border: 1px solid rgba(255, 255, 255, 0.15);
-                    background: rgba(255, 255, 255, 0.06);
-                    border-radius: 980px;
-                    font-size: 13px;
-                    font-weight: 400;
-                    color: rgba(255, 255, 255, 0.7);
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 6px;
-                }
-                .sub-currency-btn:hover {
-                    background: rgba(255, 255, 255, 0.12);
-                    color: #fff;
-                }
-
-                /* Subscription Cards */
-                .sub-cards-section {
-                    padding: 64px 0 48px;
-                    background: #f5f5f7;
-                }
-                .sub-card {
-                    background: #fff;
-                    border-radius: 20px;
-                    padding: 40px 32px 32px;
-                    border: 1px solid rgba(0, 0, 0, 0.04);
-                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-                    transition: all 0.3s ease;
-                    position: relative;
-                    height: 100%;
-                    display: flex;
-                    flex-direction: column;
-                    max-width: 420px;
-                    margin: 0 auto;
-                    overflow: hidden;
-                }
-                .sub-card:hover {
-                    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
-                    transform: translateY(-2px);
-                }
-                .sub-card.featured {
-                    border: 2px solid #1d1d1f;
-                    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
-                }
-                .sub-card.featured:hover {
-                    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.14);
-                    transform: translateY(-4px);
-                }
-                .sub-card-badge {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    background: #1d1d1f;
-                    color: #fff;
-                    text-align: center;
-                    padding: 6px 0;
-                    font-size: 12px;
-                    font-weight: 600;
-                    letter-spacing: 0.04em;
-                    text-transform: uppercase;
-                }
-                .sub-card.featured {
-                    padding-top: 56px;
-                }
-                .sub-card-icon {
-                    width: 48px;
-                    height: 48px;
-                    border-radius: 12px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    margin-bottom: 20px;
-                    font-size: 24px;
-                }
-                .sub-card-icon.free {
-                    background: #f5f5f7;
-                    color: #86868b;
-                }
-                .sub-card-icon.pro {
-                    background: #1d1d1f;
-                    color: #fff;
-                }
-                .sub-card-name {
-                    font-size: 22px;
-                    font-weight: 600;
-                    color: #1d1d1f;
-                    margin-bottom: 4px;
-                    letter-spacing: -0.01em;
-                }
-                .sub-card-desc {
-                    font-size: 15px;
-                    color: #86868b;
-                    margin-bottom: 24px;
-                    line-height: 1.5;
-                }
-                .sub-card-price {
-                    font-size: 48px;
-                    font-weight: 600;
-                    color: #1d1d1f;
-                    line-height: 1;
-                    letter-spacing: -0.025em;
-                    margin-bottom: 4px;
-                }
-                .sub-card-price-unit {
-                    font-size: 16px;
-                    font-weight: 400;
-                    color: #86868b;
-                }
-                .sub-card-price-note {
-                    font-size: 13px;
-                    color: #86868b;
-                    margin-bottom: 28px;
-                }
-                .sub-card-divider {
-                    height: 1px;
-                    background: #f5f5f7;
-                    margin: 0 -32px 24px;
-                }
-                .sub-card-features-title {
-                    font-size: 12px;
-                    font-weight: 600;
-                    text-transform: uppercase;
-                    letter-spacing: 0.06em;
-                    color: #86868b;
-                    margin-bottom: 16px;
-                }
-                .sub-card-feature {
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 10px;
-                    padding: 7px 0;
-                    font-size: 14px;
-                    color: #1d1d1f;
-                    line-height: 1.4;
-                }
-                .sub-card-feature.highlighted {
-                    font-weight: 500;
-                }
-                .sub-card-feature-icon {
-                    width: 20px;
-                    height: 20px;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    flex-shrink: 0;
-                    margin-top: 1px;
-                }
-                .sub-card-feature-icon.check {
-                    background: #f5f5f7;
-                    color: #1d1d1f;
-                }
-                .sub-card-feature-icon.pro-check {
-                    background: #1d1d1f;
-                    color: #fff;
-                }
-                .sub-card-limitation {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    padding: 5px 0;
-                    font-size: 13px;
-                    color: #86868b;
-                }
-                .sub-card-limitation-icon {
-                    width: 18px;
-                    height: 18px;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    flex-shrink: 0;
-                    background: #f5f5f7;
-                    color: #86868b;
-                }
-                .sub-card-btn {
-                    display: block;
-                    width: 100%;
-                    padding: 14px;
-                    border-radius: 980px;
-                    font-size: 15px;
-                    font-weight: 500;
-                    text-align: center;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    border: none;
-                    margin-top: auto;
-                }
-                .sub-card-btn.free-btn {
-                    background: #f5f5f7;
-                    color: #1d1d1f;
-                }
-                .sub-card-btn.free-btn:hover {
-                    background: #e8e8ed;
-                }
-                .sub-card-btn.pro-btn {
-                    background: #1d1d1f;
-                    color: #fff;
-                }
-                .sub-card-btn.pro-btn:hover {
-                    background: #000;
-                }
-
-                /* Why Pro Section */
-                .sub-why-section {
-                    padding: 80px 0;
-                    background: #fff;
-                }
-                .sub-why-label {
-                    font-size: 13px;
-                    font-weight: 500;
-                    text-transform: uppercase;
-                    letter-spacing: 0.04em;
-                    color: #86868b;
-                    margin-bottom: 8px;
-                }
-                .sub-why-title {
-                    font-size: 32px;
-                    font-weight: 600;
-                    color: #1d1d1f;
-                    letter-spacing: -0.01em;
-                    margin-bottom: 8px;
-                }
-                .sub-why-subtitle {
-                    font-size: 17px;
-                    color: #86868b;
-                    line-height: 1.47;
-                    max-width: 500px;
-                    margin: 0 auto 48px;
-                }
-                .sub-feature-card {
-                    background: #f5f5f7;
-                    border-radius: 18px;
-                    padding: 32px 24px;
-                    text-align: center;
-                    height: 100%;
-                    transition: all 0.3s ease;
-                }
-                .sub-feature-card:hover {
-                    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
-                    transform: translateY(-2px);
-                }
-                .sub-feature-card-icon {
-                    width: 48px;
-                    height: 48px;
-                    border-radius: 12px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    margin: 0 auto 16px;
-                    font-size: 22px;
-                    background: #1d1d1f;
-                    color: #fff;
-                }
-                .sub-feature-card h5 {
-                    font-size: 17px;
-                    font-weight: 600;
-                    color: #1d1d1f;
-                    margin-bottom: 8px;
-                    letter-spacing: -0.01em;
-                }
-                .sub-feature-card p {
-                    font-size: 14px;
-                    color: #86868b;
-                    line-height: 1.5;
-                    margin: 0;
-                }
-
-                /* FAQ Section */
-                .sub-faq-section {
-                    padding: 80px 0;
-                    background: #f5f5f7;
-                }
-                .sub-faq-item {
-                    background: #fff;
-                    border-radius: 14px;
-                    margin-bottom: 12px;
-                    overflow: hidden;
-                    transition: all 0.2s ease;
-                }
-                .sub-faq-item:hover {
-                    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-                }
-                .sub-faq-q {
-                    padding: 20px 24px;
-                    font-size: 15px;
-                    font-weight: 600;
-                    color: #1d1d1f;
-                    cursor: pointer;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    user-select: none;
-                }
-                .sub-faq-a {
-                    padding: 0 24px 20px;
-                    font-size: 14px;
-                    color: #86868b;
-                    line-height: 1.6;
-                }
-
-                /* CTA */
-                .sub-cta-section {
-                    padding: 80px 0;
-                    background: #1d1d1f;
-                    text-align: center;
-                }
-                .sub-cta-section h2 {
-                    font-size: 32px;
-                    font-weight: 600;
-                    color: #fff;
-                    letter-spacing: -0.01em;
-                    margin-bottom: 12px;
-                }
-                .sub-cta-section p {
-                    font-size: 17px;
-                    color: rgba(255, 255, 255, 0.5);
-                    max-width: 480px;
-                    margin: 0 auto 32px;
-                    line-height: 1.47;
-                }
-                .sub-cta-btn {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 8px;
-                    background: #fff;
-                    color: #1d1d1f;
-                    border: none;
-                    border-radius: 980px;
-                    padding: 14px 32px;
-                    font-size: 15px;
-                    font-weight: 500;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                }
-                .sub-cta-btn:hover {
-                    background: rgba(255, 255, 255, 0.9);
-                    transform: scale(1.02);
-                }
-                .sub-cta-note {
-                    font-size: 13px;
-                    color: rgba(255, 255, 255, 0.35);
-                    margin-top: 16px;
-                }
-
-                @media (max-width: 768px) {
-                    .sub-hero { padding: 56px 0 40px; }
-                    .sub-hero h1 { font-size: 32px; }
-                    .sub-hero p { font-size: 15px; }
-                    .sub-cards-section { padding: 40px 0 32px; }
-                    .sub-card { padding: 32px 24px 24px; }
-                    .sub-card.featured { padding-top: 48px; }
-                    .sub-card-price { font-size: 40px; }
-                    .sub-card-divider { margin: 0 -24px 20px; }
-                    .sub-why-section { padding: 56px 0; }
-                    .sub-why-title { font-size: 26px; }
-                    .sub-faq-section { padding: 56px 0; }
-                    .sub-cta-section { padding: 56px 0; }
-                    .sub-cta-section h2 { font-size: 26px; }
-                }
-            `}</style>
-
             <Metadata
                 title="Subscription Plans - Edatsu Media"
                 description="Choose the perfect plan for your business growth journey. Get access to exclusive opportunities, premium features, and priority support with Edatsu Media subscription plans."
                 keywords="subscription plans, business opportunities, premium access, Edatsu Media pricing, exclusive opportunities, business growth"
-                canonicalUrl={`${window.location.origin}/pricing`}
+                canonicalUrl={`${window.location.origin}/subscription`}
                 ogTitle="Subscription Plans - Edatsu Media"
                 ogDescription="Choose the perfect plan for your business growth journey. Get access to exclusive opportunities, premium features, and priority support."
                 twitterTitle="Subscription Plans - Edatsu Media"
                 twitterDescription="Choose the perfect plan for your business growth journey."
             />
 
-            {/* Hero Section */}
-            <Container fluid={true}>
-                <Row className="hero-banner position-relative border-0">
-                    <div className="overlay d-flex align-items-center">
-                        <Container>
-                            <div className="sub-hero">
-                                <span className="sub-hero-badge">
-                                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>workspace_premium</span>
-                                    Choose Your Plan
-                                </span>
-
-                                <h1>
-                                    Simple, transparent{' '}
-                                    <span style={{ color: '#d97757' }}>pricing</span>
-                                </h1>
-
-                                <p>
-                                    Start for free and upgrade when you're ready. No hidden fees, cancel anytime.
-                                </p>
-
-                                {/* Billing Toggle */}
-                                <div className="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3">
-                                    <div className="sub-toggle-group">
-                                        <button
-                                            className={`sub-toggle-btn ${billingPeriod === 'monthly' ? 'active' : ''}`}
-                                            onClick={() => setBillingPeriod('monthly')}
-                                        >
-                                            Monthly
-                                        </button>
-                                        <button
-                                            className={`sub-toggle-btn ${billingPeriod === 'yearly' ? 'active' : ''}`}
-                                            onClick={() => setBillingPeriod('yearly')}
-                                        >
-                                            Yearly
-                                            <span className="sub-save-pill">Save 10%</span>
-                                        </button>
-                                    </div>
-
-                                    <button className="sub-currency-btn" onClick={toggleCurrency}>
-                                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>currency_exchange</span>
-                                        {currency === 'USD' ? 'NGN (₦)' : 'USD ($)'}
-                                    </button>
-                                </div>
-                            </div>
-                        </Container>
-                    </div>
-                </Row>
-            </Container>
-
-            {/* Subscription Cards */}
-            <div className="sub-cards-section">
+            {/* Hero Section - with background image like landing page */}
+            <section className="position-relative" style={{
+                backgroundImage: "url('/img/defaults/pricing_banner.jpg')",
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center center',
+                backgroundSize: 'cover',
+            }}>
+                <div style={{
+                    position: 'relative',
+                    padding: '120px 0 72px',
+                    textAlign: 'center',
+                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.60) 50%, rgba(0,0,0,0.80) 100%)',
+                }}>
                 <Container>
-                    <Row className="justify-content-center g-4">
-                        {pricingPlans.map((plan) => (
-                            <Col lg={4} md={6} key={plan.id}>
-                                <div className={`sub-card ${plan.popular ? 'featured' : ''}`}>
-                                    {plan.popular && (
-                                        <div className="sub-card-badge">Most Popular</div>
+                    {/* Eyebrow */}
+                    <div className="d-flex flex-column align-items-center mb-4">
+                        <span
+                            className="section-eyebrow"
+                            style={{ color: 'rgba(255,255,255,0.5)' }}
+                        >
+                            Choose Your Plan
+                        </span>
+                        <div className="eyebrow-bar" />
+                    </div>
+
+                    <h1 style={{
+                        fontSize: 'clamp(32px, 6vw, 48px)',
+                        fontWeight: 600,
+                        lineHeight: 1.1,
+                        letterSpacing: '-0.02em',
+                        color: '#fff',
+                        marginBottom: '16px',
+                    }}>
+                        Simple, transparent{' '}
+                        <span style={{ color: '#f97316' }}>pricing</span>
+                    </h1>
+
+                    <p style={{
+                        fontSize: '15px',
+                        lineHeight: 1.6,
+                        fontWeight: 400,
+                        color: 'rgba(255,255,255,0.5)',
+                        maxWidth: '480px',
+                        margin: '0 auto 32px',
+                    }}>
+                        Start for free and upgrade when you're ready. No hidden fees, cancel anytime.
+                    </p>
+
+                    {/* Billing Toggle + Currency */}
+                    <div className="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3">
+                        <div style={{
+                            display: 'inline-flex',
+                            background: 'rgba(255,255,255,0.08)',
+                            borderRadius: '9999px',
+                            padding: '3px',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                        }}>
+                            <button
+                                onClick={() => setBillingPeriod('monthly')}
+                                style={{
+                                    padding: '8px 20px',
+                                    border: 'none',
+                                    borderRadius: '9999px',
+                                    fontSize: '13px',
+                                    fontWeight: 500,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    background: billingPeriod === 'monthly' ? '#fff' : 'transparent',
+                                    color: billingPeriod === 'monthly' ? '#000' : 'rgba(255,255,255,0.5)',
+                                }}
+                            >
+                                Monthly
+                            </button>
+                            <button
+                                onClick={() => setBillingPeriod('yearly')}
+                                style={{
+                                    padding: '8px 20px',
+                                    border: 'none',
+                                    borderRadius: '9999px',
+                                    fontSize: '13px',
+                                    fontWeight: 500,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    background: billingPeriod === 'yearly' ? '#fff' : 'transparent',
+                                    color: billingPeriod === 'yearly' ? '#000' : 'rgba(255,255,255,0.5)',
+                                }}
+                            >
+                                Yearly
+                                <span style={{
+                                    background: billingPeriod === 'yearly' ? 'rgba(22,163,74,0.1)' : 'rgba(22,163,74,0.15)',
+                                    color: billingPeriod === 'yearly' ? '#16a34a' : '#4ade80',
+                                    padding: '2px 8px',
+                                    borderRadius: '9999px',
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                }}>
+                                    Save 10%
+                                </span>
+                            </button>
+                        </div>
+
+                        <button
+                            onClick={toggleCurrency}
+                            style={{
+                                padding: '8px 16px',
+                                border: '1px solid rgba(255,255,255,0.12)',
+                                background: 'rgba(255,255,255,0.06)',
+                                borderRadius: '9999px',
+                                fontSize: '12px',
+                                fontWeight: 400,
+                                color: 'rgba(255,255,255,0.6)',
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#fff'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>currency_exchange</span>
+                            {currency === 'USD' ? 'NGN (₦)' : 'USD ($)'}
+                        </button>
+                    </div>
+                </Container>
+                </div>
+            </section>
+
+            {/* Pricing Cards */}
+            <section style={{ padding: '64px 0 48px', background: '#f5f5f7' }}>
+                <Container>
+                    <Row className="justify-content-center align-items-stretch g-4">
+                        {pricingPlans.map((plan) => {
+                            const isPro = plan.popular;
+                            return (
+                            <Col lg={5} md={6} key={plan.id} style={{ maxWidth: '460px' }}>
+                                <div style={{
+                                    background: isPro
+                                        ? 'linear-gradient(145deg, #1a1a1a 0%, #0a0a0a 100%)'
+                                        : '#fff',
+                                    borderRadius: '28px',
+                                    padding: '40px 36px 36px',
+                                    border: isPro ? 'none' : '1px solid #e5e5e7',
+                                    boxShadow: isPro
+                                        ? '0 20px 60px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.06) inset'
+                                        : '0 2px 8px rgba(0,0,0,0.04)',
+                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    position: 'relative',
+                                    height: '100%',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    overflow: 'hidden',
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-6px)';
+                                    e.currentTarget.style.boxShadow = isPro
+                                        ? '0 28px 72px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.08) inset'
+                                        : '0 12px 40px rgba(0,0,0,0.1)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = isPro
+                                        ? '0 20px 60px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.06) inset'
+                                        : '0 2px 8px rgba(0,0,0,0.04)';
+                                }}
+                                >
+                                    {/* Subtle gradient glow for Pro */}
+                                    {isPro && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '-60%',
+                                            right: '-30%',
+                                            width: '300px',
+                                            height: '300px',
+                                            background: 'radial-gradient(circle, rgba(249,115,22,0.12) 0%, transparent 70%)',
+                                            pointerEvents: 'none',
+                                        }} />
                                     )}
 
-                                    <div className={`sub-card-icon ${plan.id === 'premium' ? 'pro' : 'free'}`}>
-                                        <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
-                                            {plan.icon}
-                                        </span>
+                                    {/* Popular badge */}
+                                    {isPro && (
+                                        <div style={{ marginBottom: '20px' }}>
+                                            <div style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '5px',
+                                                background: 'linear-gradient(135deg, rgba(249,115,22,0.15) 0%, rgba(249,115,22,0.08) 100%)',
+                                                border: '1px solid rgba(249,115,22,0.2)',
+                                                color: '#f97316',
+                                                fontSize: '11px',
+                                                fontWeight: 600,
+                                                padding: '5px 14px',
+                                                borderRadius: '9999px',
+                                                letterSpacing: '0.04em',
+                                                textTransform: 'uppercase',
+                                            }}>
+                                                <span className="material-symbols-outlined" style={{ fontSize: '13px', fontVariationSettings: "'FILL' 1" }}>bolt</span>
+                                                Most Popular
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Name + Desc */}
+                                    <div style={{
+                                        fontSize: '24px',
+                                        fontWeight: 600,
+                                        color: isPro ? '#fff' : '#000',
+                                        marginBottom: '6px',
+                                        letterSpacing: '-0.02em',
+                                    }}>
+                                        {plan.name}
+                                    </div>
+                                    <div style={{
+                                        fontSize: '14px',
+                                        color: isPro ? 'rgba(255,255,255,0.45)' : '#86868b',
+                                        marginBottom: '28px',
+                                        lineHeight: 1.5,
+                                    }}>
+                                        {plan.description}
                                     </div>
 
-                                    <div className="sub-card-name">{plan.name}</div>
-                                    <div className="sub-card-desc">{plan.description}</div>
-
-                                    <div className="sub-card-price">
-                                        {plan.price[billingPeriod][currency] === 0 ? (
-                                            'Free'
-                                        ) : (
-                                            <>
-                                                {currency === 'USD' ? '$' : '₦'}
-                                                {plan.price[billingPeriod][currency].toLocaleString()}
-                                            </>
-                                        )}
+                                    {/* Price */}
+                                    <div style={{ marginBottom: '6px' }}>
+                                        <span style={{
+                                            fontSize: '52px',
+                                            fontWeight: 700,
+                                            color: isPro ? '#fff' : '#000',
+                                            lineHeight: 1,
+                                            letterSpacing: '-0.04em',
+                                        }}>
+                                            {plan.price[billingPeriod][currency] === 0 ? (
+                                                'Free'
+                                            ) : (
+                                                <>
+                                                    <span style={{ fontSize: '28px', fontWeight: 500, verticalAlign: 'top', position: 'relative', top: '6px' }}>
+                                                        {currency === 'USD' ? '$' : '₦'}
+                                                    </span>
+                                                    {plan.price[billingPeriod][currency].toLocaleString()}
+                                                </>
+                                            )}
+                                        </span>
                                         {plan.price[billingPeriod][currency] > 0 && (
-                                            <span className="sub-card-price-unit">
+                                            <span style={{
+                                                fontSize: '15px',
+                                                fontWeight: 400,
+                                                color: isPro ? 'rgba(255,255,255,0.35)' : '#86868b',
+                                                marginLeft: '4px',
+                                            }}>
                                                 /{billingPeriod === 'monthly' ? 'mo' : 'yr'}
                                             </span>
                                         )}
                                     </div>
-                                    <div className="sub-card-price-note">
-                                        {plan.id === 'premium' ? 'Cancel anytime' : 'Forever free'}
+                                    <div style={{
+                                        fontSize: '13px',
+                                        color: isPro ? 'rgba(255,255,255,0.35)' : '#86868b',
+                                        marginBottom: '28px',
+                                    }}>
+                                        {plan.id === 'premium'
+                                            ? (billingPeriod === 'yearly'
+                                                ? `Save ${currency === 'USD' ? '$' : '₦'}${(plan.price.monthly[currency] * 12 - plan.price.yearly[currency]).toLocaleString()} per year`
+                                                : 'Cancel anytime')
+                                            : 'Forever free'}
                                     </div>
 
-                                    <div className="sub-card-divider" />
+                                    {/* CTA Button - placed before features for prominence */}
+                                    <button
+                                        onClick={() => handleSubscribe(plan)}
+                                        disabled={isProcessing}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px',
+                                            width: '100%',
+                                            padding: '15px 24px',
+                                            borderRadius: '9999px',
+                                            fontSize: '15px',
+                                            fontWeight: 600,
+                                            textAlign: 'center',
+                                            cursor: isProcessing ? 'not-allowed' : 'pointer',
+                                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                            border: isPro ? 'none' : '1.5px solid #e5e5e7',
+                                            marginBottom: '28px',
+                                            background: isPro
+                                                ? 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)'
+                                                : '#fff',
+                                            color: isPro ? '#fff' : '#000',
+                                            boxShadow: isPro ? '0 4px 16px rgba(249,115,22,0.3)' : 'none',
+                                            letterSpacing: '-0.01em',
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (isPro) {
+                                                e.currentTarget.style.boxShadow = '0 8px 24px rgba(249,115,22,0.4)';
+                                                e.currentTarget.style.transform = 'scale(1.02)';
+                                            } else {
+                                                e.currentTarget.style.background = '#f5f5f7';
+                                                e.currentTarget.style.borderColor = '#d1d1d6';
+                                            }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (isPro) {
+                                                e.currentTarget.style.boxShadow = '0 4px 16px rgba(249,115,22,0.3)';
+                                                e.currentTarget.style.transform = 'scale(1)';
+                                            } else {
+                                                e.currentTarget.style.background = '#fff';
+                                                e.currentTarget.style.borderColor = '#e5e5e7';
+                                            }
+                                        }}
+                                    >
+                                        {isProcessing ? (
+                                            <>
+                                                <span className="spinner-border spinner-border-sm"></span>
+                                                Processing...
+                                            </>
+                                        ) : (
+                                            <>
+                                                {plan.buttonText}
+                                                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_forward</span>
+                                            </>
+                                        )}
+                                    </button>
 
-                                    <div className="sub-card-features-title">
-                                        {plan.id === 'premium' ? "Everything you need" : "What's included"}
+                                    {/* Divider */}
+                                    <div style={{
+                                        height: '1px',
+                                        background: isPro ? 'rgba(255,255,255,0.08)' : '#f0f0f0',
+                                        margin: '0 0 24px',
+                                    }} />
+
+                                    {/* Features Title */}
+                                    <div style={{
+                                        fontSize: '11px',
+                                        fontWeight: 600,
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.1em',
+                                        color: isPro ? 'rgba(255,255,255,0.3)' : '#86868b',
+                                        marginBottom: '16px',
+                                    }}>
+                                        {isPro ? "Everything in Free, plus" : "What's included"}
                                     </div>
 
-                                    <div style={{ flex: 1, marginBottom: '24px' }}>
+                                    {/* Features List */}
+                                    <div style={{ flex: 1 }}>
                                         {plan.features.map((feature, index) => (
-                                            <div key={index} className={`sub-card-feature ${feature.highlight ? 'highlighted' : ''}`}>
-                                                <div className={`sub-card-feature-icon ${plan.id === 'premium' ? 'pro-check' : 'check'}`}>
-                                                    <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>check</span>
+                                            <div
+                                                key={index}
+                                                className="d-flex align-items-start gap-3"
+                                                style={{
+                                                    padding: '8px 0',
+                                                    fontSize: '14px',
+                                                    color: isPro ? 'rgba(255,255,255,0.85)' : '#1d1d1f',
+                                                    lineHeight: 1.4,
+                                                    fontWeight: feature.highlight ? 500 : 400,
+                                                }}
+                                            >
+                                                <div style={{
+                                                    width: '22px',
+                                                    height: '22px',
+                                                    borderRadius: '50%',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    flexShrink: 0,
+                                                    marginTop: '1px',
+                                                    background: isPro
+                                                        ? (feature.highlight ? 'rgba(249,115,22,0.15)' : 'rgba(255,255,255,0.08)')
+                                                        : '#f5f5f7',
+                                                    color: isPro
+                                                        ? (feature.highlight ? '#f97316' : 'rgba(255,255,255,0.5)')
+                                                        : '#000',
+                                                }}>
+                                                    <span className="material-symbols-outlined" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>check</span>
                                                 </div>
                                                 <span>{feature.text}</span>
                                             </div>
                                         ))}
 
                                         {plan.limitations.length > 0 && (
-                                            <div style={{ marginTop: '16px' }}>
+                                            <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #f0f0f0' }}>
                                                 {plan.limitations.map((limitation, index) => (
-                                                    <div key={index} className="sub-card-limitation">
-                                                        <div className="sub-card-limitation-icon">
-                                                            <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>close</span>
+                                                    <div
+                                                        key={index}
+                                                        className="d-flex align-items-center gap-3"
+                                                        style={{ padding: '5px 0', fontSize: '13px', color: '#b0b0b5' }}
+                                                    >
+                                                        <div style={{
+                                                            width: '22px',
+                                                            height: '22px',
+                                                            borderRadius: '50%',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            flexShrink: 0,
+                                                            background: '#fafafa',
+                                                            color: '#c5c5c8',
+                                                        }}>
+                                                            <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>close</span>
                                                         </div>
-                                                        <span>{limitation}</span>
+                                                        <span style={{ textDecoration: 'line-through', textDecorationColor: '#e0e0e0' }}>{limitation}</span>
                                                     </div>
                                                 ))}
                                             </div>
                                         )}
                                     </div>
-
-                                    <button
-                                        className={`sub-card-btn ${plan.id === 'premium' ? 'pro-btn' : 'free-btn'}`}
-                                        onClick={() => handleSubscribe(plan)}
-                                        disabled={isProcessing}
-                                    >
-                                        {isProcessing ? (
-                                            <>
-                                                <span className="spinner-border spinner-border-sm me-2"></span>
-                                                Processing...
-                                            </>
-                                        ) : (
-                                            plan.buttonText
-                                        )}
-                                    </button>
                                 </div>
                             </Col>
-                        ))}
+                            );
+                        })}
                     </Row>
+
+                    {/* Trust note */}
+                    <div className="d-flex justify-content-center align-items-center gap-4 flex-wrap" style={{ marginTop: '40px' }}>
+                        {[
+                            { icon: 'lock', text: 'Secure payment' },
+                            { icon: 'refresh', text: 'Cancel anytime' },
+                            { icon: 'verified', text: 'Money-back guarantee' },
+                        ].map((item, i) => (
+                            <div key={i} className="d-flex align-items-center gap-2" style={{ fontSize: '13px', color: '#86868b' }}>
+                                <span style={{
+                                    width: '28px',
+                                    height: '28px',
+                                    borderRadius: '50%',
+                                    background: '#e8e8ed',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#000' }}>{item.icon}</span>
+                                </span>
+                                {item.text}
+                            </div>
+                        ))}
+                    </div>
                 </Container>
-            </div>
+            </section>
 
             {/* Why Go Pro */}
-            <div className="sub-why-section">
+            <section style={{ padding: '96px 0', background: '#fff' }}>
                 <Container>
                     <div className="text-center">
-                        <div className="sub-why-label">Pro Features</div>
-                        <h2 className="sub-why-title">Why Go Pro?</h2>
-                        <p className="sub-why-subtitle">
+                        <div className="d-flex flex-column align-items-center mb-3">
+                            <span
+                                className="section-eyebrow"
+                                style={{ color: '#86868b' }}
+                            >
+                                Pro Features
+                            </span>
+                            <div className="eyebrow-bar" />
+                        </div>
+                        <h2 style={{
+                            fontSize: 'clamp(26px, 4vw, 32px)',
+                            fontWeight: 600,
+                            color: '#000',
+                            letterSpacing: '-0.01em',
+                            marginBottom: '8px',
+                        }}>
+                            Why Go Pro?
+                        </h2>
+                        <p style={{
+                            fontSize: '14px',
+                            color: '#86868b',
+                            lineHeight: 1.6,
+                            maxWidth: '480px',
+                            margin: '0 auto 48px',
+                        }}>
                             Powerful features designed to help you stay organized and never miss an opportunity.
                         </p>
                     </div>
@@ -758,60 +638,205 @@ const Subscription = () => {
                     <Row className="g-3">
                         {proFeatures.map((feat, i) => (
                             <Col lg={4} md={6} key={i}>
-                                <div className="sub-feature-card">
-                                    <div className="sub-feature-card-icon">
-                                        <span className="material-symbols-outlined">{feat.icon}</span>
+                                <div
+                                    style={{
+                                        background: '#f5f5f7',
+                                        borderRadius: '20px',
+                                        padding: '32px 24px',
+                                        textAlign: 'center',
+                                        height: '100%',
+                                        transition: 'all 0.2s ease',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.boxShadow = '0 8px 28px rgba(0,0,0,0.08)';
+                                        e.currentTarget.style.transform = 'translateY(-2px)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.boxShadow = 'none';
+                                        e.currentTarget.style.transform = 'translateY(0)';
+                                    }}
+                                >
+                                    <div style={{
+                                        width: '48px',
+                                        height: '48px',
+                                        borderRadius: '50%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        margin: '0 auto 16px',
+                                        background: '#e8e8ed',
+                                        color: '#000',
+                                    }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>{feat.icon}</span>
                                     </div>
-                                    <h5>{feat.title}</h5>
-                                    <p>{feat.desc}</p>
+                                    <h5 style={{
+                                        fontSize: '16px',
+                                        fontWeight: 600,
+                                        color: '#000',
+                                        marginBottom: '8px',
+                                        letterSpacing: '-0.01em',
+                                    }}>
+                                        {feat.title}
+                                    </h5>
+                                    <p style={{
+                                        fontSize: '13px',
+                                        color: '#86868b',
+                                        lineHeight: 1.5,
+                                        margin: 0,
+                                    }}>
+                                        {feat.desc}
+                                    </p>
                                 </div>
                             </Col>
                         ))}
                     </Row>
                 </Container>
-            </div>
+            </section>
 
             {/* FAQ */}
-            <div className="sub-faq-section">
+            <section style={{ padding: '96px 0', background: '#f5f5f7' }}>
                 <Container>
                     <Row className="justify-content-center">
                         <Col lg={7}>
                             <div className="text-center mb-5">
-                                <h2 className="sub-why-title">Frequently Asked Questions</h2>
+                                <div className="d-flex flex-column align-items-center mb-3">
+                                    <span
+                                        className="section-eyebrow"
+                                        style={{ color: '#86868b' }}
+                                    >
+                                        FAQ
+                                    </span>
+                                    <div className="eyebrow-bar" />
+                                </div>
+                                <h2 style={{
+                                    fontSize: 'clamp(26px, 4vw, 32px)',
+                                    fontWeight: 600,
+                                    color: '#000',
+                                    letterSpacing: '-0.01em',
+                                }}>
+                                    Frequently Asked Questions
+                                </h2>
                             </div>
 
                             {faqs.map((faq, i) => (
-                                <details key={i} className="sub-faq-item">
-                                    <summary className="sub-faq-q">
+                                <div
+                                    key={i}
+                                    style={{
+                                        background: '#fff',
+                                        borderRadius: '16px',
+                                        marginBottom: '12px',
+                                        overflow: 'hidden',
+                                        transition: 'all 0.15s ease',
+                                        border: '1px solid #f0f0f0',
+                                    }}
+                                >
+                                    <button
+                                        onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                                        style={{
+                                            width: '100%',
+                                            padding: '20px 24px',
+                                            fontSize: '14px',
+                                            fontWeight: 600,
+                                            color: '#000',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            background: 'transparent',
+                                            border: 'none',
+                                            textAlign: 'left',
+                                        }}
+                                    >
                                         {faq.q}
-                                        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#86868b' }}>expand_more</span>
-                                    </summary>
-                                    <div className="sub-faq-a">{faq.a}</div>
-                                </details>
+                                        <span
+                                            className="material-symbols-outlined"
+                                            style={{
+                                                fontSize: '20px',
+                                                color: '#86868b',
+                                                transition: 'transform 0.2s ease',
+                                                transform: openFaq === i ? 'rotate(180deg)' : 'rotate(0)',
+                                                flexShrink: 0,
+                                                marginLeft: '12px',
+                                            }}
+                                        >
+                                            expand_more
+                                        </span>
+                                    </button>
+                                    {openFaq === i && (
+                                        <div style={{
+                                            padding: '0 24px 20px',
+                                            fontSize: '14px',
+                                            color: '#86868b',
+                                            lineHeight: 1.6,
+                                        }}>
+                                            {faq.a}
+                                        </div>
+                                    )}
+                                </div>
                             ))}
                         </Col>
                     </Row>
                 </Container>
-            </div>
+            </section>
 
             {/* CTA */}
-            <div className="sub-cta-section">
+            <section style={{ padding: '96px 0', background: '#000', textAlign: 'center' }}>
                 <Container>
-                    <h2>Ready to Never Miss an Opportunity?</h2>
-                    <p>
+                    <div className="d-flex flex-column align-items-center mb-3">
+                        <span
+                            className="section-eyebrow"
+                            style={{ color: 'rgba(255,255,255,0.4)' }}
+                        >
+                            Get Started
+                        </span>
+                        <div className="eyebrow-bar" />
+                    </div>
+                    <h2 style={{
+                        fontSize: 'clamp(26px, 4vw, 32px)',
+                        fontWeight: 600,
+                        color: '#fff',
+                        letterSpacing: '-0.01em',
+                        marginBottom: '12px',
+                    }}>
+                        Ready to Never Miss an Opportunity?
+                    </h2>
+                    <p style={{
+                        fontSize: '14px',
+                        color: 'rgba(255,255,255,0.4)',
+                        maxWidth: '480px',
+                        margin: '0 auto 32px',
+                        lineHeight: 1.6,
+                    }}>
                         Join thousands of ambitious professionals who stay organized and ahead of deadlines.
                     </p>
                     <button
-                        className="sub-cta-btn"
                         onClick={() => handleSubscribe(pricingPlans[1])}
                         disabled={isProcessing}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            background: '#fff',
+                            color: '#000',
+                            border: 'none',
+                            borderRadius: '9999px',
+                            padding: '14px 32px',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            cursor: isProcessing ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.9)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = '#fff'}
                     >
                         Start Pro for {currency === 'USD' ? '$' : '₦'}{pricingPlans[1].price[billingPeriod][currency].toLocaleString()}/{billingPeriod === 'monthly' ? 'mo' : 'yr'}
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_forward</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_forward</span>
                     </button>
-                    <div className="sub-cta-note">No credit card required</div>
+                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)', marginTop: '16px' }}>
+                        No credit card required
+                    </div>
                 </Container>
-            </div>
+            </section>
 
             <FixedMobileNav isAuthenticated={(props.auth.user) ? true : false} />
         </GuestLayout>

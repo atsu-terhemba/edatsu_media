@@ -20,21 +20,60 @@ const Metadata = ({
     publishedTime,
     modifiedTime,
     section,
+    jsonLd,
 }) => {
-  // Ensure title includes brand name
   const fullTitle = title?.includes('Edatsu') ? title : `${title} | Edatsu Media`;
-  
+
+  // Build default Organization JSON-LD if no custom jsonLd provided
+  const defaultJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": siteName,
+    "url": canonicalUrl || "https://www.edatsu.com",
+    "description": description,
+    "publisher": {
+      "@type": "Organization",
+      "name": "Edatsu Media",
+      "url": "https://www.edatsu.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://www.edatsu.com/img/logo/default_logo.jpg"
+      }
+    }
+  };
+
+  // For article-type pages, build Article schema
+  const articleJsonLd = type === 'article' ? {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": fullTitle,
+    "description": description,
+    "image": ogImage,
+    "author": { "@type": "Organization", "name": author },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Edatsu Media",
+      "logo": { "@type": "ImageObject", "url": "https://www.edatsu.com/img/logo/default_logo.jpg" }
+    },
+    "url": canonicalUrl,
+    ...(publishedTime && { "datePublished": publishedTime }),
+    ...(modifiedTime && { "dateModified": modifiedTime }),
+    ...(section && { "articleSection": section }),
+  } : null;
+
+  const structuredData = jsonLd || articleJsonLd || defaultJsonLd;
+
   return (
     <Helmet>
       {/* Primary Meta Tags */}
         <title>{fullTitle}</title>
         <meta name="title" content={fullTitle} />
         <meta name="description" content={description} />
-        <meta name="keywords" content={keywords} />
+        {keywords && <meta name="keywords" content={keywords} />}
         <meta name="author" content={author} />
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         <meta name="googlebot" content="index, follow" />
-        <link rel="canonical" href={canonicalUrl} />
+        {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
 
       {/* Open Graph / Facebook Meta Tags */}
         <meta property="og:site_name" content={siteName} />
@@ -42,7 +81,7 @@ const Metadata = ({
         <meta property="og:type" content={type} />
         <meta property="og:title" content={ogTitle || fullTitle} />
         <meta property="og:description" content={ogDescription || description} />
-        <meta property="og:image" content={ogImage} />
+        {ogImage && <meta property="og:image" content={ogImage} />}
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:url" content={ogUrl || canonicalUrl} />
@@ -56,14 +95,19 @@ const Metadata = ({
         <meta name="twitter:creator" content="@edatsumedia" />
         <meta name="twitter:title" content={twitterTitle || fullTitle} />
         <meta name="twitter:description" content={twitterDescription || description} />
-        <meta name="twitter:image" content={twitterImage || ogImage} />
-        
+        {(twitterImage || ogImage) && <meta name="twitter:image" content={twitterImage || ogImage} />}
+
       {/* Additional SEO Tags */}
         <meta name="format-detection" content="telephone=no" />
         <meta name="apple-mobile-web-app-title" content="Edatsu Media" />
         <meta name="application-name" content="Edatsu Media" />
+
+      {/* JSON-LD Structured Data */}
+        <script type="application/ld+json">
+          {JSON.stringify(structuredData)}
+        </script>
     </Helmet>
-);
+  );
 };
 
 export default Metadata;

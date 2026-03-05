@@ -1,12 +1,12 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Container, Row, Col, Card, Badge, Button, Modal, Form, Dropdown, Alert } from 'react-bootstrap';
-import '../../../css/modern-badges.css';
+import { Container, Row, Col } from 'react-bootstrap';
 import { Head, Link, router } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import SubscriberSideNav from './Components/SideNav';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import BookmarksSkeleton from '@/Components/BookmarksSkeleton';
+import Footer from '@/Components/Footer';
 
 export default function BookmarkedOpportunities({ opportunities: initialOpportunities }) {
     const [opportunities, setOpportunities] = useState(initialOpportunities || { data: [], total: 0 });
@@ -14,7 +14,11 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
     const [showReminderModal, setShowReminderModal] = useState(false);
     const [selectedBookmark, setSelectedBookmark] = useState(null);
     const [reminderDate, setReminderDate] = useState('');
-    const [filter, setFilter] = useState('all'); // 'all', 'active', 'expired'
+    const [filter, setFilter] = useState('all');
+    const [openMenuId, setOpenMenuId] = useState(null);
+    const [selectMode, setSelectMode] = useState(false);
+    const [selectedIds, setSelectedIds] = useState([]);
+    const menuRef = useRef(null);
 
     const Toast = Swal.mixin({
         toast: true,
@@ -24,174 +28,215 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
         timerProgressBar: true,
     });
 
+    // Close dropdown on outside click
+    useEffect(() => {
+        function handleClick(e) {
+            if (menuRef.current && !menuRef.current.contains(e.target)) {
+                setOpenMenuId(null);
+            }
+        }
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, []);
+
     const removeBookmark = async (bookmarkId) => {
         try {
             const response = await axios.put('/remove-bookmark-feed', { id: bookmarkId });
             if (response.data.status === 'success') {
-                // Update the local state to remove the bookmark immediately
-                setOpportunities(prevData => ({
-                    ...prevData,
-                    data: prevData.data.filter(bookmark => bookmark.id !== bookmarkId),
-                    total: prevData.total - 1
+                setOpportunities(prev => ({
+                    ...prev,
+                    data: prev.data.filter(b => b.id !== bookmarkId),
+                    total: prev.total - 1
                 }));
-                
-                Toast.fire({
-                    icon: "success",
-                    title: "Bookmark removed successfully"
-                });
+                Toast.fire({ icon: "success", title: "Bookmark removed" });
             }
         } catch (error) {
-            console.error('Error removing bookmark:', error);
-            Toast.fire({
-                icon: "error", 
-                title: "Error removing bookmark"
-            });
+            Toast.fire({ icon: "error", title: "Error removing bookmark" });
+        }
+    };
+
+    const toggleSelect = (id) => {
+        setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    };
+
+    const toggleSelectAll = () => {
+        const visibleIds = filteredOpportunities.map(b => b.id);
+        if (selectedIds.length === visibleIds.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(visibleIds);
+        }
+    };
+
+    const exitSelectMode = () => {
+        setSelectMode(false);
+        setSelectedIds([]);
+    };
+
+    const bulkRemove = async () => {
+        if (selectedIds.length === 0) return;
+        try {
+            const response = await axios.put('/remove-bookmarks-bulk', { ids: selectedIds });
+            if (response.data.status === 'success') {
+                setOpportunities(prev => ({
+                    ...prev,
+                    data: prev.data.filter(b => !selectedIds.includes(b.id)),
+                    total: prev.total - selectedIds.length
+                }));
+                Toast.fire({ icon: "success", title: response.data.message });
+                exitSelectMode();
+            }
+        } catch (error) {
+            Toast.fire({ icon: "error", title: "Error removing bookmarks" });
         }
     };
 
     const openReminderModal = (bookmark) => {
         setSelectedBookmark(bookmark);
-        // If bookmark already has a reminder, pre-fill the date
-        if (bookmark.reminder_date) {
-            const date = new Date(bookmark.reminder_date);
-            setReminderDate(date.toISOString().slice(0, 16)); // Format for datetime-local input
-        } else {
-            setReminderDate('');
-        }
+        setReminderDate(bookmark.reminder_date
+            ? new Date(bookmark.reminder_date).toISOString().slice(0, 16)
+            : '');
         setShowReminderModal(true);
+        setOpenMenuId(null);
     };
 
     const setReminder = async () => {
         if (!reminderDate) {
-            Toast.fire({
-                icon: "warning",
-                title: "Please select a reminder date"
-            });
+            Toast.fire({ icon: "warning", title: "Please select a reminder date" });
             return;
         }
-
         try {
             const endpoint = selectedBookmark.reminder_date ? '/update-bookmark-reminder' : '/set-bookmark-reminder';
-            console.log('Setting reminder:', { endpoint, bookmark_id: selectedBookmark.id, reminder_date: reminderDate });
-            
             const response = await axios.post(endpoint, {
                 bookmark_id: selectedBookmark.id,
                 reminder_date: reminderDate
             });
-
-            console.log('Reminder response:', response.data);
-
             if (response.data.status === 'success') {
-                // Update the local state
-                setOpportunities(prevData => ({
-                    ...prevData,
-                    data: prevData.data.map(bookmark => 
-                        bookmark.id === selectedBookmark.id 
-                            ? { ...bookmark, reminder_date: reminderDate, reminder_sent: false }
-                            : bookmark
+                setOpportunities(prev => ({
+                    ...prev,
+                    data: prev.data.map(b =>
+                        b.id === selectedBookmark.id
+                            ? { ...b, reminder_date: reminderDate, reminder_sent: false }
+                            : b
                     )
                 }));
-
-                Toast.fire({
-                    icon: "success",
-                    title: response.data.message
-                });
-
+                Toast.fire({ icon: "success", title: response.data.message });
                 setShowReminderModal(false);
                 setSelectedBookmark(null);
                 setReminderDate('');
             } else {
-                Toast.fire({
-                    icon: "error",
-                    title: response.data.message || "Failed to set reminder"
-                });
+                Toast.fire({ icon: "error", title: response.data.message || "Failed to set reminder" });
             }
         } catch (error) {
-            console.error('Error setting reminder:', error);
-            console.error('Error response:', error.response?.data);
-            Toast.fire({
-                icon: "error",
-                title: error.response?.data?.message || "Error setting reminder"
-            });
+            Toast.fire({ icon: "error", title: error.response?.data?.message || "Error setting reminder" });
         }
     };
 
     const removeReminder = async (bookmark) => {
         try {
-            const response = await axios.post('/remove-bookmark-reminder', {
-                bookmark_id: bookmark.id
-            });
-
+            const response = await axios.post('/remove-bookmark-reminder', { bookmark_id: bookmark.id });
             if (response.data.status === 'success') {
-                // Update the local state
-                setOpportunities(prevData => ({
-                    ...prevData,
-                    data: prevData.data.map(b => 
-                        b.id === bookmark.id 
-                            ? { ...b, reminder_date: null, reminder_sent: false }
-                            : b
+                setOpportunities(prev => ({
+                    ...prev,
+                    data: prev.data.map(b =>
+                        b.id === bookmark.id ? { ...b, reminder_date: null, reminder_sent: false } : b
                     )
                 }));
-
-                Toast.fire({
-                    icon: "success",
-                    title: "Reminder removed successfully"
-                });
-            } else {
-                Toast.fire({
-                    icon: "error",
-                    title: response.data.message
-                });
+                Toast.fire({ icon: "success", title: "Reminder removed" });
             }
         } catch (error) {
-            console.error('Error removing reminder:', error);
-            Toast.fire({
-                icon: "error",
-                title: "Error removing reminder"
-            });
+            Toast.fire({ icon: "error", title: "Error removing reminder" });
         }
+        setOpenMenuId(null);
     };
 
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+            year: 'numeric', month: 'short', day: 'numeric'
         });
     };
 
-    const isExpiringSoon = (deadline) => {
-        const deadlineDate = new Date(deadline);
-        const today = new Date();
-        const diffTime = deadlineDate - today;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays <= 7 && diffDays >= 0;
-    };
-
     const getDeadlineStatus = (deadline) => {
-        if (!deadline) {
-            return { status: 'unknown', color: 'secondary', icon: 'help', text: 'Unknown' };
-        }
+        if (!deadline) return { status: 'unknown', text: 'Unknown', color: '#86868b' };
         const deadlineDate = new Date(deadline);
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Reset time to start of day
+        today.setHours(0, 0, 0, 0);
         deadlineDate.setHours(0, 0, 0, 0);
-        
-        const diffTime = deadlineDate - today;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays < 0) {
-            return { status: 'expired', color: 'danger', icon: 'cancel', text: 'Expired' };
-        } else if (diffDays <= 7) {
-            return { status: 'expiring', color: 'warning', icon: 'warning', text: 'Expiring Soon' };
-        } else {
-            return { status: 'active', color: 'success', icon: 'check_circle', text: 'Active' };
-        }
+        const diffDays = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
+
+        if (diffDays < 0) return { status: 'expired', text: 'Expired', color: '#dc3545' };
+        if (diffDays <= 7) return { status: 'expiring', text: 'Expiring Soon', color: '#f97316' };
+        return { status: 'active', text: 'Active', color: '#16a34a' };
     };
 
-    // Get filtered opportunities
+    const syncToCalendar = (bookmark, type = 'google') => {
+        const opp = bookmark.opportunity;
+        if (!opp) return;
+
+        const title = opp.title || 'Opportunity Deadline';
+        const deadlineDate = opp.deadline ? new Date(opp.deadline) : null;
+        const reminderDateObj = bookmark.reminder_date ? new Date(bookmark.reminder_date) : null;
+        const eventDate = deadlineDate || reminderDateObj;
+        if (!eventDate) {
+            Toast.fire({ icon: 'warning', title: 'No deadline or reminder date to sync' });
+            return;
+        }
+
+        const slug = opp.slug || '';
+        const oppUrl = `${window.location.origin}/op/${opp.id}/${slug}`;
+        const description = `Opportunity deadline reminder from Edatsu Media.\n\nView details: ${oppUrl}`;
+
+        if (type === 'google') {
+            // Format: YYYYMMDD for all-day event
+            const formatGCal = (d) => {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}${m}${day}`;
+            };
+            const start = formatGCal(eventDate);
+            // All-day event: end = next day
+            const endDate = new Date(eventDate);
+            endDate.setDate(endDate.getDate() + 1);
+            const end = formatGCal(endDate);
+
+            const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent(description)}`;
+            window.open(url, '_blank');
+        } else {
+            // .ics file download
+            const pad = (n) => String(n).padStart(2, '0');
+            const formatICS = (d) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+            const endDate = new Date(eventDate);
+            endDate.setDate(endDate.getDate() + 1);
+
+            const icsContent = [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//Edatsu Media//EN',
+                'BEGIN:VEVENT',
+                `DTSTART;VALUE=DATE:${formatICS(eventDate)}`,
+                `DTEND;VALUE=DATE:${formatICS(endDate)}`,
+                `SUMMARY:${title}`,
+                `DESCRIPTION:${description.replace(/\n/g, '\\n')}`,
+                `URL:${oppUrl}`,
+                'END:VEVENT',
+                'END:VCALENDAR',
+            ].join('\r\n');
+
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${title.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 50)}.ics`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
+        Toast.fire({ icon: 'success', title: type === 'google' ? 'Opening Google Calendar' : 'Calendar file downloaded' });
+        setOpenMenuId(null);
+    };
+
     const filteredOpportunities = opportunities.data?.filter(bookmark => {
-        if (!bookmark.opportunity) return false; // Skip bookmarks with deleted opportunities
+        if (!bookmark.opportunity) return false;
         if (filter === 'all') return true;
         const status = getDeadlineStatus(bookmark.opportunity?.deadline).status;
         if (filter === 'active') return status !== 'expired';
@@ -199,320 +244,750 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
         return true;
     }) || [];
 
+    const filters = [
+        { key: 'all', label: 'All', icon: 'list' },
+        { key: 'active', label: 'Active', icon: 'check_circle' },
+        { key: 'expired', label: 'Expired', icon: 'cancel' },
+    ];
+
     return (
         <AuthenticatedLayout>
-            <Head title="Bookmarked Opportunities">
-                <style dangerouslySetInnerHTML={{__html: `
-                    .last-child-no-border:last-child {
-                        border-bottom: none !important;
-                    }
-                    .custom-dropdown-toggle::after {
-                        display: none !important;
-                    }
-                    .opportunity-card {
-                        position: relative;
-                    }
-                    .opportunity-card .dropdown.show {
-                        z-index: 9999 !important;
-                    }
-                    .opportunity-card .dropdown-menu {
-                        z-index: 10000 !important;
-                    }
-                `}} />
-            </Head>
+            <Head title="Saved Opportunities" />
 
             <Container fluid={true}>
                 <Container>
-                    <Row>
-                        <Col sm={3} className="d-none d-md-block">
-                            <div className='my-3 fs-9' style={{position: 'relative', zIndex: 1000}}>
-                                <SubscriberSideNav/>
-                            </div>
+                    <Row className="g-4" style={{ paddingTop: '80px' }}>
+                        {/* Sidebar */}
+                        <Col md={3} className="d-none d-md-block">
+                            <SubscriberSideNav />
                         </Col>
-                        <Col sm={6} xs={12}>
-                            <div className='mb-3 py-3 rounded px-3 mt-3' style={{border: '1px solid #dee2e6'}}>
-                                <div className='d-flex justify-content-between align-items-center flex-wrap gap-3'>
-                                    <div className='flex-grow-1'>
-                                        <h4 className='m-0 mb-1 fw-bold' style={{fontWeight: 'normal'}}>
-                                            Bookmarked Opportunities
-                                        </h4>
-                                        <small className='text-muted'>Track and manage your saved opportunities</small>
+
+                        {/* Main Content */}
+                        <Col md={9} xs={12}>
+                            {/* Header */}
+                            <div style={{ paddingBottom: '24px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                                    <div>
+                                        <h1 style={{
+                                            fontSize: '28px',
+                                            fontWeight: 600,
+                                            color: '#000',
+                                            margin: 0,
+                                            letterSpacing: '-0.01em',
+                                        }}>
+                                            Saved Opportunities
+                                        </h1>
+                                        <p style={{ fontSize: '14px', color: '#86868b', margin: '6px 0 0' }}>
+                                            Track and manage your bookmarked opportunities
+                                        </p>
                                     </div>
-                                    <span className="modern-badge">
-                                        <span className='material-symbols-outlined'>collections_bookmark</span>
-                                        {opportunities.total || 0} Total
-                                    </span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        {opportunities.data && opportunities.data.length > 0 && (
+                                            <a
+                                                href="/export-bookmarked-opportunities"
+                                                style={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '5px',
+                                                    padding: '7px 16px',
+                                                    borderRadius: '9999px',
+                                                    fontSize: '13px',
+                                                    fontWeight: 500,
+                                                    color: '#000',
+                                                    border: '1px solid #e0e0e0',
+                                                    background: '#fff',
+                                                    textDecoration: 'none',
+                                                    transition: 'all 0.15s ease',
+                                                }}
+                                                onMouseEnter={(e) => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#000'; }}
+                                                onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#000'; e.currentTarget.style.borderColor = '#e0e0e0'; }}
+                                            >
+                                                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>download</span>
+                                                Export
+                                            </a>
+                                        )}
+                                        <span style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            padding: '6px 14px',
+                                            borderRadius: '9999px',
+                                            background: '#f5f5f7',
+                                            fontSize: '13px',
+                                            fontWeight: 500,
+                                            color: '#000',
+                                        }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>bookmark</span>
+                                            {opportunities.total || 0}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className='mb-3 d-flex gap-2'>
-                                <Button 
-                                    size="sm" 
-                                    variant={filter === 'all' ? 'primary' : 'outline-secondary'}
-                                    onClick={() => setFilter('all')}
-                                    style={{borderRadius: '4px', padding: '6px 12px'}}
-                                >
-                                    <span className='material-symbols-outlined me-1' style={{fontSize: '16px', verticalAlign: 'middle'}}>list</span>
-                                    All
-                                </Button>
-                                <Button 
-                                    size="sm" 
-                                    variant={filter === 'active' ? 'success' : 'outline-secondary'}
-                                    onClick={() => setFilter('active')}
-                                    style={{borderRadius: '4px', padding: '6px 12px'}}
-                                >
-                                    <span className='material-symbols-outlined me-1' style={{fontSize: '16px', verticalAlign: 'middle'}}>check_circle</span>
-                                    Active
-                                </Button>
-                                <Button 
-                                    size="sm" 
-                                    variant={filter === 'expired' ? 'danger' : 'outline-secondary'}
-                                    onClick={() => setFilter('expired')}
-                                    style={{borderRadius: '4px', padding: '6px 12px'}}
-                                >
-                                    <span className='material-symbols-outlined me-1' style={{fontSize: '16px', verticalAlign: 'middle'}}>cancel</span>
-                                    Expired
-                                </Button>
-                            </div>
-{/* 
-                            <Alert variant="danger" className="mb-4">
-                            <p className='fw-bold mb-0 fs-9 font-monospace'>Important</p>
-                            <small className='font-monospace'>This page is currently under development. Some features may not be fully functional yet.</small>
-                            </Alert> */}
+                            {/* Filters + Select */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
+                                {selectMode ? (
+                                    /* Bulk action bar */
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                                        <button
+                                            onClick={toggleSelectAll}
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '5px',
+                                                padding: '7px 16px',
+                                                borderRadius: '9999px',
+                                                fontSize: '13px',
+                                                fontWeight: 500,
+                                                cursor: 'pointer',
+                                                border: '1px solid #e0e0e0',
+                                                background: selectedIds.length === filteredOpportunities.length && filteredOpportunities.length > 0 ? '#000' : '#fff',
+                                                color: selectedIds.length === filteredOpportunities.length && filteredOpportunities.length > 0 ? '#fff' : '#000',
+                                                transition: 'all 0.15s ease',
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>
+                                                {selectedIds.length === filteredOpportunities.length && filteredOpportunities.length > 0 ? 'deselect' : 'select_all'}
+                                            </span>
+                                            {selectedIds.length === filteredOpportunities.length && filteredOpportunities.length > 0 ? 'Deselect All' : 'Select All'}
+                                        </button>
 
-                            <div>
-                                {loading ? (
-                                    <BookmarksSkeleton count={5} />
-                                ) : opportunities.data && opportunities.data.length > 0 ? (
-                                    <div>
-                                        {filteredOpportunities.length > 0 ? (
-                                            filteredOpportunities.map((bookmark, index) => (
-                                            <Card 
-                                                key={bookmark.id} 
-                                                className='mb-3 opportunity-card'
+                                        {selectedIds.length > 0 && (
+                                            <button
+                                                onClick={bulkRemove}
                                                 style={{
-                                                    border: '1px solid #dee2e6',
-                                                    boxShadow: 'none',
-                                                    position: 'relative',
-                                                    zIndex: filteredOpportunities.length - index
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '5px',
+                                                    padding: '7px 16px',
+                                                    borderRadius: '9999px',
+                                                    fontSize: '13px',
+                                                    fontWeight: 500,
+                                                    cursor: 'pointer',
+                                                    border: 'none',
+                                                    background: '#dc3545',
+                                                    color: '#fff',
+                                                    transition: 'all 0.15s ease',
+                                                }}
+                                                onMouseEnter={(e) => e.currentTarget.style.background = '#c82333'}
+                                                onMouseLeave={(e) => e.currentTarget.style.background = '#dc3545'}
+                                            >
+                                                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>delete</span>
+                                                Remove ({selectedIds.length})
+                                            </button>
+                                        )}
+
+                                        <span style={{ fontSize: '13px', color: '#86868b', marginLeft: '4px' }}>
+                                            {selectedIds.length} selected
+                                        </span>
+                                    </div>
+                                ) : (
+                                    /* Normal filter bar */
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        {filters.map((f) => (
+                                            <button
+                                                key={f.key}
+                                                onClick={() => setFilter(f.key)}
+                                                style={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '5px',
+                                                    padding: '7px 16px',
+                                                    borderRadius: '9999px',
+                                                    fontSize: '13px',
+                                                    fontWeight: 500,
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.15s ease',
+                                                    border: filter === f.key ? 'none' : '1px solid #e0e0e0',
+                                                    background: filter === f.key ? '#000' : '#fff',
+                                                    color: filter === f.key ? '#fff' : '#000',
                                                 }}
                                             >
-                                                <Card.Body className='p-3'>
-                                                    <div className='d-flex align-items-start justify-content-between'>
-                                                        <div className='flex-grow-1'>
-                                                            <h6 className='mb-2' style={{fontSize: '0.9em'}}>
-                                                                <Link 
-                                                                    href={`/op/${bookmark.opportunity?.id}/${bookmark.opportunity?.slug}`}
-                                                                    className='text-decoration-none text-dark'
-                                                                >
-                                                                    {bookmark.opportunity?.title}
-                                                                </Link>
-                                                            </h6>
+                                                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>{f.icon}</span>
+                                                {f.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
 
+                                {/* Select mode toggle */}
+                                {opportunities.data && opportunities.data.length > 0 && (
+                                    <button
+                                        onClick={selectMode ? exitSelectMode : () => setSelectMode(true)}
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '5px',
+                                            padding: '7px 16px',
+                                            borderRadius: '9999px',
+                                            fontSize: '13px',
+                                            fontWeight: 500,
+                                            cursor: 'pointer',
+                                            transition: 'all 0.15s ease',
+                                            border: selectMode ? 'none' : '1px solid #e0e0e0',
+                                            background: selectMode ? '#000' : '#fff',
+                                            color: selectMode ? '#fff' : '#000',
+                                        }}
+                                    >
+                                        <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>
+                                            {selectMode ? 'close' : 'checklist'}
+                                        </span>
+                                        {selectMode ? 'Cancel' : 'Select'}
+                                    </button>
+                                )}
+                            </div>
 
-                                                            <div className='d-flex align-items-center gap-2 flex-wrap mb-2'>
-                                                                <span className='modern-badge dark'>
-                                                                    <span className='material-symbols-outlined'>calendar_month</span>
+                            {/* Content */}
+                            {loading ? (
+                                <BookmarksSkeleton count={5} />
+                            ) : opportunities.data && opportunities.data.length > 0 ? (
+                                <div>
+                                    {filteredOpportunities.length > 0 ? (
+                                        filteredOpportunities.map((bookmark) => {
+                                            const deadline = getDeadlineStatus(bookmark.opportunity?.deadline);
+                                            return (
+                                                <div
+                                                    key={bookmark.id}
+                                                    style={{
+                                                        padding: '20px',
+                                                        borderRadius: '16px',
+                                                        border: '1px solid #f0f0f0',
+                                                        background: '#fff',
+                                                        marginBottom: '12px',
+                                                        transition: 'all 0.2s ease',
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        e.currentTarget.style.borderColor = '#e0e0e0';
+                                                        e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.04)';
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.currentTarget.style.borderColor = '#f0f0f0';
+                                                        e.currentTarget.style.boxShadow = 'none';
+                                                    }}
+                                                >
+                                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                                                        {/* Checkbox in select mode */}
+                                                        {selectMode && (
+                                                            <button
+                                                                onClick={() => toggleSelect(bookmark.id)}
+                                                                style={{
+                                                                    width: '22px',
+                                                                    height: '22px',
+                                                                    borderRadius: '6px',
+                                                                    border: selectedIds.includes(bookmark.id) ? 'none' : '2px solid #d1d1d6',
+                                                                    background: selectedIds.includes(bookmark.id) ? '#000' : '#fff',
+                                                                    cursor: 'pointer',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    flexShrink: 0,
+                                                                    marginTop: '2px',
+                                                                    transition: 'all 0.15s ease',
+                                                                    padding: 0,
+                                                                }}
+                                                            >
+                                                                {selectedIds.includes(bookmark.id) && (
+                                                                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#fff' }}>check</span>
+                                                                )}
+                                                            </button>
+                                                        )}
+                                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                                            {/* Title */}
+                                                            <Link
+                                                                href={`/op/${bookmark.opportunity?.id}/${bookmark.opportunity?.slug}`}
+                                                                style={{
+                                                                    fontSize: '15px',
+                                                                    fontWeight: 500,
+                                                                    color: '#000',
+                                                                    textDecoration: 'none',
+                                                                    display: 'block',
+                                                                    marginBottom: '10px',
+                                                                    lineHeight: 1.4,
+                                                                }}
+                                                            >
+                                                                {bookmark.opportunity?.title}
+                                                            </Link>
+
+                                                            {/* Badges */}
+                                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
+                                                                {/* Deadline date */}
+                                                                <span style={{
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '4px',
+                                                                    padding: '4px 10px',
+                                                                    borderRadius: '9999px',
+                                                                    background: '#f5f5f7',
+                                                                    fontSize: '12px',
+                                                                    fontWeight: 500,
+                                                                    color: '#000',
+                                                                }}>
+                                                                    <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>calendar_month</span>
                                                                     {formatDate(bookmark.opportunity?.deadline)}
                                                                 </span>
-                                                                <span className={`modern-badge ${getDeadlineStatus(bookmark.opportunity?.deadline).status === 'expired' ? 'danger' : getDeadlineStatus(bookmark.opportunity?.deadline).status === 'expiring' ? 'warning' : 'success'}`}>
-                                                                    <span className='material-symbols-outlined'>{getDeadlineStatus(bookmark.opportunity?.deadline).icon}</span>
-                                                                    {getDeadlineStatus(bookmark.opportunity?.deadline).text}
+
+                                                                {/* Status */}
+                                                                <span style={{
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '4px',
+                                                                    padding: '4px 10px',
+                                                                    borderRadius: '9999px',
+                                                                    fontSize: '12px',
+                                                                    fontWeight: 500,
+                                                                    color: deadline.color,
+                                                                    background: `${deadline.color}10`,
+                                                                }}>
+                                                                    <span style={{
+                                                                        width: '6px',
+                                                                        height: '6px',
+                                                                        borderRadius: '50%',
+                                                                        background: deadline.color,
+                                                                    }} />
+                                                                    {deadline.text}
                                                                 </span>
+
+                                                                {/* Reminder badge */}
                                                                 {bookmark.reminder_date && (
-                                                                    <span className='modern-badge info'>
-                                                                        <span className='material-symbols-outlined' style={{ fontVariationSettings: "'FILL' 1" }}>notifications</span>
-                                                                        Reminder
+                                                                    <span style={{
+                                                                        display: 'inline-flex',
+                                                                        alignItems: 'center',
+                                                                        gap: '4px',
+                                                                        padding: '4px 10px',
+                                                                        borderRadius: '9999px',
+                                                                        fontSize: '12px',
+                                                                        fontWeight: 500,
+                                                                        color: '#f97316',
+                                                                        background: 'rgba(249,115,22,0.08)',
+                                                                    }}>
+                                                                        <span className="material-symbols-outlined" style={{ fontSize: '13px', fontVariationSettings: "'FILL' 1" }}>notifications</span>
+                                                                        {new Date(bookmark.reminder_date).toLocaleDateString()}
                                                                     </span>
                                                                 )}
                                                             </div>
-                                                            <small className='text-muted'>
-                                                                <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>bookmark_check</span>
-                                                                {formatDate(bookmark.created_at)}
-                                                                {bookmark.reminder_date && (
-                                                                    <>
-                                                                        <span className='mx-2'>•</span>
-                                                                        <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>alarm</span>
-                                                                        {new Date(bookmark.reminder_date).toLocaleDateString()}
-                                                                    </>
-                                                                )}
-                                                            </small>
-                                                        </div>
-                                                        <Dropdown align="end" style={{position: 'relative', zIndex: 1000}}>
-                                                            <Dropdown.Toggle 
-                                                                variant="light" 
-                                                                size="sm" 
-                                                                style={{
-                                                                    borderRadius: '8px',
-                                                                    border: 'none',
-                                                                    padding: '6px 10px',
-                                                                    background: 'transparent'
-                                                                }}
-                                                                bsPrefix="custom-dropdown-toggle"
-                                                            >
-                                                                <span className='material-symbols-outlined' style={{fontSize: '16px'}}>more_vert</span>
-                                                            </Dropdown.Toggle>
-                                                            <Dropdown.Menu style={{zIndex: 10000, position: 'absolute'}}>
-                                                                <Dropdown.Item 
-                                                                    as={Link}
-                                                                    href={`/op/${bookmark.opportunity?.id}/${bookmark.opportunity?.slug}`}
-                                                                >
-                                                                    <span className='material-symbols-outlined me-2' style={{fontSize: '16px', verticalAlign: 'middle'}}>visibility</span>
-                                                                    View Details
-                                                                </Dropdown.Item>
-                                                                <Dropdown.Divider />
-                                                                {bookmark.reminder_date ? (
-                                                                    <>
-                                                                        <Dropdown.Item onClick={() => openReminderModal(bookmark)}>
-                                                                            <span className='material-symbols-outlined me-2' style={{fontSize: '16px', verticalAlign: 'middle'}}>edit</span>
-                                                                            Edit Reminder
-                                                                        </Dropdown.Item>
-                                                                        <Dropdown.Item onClick={() => removeReminder(bookmark)}>
-                                                                            <span className='material-symbols-outlined me-2' style={{fontSize: '16px', verticalAlign: 'middle'}}>notifications_off</span>
-                                                                            Remove Reminder
-                                                                        </Dropdown.Item>
-                                                                    </>
-                                                                ) : (
-                                                                    <Dropdown.Item onClick={() => openReminderModal(bookmark)}>
-                                                                        <span className='material-symbols-outlined me-2' style={{fontSize: '16px', verticalAlign: 'middle'}}>add_alert</span>
-                                                                        Set Reminder
-                                                                    </Dropdown.Item>
-                                                                )}
-                                                                <Dropdown.Divider />
-                                                                <Dropdown.Item 
-                                                                    onClick={() => removeBookmark(bookmark.id)}
-                                                                    className='text-danger'
-                                                                >
-                                                                    <span className='material-symbols-outlined me-2' style={{fontSize: '16px', verticalAlign: 'middle'}}>delete</span>
-                                                                    Remove Bookmark
-                                                                </Dropdown.Item>
-                                                            </Dropdown.Menu>
-                                                        </Dropdown>
-                                                    </div>
-                                                </Card.Body>
-                                            </Card>
-                                        ))
-                                        ) : (
-                                            <div className='text-center py-5 rounded' style={{border: '1px solid #dee2e6'}}>
-                                                <div className='mb-4'>
-                                                    <span className='material-symbols-outlined text-muted' style={{fontSize: '4rem'}}>filter_list_off</span>
-                                                </div>
-                                                <h5 className='text-muted mb-2'>No {filter === 'active' ? 'Active' : 'Expired'} Opportunities</h5>
-                                                <p className='text-muted mb-4'>There are no {filter === 'active' ? 'active' : 'expired'} opportunities in your bookmarks.</p>
-                                                <Button 
-                                                    variant="outline-secondary" 
-                                                    onClick={() => setFilter('all')}
-                                                    style={{borderRadius: '6px'}}
-                                                >
-                                                    <span className='material-symbols-outlined me-2' style={{fontSize: '16px', verticalAlign: 'middle'}}>list</span>
-                                                    Show All Bookmarks
-                                                </Button>
-                                            </div>
-                                        )}
-                                        
-                                        {/* Pagination */}
-                                        {opportunities.last_page > 1 && (
-                                            <div className='d-flex justify-content-center mt-4'>
-                                                <nav>
-                                                    <ul className="pagination">
-                                                        <li className={`page-item ${opportunities.current_page === 1 ? 'disabled' : ''}`}>
-                                                            <Button 
-                                                                variant="outline-primary" 
-                                                                onClick={() => router.visit(`/bookmarked-opportunities?page=${opportunities.current_page - 1}`)}
-                                                                disabled={opportunities.current_page === 1}
-                                                            >
-                                                                Previous
-                                                            </Button>
-                                                        </li>
-                                                        <li className="page-item active">
-                                                            <span className="page-link">
-                                                                {opportunities.current_page} of {opportunities.last_page}
+
+                                                            {/* Meta */}
+                                                            <span style={{ fontSize: '12px', color: '#86868b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>bookmark_added</span>
+                                                                Saved {formatDate(bookmark.created_at)}
                                                             </span>
-                                                        </li>
-                                                        <li className={`page-item ${opportunities.current_page === opportunities.last_page ? 'disabled' : ''}`}>
-                                                            <Button 
-                                                                variant="outline-primary" 
-                                                                onClick={() => router.visit(`/bookmarked-opportunities?page=${opportunities.current_page + 1}`)}
-                                                                disabled={opportunities.current_page === opportunities.last_page}
+                                                        </div>
+
+                                                        {/* Actions menu */}
+                                                        <div style={{ position: 'relative' }} ref={openMenuId === bookmark.id ? menuRef : null}>
+                                                            <button
+                                                                onClick={() => setOpenMenuId(openMenuId === bookmark.id ? null : bookmark.id)}
+                                                                style={{
+                                                                    width: '36px',
+                                                                    height: '36px',
+                                                                    borderRadius: '10px',
+                                                                    background: '#f5f5f7',
+                                                                    border: 'none',
+                                                                    cursor: 'pointer',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    transition: 'background 0.15s ease',
+                                                                    flexShrink: 0,
+                                                                }}
+                                                                onMouseEnter={(e) => e.currentTarget.style.background = '#e8e8ed'}
+                                                                onMouseLeave={(e) => e.currentTarget.style.background = '#f5f5f7'}
                                                             >
-                                                                Next
-                                                            </Button>
-                                                        </li>
-                                                    </ul>
-                                                </nav>
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div className='text-center py-5 rounded' style={{border: '1px solid #dee2e6'}}>
-                                        <div className='mb-4'>
-                                            <span className='material-symbols-outlined text-muted' style={{fontSize: '4rem'}}>bookmark_remove</span>
+                                                                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#000' }}>more_horiz</span>
+                                                            </button>
+
+                                                            {openMenuId === bookmark.id && (
+                                                                <div style={{
+                                                                    position: 'absolute',
+                                                                    right: 0,
+                                                                    top: 'calc(100% + 6px)',
+                                                                    width: '200px',
+                                                                    background: '#fff',
+                                                                    borderRadius: '14px',
+                                                                    boxShadow: '0 12px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
+                                                                    border: '1px solid #f0f0f0',
+                                                                    zIndex: 100,
+                                                                    overflow: 'hidden',
+                                                                    padding: '6px',
+                                                                }}>
+                                                                    <MenuLink
+                                                                        href={`/op/${bookmark.opportunity?.id}/${bookmark.opportunity?.slug}`}
+                                                                        icon="visibility"
+                                                                        label="View Details"
+                                                                        onClick={() => setOpenMenuId(null)}
+                                                                    />
+                                                                    <div style={{ height: '1px', background: '#f0f0f0', margin: '4px 0' }} />
+                                                                    {bookmark.reminder_date ? (
+                                                                        <>
+                                                                            <MenuButton icon="edit" label="Edit Reminder" onClick={() => openReminderModal(bookmark)} />
+                                                                            <MenuButton icon="notifications_off" label="Remove Reminder" onClick={() => removeReminder(bookmark)} />
+                                                                        </>
+                                                                    ) : (
+                                                                        <MenuButton icon="add_alert" label="Set Reminder" onClick={() => openReminderModal(bookmark)} />
+                                                                    )}
+                                                                    <div style={{ height: '1px', background: '#f0f0f0', margin: '4px 0' }} />
+                                                                    <MenuButton icon="event" label="Google Calendar" onClick={() => syncToCalendar(bookmark, 'google')} />
+                                                                    <MenuButton icon="download" label="Download .ics" onClick={() => syncToCalendar(bookmark, 'ics')} />
+                                                                    <div style={{ height: '1px', background: '#f0f0f0', margin: '4px 0' }} />
+                                                                    <MenuButton
+                                                                        icon="delete"
+                                                                        label="Remove"
+                                                                        danger
+                                                                        onClick={() => { removeBookmark(bookmark.id); setOpenMenuId(null); }}
+                                                                    />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <EmptyState
+                                            icon="filter_list_off"
+                                            title={`No ${filter === 'active' ? 'Active' : 'Expired'} Opportunities`}
+                                            description={`There are no ${filter === 'active' ? 'active' : 'expired'} opportunities in your bookmarks.`}
+                                            buttonLabel="Show All"
+                                            onButtonClick={() => setFilter('all')}
+                                        />
+                                    )}
+
+                                    {/* Pagination */}
+                                    {opportunities.last_page > 1 && (
+                                        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '24px', marginBottom: '32px' }}>
+                                            <PaginationButton
+                                                label="Previous"
+                                                icon="chevron_left"
+                                                disabled={opportunities.current_page === 1}
+                                                onClick={() => router.visit(`/bookmarked-opportunities?page=${opportunities.current_page - 1}`)}
+                                            />
+                                            <span style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                padding: '0 16px',
+                                                fontSize: '13px',
+                                                fontWeight: 500,
+                                                color: '#86868b',
+                                            }}>
+                                                {opportunities.current_page} of {opportunities.last_page}
+                                            </span>
+                                            <PaginationButton
+                                                label="Next"
+                                                icon="chevron_right"
+                                                iconAfter
+                                                disabled={opportunities.current_page === opportunities.last_page}
+                                                onClick={() => router.visit(`/bookmarked-opportunities?page=${opportunities.current_page + 1}`)}
+                                            />
                                         </div>
-                                        <h5 className='text-muted mb-2'>No Bookmarked Opportunities Yet</h5>
-                                        <p className='text-muted mb-4'>Start exploring and bookmarking opportunities to keep track of them here.</p>
-                                        <Link href="/opportunities" className="btn btn-outline-secondary" style={{borderRadius: '6px'}}>
-                                            <span className='material-symbols-outlined me-2' style={{fontSize: '16px', verticalAlign: 'middle'}}>search</span>
-                                            Explore Opportunities
-                                        </Link>
-                                    </div>
-                                )}
-                            </div>
-                        </Col>
-                        <Col sm={3}>
+                                    )}
+                                </div>
+                            ) : (
+                                <EmptyState
+                                    icon="bookmark_remove"
+                                    title="No Saved Opportunities Yet"
+                                    description="Start exploring and saving opportunities to keep track of them here."
+                                    buttonLabel="Explore Opportunities"
+                                    buttonHref="/opportunities"
+                                />
+                            )}
                         </Col>
                     </Row>
                 </Container>
             </Container>
 
             {/* Reminder Modal */}
-            <Modal show={showReminderModal} onHide={() => setShowReminderModal(false)} centered>
-                <Modal.Header closeButton className='bg-light'>
-                    <Modal.Title className='d-flex align-items-center'>
-                        <span className={`material-symbols-outlined me-2 text-primary`} style={{fontSize: '20px'}}>{selectedBookmark?.reminder_date ? 'edit' : 'add_alert'}</span>
-                        {selectedBookmark?.reminder_date ? 'Update Reminder' : 'Set Reminder'}
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body className='p-4'>
-                    {selectedBookmark?.opportunity && (
-                        <div className='mb-3 p-3 bg-light rounded'>
-                            <h6 className='poppins-semibold mb-1'>{selectedBookmark.opportunity.title}</h6>
-                            <small className='text-muted'>
-                                <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>event_busy</span>
-                                Deadline: {formatDate(selectedBookmark.opportunity.deadline)}
-                            </small>
+            {showReminderModal && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 2000,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'rgba(0,0,0,0.4)',
+                    backdropFilter: 'blur(4px)',
+                }}
+                    onClick={(e) => { if (e.target === e.currentTarget) setShowReminderModal(false); }}
+                >
+                    <div style={{
+                        background: '#fff',
+                        borderRadius: '20px',
+                        width: '100%',
+                        maxWidth: '420px',
+                        margin: '0 16px',
+                        overflow: 'hidden',
+                    }}>
+                        {/* Modal Header */}
+                        <div style={{ padding: '20px 24px 0' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#000', margin: 0 }}>
+                                    {selectedBookmark?.reminder_date ? 'Update Reminder' : 'Set Reminder'}
+                                </h3>
+                                <button
+                                    onClick={() => setShowReminderModal(false)}
+                                    style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '50%',
+                                        background: '#f5f5f7',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#000' }}>close</span>
+                                </button>
+                            </div>
                         </div>
-                    )}
-                    <Form>
-                        <Form.Group className="mb-3">
-                            <Form.Label className='fw-semibold'>
-                                <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>schedule</span>
+
+                        {/* Modal Body */}
+                        <div style={{ padding: '20px 24px' }}>
+                            {selectedBookmark?.opportunity && (
+                                <div style={{
+                                    padding: '14px 16px',
+                                    borderRadius: '12px',
+                                    background: '#f5f5f7',
+                                    marginBottom: '20px',
+                                }}>
+                                    <div style={{ fontSize: '14px', fontWeight: 500, color: '#000', marginBottom: '4px' }}>
+                                        {selectedBookmark.opportunity.title}
+                                    </div>
+                                    <span style={{ fontSize: '12px', color: '#86868b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>event_busy</span>
+                                        Deadline: {formatDate(selectedBookmark.opportunity.deadline)}
+                                    </span>
+                                </div>
+                            )}
+
+                            <label style={{
+                                display: 'block',
+                                fontSize: '12px',
+                                fontWeight: 500,
+                                color: '#86868b',
+                                marginBottom: '6px',
+                            }}>
                                 Reminder Date & Time
-                            </Form.Label>
-                            <Form.Control
+                            </label>
+                            <input
                                 type="datetime-local"
                                 value={reminderDate}
                                 onChange={(e) => setReminderDate(e.target.value)}
                                 min={new Date().toISOString().slice(0, 16)}
-                                className='py-2'
+                                style={{
+                                    width: '100%',
+                                    padding: '12px 16px',
+                                    borderRadius: '12px',
+                                    border: '1px solid #e5e5e7',
+                                    fontSize: '14px',
+                                    color: '#000',
+                                    outline: 'none',
+                                    marginBottom: '8px',
+                                }}
+                                onFocus={(e) => e.currentTarget.style.borderColor = '#000'}
+                                onBlur={(e) => e.currentTarget.style.borderColor = '#e5e5e7'}
                             />
-                            <Form.Text className="text-muted d-block mt-2">
-                                <span className='material-symbols-outlined me-1' style={{fontSize: '14px', verticalAlign: 'middle'}}>info</span>
+                            <span style={{ fontSize: '12px', color: '#86868b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>info</span>
                                 You'll receive a notification at the selected time.
-                            </Form.Text>
-                        </Form.Group>
-                    </Form>
-                </Modal.Body>
-                <Modal.Footer className='bg-light'>
-                    <Button variant="outline-secondary" onClick={() => setShowReminderModal(false)}>
-                        <span className='material-symbols-outlined me-1' style={{fontSize: '16px', verticalAlign: 'middle'}}>cancel</span>
-                        Cancel
-                    </Button>
-                    <Button variant="primary" onClick={setReminder}>
-                        <span className={`material-symbols-outlined me-1`} style={{fontSize: '16px', verticalAlign: 'middle', fontVariationSettings: "'FILL' 1"}}>{selectedBookmark?.reminder_date ? 'check_circle' : 'notifications'}</span>
-                        {selectedBookmark?.reminder_date ? 'Update Reminder' : 'Set Reminder'}
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+                            </span>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div style={{
+                            display: 'flex',
+                            gap: '10px',
+                            padding: '0 24px 20px',
+                            justifyContent: 'flex-end',
+                        }}>
+                            <button
+                                onClick={() => setShowReminderModal(false)}
+                                style={{
+                                    padding: '10px 24px',
+                                    borderRadius: '9999px',
+                                    fontSize: '13px',
+                                    fontWeight: 500,
+                                    background: '#fff',
+                                    color: '#000',
+                                    border: '1px solid #e0e0e0',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                }}
+                                onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f7'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={setReminder}
+                                style={{
+                                    padding: '10px 24px',
+                                    borderRadius: '9999px',
+                                    fontSize: '13px',
+                                    fontWeight: 500,
+                                    background: '#000',
+                                    color: '#fff',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = '#333'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = '#000'}
+                            >
+                                {selectedBookmark?.reminder_date ? 'Update' : 'Set Reminder'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <Footer />
         </AuthenticatedLayout>
+    );
+}
+
+// --- Sub-components ---
+
+function MenuLink({ href, icon, label, onClick }) {
+    return (
+        <Link
+            href={href}
+            onClick={onClick}
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '9px 12px',
+                borderRadius: '10px',
+                textDecoration: 'none',
+                fontSize: '13px',
+                fontWeight: 500,
+                color: '#000',
+                transition: 'background 0.15s ease',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f7'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+        >
+            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#86868b' }}>{icon}</span>
+            {label}
+        </Link>
+    );
+}
+
+function MenuButton({ icon, label, onClick, danger }) {
+    return (
+        <button
+            onClick={onClick}
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '9px 12px',
+                borderRadius: '10px',
+                fontSize: '13px',
+                fontWeight: 500,
+                color: danger ? '#dc3545' : '#000',
+                background: 'transparent',
+                border: 'none',
+                width: '100%',
+                cursor: 'pointer',
+                transition: 'background 0.15s ease',
+                textAlign: 'left',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = danger ? '#fef2f2' : '#f5f5f7'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+        >
+            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: danger ? '#dc3545' : '#86868b' }}>{icon}</span>
+            {label}
+        </button>
+    );
+}
+
+function EmptyState({ icon, title, description, buttonLabel, onButtonClick, buttonHref }) {
+    const buttonStyle = {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '10px 24px',
+        borderRadius: '9999px',
+        fontSize: '13px',
+        fontWeight: 500,
+        background: '#000',
+        color: '#fff',
+        border: 'none',
+        textDecoration: 'none',
+        cursor: 'pointer',
+        transition: 'background 0.15s ease',
+    };
+
+    return (
+        <div style={{
+            textAlign: 'center',
+            padding: '64px 24px',
+            borderRadius: '16px',
+            border: '1px solid #f0f0f0',
+            marginBottom: '32px',
+        }}>
+            <span style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                background: '#f5f5f7',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '20px',
+            }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '28px', color: '#86868b' }}>{icon}</span>
+            </span>
+            <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#000', marginBottom: '8px' }}>{title}</h3>
+            <p style={{ fontSize: '14px', color: '#86868b', marginBottom: '24px', maxWidth: '360px', margin: '0 auto 24px' }}>{description}</p>
+            {buttonHref ? (
+                <Link href={buttonHref} style={buttonStyle}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#333'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = '#000'}
+                >
+                    {buttonLabel}
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_forward</span>
+                </Link>
+            ) : (
+                <button onClick={onButtonClick} style={buttonStyle}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#333'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = '#000'}
+                >
+                    {buttonLabel}
+                </button>
+            )}
+        </div>
+    );
+}
+
+function PaginationButton({ label, icon, iconAfter, disabled, onClick }) {
+    return (
+        <button
+            onClick={onClick}
+            disabled={disabled}
+            style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '8px 18px',
+                borderRadius: '9999px',
+                fontSize: '13px',
+                fontWeight: 500,
+                background: disabled ? '#f5f5f7' : '#fff',
+                color: disabled ? '#b0b0b5' : '#000',
+                border: disabled ? 'none' : '1px solid #e0e0e0',
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => { if (!disabled) { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#000'; } }}
+            onMouseLeave={(e) => { if (!disabled) { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#000'; e.currentTarget.style.borderColor = '#e0e0e0'; } }}
+        >
+            {!iconAfter && <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{icon}</span>}
+            {label}
+            {iconAfter && <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{icon}</span>}
+        </button>
     );
 }

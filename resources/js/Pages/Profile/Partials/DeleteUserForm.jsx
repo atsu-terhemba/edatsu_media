@@ -1,36 +1,19 @@
-import DangerButton from '@/Components/DangerButton';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import Modal from '@/Components/Modal';
-import SecondaryButton from '@/Components/SecondaryButton';
-import TextInput from '@/Components/TextInput';
 import { useForm } from '@inertiajs/react';
 import { useRef, useState } from 'react';
-import { Form, Button, Modal as BootstrapModal } from 'react-bootstrap';
+import { Modal as BootstrapModal } from 'react-bootstrap';
 
 export default function DeleteUserForm({ className = '' }) {
     const [confirmingUserDeletion, setConfirmingUserDeletion] = useState(false);
     const passwordInput = useRef();
 
-    const {
-        data,
-        setData,
-        delete: destroy,
-        processing,
-        reset,
-        errors,
-        clearErrors,
-    } = useForm({
+    const { data, setData, delete: destroy, processing, reset, errors, clearErrors } = useForm({
         password: '',
     });
 
-    const confirmUserDeletion = () => {
-        setConfirmingUserDeletion(true);
-    };
+    const confirmUserDeletion = () => setConfirmingUserDeletion(true);
 
     const deleteUser = (e) => {
         e.preventDefault();
-
         destroy(route('profile.destroy'), {
             preserveScroll: true,
             onSuccess: () => closeModal(),
@@ -41,99 +24,153 @@ export default function DeleteUserForm({ className = '' }) {
 
     const closeModal = () => {
         setConfirmingUserDeletion(false);
-
         clearErrors();
         reset();
     };
 
     return (
         <section className={className}>
-            <div className="mb-3">
-                <h5 className="mb-1" style={{fontWeight: '600', color: '#1f2937'}}>
-                    <i className="bi bi-trash me-2"></i>
-                    Delete Account
-                </h5>
-                <p className="text-muted mb-0" style={{fontSize: '0.875rem'}}>
+            <div style={{ marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                    <span style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '10px',
+                        background: '#fef2f2',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#dc2626' }}>warning</span>
+                    </span>
+                    <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#000', margin: 0 }}>
+                        Delete Account
+                    </h3>
+                </div>
+                <p style={{ fontSize: '13px', color: '#86868b', margin: '0 0 0 42px', lineHeight: 1.5 }}>
                     Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.
                 </p>
             </div>
 
-            <Button
-                variant="danger"
+            <button
                 onClick={confirmUserDeletion}
-                className="mt-3"
                 style={{
-                    borderRadius: '6px',
-                    fontSize: '0.875rem',
-                    padding: '0.5rem 1.5rem'
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '10px 24px',
+                    borderRadius: '9999px',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    background: 'transparent',
+                    color: '#dc2626',
+                    border: '1px solid #fecaca',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
                 }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#fef2f2'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
             >
-                <i className="bi bi-trash me-2"></i>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
                 Delete Account
-            </Button>
+            </button>
 
-            <BootstrapModal 
-                show={confirmingUserDeletion} 
+            <BootstrapModal
+                show={confirmingUserDeletion}
                 onHide={closeModal}
                 centered
             >
-                <BootstrapModal.Header closeButton style={{borderBottom: '1px solid #dee2e6'}}>
-                    <BootstrapModal.Title style={{fontSize: '1.125rem', fontWeight: '600'}}>
-                        <i className="bi bi-exclamation-triangle text-danger me-2"></i>
-                        Delete Account
-                    </BootstrapModal.Title>
-                </BootstrapModal.Header>
-                <BootstrapModal.Body>
-                    <Form onSubmit={deleteUser}>
-                        <p className="text-muted mb-3" style={{fontSize: '0.875rem'}}>
+                <div style={{ padding: '28px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                        <span style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            background: '#fef2f2',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#dc2626' }}>warning</span>
+                        </span>
+                        <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#000', margin: 0 }}>
+                            Delete Account
+                        </h3>
+                    </div>
+
+                    <form onSubmit={deleteUser}>
+                        <p style={{ fontSize: '14px', color: '#86868b', lineHeight: 1.6, marginBottom: '20px' }}>
                             Are you sure you want to delete your account? Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm.
                         </p>
 
-                        <Form.Group className="mb-3">
-                            <Form.Label className="visually-hidden">Password</Form.Label>
-                            <Form.Control
+                        <div style={{ marginBottom: '20px' }}>
+                            <input
                                 type="password"
-                                placeholder="Password"
+                                placeholder="Enter your password"
                                 ref={passwordInput}
                                 value={data.password}
                                 onChange={(e) => setData('password', e.target.value)}
                                 autoFocus
-                                style={{fontSize: '0.875rem', border: '1px solid #dee2e6'}}
+                                style={{
+                                    width: '100%',
+                                    padding: '10px 14px',
+                                    borderRadius: '12px',
+                                    border: '1px solid #e5e5e7',
+                                    background: '#fff',
+                                    fontSize: '14px',
+                                    color: '#000',
+                                    outline: 'none',
+                                    transition: 'border-color 0.15s ease',
+                                }}
+                                onFocus={(e) => e.currentTarget.style.borderColor = '#000'}
+                                onBlur={(e) => e.currentTarget.style.borderColor = '#e5e5e7'}
                             />
                             {errors.password && (
-                                <Form.Text className="text-danger" style={{fontSize: '0.875rem'}}>
-                                    {errors.password}
-                                </Form.Text>
+                                <p style={{ fontSize: '12px', color: '#dc2626', marginTop: '4px' }}>{errors.password}</p>
                             )}
-                        </Form.Group>
+                        </div>
 
-                        <div className="d-flex justify-content-end gap-2">
-                            <Button 
-                                variant="outline-secondary"
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                            <button
+                                type="button"
                                 onClick={closeModal}
                                 style={{
-                                    borderRadius: '6px',
-                                    fontSize: '0.875rem',
-                                    padding: '0.5rem 1.5rem'
+                                    padding: '10px 24px',
+                                    borderRadius: '9999px',
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    background: 'transparent',
+                                    color: '#000',
+                                    border: '1px solid #e5e5e7',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
                                 }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f7'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                             >
                                 Cancel
-                            </Button>
-                            <Button 
-                                variant="danger"
+                            </button>
+                            <button
                                 type="submit"
                                 disabled={processing}
                                 style={{
-                                    borderRadius: '6px',
-                                    fontSize: '0.875rem',
-                                    padding: '0.5rem 1.5rem'
+                                    padding: '10px 24px',
+                                    borderRadius: '9999px',
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    background: '#dc2626',
+                                    color: '#fff',
+                                    border: 'none',
+                                    cursor: processing ? 'not-allowed' : 'pointer',
+                                    transition: 'all 0.15s ease',
+                                    opacity: processing ? 0.5 : 1,
                                 }}
                             >
                                 Delete Account
-                            </Button>
+                            </button>
                         </div>
-                    </Form>
-                </BootstrapModal.Body>
+                    </form>
+                </div>
             </BootstrapModal>
         </section>
     );

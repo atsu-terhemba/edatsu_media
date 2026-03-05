@@ -12,23 +12,13 @@ const RecommendedContent = ({similarPosts = []}) => {
     }));
   };
 
-  const truncateText = (text, length) => {
-    if (!text) return '';
-    return text.length > length ? text.substring(0, length) + '...' : text;
-  };
-
-  const stripTags = (html) => {
-    if (!html) return '';
-    return html.replace(/<\/?[^>]+(>|$)/g, '');
-  };
-
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
     });
   };
 
@@ -37,48 +27,58 @@ const RecommendedContent = ({similarPosts = []}) => {
   }
 
   return (
-    <div className="my-4">
+    <div>
+      {/* Section header with eyebrow */}
+      <div className="d-flex flex-column align-items-start mb-4">
+        <span
+          className="section-eyebrow"
+          style={{ color: '#86868b' }}
+        >
+          Related
+        </span>
+        <div className="eyebrow-bar" style={{ margin: '8px 0 0' }} />
+      </div>
       <h3 style={{
-        fontSize: '1.25rem',
-        fontWeight: '700',
-        color: '#1a1a1a',
-        marginBottom: '1.5rem',
-        paddingBottom: '0.75rem',
-        borderBottom: '2px solid #e5e7eb'
+        fontSize: '24px',
+        fontWeight: 600,
+        color: '#000',
+        marginBottom: '24px',
+        letterSpacing: '-0.01em',
       }}>
         Recommended Articles
       </h3>
-      
-      <div className="recommended-list">
+
+      <div>
         {similarPosts.slice(0, 6).map((post, index) => {
           const imageUrl = `${(import.meta.env.VITE_R2_PUBLIC_URL || '').replace(/\/$/, '')}/uploads/opp/${post.cover_img}`;
           const coverImage = loadedImages[post.id] || imageUrl;
 
           return (
-            <Link 
-              key={post.id} 
+            <Link
+              key={post.id}
               href={`/op/${post.id}/${post.slug}`}
               className="text-decoration-none"
             >
-              <article 
-                className="d-flex gap-3 py-3"
+              <article
+                className="d-flex gap-3"
                 style={{
-                  borderBottom: index < similarPosts.slice(0, 6).length - 1 ? '1px solid #f3f4f6' : 'none',
-                  transition: 'background 0.2s ease'
+                  padding: '16px 0',
+                  borderBottom: index < similarPosts.slice(0, 6).length - 1 ? '1px solid #f0f0f0' : 'none',
+                  transition: 'background 0.15s ease',
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f7'}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 {/* Thumbnail */}
                 <div style={{
-                  width: '100px',
-                  height: '75px',
+                  width: '80px',
+                  height: '60px',
                   flexShrink: 0,
-                  borderRadius: '8px',
+                  borderRadius: '12px',
                   overflow: 'hidden',
-                  background: '#f3f4f6'
+                  background: '#f5f5f7'
                 }}>
-                  <img 
+                  <img
                     src={coverImage}
                     loading="lazy"
                     alt={post.title}
@@ -90,15 +90,15 @@ const RecommendedContent = ({similarPosts = []}) => {
                     }}
                   />
                 </div>
-                
+
                 {/* Content */}
                 <div className="flex-grow-1" style={{minWidth: 0}}>
                   <h4 style={{
-                    fontSize: '0.95rem',
-                    fontWeight: '600',
-                    color: '#1a1a1a',
-                    marginBottom: '0.375rem',
-                    lineHeight: '1.4',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: '#000',
+                    marginBottom: '4px',
+                    lineHeight: 1.3,
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: 'vertical',
@@ -107,13 +107,13 @@ const RecommendedContent = ({similarPosts = []}) => {
                     {post.title}
                   </h4>
                   <p style={{
-                    fontSize: '0.8rem',
-                    color: '#6b7280',
+                    fontSize: '12px',
+                    color: '#86868b',
                     marginBottom: 0
                   }}>
                     {formatDate(post.created_at)}
                     {post.deadline && (
-                      <span style={{color: '#dc2626'}}> · Deadline: {formatDate(post.deadline)}</span>
+                      <span style={{ color: '#f97316' }}> · {formatDate(post.deadline)}</span>
                     )}
                   </p>
                 </div>
@@ -122,15 +122,29 @@ const RecommendedContent = ({similarPosts = []}) => {
           );
         })}
       </div>
-      
+
       {similarPosts.length > 6 && (
-        <div className="text-center mt-3">
-          <Link 
+        <div className="text-center" style={{ marginTop: '24px' }}>
+          <Link
             href="/opportunities"
-            className="btn btn-outline-secondary btn-sm px-4"
-            style={{borderRadius: '8px', fontSize: '0.85rem'}}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '10px 24px',
+              borderRadius: '9999px',
+              border: '1px solid #e5e5e5',
+              color: '#000',
+              fontSize: '13px',
+              fontWeight: 500,
+              textDecoration: 'none',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#000'; e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e5e5'; e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000'; }}
           >
-            View More Opportunities
+            View More
+            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>arrow_forward</span>
           </Link>
         </div>
       )}

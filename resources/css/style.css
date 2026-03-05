@@ -522,16 +522,26 @@ ul.menu-list li:last-child {
     background-repeat: no-repeat;
     background-position: center center;
     background-size: cover;
-    min-height: 460px !important;
+    min-height: 90vh !important;
     border: 0;
 }
 
 .hero-banner .overlay {
     padding: 56px 0;
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
 }
 
 .footer-banner {
     background-image: url('/public/img/defaults/banner_5.jpg');
+    min-height: 50vh !important;
+}
+
+.footer-banner .overlay {
+    min-height: 50vh;
+    display: flex;
+    align-items: center;
 }
 
 .admin-side-menu li > a {
@@ -681,12 +691,54 @@ ul.label-list li {
 .login-indicator { background-color: #00FF00; }
 
 .overlay {
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.85) 100%);
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.80) 0%, rgba(0, 0, 0, 0.60) 50%, rgba(0, 0, 0, 0.80) 100%);
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
+}
+
+/* Edatsu UI Concept - Scroll Indicator */
+.scroll-indicator {
+    width: 20px;
+    height: 32px;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 6px;
+}
+
+.scroll-indicator-dot {
+    width: 4px;
+    height: 8px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.4);
+    animation: scrollBounce 2s infinite;
+}
+
+@keyframes scrollBounce {
+    0%, 100% { transform: translateY(0); opacity: 0.4; }
+    50% { transform: translateY(10px); opacity: 1; }
+}
+
+/* Edatsu UI Concept - Eyebrow Orange Bar */
+.eyebrow-bar {
+    width: 40px;
+    height: 2px;
+    background: #f97316;
+    border-radius: 9999px;
+    margin: 8px auto 0;
+}
+
+/* Edatsu UI Concept - Section Header */
+.section-eyebrow {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
 }
 
 .custom-bg-highlight {
@@ -1105,23 +1157,24 @@ search toggle effect**/
 /* Additional responsive breakpoints for better mobile experience */
 @media (max-width: 576px) {
     .hero-banner {
-        min-height: 380px !important;
+        min-height: 70vh !important;
     }
 
     .hero-banner .overlay {
         padding: 40px 0;
+        min-height: 70vh;
     }
 
     .hero-banner h1 {
-        font-size: 28px !important;
+        font-size: 36px !important;
     }
 
     .hero-banner p {
-        font-size: 15px !important;
+        font-size: 14px !important;
     }
 
     .footer-banner {
-        min-height: 400px !important;
+        min-height: 40vh !important;
         padding: 32px 0;
     }
 
@@ -1169,19 +1222,20 @@ search toggle effect**/
 /* Tablet optimizations */
 @media (min-width: 577px) and (max-width: 768px) {
     .hero-banner {
-        min-height: 420px !important;
+        min-height: 80vh !important;
     }
 
     .hero-banner .overlay {
         padding: 48px 0;
+        min-height: 80vh;
     }
 
     .hero-banner h1 {
-        font-size: 34px !important;
+        font-size: 48px !important;
     }
 
     .footer-banner {
-        min-height: 450px !important;
+        min-height: 45vh !important;
     }
 
     .banner-btn-primary,
@@ -3471,79 +3525,59 @@ SKELETAL LOADER
    FLOATING BOOKMARK SYSTEM
    =============================================== */
 
+/* ============================================ */
+/* FLOATING BOOKMARK - Edatsu Minimal Style     */
+/* ============================================ */
 .floating-bookmark-container {
     position: fixed;
-    right: 30px;
+    right: 24px;
     top: 50%;
     transform: translateY(-50%);
     z-index: 1000;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    pointer-events: none;
+    transition: all 0.3s ease;
 }
 
 .floating-bookmark-container.visible {
     pointer-events: all;
+    opacity: 1;
 }
 
 .floating-bookmark-container.hidden {
     opacity: 0;
-    transform: translateY(-50%) translateX(100px);
     pointer-events: none;
+    transform: translateY(-50%) translateX(20px);
 }
 
 .floating-bookmark-container.animate-in {
     opacity: 1;
     transform: translateY(-50%) translateX(0);
-    animation: bookmarkSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .floating-bookmark-container.animate-out {
     opacity: 0;
-    transform: translateY(-50%) translateX(100px);
-    animation: bookmarkSlideOut 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes bookmarkSlideIn {
-    0% {
-        opacity: 0;
-        transform: translateY(-50%) translateX(100px) scale(0.8);
-    }
-    60% {
-        transform: translateY(-50%) translateX(-10px) scale(1.05);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(-50%) translateX(0) scale(1);
-    }
-}
-
-@keyframes bookmarkSlideOut {
-    0% {
-        opacity: 1;
-        transform: translateY(-50%) translateX(0) scale(1);
-    }
-    100% {
-        opacity: 0;
-        transform: translateY(-50%) translateX(100px) scale(0.9);
-    }
+    transform: translateY(-50%) translateX(20px);
 }
 
 .floating-bookmark-wrapper {
-    position: relative;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 15px;
+    gap: 0;
+    background: #000;
+    border-radius: 9999px;
+    padding: 6px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* Progress Ring Styles */
+/* Progress Ring */
 .progress-ring {
     position: relative;
-    width: 60px;
-    height: 60px;
+    width: 52px;
+    height: 52px;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1;
 }
 
 .progress-ring-svg {
@@ -3551,286 +3585,193 @@ SKELETAL LOADER
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) rotate(-90deg);
-    z-index: 1;
 }
 
 .progress-ring-circle-bg {
     fill: none;
-    stroke: rgba(255, 255, 255, 0.2);
-    stroke-width: 3;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 2.5;
 }
 
 .progress-ring-circle {
     fill: none;
-    stroke: #667eea;
-    stroke-width: 3;
+    stroke: #f97316;
+    stroke-width: 2.5;
     stroke-linecap: round;
     transition: stroke-dasharray 0.3s ease;
-    filter: drop-shadow(0 0 8px rgba(102, 126, 234, 0.4));
 }
 
-/* Floating Bookmark Button */
+/* Bookmark Button */
 .floating-bookmark-btn {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 46px;
-    height: 46px;
-    background: #323130;
+    width: 40px;
+    height: 40px;
+    background: transparent;
     border: none;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 
-        0 4px 20px rgba(102, 126, 234, 0.3),
-        0 2px 8px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: all 0.15s ease;
     overflow: hidden;
     z-index: 10;
 }
 
 .floating-bookmark-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-    transition: left 0.6s ease;
-}
-
-.floating-bookmark-btn:hover::before {
-    left: 100%;
+    display: none;
 }
 
 .floating-bookmark-btn:hover {
     transform: translate(-50%, -50%) scale(1.1);
-    box-shadow: 
-        0 6px 30px rgba(102, 126, 234, 0.4),
-        0 4px 12px rgba(0, 0, 0, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .floating-bookmark-btn:active {
     transform: translate(-50%, -50%) scale(0.95);
-    transition: transform 0.1s ease;
 }
 
 .bookmark-icon {
-    color: white;
+    color: rgba(255, 255, 255, 0.8);
     font-size: 20px !important;
     font-weight: 400;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
+    transition: all 0.15s ease;
     position: relative;
     z-index: 11;
 }
 
 .floating-bookmark-btn:hover .bookmark-icon {
-    transform: scale(1.1);
-    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
+    color: #fff;
 }
 
 /* Bookmarked State */
-.floating-bookmark-btn[data-bookmarked="true"] {
-    background: #ffd700;
-    box-shadow: 
-        0 4px 20px rgba(255, 215, 0, 0.4),
-        0 2px 8px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.floating-bookmark-btn[data-bookmarked="true"]:hover {
-    box-shadow: 
-        0 6px 30px rgba(255, 215, 0, 0.5),
-        0 4px 12px rgba(0, 0, 0, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4);
-}
-
 .floating-bookmark-btn[data-bookmarked="true"] .bookmark-icon {
-    color: #8b5a00;
-    animation: bookmarkSaved 0.6s ease;
+    color: #f97316;
+    font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
 }
 
-@keyframes bookmarkSaved {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.3); }
-    100% { transform: scale(1); }
+.floating-bookmark-btn[data-bookmarked="true"]:hover .bookmark-icon {
+    color: #f97316;
+    transform: scale(1.1);
 }
 
-/* Floating Tooltip */
+/* Tooltip */
 .floating-tooltip {
-    background: rgba(0, 0, 0, 0.9);
-    color: white;
-    padding: 12px 16px;
-    border-radius: 12px;
-    font-size: 13px;
+    background: #000;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 9999px;
+    font-size: 11px;
     font-weight: 500;
     white-space: nowrap;
     opacity: 0;
-    transform: translateX(-10px);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(4px);
+    transition: all 0.15s ease;
     pointer-events: none;
-    position: relative;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    margin-top: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .floating-tooltip::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: -6px;
-    transform: translateY(-50%);
-    width: 0;
-    height: 0;
-    border-top: 6px solid transparent;
-    border-bottom: 6px solid transparent;
-    border-right: 6px solid rgba(0, 0, 0, 0.9);
+    display: none;
 }
 
 .floating-bookmark-wrapper:hover .floating-tooltip {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
 }
 
 .tooltip-text {
-    display: block;
-    margin-bottom: 4px;
-    font-weight: 600;
+    display: none;
 }
 
 .tooltip-progress {
-    color: #667eea;
-    font-size: 12px;
-    font-weight: 700;
+    color: #f97316;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
 }
 
-/* Mobile Responsiveness */
+/* Mobile */
 @media (max-width: 768px) {
     .floating-bookmark-container {
-        right: 20px;
+        right: 16px;
         bottom: 80px;
         top: auto;
         transform: none;
     }
-    
+
     .floating-bookmark-container.hidden {
-        transform: translateY(100px);
+        transform: translateY(20px);
+        opacity: 0;
     }
-    
+
     .floating-bookmark-container.animate-in {
         transform: translateY(0);
+        opacity: 1;
     }
-    
+
     .floating-bookmark-container.animate-out {
-        transform: translateY(100px);
+        transform: translateY(20px);
+        opacity: 0;
     }
-    
-    @keyframes bookmarkSlideIn {
-        0% {
-            opacity: 0;
-            transform: translateY(100px) scale(0.8);
-        }
-        60% {
-            transform: translateY(-10px) scale(1.05);
-        }
-        100% {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-    }
-    
-    @keyframes bookmarkSlideOut {
-        0% {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-        100% {
-            opacity: 0;
-            transform: translateY(100px) scale(0.9);
-        }
-    }
-    
+
     .floating-bookmark-wrapper {
-        flex-direction: column;
-        gap: 10px;
+        padding: 4px;
     }
-    
-    .floating-tooltip {
-        order: -1;
-        margin-bottom: 8px;
-        font-size: 11px;
-        padding: 8px 12px;
-    }
-    
-    .floating-tooltip::before {
-        top: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        border-left: 6px solid transparent;
-        border-right: 6px solid transparent;
-        border-top: 6px solid rgba(0, 0, 0, 0.9);
-        border-bottom: none;
-    }
-    
+
     .progress-ring {
-        width: 50px;
-        height: 50px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        width: 46px;
+        height: 46px;
     }
-    
+
     .progress-ring-svg {
-        width: 50px;
-        height: 50px;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) rotate(-90deg);
+        width: 46px;
+        height: 46px;
     }
-    
+
     .progress-ring-circle-bg,
     .progress-ring-circle {
-        cx: 25;
-        cy: 25;
-        r: 20;
+        cx: 23;
+        cy: 23;
+        r: 19;
     }
-    
+
     .floating-bookmark-btn {
-        width: 38px;
-        height: 38px;
+        width: 36px;
+        height: 36px;
     }
-    
+
     .bookmark-icon {
         font-size: 18px !important;
     }
-}
 
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-    .floating-bookmark-btn {
-        border: 2px solid white;
-    }
-    
-    .progress-ring-circle {
-        stroke: white;
-    }
-    
     .floating-tooltip {
-        background: black;
-        border: 1px solid white;
+        display: none;
+    }
+
+    .floating-bookmark-container {
+        z-index: 999;
+    }
+
+    body.mobile-nav-open .floating-bookmark-container {
+        opacity: 0.3;
+        pointer-events: none;
     }
 }
 
-/* Reduced motion support */
+@media (max-width: 480px) {
+    .floating-bookmark-container {
+        right: 12px;
+        bottom: 80px;
+    }
+}
+
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
     .floating-bookmark-container,
     .floating-bookmark-btn,
@@ -3839,128 +3780,17 @@ SKELETAL LOADER
         transition: none;
         animation: none;
     }
-    
-    .floating-bookmark-container.animate-in,
-    .floating-bookmark-container.animate-out {
-        animation: none;
-    }
 }
 
-/* Additional mobile responsiveness for floating bookmark */
-@media (max-width: 480px) {
-    .floating-bookmark-container {
-        right: 12px;
-        bottom: 80px;
-        scale: 0.9;
-    }
-    
-    .floating-bookmark-btn {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .progress-ring {
-        width: 48px;
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .progress-ring-svg {
-        width: 48px;
-        height: 48px;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) rotate(-90deg);
-    }
-    
-    .progress-ring-circle-bg, 
-    .progress-ring-circle {
-        cx: 24;
-        cy: 24;
-        r: 19;
-    }
-    
-    .floating-tooltip {
-        font-size: 10px;
-        padding: 6px 10px;
-        max-width: 120px;
-    }
-}
-
-@media (max-width: 360px) {
-    .floating-bookmark-container {
-        right: 10px;
-        bottom: 75px;
-        scale: 0.85;
-    }
-    
-    .floating-bookmark-btn {
-        width: 36px;
-        height: 36px;
-    }
-    
-    .progress-ring {
-        width: 44px;
-        height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .progress-ring-svg {
-        width: 44px;
-        height: 44px;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) rotate(-90deg);
-    }
-    
-    .progress-ring-circle-bg, 
-    .progress-ring-circle {
-        cx: 22;
-        cy: 22;
-        r: 17;
-    }
-    
-    .bookmark-icon {
-        font-size: 16px !important;
-    }
-}
-
-/* Mobile navigation compatibility */
-@media (max-width: 768px) {
-    .floating-bookmark-container {
-        z-index: 999;
-    }
-    
-    body.mobile-nav-open .floating-bookmark-container {
-        opacity: 0.3;
-        pointer-events: none;
-    }
-}
-
-/* Touch-friendly adjustments */
+/* Touch devices */
 @media (hover: none) and (pointer: coarse) {
     .floating-bookmark-btn {
         min-width: 44px;
         min-height: 44px;
     }
-    
+
     .floating-bookmark-btn:active {
         transform: translate(-50%, -50%) scale(0.9);
-    }
-    
-    .floating-bookmark-btn:hover {
-        transform: translate(-50%, -50%);
-        background: #323130;
-    }
-    
-    .floating-bookmark-btn[data-bookmarked="true"]:hover {
-        background: #ffd700;
     }
 }
 

@@ -1,6 +1,6 @@
 import { Fragment, useState } from "react";
 import { Link, usePage } from '@inertiajs/react';
-import FlatButton from './FlatButton';
+import { Images } from "@/utils/Images";
 
 const FixedMobileNav = ({
   isAuthenticated = false,
@@ -8,478 +8,245 @@ const FixedMobileNav = ({
   toggleSearch
 }) => {
   const { auth } = usePage().props;
-  const username = auth?.user?.name || auth?.user?.username || '';
-  const [showSubscriptionAlert, setShowSubscriptionAlert] = useState(true);
-  const [showMenuModal, setShowMenuModal] = useState(false);
+  const [showDrawer, setShowDrawer] = useState(false);
 
-  const toggleMenuModal = () => {
-    setShowMenuModal(!showMenuModal);
+  const isActive = (path) => {
+    if (path === '/') return currentPath === '/';
+    return currentPath.startsWith(path);
   };
 
   const handleSearchClick = () => {
-    // Toggle the search panel
     toggleSearch();
-    
-    // Scroll to top smoothly
-    setTimeout(() => {
-      window.scrollTo({ 
-        top: 0, 
-        behavior: 'smooth' 
-      });
-    }, 100);
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
   };
 
-  const getHighlightClass = (path) => {
-    return currentPath === path;
-  };
+  // Bottom bar items for guest
+  const guestTabs = [
+    { id: 'home', icon: 'home', label: 'Home', path: '/' },
+    { id: 'search', icon: 'search', label: 'Search', action: handleSearchClick },
+    { id: 'opps', icon: 'explore', label: 'Explore', path: '/opportunities' },
+    { id: 'tools', icon: 'handyman', label: 'Tools', path: '/toolshed' },
+    { id: 'login', icon: 'person', label: 'Login', path: '/login' },
+  ];
 
-  // Navigation pages based on authentication
-  const getNavigationPages = () => {
-    const commonPages = [
-      { 
-        name: 'Opportunities', 
-        path: '/opportunities', 
-        icon: 'event',
-        description: 'Browse latest opportunities',
-        isSeparator: true
-      },
-      { 
-        name: 'Toolshed', 
-        path: '/toolshed', 
-        icon: 'handyman',
-        description: 'Discover useful tools' 
-      },
-      { 
-        name: 'Help', 
-        path: '/help', 
-        icon: 'help',
-        description: 'Find answers and support' 
-      },
-    ];
+  // Bottom bar items for logged-in user (guest pages context)
+  const authTabs = [
+    { id: 'home', icon: 'home', label: 'Home', path: '/' },
+    { id: 'search', icon: 'search', label: 'Search', action: handleSearchClick },
+    { id: 'opps', icon: 'explore', label: 'Explore', path: '/opportunities' },
+    { id: 'tools', icon: 'handyman', label: 'Tools', path: '/toolshed' },
+    { id: 'more', icon: 'menu', label: 'More', action: () => setShowDrawer(true) },
+  ];
 
-    if (isAuthenticated) {
-      return [
-        { 
-          name: 'Dashboard', 
-          path: '/subscriber-dashboard',
-          icon: 'dashboard',
-          description: 'Your personal dashboard' 
-        },
-        { 
-          name: 'Profile', 
-          path: '/profile',
-          icon: 'person',
-          description: 'Edit your profile' 
-        },
-        { 
-          name: 'Saved Opportunities', 
-          path: '/bookmarked-opportunities',
-          icon: 'bookmark',
-          description: 'Your saved opportunities' 
-        },
-        { 
-          name: 'Saved Tools', 
-          path: '/bookmarked-tools',
-          icon: 'bookmark',
-          description: 'Your saved tools' 
-        },
-        { 
-          name: 'Notifications', 
-          path: '/notifications',
-          icon: 'notifications',
-          description: 'Your notifications' 
-        },
-        ...commonPages,
-      ];
-    } else {
-      return [
-        ...commonPages,
-        { 
-          name: 'Login', 
-          path: '/login', 
-          icon: 'login',
-          description: 'Sign in to your account' 
-        },
-        { 
-          name: 'Register', 
-          path: '/register', 
-          icon: 'person_add',
-          description: 'Create a new account' 
-        },
-      ];
-    }
-  };
+  const tabs = isAuthenticated ? authTabs : guestTabs;
 
-  const navItems = [
-    {
-      id: 'menu',
-      icon: 'menu',
-      label: 'Menu',
-      path: null,
-      onClick: toggleMenuModal
-    },
-    {
-      id: 'search',
-      icon: 'search',
-      label: 'Search',
-      path: null,
-      onClick: handleSearchClick
-    },
-    {
-      id: 'toolshed',
-      icon: 'handyman',
-      label: 'Toolshed',
-      path: '/toolshed',
-      onClick: null
-    },
-    {
-      id: 'profile',
-      icon: 'dashboard',
-      label: isAuthenticated ? 'Dashboard' : 'Login',
-      path: isAuthenticated ? '/subscriber-dashboard' : '/login',
-      onClick: null
-    }
+  // Drawer menu items
+  const drawerItems = isAuthenticated ? [
+    { label: 'Dashboard', icon: 'dashboard', path: '/subscriber-dashboard' },
+    { label: 'Profile', icon: 'person', path: '/profile' },
+    { label: 'Notifications', icon: 'notifications', path: '/notifications' },
+    { label: 'Saved Items', icon: 'bookmark', path: '/bookmarked-opportunities' },
+    { type: 'divider' },
+    { label: 'Pricing', icon: 'diamond', path: '/subscription' },
+    { label: 'Advertise', icon: 'campaign', path: '/advertise' },
+    { label: 'Help', icon: 'help', path: '/help' },
+    { type: 'divider' },
+    { label: 'Logout', icon: 'logout', path: '/logout', method: 'post', danger: true },
+  ] : [
+    { label: 'Opportunities', icon: 'explore', path: '/opportunities' },
+    { label: 'Toolshed', icon: 'handyman', path: '/toolshed' },
+    { type: 'divider' },
+    { label: 'Pricing', icon: 'diamond', path: '/subscription' },
+    { label: 'Advertise', icon: 'campaign', path: '/advertise' },
+    { label: 'Help', icon: 'help', path: '/help' },
+    { type: 'divider' },
+    { label: 'Login', icon: 'login', path: '/login' },
+    { label: 'Sign Up', icon: 'person_add', path: '/sign-up' },
   ];
 
   return (
     <>
-      {/* Menu Modal */}
-      {showMenuModal && (
-        <div 
-          className="position-fixed w-100 d-md-none"
+      {/* Drawer overlay */}
+      {showDrawer && (
+        <div
+          className="d-lg-none"
           style={{
-            top: 0,
-            left: 0,
-            bottom: '80px', // Leave space for bottom nav
-            zIndex: 1100, // Below the bottom nav (1000)
-            background: 'rgba(0, 0, 0, 0.5)',
-            backdropFilter: 'blur(10px)'
+            position: 'fixed', inset: 0, zIndex: 1100,
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
           }}
-          onClick={toggleMenuModal}
+          onClick={() => setShowDrawer(false)}
         >
-          <div 
-            className="position-absolute w-100 bg-white h-100"
+          <div
             style={{
-              top: 0,
+              position: 'absolute',
+              bottom: 0, left: 0, right: 0,
+              maxHeight: '85vh',
+              background: '#1c1c1e',
+              borderRadius: '20px 20px 0 0',
               overflowY: 'auto',
-              animation: 'slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              transform: 'translateY(0)'
+              animation: 'mobileDrawerUp 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header */}
-            <div 
-              className="d-flex align-items-center justify-content-between p-4 border-bottom sticky-top"
-              style={{ 
-                background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-                zIndex: 10
-              }}
-            >
-              <h5 className="mb-0 fw-bold text-dark">{isAuthenticated ? 'My Account' : 'Navigation'}</h5>
-              <FlatButton 
-                variant="outline-secondary"
-                size="sm"
-                onClick={toggleMenuModal}
-                style={{ width: '32px', height: '32px', padding: 0, borderRadius: '50%' }}
-              >
-                ×
-              </FlatButton>
+            {/* Drawer handle */}
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px' }}>
+              <div style={{ width: 36, height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.2)' }} />
             </div>
 
-            {/* Profile Section (if logged in) */}
-            {isAuthenticated && username && (
-              <div 
-                className="p-4 border-bottom"
-                style={{ background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)' }}
-              >
-                <div className="d-flex align-items-center">
-                  <div 
-                    className="d-flex align-items-center justify-content-center me-3"
-                    style={{
-                      width: '50px',
-                      height: '50px',
-                      borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-                      color: 'white',
-                      fontSize: '20px',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    {username.charAt(0).toUpperCase()}
+            {/* User info (auth only) */}
+            {isAuthenticated && auth?.user && (
+              <div style={{ padding: '12px 20px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: '50%',
+                  background: '#f97316', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 16, fontWeight: 600, color: '#fff',
+                }}>
+                  {(auth.user.name || 'U').charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>
+                    {auth.user.name || 'User'}
                   </div>
-                  <div>
-                    <div className="fw-semibold text-dark" style={{ fontSize: '16px' }}>
-                      {username}
-                    </div>
-                    <span 
-                      className="badge"
-                      style={{
-                        background: '#10b981',
-                        color: 'white',
-                        fontSize: '10px',
-                        padding: '2px 8px',
-                        borderRadius: '12px',
-                        fontWeight: '500'
-                      }}
-                    >
-                      Logged in
-                    </span>
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>
+                    {auth.user.email || 'Subscriber'}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Navigation Links */}
-            <div className="pb-4">
-              {getNavigationPages().map((page) => (
-                <Fragment key={page.path}>
-                  {page.isSeparator && (
-                    <div 
-                      className="px-4 py-2 text-muted fw-semibold"
-                      style={{ 
-                        fontSize: '12px', 
-                        background: '#f8fafc',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px'
-                      }}
-                    >
-                      Browse
-                    </div>
-                  )}
-                  <Link
-                    href={page.path}
-                    className="text-decoration-none"
-                    onClick={toggleMenuModal}
-                  >
-                    <div 
-                      className="d-flex align-items-center justify-content-between p-4 border-bottom hover-list-item"
-                      style={{
-                        background: getHighlightClass(page.path) ? '#f0f9ff' : 'white',
-                        borderLeft: getHighlightClass(page.path) ? '4px solid #3b82f6' : '4px solid transparent',
-                        transition: 'all 0.2s ease',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <div className="d-flex align-items-center flex-grow-1">
-                        <span 
-                          className="material-symbols-outlined me-3"
-                          style={{ 
-                            fontSize: '24px',
-                            color: getHighlightClass(page.path) ? '#3b82f6' : '#6b7280'
-                          }}
-                        >
-                          {page.icon}
-                        </span>
-                        <div>
-                          <div 
-                            className="fw-semibold"
-                            style={{ 
-                              color: getHighlightClass(page.path) ? '#1e40af' : '#374151',
-                              fontSize: '16px'
-                            }}
-                          >
-                            {page.name}
-                          </div>
-                          <div className="text-muted" style={{ fontSize: '13px' }}>
-                            {page.description}
-                          </div>
-                        </div>
-                      </div>
-                      <div 
-                        className="ms-3"
-                        style={{
-                          color: getHighlightClass(page.path) ? '#3b82f6' : '#9ca3af',
-                          fontSize: '18px'
-                        }}
-                      >
-                        →
-                      </div>
-                    </div>
-                  </Link>
-                </Fragment>
-              ))}
+            {/* Menu items */}
+            <div style={{ padding: '0 12px 20px' }}>
+              {drawerItems.map((item, idx) => {
+                if (item.type === 'divider') {
+                  return <div key={`d-${idx}`} style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '6px 8px' }} />;
+                }
 
-              {/* Logout (if logged in) */}
-              {isAuthenticated && (
-                <Link
-                  href="/logout"
-                  method="post"
-                  as="button"
-                  className="text-decoration-none w-100 border-0 bg-transparent text-start"
-                  onClick={toggleMenuModal}
-                >
-                  <div 
-                    className="d-flex align-items-center justify-content-between p-4 border-bottom hover-list-item"
+                const linkProps = item.method === 'post'
+                  ? { href: item.path, method: 'post', as: 'button' }
+                  : { href: item.path };
+
+                const active = isActive(item.path);
+
+                return (
+                  <Link
+                    key={item.path}
+                    {...linkProps}
+                    onClick={() => setShowDrawer(false)}
                     style={{
-                      background: 'white',
-                      borderLeft: '4px solid transparent',
-                      transition: 'all 0.2s ease',
-                      cursor: 'pointer'
+                      display: 'flex', alignItems: 'center', gap: 14,
+                      padding: '13px 14px',
+                      borderRadius: 12,
+                      textDecoration: 'none',
+                      background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
+                      transition: 'background 0.15s',
+                      border: 'none', width: '100%', textAlign: 'left',
+                      cursor: 'pointer',
                     }}
                   >
-                    <div className="d-flex align-items-center flex-grow-1">
-                      <span 
-                        className="material-symbols-outlined me-3"
-                        style={{ fontSize: '24px', color: '#ef4444' }}
-                      >
-                        logout
-                      </span>
-                      <div>
-                        <div className="fw-semibold" style={{ color: '#ef4444', fontSize: '16px' }}>
-                          Logout
-                        </div>
-                        <div className="text-muted" style={{ fontSize: '13px' }}>
-                          Sign out of your account
-                        </div>
-                      </div>
-                    </div>
-                    <div className="ms-3" style={{ color: '#9ca3af', fontSize: '18px' }}>
-                      →
-                    </div>
-                  </div>
-                </Link>
-              )}
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        fontSize: 20,
+                        color: item.danger ? '#ef4444' : active ? '#f97316' : 'rgba(255,255,255,0.55)',
+                      }}
+                    >
+                      {item.icon}
+                    </span>
+                    <span style={{
+                      fontSize: 15, fontWeight: 500,
+                      color: item.danger ? '#ef4444' : active ? '#fff' : 'rgba(255,255,255,0.85)',
+                    }}>
+                      {item.label}
+                    </span>
+                    {active && (
+                      <span style={{
+                        marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%',
+                        background: '#f97316',
+                      }} />
+                    )}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </div>
       )}
 
-      {/* Modern Mobile Navigation */}
-      <div 
-        className="d-md-none position-fixed w-100"
+      {/* Bottom Tab Bar */}
+      <div
+        className="d-lg-none"
         style={{
-          bottom: '0',
-          left: '0',
-          right: '0',
-          zIndex: 1000,
-          background: '#212529',
-          padding: '8px 0 20px 0'
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.92)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderTop: '1px solid rgba(255,255,255,0.08)',
+          paddingBottom: 'env(safe-area-inset-bottom, 8px)',
         }}
       >
-        <div className="container-fluid px-2">
-          <div className="d-flex justify-content-between">
-            {navItems.map((item) => {
-              const isActive = item.path ? getHighlightClass(item.path) : false;
-              
-              const buttonContent = (
-                <div className="d-flex flex-column align-items-center justify-content-center h-100">
-                  <div 
-                    className={`d-flex align-items-center justify-content-center rounded-circle transition-all`}
-                    style={{
-                      width: '44px',
-                      height: '44px',
-                      background: isActive ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      transform: isActive ? 'scale(1.1)' : 'scale(1)'
-                    }}
-                  >
-                    <span 
-                      className="material-symbols-outlined"
-                      style={{
-                        fontSize: '20px',
-                        color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.7)'
-                      }}
-                    >
-                      {item.icon}
-                    </span>
-                  </div>
-                  <span 
-                    className="mt-1"
-                    style={{
-                      fontSize: '10px',
-                      fontWeight: '500',
-                      color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.6)',
-                      transition: 'color 0.3s ease'
-                    }}
-                  >
-                    {item.label}
-                  </span>
-                </div>
-              );
+        <div style={{ display: 'flex', justifyContent: 'space-around', padding: '6px 4px 4px' }}>
+          {tabs.map((tab) => {
+            const active = tab.path ? isActive(tab.path) : false;
 
+            const content = (
+              <div style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                gap: 2, padding: '4px 0', minWidth: 52,
+              }}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{
+                    fontSize: 22,
+                    color: active ? '#f97316' : 'rgba(255,255,255,0.5)',
+                    transition: 'color 0.15s',
+                  }}
+                >
+                  {tab.icon}
+                </span>
+                <span style={{
+                  fontSize: 10, fontWeight: 500, letterSpacing: '0.01em',
+                  color: active ? '#f97316' : 'rgba(255,255,255,0.45)',
+                  transition: 'color 0.15s',
+                }}>
+                  {tab.label}
+                </span>
+              </div>
+            );
+
+            if (tab.action) {
               return (
-                <div key={item.id} className="flex-fill text-center">
-                  {item.path ? (
-                    <Link
-                      href={item.path}
-                      className="btn p-0 w-100"
-                      style={{ 
-                        height: '60px',
-                        textDecoration: 'none',
-                        border: 'none',
-                        outline: 'none',
-                        boxShadow: 'none',
-                        background: 'transparent'
-                      }}
-                    >
-                      {buttonContent}
-                    </Link>
-                  ) : (
-                    <button
-                      onClick={item.onClick}
-                      className="btn p-0 w-100"
-                      style={{ 
-                        height: '60px',
-                        border: 'none',
-                        outline: 'none',
-                        boxShadow: 'none',
-                        background: 'transparent'
-                      }}
-                    >
-                      {buttonContent}
-                    </button>
-                  )}
-                </div>
+                <button
+                  key={tab.id}
+                  onClick={tab.action}
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}
+                >
+                  {content}
+                </button>
               );
-            })}
-          </div>
+            }
+
+            return (
+              <Link
+                key={tab.id}
+                href={tab.path}
+                style={{ textDecoration: 'none', WebkitTapHighlightColor: 'transparent' }}
+              >
+                {content}
+              </Link>
+            );
+          })}
         </div>
       </div>
 
-      {/* Spacer to prevent content overlap */}
-      <div className="d-md-none" style={{ height: '80px' }}></div>
+      {/* Spacer */}
+      <div className="d-lg-none" style={{ height: '72px' }} />
 
-      {/* CSS for animations */}
       <style>{`
-        @keyframes slideUp {
-          from {
-            transform: translateY(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateY(0);
-            opacity: 1;
-          }
-        }
-        
-        .hover-list-item:hover {
-          background: #f8fafc !important;
-          transform: translateX(4px);
-        }
-        
-        .hover-list-item:hover div:last-child {
-          transform: translateX(4px);
-        }
-        
-        .hover-list-item:active {
-          background: #e2e8f0 !important;
-          transform: scale(0.98) translateX(4px);
-        }
-        
-        /* Remove all button outlines and shadows in mobile nav */
-        .d-md-none .btn,
-        .d-md-none .btn:focus,
-        .d-md-none .btn:active,
-        .d-md-none .btn:hover,
-        .d-md-none button,
-        .d-md-none button:focus,
-        .d-md-none button:active,
-        .d-md-none a.btn,
-        .d-md-none a.btn:focus,
-        .d-md-none a.btn:active {
-          outline: none !important;
-          box-shadow: none !important;
-          border: none !important;
+        @keyframes mobileDrawerUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
         }
       `}</style>
     </>
