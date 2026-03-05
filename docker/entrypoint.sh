@@ -1,27 +1,32 @@
 #!/bin/bash
-set -e
 
 echo "==> Running deployment tasks..."
 
-# Clear all caches
-php artisan config:clear
-php artisan cache:clear
-php artisan route:clear
-php artisan view:clear
+# Configure Apache to listen on the correct port (App Platform uses PORT env)
+APP_PORT="${PORT:-8080}"
+echo "Listen ${APP_PORT}" > /etc/apache2/ports.conf
+sed -ri "s/VirtualHost \*:[0-9]+/VirtualHost *:${APP_PORT}/" /etc/apache2/sites-available/*.conf
+echo "==> Apache configured on port ${APP_PORT}"
 
-# Run migrations
-php artisan migrate --force
+# Clear all caches
+php artisan config:clear 2>/dev/null || true
+php artisan cache:clear 2>/dev/null || true
+php artisan route:clear 2>/dev/null || true
+php artisan view:clear 2>/dev/null || true
+
+# Run migrations (non-fatal — DB may not be ready)
+php artisan migrate --force 2>&1 || echo "WARNING: Migration failed — check DB connection"
 
 # Rebuild caches for production
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+php artisan config:cache 2>/dev/null || true
+php artisan route:cache 2>/dev/null || true
+php artisan view:cache 2>/dev/null || true
 
 # Ensure storage link exists
 php artisan storage:link 2>/dev/null || true
 
 # Fix permissions after cache rebuild
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
 
 echo "==> Deployment tasks complete. Starting server..."
 
