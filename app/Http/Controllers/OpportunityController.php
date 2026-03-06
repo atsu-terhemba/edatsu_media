@@ -36,7 +36,7 @@ class OpportunityController extends Controller
 {
     //...
 
-    public function __construct(Type $var = null) {
+    public function __construct() {
         $ttl = 86400; // 24 hours in seconds
         Cache::remember('categories', $ttl, function () {
             return Category::all();
