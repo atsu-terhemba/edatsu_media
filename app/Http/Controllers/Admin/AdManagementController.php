@@ -63,7 +63,11 @@ class AdManagementController extends Controller
             'page' => 'required|string|max:255',
             'position' => 'required|string|max:255',
             'size' => 'required|string|max:255',
+            'ad_type' => 'required|string|in:adsense,custom',
             'ad_code' => 'nullable|string',
+            'image_url' => 'nullable|string|max:2048',
+            'link_url' => 'nullable|string|max:2048',
+            'link_target' => 'nullable|string|in:_blank,_self',
             'is_active' => 'boolean',
             'order' => 'integer'
         ]);
@@ -80,7 +84,11 @@ class AdManagementController extends Controller
             'page' => 'required|string|max:255',
             'position' => 'required|string|max:255',
             'size' => 'required|string|max:255',
+            'ad_type' => 'required|string|in:adsense,custom',
             'ad_code' => 'nullable|string',
+            'image_url' => 'nullable|string|max:2048',
+            'link_url' => 'nullable|string|max:2048',
+            'link_target' => 'nullable|string|in:_blank,_self',
             'is_active' => 'boolean',
             'order' => 'integer'
         ]);

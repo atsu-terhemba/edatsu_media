@@ -24,14 +24,20 @@ const AdBanner = ({ slot, size = 'responsive', className = '', style = {} }) => 
 
     const slotSettings = adSettings?.slots?.[slot];
     const adCode = slotSettings?.ad_code;
+    const adType = slotSettings?.ad_type || 'adsense';
+    const imageUrl = slotSettings?.image_url;
+    const linkUrl = slotSettings?.link_url;
+    const linkTarget = slotSettings?.link_target || '_blank';
     const isVisible = slotSettings?.is_visible !== false;
     const publisherId = adSettings?.publisher_id;
 
     const dimensions = sizeMap[slotSettings?.size] || sizeMap[size] || sizeMap['responsive'];
 
-    // Execute ad code scripts after mount
+    const hasContent = adType === 'custom' ? !!imageUrl : !!adCode;
+
+    // Execute AdSense code scripts after mount
     useEffect(() => {
-        if (!enabled || !adCode || !adRef.current || hidden) return;
+        if (!enabled || adType !== 'adsense' || !adCode || !adRef.current || hidden) return;
 
         const container = adRef.current;
         container.innerHTML = '';
@@ -56,7 +62,6 @@ const AdBanner = ({ slot, size = 'responsive', className = '', style = {} }) => 
         Array.from(temp.childNodes).forEach((node) => {
             if (node.nodeName === 'SCRIPT') {
                 const script = document.createElement('script');
-                // Copy attributes
                 Array.from(node.attributes || []).forEach((attr) => {
                     script.setAttribute(attr.name, attr.value);
                 });
@@ -75,16 +80,16 @@ const AdBanner = ({ slot, size = 'responsive', className = '', style = {} }) => 
                 // Ad already pushed or blocked
             }
         }
-    }, [enabled, adCode, hidden, publisherId]);
+    }, [enabled, adCode, adType, hidden, publisherId]);
 
     if (hidden || !isVisible) return null;
 
     // No ads enabled and no placeholders → render nothing
     if (!enabled && !showPlaceholders) return null;
-    if (!adCode && !showPlaceholders) return null;
+    if (!hasContent && !showPlaceholders) return null;
 
-    // Show placeholder when ads disabled or no code configured
-    if (!enabled || !adCode) {
+    // Show placeholder when ads disabled or no content configured
+    if (!enabled || !hasContent) {
         return (
             <div className={`ad-placeholder ${className}`} style={{
                 width: dimensions.width, maxWidth: '100%',
@@ -108,7 +113,43 @@ const AdBanner = ({ slot, size = 'responsive', className = '', style = {} }) => 
         );
     }
 
-    // Render actual ad code via ref (scripts execute properly)
+    // Render custom image ad
+    if (adType === 'custom' && imageUrl) {
+        const imgElement = (
+            <img
+                src={imageUrl}
+                alt="Advertisement"
+                style={{
+                    width: dimensions.width,
+                    maxWidth: '100%',
+                    height: dimensions.height === 'auto' ? 'auto' : dimensions.height,
+                    objectFit: 'cover',
+                    borderRadius: '8px',
+                    display: 'block',
+                }}
+            />
+        );
+
+        return (
+            <div className={`ad-container ad-custom ${className}`} style={{
+                width: dimensions.width, maxWidth: '100%',
+                margin: '0 auto', textAlign: 'center', ...style,
+            }}>
+                {linkUrl ? (
+                    <a
+                        href={linkUrl}
+                        target={linkTarget}
+                        rel={linkTarget === '_blank' ? 'noopener noreferrer sponsored' : 'sponsored'}
+                        style={{ display: 'inline-block', textDecoration: 'none' }}
+                    >
+                        {imgElement}
+                    </a>
+                ) : imgElement}
+            </div>
+        );
+    }
+
+    // Render AdSense ad code via ref (scripts execute properly)
     return (
         <div
             ref={adRef}

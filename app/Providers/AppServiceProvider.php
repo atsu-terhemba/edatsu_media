@@ -51,6 +51,10 @@ class AppServiceProvider extends ServiceProvider
                     foreach ($ads as $ad) {
                         $slotsArray[$ad->slot_name] = [
                             'ad_code' => $ad->ad_code,
+                            'ad_type' => $ad->ad_type ?? 'adsense',
+                            'image_url' => $ad->image_url,
+                            'link_url' => $ad->link_url,
+                            'link_target' => $ad->link_target ?? '_blank',
                             'is_visible' => $ad->is_visible,
                             'size' => $ad->size,
                             'page' => $ad->page,

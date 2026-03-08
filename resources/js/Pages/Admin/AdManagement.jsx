@@ -55,7 +55,8 @@ export default function AdManagement({ globalSettings, adSettings }) {
 
     const adForm = useForm({
         slot_name: '', page: 'all', position: 'top', size: 'responsive',
-        ad_code: '', is_active: true, order: 0,
+        ad_type: 'adsense', ad_code: '', image_url: '', link_url: '', link_target: '_blank',
+        is_active: true, order: 0,
     });
 
     const toggleGlobalAds = () => {
@@ -142,7 +143,7 @@ export default function AdManagement({ globalSettings, adSettings }) {
                                     Ad Management
                                 </h2>
                                 <p style={{ fontSize: '14px', color: '#86868b', margin: 0 }}>
-                                    Manage Google AdSense placements across your website
+                                    Manage Google AdSense and custom image ads across your website
                                 </p>
                             </div>
 
@@ -303,12 +304,19 @@ export default function AdManagement({ globalSettings, adSettings }) {
                                                             }}>
                                                                 {ad.is_active ? 'Active' : 'Inactive'}
                                                             </span>
-                                                            {ad.ad_code && (
+                                                            <span style={{
+                                                                fontSize: '11px', fontWeight: 500, padding: '2px 8px', borderRadius: '9999px',
+                                                                color: (ad.ad_type || 'adsense') === 'custom' ? '#9333ea' : '#2563eb',
+                                                                background: (ad.ad_type || 'adsense') === 'custom' ? '#faf5ff' : '#eff6ff',
+                                                            }}>
+                                                                {(ad.ad_type || 'adsense') === 'custom' ? 'Custom Image' : 'AdSense'}
+                                                            </span>
+                                                            {(ad.ad_code || ad.image_url) && (
                                                                 <span style={{
                                                                     fontSize: '11px', fontWeight: 500, padding: '2px 8px', borderRadius: '9999px',
                                                                     color: '#000', background: '#f5f5f7',
                                                                 }}>
-                                                                    Has Code
+                                                                    Has Content
                                                                 </span>
                                                             )}
                                                         </div>
@@ -437,19 +445,99 @@ export default function AdManagement({ globalSettings, adSettings }) {
                                             label={adForm.data.is_active ? 'Active' : 'Inactive'} />
                                     </div>
                                 </div>
+                                {/* Ad Type Selector */}
                                 <div>
-                                    <label style={labelStyle}>Ad Code</label>
-                                    <textarea
-                                        rows="6" placeholder="Paste your Google AdSense ad unit code here..."
-                                        value={adForm.data.ad_code || ''}
-                                        onChange={e => adForm.setData('ad_code', e.target.value)}
-                                        style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '13px', resize: 'vertical', minHeight: '120px' }}
-                                        onFocus={focusH} onBlur={blurH}
-                                    />
-                                    <span style={{ display: 'block', fontSize: '12px', color: '#b0b0b5', marginTop: '4px' }}>
-                                        Paste the full ad unit code from Google AdSense. Leave empty for placeholder only.
-                                    </span>
+                                    <label style={labelStyle}>Ad Type *</label>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        {[
+                                            { value: 'adsense', label: 'Google AdSense', icon: 'code' },
+                                            { value: 'custom', label: 'Custom Image', icon: 'image' },
+                                        ].map(t => (
+                                            <button key={t.value} type="button"
+                                                onClick={() => adForm.setData('ad_type', t.value)}
+                                                style={{
+                                                    flex: 1, padding: '12px 16px', borderRadius: '12px', cursor: 'pointer',
+                                                    border: adForm.data.ad_type === t.value ? '2px solid #000' : '1px solid #e5e5e7',
+                                                    background: adForm.data.ad_type === t.value ? '#f5f5f7' : '#fff',
+                                                    display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.15s ease',
+                                                }}
+                                            >
+                                                <span className="material-symbols-outlined" style={{
+                                                    fontSize: '20px', color: adForm.data.ad_type === t.value ? '#000' : '#86868b',
+                                                }}>{t.icon}</span>
+                                                <span style={{
+                                                    fontSize: '13px', fontWeight: adForm.data.ad_type === t.value ? 600 : 400,
+                                                    color: adForm.data.ad_type === t.value ? '#000' : '#86868b',
+                                                }}>{t.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
+
+                                {/* AdSense fields */}
+                                {adForm.data.ad_type === 'adsense' && (
+                                    <div>
+                                        <label style={labelStyle}>Ad Code</label>
+                                        <textarea
+                                            rows="6" placeholder="Paste your Google AdSense ad unit code here..."
+                                            value={adForm.data.ad_code || ''}
+                                            onChange={e => adForm.setData('ad_code', e.target.value)}
+                                            style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '13px', resize: 'vertical', minHeight: '120px' }}
+                                            onFocus={focusH} onBlur={blurH}
+                                        />
+                                        <span style={{ display: 'block', fontSize: '12px', color: '#b0b0b5', marginTop: '4px' }}>
+                                            Paste the full ad unit code from Google AdSense. Leave empty for placeholder only.
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* Custom image ad fields */}
+                                {adForm.data.ad_type === 'custom' && (
+                                    <>
+                                        <div>
+                                            <label style={labelStyle}>Image URL *</label>
+                                            <input type="url" placeholder="https://example.com/ad-banner.jpg"
+                                                value={adForm.data.image_url || ''}
+                                                onChange={e => adForm.setData('image_url', e.target.value)}
+                                                style={inputStyle} onFocus={focusH} onBlur={blurH}
+                                            />
+                                            <span style={{ display: 'block', fontSize: '12px', color: '#b0b0b5', marginTop: '4px' }}>
+                                                Direct URL to the ad image (JPG, PNG, GIF, WebP)
+                                            </span>
+                                        </div>
+                                        {adForm.data.image_url && (
+                                            <div style={{
+                                                padding: '12px', background: '#f5f5f7', borderRadius: '12px',
+                                                textAlign: 'center',
+                                            }}>
+                                                <span style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 500 }}>Preview</span>
+                                                <img src={adForm.data.image_url} alt="Ad preview"
+                                                    style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px', objectFit: 'contain' }}
+                                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                                />
+                                            </div>
+                                        )}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '16px' }}>
+                                            <div>
+                                                <label style={labelStyle}>Link URL</label>
+                                                <input type="url" placeholder="https://example.com/landing-page"
+                                                    value={adForm.data.link_url || ''}
+                                                    onChange={e => adForm.setData('link_url', e.target.value)}
+                                                    style={inputStyle} onFocus={focusH} onBlur={blurH}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label style={labelStyle}>Open In</label>
+                                                <select value={adForm.data.link_target || '_blank'}
+                                                    onChange={e => adForm.setData('link_target', e.target.value)}
+                                                    style={{ ...inputStyle, cursor: 'pointer' }}>
+                                                    <option value="_blank">New Tab</option>
+                                                    <option value="_self">Same Tab</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                             <div style={{
                                 padding: '16px 28px 24px', display: 'flex', gap: '8px', justifyContent: 'flex-end',

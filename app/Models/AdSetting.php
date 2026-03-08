@@ -15,6 +15,10 @@ class AdSetting extends Model
         'position',
         'size',
         'ad_code',
+        'ad_type',
+        'image_url',
+        'link_url',
+        'link_target',
         'is_active',
         'is_visible',
         'order'
