@@ -281,7 +281,7 @@ const Upgrade = () => {
                                 fontSize: '17px', fontWeight: 600, color: '#000',
                                 margin: '0 0 4px', letterSpacing: '-0.01em',
                             }}>
-                                All features are free until March 1st!
+                                All features are free until April 1st!
                             </h3>
                             <p style={{
                                 fontSize: '13px', color: '#86868b',
