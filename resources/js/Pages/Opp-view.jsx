@@ -15,7 +15,7 @@ import AdBanner from '@/Components/AdBanner';
 
 const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
 
-    const [baseUrl, setBaseUrl] = useState('');
+    const baseUrl = `${window.location.protocol}//${window.location.host}`;
     const [fullURL, setFullUrl] = useState();
     const {props} = usePage();
 
@@ -33,7 +33,6 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
     const [isFloatingBookmarkVisible, setIsFloatingBookmarkVisible] = useState(false);
 
     useEffect(()=>{
-        setBaseUrl(`${window.location.protocol}//${window.location.host}`);
         const fullURL = window.location.href;
         setFullUrl(fullURL);
 
