@@ -35,55 +35,64 @@ class SocialAuthController extends Controller
             return redirect()->route('login')->with('error', 'Social login failed. Please try again.');
         }
 
-        // Normalize provider name for storage (linkedin-openid -> linkedin)
-        $providerName = str_replace('-openid', '', $provider);
+        try {
+            // Normalize provider name for storage (linkedin-openid -> linkedin)
+            $providerName = str_replace('-openid', '', $provider);
 
-        // Find existing user by social provider+id, or by email
-        $user = User::where('social_provider', $providerName)
-            ->where('social_id', $socialUser->getId())
-            ->first();
+            // Find existing user by social provider+id, or by email
+            $user = User::where('social_provider', $providerName)
+                ->where('social_id', $socialUser->getId())
+                ->first();
 
-        if (!$user) {
-            // Check if a user with this email already exists (registered via email/password)
-            $user = User::where('email', $socialUser->getEmail())->first();
+            if (!$user) {
+                // Check if a user with this email already exists (registered via email/password)
+                $user = User::where('email', $socialUser->getEmail())->first();
 
-            if ($user) {
-                // Link social account to existing user and verify email if not already verified
-                $user->update([
-                    'social_provider' => $providerName,
-                    'social_id' => $socialUser->getId(),
-                    'avatar' => $socialUser->getAvatar(),
-                    'email_verified_at' => $user->email_verified_at ?? now(),
-                ]);
-            } else {
-                // Create new user
-                $name = $socialUser->getName() ?? $socialUser->getNickname() ?? 'user';
-                // Ensure unique username by sanitizing and appending random string if needed
-                $baseName = Str::slug($name, '_');
-                if (User::where('name', $baseName)->exists()) {
-                    $baseName = $baseName . '_' . Str::random(4);
+                if ($user) {
+                    // Link social account to existing user and verify email if not already verified
+                    $user->update([
+                        'social_provider' => $providerName,
+                        'social_id' => $socialUser->getId(),
+                        'avatar' => $socialUser->getAvatar(),
+                        'email_verified_at' => $user->email_verified_at ?? now(),
+                    ]);
+                } else {
+                    // Create new user
+                    $name = $socialUser->getName() ?? $socialUser->getNickname() ?? 'user';
+                    // Ensure unique username by sanitizing and appending random string if needed
+                    $baseName = Str::slug($name, '_');
+                    if (User::where('name', $baseName)->exists()) {
+                        $baseName = $baseName . '_' . Str::random(4);
+                    }
+
+                    $user = User::create([
+                        'name' => $baseName,
+                        'email' => $socialUser->getEmail(),
+                        'social_provider' => $providerName,
+                        'social_id' => $socialUser->getId(),
+                        'avatar' => $socialUser->getAvatar(),
+                        'email_verified_at' => now(),
+                        'role' => 'subscriber',
+                        'password' => null,
+                    ]);
+
+                    try {
+                        $user->notify(new WelcomeNotification());
+                    } catch (\Exception $e) {
+                        \Log::warning("Welcome email failed for user {$user->id}: " . $e->getMessage());
+                    }
                 }
-
-                $user = User::create([
-                    'name' => $baseName,
-                    'email' => $socialUser->getEmail(),
-                    'social_provider' => $providerName,
-                    'social_id' => $socialUser->getId(),
-                    'avatar' => $socialUser->getAvatar(),
-                    'email_verified_at' => now(), // Social accounts have verified emails
-                    'role' => 'subscriber',
-                    'password' => null,
-                ]);
-
-                $user->notify(new WelcomeNotification());
+            } else {
+                // Update avatar on each login
+                $user->update(['avatar' => $socialUser->getAvatar()]);
             }
-        } else {
-            // Update avatar on each login
-            $user->update(['avatar' => $socialUser->getAvatar()]);
+
+            Auth::login($user, true);
+
+            return redirect()->intended(route('dashboard'));
+        } catch (\Exception $e) {
+            \Log::error("Social auth user creation/login failed for {$provider}: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+            return redirect()->route('login')->with('error', 'Social login failed. Please try again.');
         }
-
-        Auth::login($user, true);
-
-        return redirect()->intended(route('dashboard'));
     }
 }
