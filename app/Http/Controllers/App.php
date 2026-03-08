@@ -136,48 +136,59 @@ class App extends Controller
  */
 function searchOpportunities(Request $request)
 {
-    // Get authenticated user ID if available
-    //authentication
-    $user_id = Auth::check() ? Auth::id() : null;
+    try {
+        // Get authenticated user ID if available
+        $user_id = Auth::check() ? Auth::id() : null;
 
-    // Validate incoming request data
-    $validatedData = $request->validate([
-        'program_status' => 'nullable',
-        'categories' => 'nullable',
-        'continents' => 'nullable',
-        'countries' => 'nullable',
-        'brands' => 'nullable',
-        'datePosted' => 'nullable',
-        'month' => 'nullable',
-        'year' => 'nullable',
-        'search_keyword' => 'nullable'
-    ]);
-    
-    // Extract filter data
-    $filters = [
-        'program_status' => extractSelectData($validatedData['program_status'] ?? ''),
-        'categories' => extractSelectData($validatedData['categories'] ?? ''),
-        'continents' => extractSelectData($validatedData['continents'] ?? ''),
-        'countries' => extractSelectData($validatedData['countries'] ?? ''),
-        'brands' => extractSelectData($validatedData['brands'] ?? ''),
-        'date_posted' => extractSelectData($validatedData['datePosted'] ?? ''),
-        'month' => extractSelectData($validatedData['month'] ?? ''),
-        'year' => extractSelectData($validatedData['year'] ?? ''),
-        'search_keyword' => $validatedData['search_keyword'] ?? ''
-    ];
-    
-    // Initialize base query
-    $query = $this->buildBaseQuery($user_id);
-    
-    // Apply filters to query
-    $query = $this->applySearchKeywordFilter($query, $filters['search_keyword']);
-    $query = $this->applyTaxonomyFilters($query, $filters);
-    $query = $this->applyDateFilters($query, $filters);
-    
-    // Return paginated results
-    return $query->orderByDesc('opportunities.id')
-                ->paginate($request->input('per_page', 20))
-                ->withQueryString();
+        // Validate incoming request data
+        $validatedData = $request->validate([
+            'program_status' => 'nullable',
+            'categories' => 'nullable',
+            'continents' => 'nullable',
+            'countries' => 'nullable',
+            'brands' => 'nullable',
+            'datePosted' => 'nullable',
+            'month' => 'nullable',
+            'year' => 'nullable',
+            'search_keyword' => 'nullable'
+        ]);
+
+        // Extract filter data
+        $filters = [
+            'program_status' => extractSelectData($validatedData['program_status'] ?? ''),
+            'categories' => extractSelectData($validatedData['categories'] ?? ''),
+            'continents' => extractSelectData($validatedData['continents'] ?? ''),
+            'countries' => extractSelectData($validatedData['countries'] ?? ''),
+            'brands' => extractSelectData($validatedData['brands'] ?? ''),
+            'date_posted' => extractSelectData($validatedData['datePosted'] ?? ''),
+            'month' => extractSelectData($validatedData['month'] ?? ''),
+            'year' => extractSelectData($validatedData['year'] ?? ''),
+            'search_keyword' => $validatedData['search_keyword'] ?? ''
+        ];
+
+        // Initialize base query
+        $query = $this->buildBaseQuery($user_id);
+
+        // Apply filters to query
+        $query = $this->applySearchKeywordFilter($query, $filters['search_keyword']);
+        $query = $this->applyTaxonomyFilters($query, $filters);
+        $query = $this->applyDateFilters($query, $filters);
+
+        // Return paginated results
+        return $query->orderByDesc('opportunities.id')
+                    ->paginate($request->input('per_page', 20))
+                    ->withQueryString();
+    } catch (\Exception $e) {
+        \Log::error('searchOpportunities failed: ' . $e->getMessage());
+        return response()->json([
+            'data' => [],
+            'links' => [],
+            'current_page' => 1,
+            'last_page' => 1,
+            'per_page' => 20,
+            'total' => 0,
+        ]);
+    }
 }
 
 /**
@@ -236,52 +247,38 @@ private function applySearchKeywordFilter($query, $searchKeyword)
 
     $words = preg_split('/\s+/', $searchKeyword, -1, PREG_SPLIT_NO_EMPTY);
     
-    // Strategy 1: Full-text search
-    $fullTextQuery = clone $query;
-    $fullTextQuery->where(function ($q) use ($searchKeyword, $words) {
-        $q->whereRaw("MATCH(opportunities.title, opportunities.description) AGAINST(? IN BOOLEAN MODE)", [$searchKeyword . '*']);
-        foreach ($words as $word) {
-            $q->orWhereRaw("MATCH(opportunities.title, opportunities.description) AGAINST(? IN BOOLEAN MODE)", [$word . '*']);
+    // Strategy 1: Full-text search (requires FULLTEXT index)
+    try {
+        $fullTextQuery = clone $query;
+        $fullTextQuery->where(function ($q) use ($searchKeyword, $words) {
+            $q->whereRaw("MATCH(opportunities.title, opportunities.description) AGAINST(? IN BOOLEAN MODE)", [$searchKeyword . '*']);
+            foreach ($words as $word) {
+                $q->orWhereRaw("MATCH(opportunities.title, opportunities.description) AGAINST(? IN BOOLEAN MODE)", [$word . '*']);
+            }
+        });
+
+        $results = $fullTextQuery->paginate(1);
+
+        if (!$results->isEmpty()) {
+            return $fullTextQuery;
         }
-    });
-    
-    $results = $fullTextQuery->paginate(1);
-    
-    if (!$results->isEmpty()) {
-        return $fullTextQuery;
+    } catch (\Exception $e) {
+        // FULLTEXT index may not exist yet, fall through to LIKE search
+        \Log::warning('Full-text search failed, falling back to LIKE: ' . $e->getMessage());
     }
-    
+
     // Strategy 2: LIKE search
-    $likeQuery = clone $query;
-    $likeQuery->where(function ($q) use ($searchKeyword, $words) {
+    $query->where(function ($q) use ($searchKeyword, $words) {
         $q->where('opportunities.title', 'LIKE', "%$searchKeyword%")
           ->orWhere('opportunities.description', 'LIKE', "%$searchKeyword%");
-          
+
         foreach ($words as $word) {
             $q->orWhere('opportunities.title', 'LIKE', "%$word%")
               ->orWhere('opportunities.description', 'LIKE', "%$word%");
         }
     });
-    
-    $results = $likeQuery->paginate(1);
-    
-    if (!$results->isEmpty()) {
-        return $likeQuery;
-    }
-    
-    // Strategy 3: SOUNDEX search
-    $soundexQuery = clone $query;
-    $soundexQuery->where(function ($q) use ($searchKeyword, $words) {
-        $q->whereRaw('SOUNDEX(opportunities.title) = SOUNDEX(?)', [$searchKeyword])
-          ->orWhereRaw('SOUNDEX(opportunities.description) = SOUNDEX(?)', [$searchKeyword]);
-          
-        foreach ($words as $word) {
-            $q->orWhereRaw('SOUNDEX(opportunities.title) = SOUNDEX(?)', [$word])
-              ->orWhereRaw('SOUNDEX(opportunities.description) = SOUNDEX(?)', [$word]);
-        }
-    });
-    
-    return $soundexQuery;
+
+    return $query;
 }
 
 /**

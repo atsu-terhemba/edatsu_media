@@ -22,23 +22,36 @@ class ToolShedController extends Controller
     //
 
     public function initToolShedPage(){
-        $categories = ProductCategory::all();
-        $regions = Region::all();
-        $countries = Country::all();
-        $continents = Continent::all();
-        $tags = Tag::all();
-        $brand_label = BrandLabel::all();
-        $pricing = ProductPricing::all();
-        $product_functionality  = ProductFunctionality::all();
+        try {
+            $categories = ProductCategory::all();
+            $regions = Region::all();
+            $countries = Country::all();
+            $continents = Continent::all();
+            $tags = Tag::all();
+            $brand_label = BrandLabel::all();
+            $pricing = ProductPricing::all();
+            $product_functionality = ProductFunctionality::all();
+        } catch (\Exception $e) {
+            \Log::error('ToolShed data load failed: ' . $e->getMessage());
+            // Fallback to empty collections so the page can still render
+            $categories = collect();
+            $regions = collect();
+            $countries = collect();
+            $continents = collect();
+            $tags = collect();
+            $brand_label = collect();
+            $pricing = collect();
+            $product_functionality = collect();
+        }
 
         return Inertia::render("Toolshed", [
-            "categories" => $categories, 
+            "categories" => $categories,
             "regions" => $regions,
             // "countries" => $countries,
-            // "continents" => $continents, 
+            // "continents" => $continents,
             "tags" => $tags,
-            "brands" => $brand_label, 
-            "pricing" => $pricing, 
+            "brands" => $brand_label,
+            "pricing" => $pricing,
             "product_functionality" => $product_functionality
         ]);
     }
