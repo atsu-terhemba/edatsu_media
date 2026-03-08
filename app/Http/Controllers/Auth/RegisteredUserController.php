@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
+use App\Notifications\WelcomeNotification;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -70,6 +71,8 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
+        $user->notify(new WelcomeNotification());
+
         Auth::login($user);
 
         return redirect(route('subscriber.dashboard', absolute: false));
@@ -106,6 +109,8 @@ class RegisteredUserController extends Controller
         ]);
 
         event(new Registered($user));
+
+        $user->notify(new WelcomeNotification());
 
         Auth::login($user);
 

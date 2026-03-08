@@ -6,9 +6,15 @@ import UserAvatar from './UserAvatar';
 const FixedAuthNav = () => {
   const { auth, url } = usePage().props;
   const user = auth?.user;
+  const isAdmin = user?.role === 'admin';
   const currentPath = url || (typeof window !== 'undefined' ? window.location.pathname : '/');
   const [showDrawer, setShowDrawer] = useState(false);
   const [notifCount, setNotifCount] = useState(0);
+  const [openMenus, setOpenMenus] = useState({});
+
+  const toggleMenu = (key) => {
+    setOpenMenus(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   useEffect(() => {
     if (user?.id) {
@@ -36,8 +42,14 @@ const FixedAuthNav = () => {
     return currentPath.startsWith(path);
   };
 
-  // Bottom bar: Home, Explore, Notifications (badge), Bookmarks, Menu
-  const tabs = [
+  // Bottom bar tabs — different for admin vs subscriber
+  const tabs = isAdmin ? [
+    { id: 'home', icon: 'dashboard', label: 'Dashboard', path: '/admin-dashboard' },
+    { id: 'users', icon: 'group', label: 'Users', path: '/all-users' },
+    { id: 'notif', icon: 'notifications', label: 'Alerts', path: '/notifications', badge: notifCount },
+    { id: 'ads', icon: 'ads_click', label: 'Ads', path: '/admin/ads' },
+    { id: 'menu', icon: 'menu', label: 'Menu', action: () => setShowDrawer(true) },
+  ] : [
     { id: 'home', icon: 'home', label: 'Home', path: '/' },
     { id: 'explore', icon: 'explore', label: 'Explore', path: '/opportunities' },
     { id: 'notif', icon: 'notifications', label: 'Alerts', path: '/notifications', badge: notifCount },
@@ -45,8 +57,65 @@ const FixedAuthNav = () => {
     { id: 'menu', icon: 'menu', label: 'Menu', action: () => setShowDrawer(true) },
   ];
 
-  // Drawer menu sections
-  const drawerSections = [
+  // Admin drawer sections with expandable submenus
+  const adminDrawerSections = [
+    {
+      title: 'Admin',
+      items: [
+        { label: 'Dashboard', icon: 'dashboard', path: '/admin-dashboard' },
+        { label: 'Users', icon: 'group', path: '/all-users' },
+        { label: 'Ads', icon: 'ads_click', path: '/admin/ads' },
+      ],
+    },
+    {
+      title: 'Manage',
+      expandable: [
+        {
+          key: 'general',
+          icon: 'settings',
+          label: 'General',
+          items: [
+            { label: 'Brand Labels', path: '/brand-labels' },
+            { label: 'Tags', path: '/tags' },
+            { label: 'Regions', path: '/regions' },
+            { label: 'Continents', path: '/continent' },
+            { label: 'Countries', path: '/country' },
+          ],
+        },
+        {
+          key: 'opportunities',
+          icon: 'post_add',
+          label: 'Opportunities',
+          items: [
+            { label: 'Create Post', path: '/admin-post-opportunity' },
+            { label: 'All Posts', path: '/all-opp-post' },
+            { label: 'Categories', path: '/categories' },
+          ],
+        },
+        {
+          key: 'toolshed',
+          icon: 'build',
+          label: 'Toolshed',
+          items: [
+            { label: 'Create Product', path: '/post-product' },
+            { label: 'Bulk Upload', path: '/admin-bulk-upload-product' },
+            { label: 'All Products', path: '/all-products' },
+            { label: 'Categories', path: '/product-categories' },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Browse',
+      items: [
+        { label: 'Opportunities', icon: 'explore', path: '/opportunities' },
+        { label: 'Toolshed', icon: 'handyman', path: '/toolshed' },
+      ],
+    },
+  ];
+
+  // Subscriber drawer sections
+  const subscriberDrawerSections = [
     {
       title: 'Account',
       items: [
@@ -74,6 +143,8 @@ const FixedAuthNav = () => {
       ],
     },
   ];
+
+  const drawerSections = isAdmin ? adminDrawerSections : subscriberDrawerSections;
 
   return (
     <>
@@ -125,8 +196,19 @@ const FixedAuthNav = () => {
                   {(user.name || 'U').charAt(0).toUpperCase()}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {user.name || 'User'}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 15, fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {user.name || 'User'}
+                    </span>
+                    {isAdmin && (
+                      <span style={{
+                        fontSize: 9, fontWeight: 700, padding: '2px 7px',
+                        borderRadius: 9999, background: 'rgba(249,115,22,0.15)', color: '#f97316',
+                        textTransform: 'uppercase', letterSpacing: '0.05em',
+                      }}>
+                        Admin
+                      </span>
+                    )}
                   </div>
                   <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {user.email}
@@ -140,7 +222,7 @@ const FixedAuthNav = () => {
 
             {/* Sections */}
             <div style={{ padding: '8px 12px 12px' }}>
-              {drawerSections.map((section, sIdx) => (
+              {drawerSections.map((section) => (
                 <Fragment key={section.title}>
                   <div style={{
                     fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.35)',
@@ -149,7 +231,9 @@ const FixedAuthNav = () => {
                   }}>
                     {section.title}
                   </div>
-                  {section.items.map((item) => {
+
+                  {/* Regular items */}
+                  {section.items && section.items.map((item) => {
                     const active = isActive(item.path);
                     return (
                       <Link
@@ -194,6 +278,76 @@ const FixedAuthNav = () => {
                           }} />
                         )}
                       </Link>
+                    );
+                  })}
+
+                  {/* Expandable submenus (admin) */}
+                  {section.expandable && section.expandable.map((menu) => {
+                    const isOpen = openMenus[menu.key];
+                    return (
+                      <div key={menu.key}>
+                        <button
+                          onClick={() => toggleMenu(menu.key)}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 14,
+                            padding: '12px 14px', width: '100%',
+                            borderRadius: 12, border: 'none',
+                            background: isOpen ? 'rgba(255,255,255,0.08)' : 'transparent',
+                            cursor: 'pointer', textAlign: 'left',
+                            transition: 'background 0.15s',
+                          }}
+                        >
+                          <span
+                            className="material-symbols-outlined"
+                            style={{ fontSize: 20, color: isOpen ? '#f97316' : 'rgba(255,255,255,0.5)' }}
+                          >
+                            {menu.icon}
+                          </span>
+                          <span style={{
+                            fontSize: 15, fontWeight: 500, flex: 1,
+                            color: isOpen ? '#fff' : 'rgba(255,255,255,0.85)',
+                          }}>
+                            {menu.label}
+                          </span>
+                          <span
+                            className="material-symbols-outlined"
+                            style={{
+                              fontSize: 18, color: 'rgba(255,255,255,0.3)',
+                              transition: 'transform 0.2s ease',
+                              transform: isOpen ? 'rotate(180deg)' : 'rotate(0)',
+                            }}
+                          >
+                            expand_more
+                          </span>
+                        </button>
+                        {isOpen && (
+                          <div style={{ marginLeft: 48, display: 'flex', flexDirection: 'column', gap: 2, margin: '4px 0 4px 48px' }}>
+                            {menu.items.map((sub) => {
+                              const subActive = isActive(sub.path);
+                              return (
+                                <Link
+                                  key={sub.path}
+                                  href={sub.path}
+                                  onClick={() => setShowDrawer(false)}
+                                  style={{
+                                    display: 'block',
+                                    padding: '9px 14px',
+                                    borderRadius: 10,
+                                    textDecoration: 'none',
+                                    fontSize: 13,
+                                    fontWeight: subActive ? 500 : 400,
+                                    color: subActive ? '#fff' : 'rgba(255,255,255,0.55)',
+                                    background: subActive ? 'rgba(255,255,255,0.08)' : 'transparent',
+                                    transition: 'all 0.15s',
+                                  }}
+                                >
+                                  {sub.label}
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
                 </Fragment>

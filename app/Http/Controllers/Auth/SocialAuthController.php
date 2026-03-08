@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use App\Notifications\WelcomeNotification;
 use Laravel\Socialite\Facades\Socialite;
 
 class SocialAuthController extends Controller
@@ -47,11 +48,12 @@ class SocialAuthController extends Controller
             $user = User::where('email', $socialUser->getEmail())->first();
 
             if ($user) {
-                // Link social account to existing user
+                // Link social account to existing user and verify email if not already verified
                 $user->update([
                     'social_provider' => $providerName,
                     'social_id' => $socialUser->getId(),
                     'avatar' => $socialUser->getAvatar(),
+                    'email_verified_at' => $user->email_verified_at ?? now(),
                 ]);
             } else {
                 // Create new user
@@ -72,6 +74,8 @@ class SocialAuthController extends Controller
                     'role' => 'subscriber',
                     'password' => null,
                 ]);
+
+                $user->notify(new WelcomeNotification());
             }
         } else {
             // Update avatar on each login
