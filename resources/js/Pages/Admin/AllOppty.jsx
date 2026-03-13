@@ -66,16 +66,18 @@ export default function AllOppty() {
     const [oppData, setOppData] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [perPage, setPerPage] = useState(20);
+    const [stats, setStats] = useState({ total: 0, published: 0, draft: 0, views: 0 });
     const paginationContainerRef = useRef(null);
 
     useEffect(() => {
         axios.get('/fetch-all-opp')
             .then((response) => {
-                const { data, links, current_page, per_page } = response.data;
+                const { data, links, current_page, per_page, stats } = response.data;
                 setOppData(data);
                 setPagination(links);
                 setCurrentPage(current_page);
                 setPerPage(per_page);
+                if (stats) setStats(stats);
             })
             .catch(() => {
                 Toast.fire({ icon: "error", title: 'Error loading opportunities' });
@@ -88,11 +90,12 @@ export default function AllOppty() {
         setIsLoading(true);
         axios.get(url)
             .then((response) => {
-                const { data, links, current_page, per_page } = response.data;
+                const { data, links, current_page, per_page, stats: newStats } = response.data;
                 setOppData(data);
                 setPagination(links);
                 setCurrentPage(current_page);
                 setPerPage(per_page);
+                if (newStats) setStats(newStats);
                 setTimeout(() => {
                     window.scrollTo({ top: containerPosition, behavior: 'instant' });
                 }, 100);
@@ -135,12 +138,7 @@ export default function AllOppty() {
             });
     };
 
-    const statistics = {
-        total: oppData.length,
-        published: oppData.filter(o => o.status === 'published').length,
-        draft: oppData.filter(o => o.status === 'draft').length,
-        views: oppData.reduce((sum, o) => sum + (o.views || 0), 0),
-    };
+    const statistics = stats;
 
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {

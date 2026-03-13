@@ -897,11 +897,23 @@ function store(Request $request)
       */
     public function fetchAllOpportunities()
     {
-        $opportunities = Oppty::where('deleted', '!=', 1)
+        $baseQuery = Oppty::where('deleted', '!=', 1);
+
+        $stats = [
+            'total' => (clone $baseQuery)->count(),
+            'published' => (clone $baseQuery)->where('status', 'published')->count(),
+            'draft' => (clone $baseQuery)->where('status', 'draft')->count(),
+            'views' => (clone $baseQuery)->sum('views'),
+        ];
+
+        $opportunities = (clone $baseQuery)
             ->orderBy('id', 'desc')
             ->paginate(20);
 
-        return response()->json($opportunities);
+        $response = $opportunities->toArray();
+        $response['stats'] = $stats;
+
+        return response()->json($response);
     }
 
     public function showOpportunities(){
