@@ -319,7 +319,7 @@ export default function AllOppty() {
                                             </div>
 
                                             {oppData.map((opp, index) => {
-                                                const cfg = statusConfig[opp.status] || statusConfig.archived;
+                                                const cfg = statusConfig[opp.status] || statusConfig.published;
                                                 return (
                                                     <div
                                                         key={opp.id || index}

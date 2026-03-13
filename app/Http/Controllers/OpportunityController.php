@@ -654,6 +654,11 @@ function store(Request $request)
     $op->user_role = Auth::user()->role;
     $op->slug = $this->createSlug($request->title);
 
+    // Set status to published for new opportunities
+    if (!$isEditing) {
+        $op->status = 'published';
+    }
+
     // Store the data in the database
     $op->title = $request->title;
     $op->description = $request->description;
@@ -892,30 +897,11 @@ function store(Request $request)
       */
     public function fetchAllOpportunities()
     {
-        // $allOppty = Oppty::orderBy('id', 'desc')
-        //     ->get()
-        //     ->map(function($oppty) {
-        //         $current_date = Carbon::now();
-        //         $status = ($current_date > $oppty->deadline) ? 'Expired' : 'Active';
-                
-        //         return [
-        //             'id' => $oppty->id,
-        //             'title' => $oppty->title,
-        //             'views' => $oppty->views,
-        //             'created_at' => $oppty->created_at->format('Y-m-d'),
-        //             'deadline' => $oppty->deadline,
-        //             'status' => $status,
-        //             // Add any other fields you need
-        //         ];
-        //     });
-    
-        // return response()->json(['data' => $allOppty]);
-        $current_date = Carbon::now();
-        $opportunities = Oppty::orderBy('id', 'desc')
-        ->paginate(20);
-        
-        return response()->json($opportunities);
+        $opportunities = Oppty::where('deleted', '!=', 1)
+            ->orderBy('id', 'desc')
+            ->paginate(20);
 
+        return response()->json($opportunities);
     }
 
     public function showOpportunities(){
