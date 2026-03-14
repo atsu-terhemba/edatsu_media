@@ -75,7 +75,7 @@ export default function AdManagement({ globalSettings, adSettings }) {
         e.preventDefault();
         const options = { forceFormData: true };
         if (editingAd) {
-            adForm.post(`/admin/ads/${editingAd.id}`, {
+            adForm.put(`/admin/ads/${editingAd.id}`, {
                 ...options,
                 onSuccess: () => { setEditingAd(null); setShowModal(false); adForm.reset(); setImagePreview(null); },
             });
@@ -97,7 +97,7 @@ export default function AdManagement({ globalSettings, adSettings }) {
     };
     const openEdit = (ad) => {
         setEditingAd(ad);
-        adForm.setData({ ...ad, image_file: null, remove_image: false, image_url: ad.image_url || '', _method: 'PUT' });
+        adForm.setData({ ...ad, image_file: null, remove_image: false, image_url: ad.image_url || '' });
         setImagePreview(ad.image_url || null);
         setShowModal(true);
     };
