@@ -8,7 +8,6 @@ import { usePage, Link } from '@inertiajs/react';
 import FixedMobileNav from '@/Components/FixedMobileNav';
 import HomeBanner from '@/Components/HomeBanner';
 import SuccessSection from '@/Components/SuccessSection';
-import AdUnit from '@/Components/AdUnit';
 
 import TrendingToolsSection from '@/Components/TrendingToolsSection';
 import LatestOpportunitiesSection from '@/Components/LatestOpportunitiesSection';
@@ -78,29 +77,7 @@ const Home = () => {
             />
             <HomeBanner />
 
-            {/* Ad: Between Hero and Features */}
-            <section style={{ padding: '48px 0 0', background: '#fff' }}>
-                <Container>
-                    <Row className="justify-content-center">
-                        <Col lg={10}>
-                            <AdUnit type="horizontal" />
-                        </Col>
-                    </Row>
-                </Container>
-            </section>
-
             <SuccessSection />
-
-            {/* Ad: After Features Section */}
-            <section style={{ padding: '0 0 48px', background: '#f5f5f7' }}>
-                <Container>
-                    <Row className="justify-content-center">
-                        <Col lg={10}>
-                            <AdUnit type="horizontal" />
-                        </Col>
-                    </Row>
-                </Container>
-            </section>
             
             {/**
              * 
