@@ -289,7 +289,9 @@ class OpportunityController extends Controller
         ->leftJoin('tags_selections as ts', 'ts.post_id', '=', 'o.id')
         ->where('o.id', '!=', $current_post_id) // Exclude the current post
         ->where('o.deadline', '>', now()) 
-        ->where('o.deleted', '!=', 1)
+        ->where(function ($q) {
+            $q->where('o.deleted', '!=', 1)->orWhereNull('o.deleted');
+        })
         ->where(function ($query) use ($category_ids, $brand_label_ids, $continent_ids, $country_ids, $region_ids, $tag_ids) {
             if ($category_ids !== 'NULL') $query->orWhereIn('cs.category_id', explode(',', $category_ids));
             if ($brand_label_ids !== 'NULL') $query->orWhereIn('bls.brand_label_id', explode(',', $brand_label_ids));
@@ -897,7 +899,9 @@ function store(Request $request)
       */
     public function fetchAllOpportunities(Request $request)
     {
-        $baseQuery = Oppty::where('deleted', '!=', 1);
+        $baseQuery = Oppty::where(function ($q) {
+            $q->where('deleted', '!=', 1)->orWhereNull('deleted');
+        });
 
         $stats = [
             'total' => (clone $baseQuery)->count(),

@@ -199,7 +199,9 @@ private function buildBaseQuery($user_id)
             \DB::raw('GROUP_CONCAT(DISTINCT continents.name SEPARATOR ", ") as continent_name'),
             \DB::raw('CASE WHEN bookmarks.id IS NOT NULL AND bookmarks.removed != 1 THEN 1 ELSE 0 END as is_bookmarked')
         ])
-        ->where('opportunities.deleted', '!=', 1)
+        ->where(function ($q) {
+            $q->where('opportunities.deleted', '!=', 1)->orWhereNull('opportunities.deleted');
+        })
         ->where('opportunities.status', 'published')
         ->where('opportunities.deadline', '>', Carbon::today())
         ->leftJoin('continent_selections', 'continent_selections.post_id', '=', 'opportunities.id')
