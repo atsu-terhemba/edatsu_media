@@ -115,6 +115,7 @@ export default function CreateOpportunity({ edits, categories, brand_label, coun
         countries: [],
         continents: [],
         signature: '',
+        save_as_draft: edits?.status === 'draft' ? true : false,
     });
 
     useEffect(() => {
@@ -540,6 +541,38 @@ export default function CreateOpportunity({ edits, categories, brand_label, coun
                                                     <input type="hidden" name="signature" value={formData.signature} />
                                                 </div>
                                             )}
+
+                                            {/* Save as Draft */}
+                                            <label style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '10px',
+                                                fontSize: '14px',
+                                                color: '#1d1d1f',
+                                                cursor: 'pointer',
+                                                marginTop: '20px',
+                                                padding: '12px 16px',
+                                                borderRadius: '12px',
+                                                border: '1px solid #e5e5e7',
+                                                background: formData.save_as_draft ? '#f5f5f7' : '#fff',
+                                                transition: 'all 0.15s ease',
+                                            }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={formData.save_as_draft}
+                                                    onChange={(e) => setFormData({ ...formData, save_as_draft: e.target.checked })}
+                                                    style={{
+                                                        width: '18px',
+                                                        height: '18px',
+                                                        accentColor: '#000',
+                                                        cursor: 'pointer',
+                                                    }}
+                                                />
+                                                <span>Save as draft</span>
+                                                <span style={{ fontSize: '12px', color: '#86868b' }}>
+                                                    (will not be published immediately)
+                                                </span>
+                                            </label>
 
                                             {/* Submit Button */}
                                             <button

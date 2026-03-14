@@ -656,8 +656,10 @@ function store(Request $request)
     $op->user_role = Auth::user()->role;
     $op->slug = $this->createSlug($request->title);
 
-    // Set status to published for new opportunities
-    if (!$isEditing) {
+    // Set status based on draft checkbox
+    if ($request->has('save_as_draft') && filter_var($request->input('save_as_draft'), FILTER_VALIDATE_BOOLEAN)) {
+        $op->status = 'draft';
+    } elseif (!$isEditing) {
         $op->status = 'published';
     }
 
