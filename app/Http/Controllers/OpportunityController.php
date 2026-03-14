@@ -463,9 +463,10 @@ class OpportunityController extends Controller
         $continents = Continent::all();
     
         // Fetch the opportunity post
-        $opportunity = Oppty::where('deleted', 0)
+        $opportunity = Oppty::where(function ($q) {
+                                $q->where('deleted', '!=', 1)->orWhereNull('deleted');
+                            })
                             ->where('id', $id)
-                            ->where('u_id', $request->user()->id)
                             ->firstOrFail();
     
         // Retrieve selected relational data by joining with respective tables
