@@ -215,7 +215,8 @@ export default function CreateProduct({ edits, categories, brand_label, tags, se
             }
         } catch (error) {
             console.error(error);
-            Toast.fire({ icon: 'error', title: 'An error occurred', swalConfig });
+            const errorMessage = error.response?.data?.message || 'An error occurred';
+            Toast.fire({ icon: 'error', title: errorMessage, swalConfig });
         }
     };
 

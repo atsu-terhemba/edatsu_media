@@ -131,9 +131,10 @@ export default function AllProducts({ products, statistics, categories, filters 
             }
         }).catch((err) => {
             console.log(err);
+            const errorMessage = err.response?.data?.message || 'Something went wrong.';
             Toast.fire({
                 icon: "error",
-                title: 'Ops! something went wrong.'
+                title: errorMessage
             });
         })
     };

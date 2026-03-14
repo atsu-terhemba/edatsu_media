@@ -114,10 +114,13 @@ export default function AllOppty() {
                     setOppData(prev => prev.map(o =>
                         o.id === oppId ? { ...o, status: action === 'publish' ? 'published' : action } : o
                     ));
+                } else {
+                    Toast.fire({ icon: "error", title: res.data.message || 'Something went wrong.' });
                 }
             })
-            .catch(() => {
-                Toast.fire({ icon: "error", title: 'Something went wrong.' });
+            .catch((error) => {
+                const errorMessage = error.response?.data?.message || 'Something went wrong.';
+                Toast.fire({ icon: "error", title: errorMessage });
             });
     };
 
@@ -131,10 +134,13 @@ export default function AllOppty() {
                     setOppData(prev => prev.map(o =>
                         o.id === oppId ? { ...o, status: 'archived', deleted_at: new Date().toISOString() } : o
                     ));
+                } else {
+                    Toast.fire({ icon: "error", title: res.data.message || 'Something went wrong.' });
                 }
             })
-            .catch(() => {
-                Toast.fire({ icon: "error", title: 'Something went wrong.' });
+            .catch((error) => {
+                const errorMessage = error.response?.data?.message || 'Something went wrong.';
+                Toast.fire({ icon: "error", title: errorMessage });
             });
     };
 

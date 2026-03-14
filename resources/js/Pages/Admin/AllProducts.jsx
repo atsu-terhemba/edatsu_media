@@ -115,8 +115,9 @@ export default function AllProducts({ products, statistics, categories, filters 
                     ));
                 }
             })
-            .catch(() => {
-                Toast.fire({ icon: "error", title: 'Something went wrong.' });
+            .catch((error) => {
+                const errorMessage = error.response?.data?.message || 'Something went wrong.';
+                Toast.fire({ icon: "error", title: errorMessage });
             });
     };
 
