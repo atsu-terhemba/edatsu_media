@@ -53,9 +53,11 @@ export default function AdManagement({ globalSettings, adSettings }) {
         adsense_publisher_id: globalSettings.adsense_publisher_id || ''
     });
 
+    const [imagePreview, setImagePreview] = useState(null);
+
     const adForm = useForm({
         slot_name: '', page: 'all', position: 'top', size: 'responsive',
-        ad_type: 'adsense', ad_code: '', image_url: '', link_url: '', link_target: '_blank',
+        ad_type: 'adsense', ad_code: '', image_url: '', image_file: null, link_url: '', link_target: '_blank',
         is_active: true, order: 0,
     });
 
@@ -71,13 +73,16 @@ export default function AdManagement({ globalSettings, adSettings }) {
     };
     const handleSubmit = (e) => {
         e.preventDefault();
+        const options = { forceFormData: true };
         if (editingAd) {
-            adForm.put(`/admin/ads/${editingAd.id}`, {
-                onSuccess: () => { setEditingAd(null); setShowModal(false); adForm.reset(); }
+            adForm.transform((data) => ({ ...data, _method: 'PUT' })).post(`/admin/ads/${editingAd.id}`, {
+                ...options,
+                onSuccess: () => { setEditingAd(null); setShowModal(false); adForm.reset(); setImagePreview(null); },
             });
         } else {
             adForm.post('/admin/ads', {
-                onSuccess: () => { setShowModal(false); adForm.reset(); }
+                ...options,
+                onSuccess: () => { setShowModal(false); adForm.reset(); setImagePreview(null); },
             });
         }
     };
@@ -92,7 +97,8 @@ export default function AdManagement({ globalSettings, adSettings }) {
     };
     const openEdit = (ad) => {
         setEditingAd(ad);
-        adForm.setData(ad);
+        adForm.setData({ ...ad, image_file: null });
+        setImagePreview(ad.image_url || null);
         setShowModal(true);
     };
     const openAdd = () => {
@@ -101,7 +107,7 @@ export default function AdManagement({ globalSettings, adSettings }) {
         setShowModal(true);
     };
     const closeModal = () => {
-        setShowModal(false); setEditingAd(null); adForm.reset();
+        setShowModal(false); setEditingAd(null); adForm.reset(); setImagePreview(null);
     };
 
     const adSizes = [
@@ -495,28 +501,67 @@ export default function AdManagement({ globalSettings, adSettings }) {
                                 {adForm.data.ad_type === 'custom' && (
                                     <>
                                         <div>
-                                            <label style={labelStyle}>Image URL *</label>
+                                            <label style={labelStyle}>Ad Image *</label>
+                                            {/* Upload area */}
+                                            <div style={{
+                                                border: '2px dashed #e5e5e7', borderRadius: '12px', padding: '24px',
+                                                textAlign: 'center', cursor: 'pointer', transition: 'all 0.15s ease',
+                                                background: imagePreview ? '#f5f5f7' : '#fff',
+                                            }}
+                                                onClick={() => document.getElementById('ad-image-input').click()}
+                                                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#000'; e.currentTarget.style.background = '#fafafa'; }}
+                                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e5e7'; e.currentTarget.style.background = imagePreview ? '#f5f5f7' : '#fff'; }}
+                                            >
+                                                <input
+                                                    id="ad-image-input"
+                                                    type="file"
+                                                    accept="image/jpg,image/jpeg,image/png,image/gif,image/webp"
+                                                    style={{ display: 'none' }}
+                                                    onChange={(e) => {
+                                                        const file = e.target.files[0];
+                                                        if (file) {
+                                                            adForm.setData('image_file', file);
+                                                            setImagePreview(URL.createObjectURL(file));
+                                                        }
+                                                    }}
+                                                />
+                                                {imagePreview ? (
+                                                    <div>
+                                                        <img src={imagePreview} alt="Ad preview"
+                                                            style={{ maxWidth: '100%', maxHeight: '180px', borderRadius: '8px', objectFit: 'contain', marginBottom: '8px' }}
+                                                            onError={(e) => { e.target.style.display = 'none'; }}
+                                                        />
+                                                        <span style={{ display: 'block', fontSize: '12px', color: '#86868b' }}>Click to change image</span>
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <span className="material-symbols-outlined" style={{ fontSize: '36px', color: '#d1d1d6', display: 'block', marginBottom: '8px' }}>cloud_upload</span>
+                                                        <span style={{ fontSize: '14px', fontWeight: 500, color: '#000', display: 'block', marginBottom: '4px' }}>Click to upload image</span>
+                                                        <span style={{ fontSize: '12px', color: '#86868b' }}>JPG, PNG, GIF, WebP — max 5MB</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {adForm.errors.image_file && (
+                                                <span style={{ display: 'block', fontSize: '12px', color: '#dc2626', marginTop: '4px' }}>{adForm.errors.image_file}</span>
+                                            )}
+                                        </div>
+                                        {/* Or use URL */}
+                                        <div>
+                                            <label style={labelStyle}>Or paste Image URL</label>
                                             <input type="url" placeholder="https://example.com/ad-banner.jpg"
                                                 value={adForm.data.image_url || ''}
-                                                onChange={e => adForm.setData('image_url', e.target.value)}
+                                                onChange={e => {
+                                                    adForm.setData('image_url', e.target.value);
+                                                    if (e.target.value && !adForm.data.image_file) {
+                                                        setImagePreview(e.target.value);
+                                                    }
+                                                }}
                                                 style={inputStyle} onFocus={focusH} onBlur={blurH}
                                             />
                                             <span style={{ display: 'block', fontSize: '12px', color: '#b0b0b5', marginTop: '4px' }}>
-                                                Direct URL to the ad image (JPG, PNG, GIF, WebP)
+                                                Upload takes priority over URL if both are provided
                                             </span>
                                         </div>
-                                        {adForm.data.image_url && (
-                                            <div style={{
-                                                padding: '12px', background: '#f5f5f7', borderRadius: '12px',
-                                                textAlign: 'center',
-                                            }}>
-                                                <span style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 500 }}>Preview</span>
-                                                <img src={adForm.data.image_url} alt="Ad preview"
-                                                    style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px', objectFit: 'contain' }}
-                                                    onError={(e) => { e.target.style.display = 'none'; }}
-                                                />
-                                            </div>
-                                        )}
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '16px' }}>
                                             <div>
                                                 <label style={labelStyle}>Link URL</label>

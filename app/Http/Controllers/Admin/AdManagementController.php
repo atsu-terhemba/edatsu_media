@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AdSetting;
 use App\Models\AdGlobalSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class AdManagementController extends Controller
@@ -66,11 +67,18 @@ class AdManagementController extends Controller
             'ad_type' => 'required|string|in:adsense,custom',
             'ad_code' => 'nullable|string',
             'image_url' => 'nullable|string|max:2048',
+            'image_file' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:5120',
             'link_url' => 'nullable|string|max:2048',
             'link_target' => 'nullable|string|in:_blank,_self',
             'is_active' => 'boolean',
             'order' => 'integer'
         ]);
+
+        // Handle image file upload
+        if ($request->hasFile('image_file')) {
+            $validated['image_url'] = $this->uploadAdImage($request->file('image_file'));
+        }
+        unset($validated['image_file']);
 
         AdSetting::create($validated);
 
@@ -87,15 +95,34 @@ class AdManagementController extends Controller
             'ad_type' => 'required|string|in:adsense,custom',
             'ad_code' => 'nullable|string',
             'image_url' => 'nullable|string|max:2048',
+            'image_file' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:5120',
             'link_url' => 'nullable|string|max:2048',
             'link_target' => 'nullable|string|in:_blank,_self',
             'is_active' => 'boolean',
             'order' => 'integer'
         ]);
 
+        // Handle image file upload
+        if ($request->hasFile('image_file')) {
+            // Delete old uploaded image if it exists
+            if ($adSetting->image_url && str_starts_with($adSetting->image_url, '/storage/uploads/ads/')) {
+                $oldPath = str_replace('/storage/', '', $adSetting->image_url);
+                Storage::disk('public')->delete($oldPath);
+            }
+            $validated['image_url'] = $this->uploadAdImage($request->file('image_file'));
+        }
+        unset($validated['image_file']);
+
         $adSetting->update($validated);
 
         return back()->with('success', 'Ad slot updated successfully');
+    }
+
+    private function uploadAdImage($file)
+    {
+        $filename = uniqid('ad_') . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs('uploads/ads', $filename, 'public');
+        return '/storage/' . $path;
     }
 
     public function destroy(AdSetting $adSetting)
