@@ -104,7 +104,7 @@ export default function CreateOpportunity({ edits, categories, brand_label, coun
         cover_img: null,
         title: edits?.title || '',
         description: edits?.description || '',
-        deadline: edits?.deadline || '',
+        deadline: edits?.deadline ? edits.deadline.split('T')[0] : '',
         source_url: edits?.source_url || '',
         direct_link: edits?.direct_link || '',
         meta_keywords: edits?.meta_keywords || '',

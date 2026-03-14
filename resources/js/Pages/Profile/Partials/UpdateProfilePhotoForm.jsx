@@ -5,7 +5,6 @@ import axios from 'axios';
 
 export default function UpdateProfilePhotoForm({ className = '' }) {
     const user = usePage().props.auth.user;
-    const csrfToken = usePage().props.csrf_token;
     const fileInputRef = useRef();
     const [photoPreview, setPhotoPreview] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
@@ -42,10 +41,9 @@ export default function UpdateProfilePhotoForm({ className = '' }) {
 
         const formData = new FormData();
         formData.append('photo', selectedFile);
-        formData.append('_token', csrfToken);
 
         axios.post('/profile/photo', formData, {
-            headers: { 'Content-Type': 'multipart/form-data', 'X-CSRF-TOKEN': csrfToken },
+            headers: { 'Content-Type': 'multipart/form-data' },
         })
         .then(() => {
             Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Profile photo updated successfully!', showConfirmButton: false, timer: 4000, timerProgressBar: true });
@@ -80,7 +78,7 @@ export default function UpdateProfilePhotoForm({ className = '' }) {
         }).then((result) => {
             if (result.isConfirmed) {
                 setDeleting(true);
-                axios.delete('/profile/photo', { headers: { 'X-CSRF-TOKEN': csrfToken } })
+                axios.delete('/profile/photo')
                 .then(() => {
                     Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Profile photo removed successfully!', showConfirmButton: false, timer: 4000, timerProgressBar: true });
                     router.reload({ only: ['auth'] });

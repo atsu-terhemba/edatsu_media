@@ -143,10 +143,6 @@ const CommentComponent = ({ postId, totalComments, isAuthenticated, userId }) =>
         commentable_type: 'opp',
         reply: replyContent,
         parent_id: parentId
-      }, {
-        headers: {
-          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
-        }
       });
 
       if (response.data.status === 'success') {
