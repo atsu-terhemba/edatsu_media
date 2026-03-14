@@ -68,27 +68,55 @@ export default function AllOppty() {
     const [perPage, setPerPage] = useState(20);
     const [stats, setStats] = useState({ total: 0, published: 0, draft: 0, views: 0 });
     const paginationContainerRef = useRef(null);
+    const searchTimeout = useRef(null);
 
-    useEffect(() => {
-        axios.get('/fetch-all-opp')
+    const fetchOpportunities = (params = {}, scrollTo = null) => {
+        setIsLoading(true);
+        const query = {
+            search: params.search ?? searchTerm,
+            status: params.status ?? statusFilter,
+            per_page: params.per_page ?? perPageFilter,
+        };
+        // Remove empty params
+        Object.keys(query).forEach(k => { if (!query[k]) delete query[k]; });
+
+        axios.get('/fetch-all-opp', { params: query })
             .then((response) => {
-                const { data, links, current_page, per_page, stats } = response.data;
+                const { data, links, current_page, per_page, stats: newStats } = response.data;
                 setOppData(data);
                 setPagination(links);
                 setCurrentPage(current_page);
                 setPerPage(per_page);
-                if (stats) setStats(stats);
+                if (newStats) setStats(newStats);
+                if (scrollTo !== null) {
+                    setTimeout(() => {
+                        window.scrollTo({ top: scrollTo, behavior: 'instant' });
+                    }, 100);
+                }
             })
             .catch(() => {
                 Toast.fire({ icon: "error", title: 'Error loading opportunities' });
-            });
+            })
+            .finally(() => setIsLoading(false));
+    };
+
+    useEffect(() => {
+        fetchOpportunities();
     }, []);
 
     function triggerPagination(url) {
         const container = paginationContainerRef.current;
         const containerPosition = container ? container.getBoundingClientRect().top + window.scrollY : 0;
         setIsLoading(true);
-        axios.get(url)
+        // Append current filters to pagination URL
+        const separator = url.includes('?') ? '&' : '?';
+        const params = new URLSearchParams();
+        if (searchTerm) params.set('search', searchTerm);
+        if (statusFilter) params.set('status', statusFilter);
+        if (perPageFilter) params.set('per_page', perPageFilter);
+        const fullUrl = params.toString() ? `${url}${separator}${params.toString()}` : url;
+
+        axios.get(fullUrl)
             .then((response) => {
                 const { data, links, current_page, per_page, stats: newStats } = response.data;
                 setOppData(data);
@@ -218,7 +246,14 @@ export default function AllOppty() {
                                                 type="text"
                                                 placeholder="Search opportunities..."
                                                 value={searchTerm}
-                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setSearchTerm(val);
+                                                    clearTimeout(searchTimeout.current);
+                                                    searchTimeout.current = setTimeout(() => {
+                                                        fetchOpportunities({ search: val });
+                                                    }, 400);
+                                                }}
                                                 style={{
                                                     width: '100%', padding: '10px 14px 10px 42px',
                                                     borderRadius: '12px', border: '1px solid #e5e5e7',
@@ -230,7 +265,10 @@ export default function AllOppty() {
                                         </div>
                                         <select
                                             value={statusFilter}
-                                            onChange={(e) => setStatusFilter(e.target.value)}
+                                            onChange={(e) => {
+                                                setStatusFilter(e.target.value);
+                                                fetchOpportunities({ status: e.target.value });
+                                            }}
                                             style={{
                                                 padding: '10px 14px', borderRadius: '12px',
                                                 border: '1px solid #e5e5e7', fontSize: '14px',
@@ -244,7 +282,10 @@ export default function AllOppty() {
                                         </select>
                                         <select
                                             value={perPageFilter}
-                                            onChange={(e) => setPerPageFilter(e.target.value)}
+                                            onChange={(e) => {
+                                                setPerPageFilter(e.target.value);
+                                                fetchOpportunities({ per_page: e.target.value });
+                                            }}
                                             style={{
                                                 padding: '10px 14px', borderRadius: '12px',
                                                 border: '1px solid #e5e5e7', fontSize: '14px',
@@ -259,11 +300,7 @@ export default function AllOppty() {
                                             <button
                                                 onClick={() => {
                                                     setSearchTerm(''); setStatusFilter(''); setPerPageFilter(20);
-                                                    axios.get('/fetch-all-opp').then((response) => {
-                                                        const { data, links, current_page, per_page } = response.data;
-                                                        setOppData(data); setPagination(links);
-                                                        setCurrentPage(current_page); setPerPage(per_page);
-                                                    });
+                                                    fetchOpportunities({ search: '', status: '', per_page: 20 });
                                                 }}
                                                 style={{
                                                     padding: '10px 20px', borderRadius: '9999px',

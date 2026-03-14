@@ -895,7 +895,7 @@ function store(Request $request)
      /**
       * display all opportunities 
       */
-    public function fetchAllOpportunities()
+    public function fetchAllOpportunities(Request $request)
     {
         $baseQuery = Oppty::where('deleted', '!=', 1);
 
@@ -906,9 +906,23 @@ function store(Request $request)
             'views' => (clone $baseQuery)->sum('views'),
         ];
 
-        $opportunities = (clone $baseQuery)
+        // Apply filters
+        $query = clone $baseQuery;
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where('title', 'like', "%{$search}%");
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        $perPage = $request->input('per_page', 20);
+
+        $opportunities = $query
             ->orderBy('id', 'desc')
-            ->paginate(20);
+            ->paginate($perPage);
 
         $response = $opportunities->toArray();
         $response['stats'] = $stats;
