@@ -566,7 +566,7 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
 
                     {/* Ad Banner */}
                     <div style={{ marginBottom: 16 }}>
-                        <AdBanner slot="opp-view-sidebar" size="medium-rectangle" />
+                        <AdBanner slot="opp-view-sidebar" page="opp-view" position="sidebar-right" size="medium-rectangle" />
                     </div>
 
                     {/* Subscribe Box */}

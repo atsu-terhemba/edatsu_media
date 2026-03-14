@@ -327,7 +327,7 @@ const Toolshed = () => {
                         <Col xs={12} md={8} lg={9}>
                             {/* Ad Banner */}
                             <div style={{ marginBottom: 24 }}>
-                                <AdBanner slot="toolshed-top" size="leaderboard" />
+                                <AdBanner slot="toolshed-top" page="toolshed" position="top" size="leaderboard" />
                             </div>
 
                             <div

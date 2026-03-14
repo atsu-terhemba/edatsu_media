@@ -468,7 +468,7 @@ const ReadTool = ({tool_data, similarPosts}) => {
                             <div style={{ position: 'sticky', top: '72px' }}>
                                 {/* Ad Banner */}
                                 <div style={{ marginBottom: '24px' }}>
-                                    <AdBanner slot="tool-view-sidebar" size="medium-rectangle" />
+                                    <AdBanner slot="tool-view-sidebar" page="tool-view" position="sidebar-right" size="medium-rectangle" />
                                 </div>
 
                                 {/* Tool Quick Info */}

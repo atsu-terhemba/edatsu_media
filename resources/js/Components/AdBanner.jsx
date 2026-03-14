@@ -13,7 +13,7 @@ const sizeMap = {
     'responsive': { width: '100%', height: 'auto', label: 'Responsive' },
 };
 
-const AdBanner = ({ slot, size = 'responsive', className = '', style = {} }) => {
+const AdBanner = ({ slot, page = 'all', position = 'top', size = 'responsive', className = '', style = {} }) => {
     const [hidden, setHidden] = useState(false);
     const adRef = useRef(null);
     const { adSettings, auth } = usePage().props;
@@ -22,7 +22,13 @@ const AdBanner = ({ slot, size = 'responsive', className = '', style = {} }) => 
     const showPlaceholders = adSettings?.show_placeholders !== false;
     const isAdmin = auth?.user?.role === 'admin';
 
-    const slotSettings = adSettings?.slots?.[slot];
+    // Match by exact slot name first, then fallback to page+position match
+    let slotSettings = adSettings?.slots?.[slot];
+    if (!slotSettings && adSettings?.slots) {
+        slotSettings = Object.values(adSettings.slots).find(s =>
+            (s.page === page || s.page === 'all') && s.position === position
+        );
+    }
     const adCode = slotSettings?.ad_code;
     const adType = slotSettings?.ad_type || 'adsense';
     const imageUrl = slotSettings?.image_url;

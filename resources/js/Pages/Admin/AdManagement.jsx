@@ -300,6 +300,12 @@ export default function AdManagement({ globalSettings, adSettings }) {
                                                 onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#f0f0f0'; }}
                                             >
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' }}>
+                                                    {/* Thumbnail for custom image ads */}
+                                                    {(ad.ad_type || 'adsense') === 'custom' && ad.image_url && (
+                                                        <div style={{ width: '60px', height: '60px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#f5f5f7' }}>
+                                                            <img src={ad.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none'; }} />
+                                                        </div>
+                                                    )}
                                                     <div style={{ flex: '1 1 200px', minWidth: 0 }}>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
                                                             <span style={{ fontSize: '14px', fontWeight: 600, color: '#000' }}>{ad.slot_name}</span>

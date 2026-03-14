@@ -366,7 +366,7 @@ const Opportunities = () => {
                         <Col xs={12} md={8} lg={9}>
                             {/* Ad Banner */}
                             <div style={{ marginBottom: 24 }}>
-                                <AdBanner slot="opportunities-top" size="leaderboard" />
+                                <AdBanner slot="opportunities-top" page="opportunities" position="top" size="leaderboard" />
                             </div>
 
                             <div
