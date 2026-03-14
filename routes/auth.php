@@ -11,6 +11,9 @@ use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
+// Social auth callback must be outside guest middleware to handle OAuth redirects properly
+Route::get('auth/callback/{provider}', [SocialAuthController::class, 'callback'])->name('social.callback');
+
 Route::middleware('guest')->group(function () {
     Route::get('register', [RegisteredUserController::class, 'create'])
                 ->name('register');
@@ -22,9 +25,8 @@ Route::middleware('guest')->group(function () {
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
-    // Social auth
+    // Social auth redirect (initiate OAuth)
     Route::get('auth/redirect/{provider}', [SocialAuthController::class, 'redirect'])->name('social.redirect');
-    Route::get('auth/callback/{provider}', [SocialAuthController::class, 'callback'])->name('social.callback');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
                 ->name('password.request');
