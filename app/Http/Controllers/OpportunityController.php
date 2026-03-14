@@ -995,8 +995,7 @@ function store(Request $request)
 
         $op = Oppty::find($id);
         if ($op) {
-            $op->status = 'archived';
-            $op->deleted_at = now();
+            $op->deleted = 1;
             $op->save();
             return response()->json(['status' => 'success', 'message' => 'Opportunity deleted']);
         }
