@@ -12,6 +12,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { showOpportunitiesSubscriptionModal } from '@/Components/SubscriptionModal';
 import AdBanner from '@/Components/AdBanner';
+import AdUnit from '@/Components/AdUnit';
 
 const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
 
@@ -383,6 +384,11 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                     />
                 </div>
 
+                {/* Ad: Mid-Article */}
+                <div style={{ marginBottom: '32px' }}>
+                    <AdUnit type="horizontal" />
+                </div>
+
                 {/* Action Buttons */}
                 <div
                     className="mb-5"
@@ -564,9 +570,9 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                         </div>
                     </div>
 
-                    {/* Ad Banner */}
+                    {/* Ad: Sidebar */}
                     <div style={{ marginBottom: 16 }}>
-                        <AdBanner slot="opp-view-sidebar" page="opp-view" position="sidebar-right" size="medium-rectangle" />
+                        <AdUnit type="square" />
                     </div>
 
                     {/* Subscribe Box */}
