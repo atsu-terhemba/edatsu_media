@@ -106,7 +106,7 @@ class SocialAuthController extends Controller
             return redirect()->intended(route('dashboard'));
         } catch (\Exception $e) {
             \Log::error("Social auth user creation/login failed for {$provider}: " . $e->getMessage() . "\n" . $e->getTraceAsString());
-            return redirect()->route('login')->with('error', 'Social login failed. Please try again.');
+            return redirect()->route('login')->with('error', 'Social login failed: ' . $e->getMessage());
         }
     }
 }
