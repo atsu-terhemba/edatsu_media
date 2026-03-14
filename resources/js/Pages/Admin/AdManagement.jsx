@@ -57,7 +57,7 @@ export default function AdManagement({ globalSettings, adSettings }) {
 
     const adForm = useForm({
         slot_name: '', page: 'all', position: 'top', size: 'responsive',
-        ad_type: 'adsense', ad_code: '', image_url: '', image_file: null, link_url: '', link_target: '_blank',
+        ad_type: 'adsense', ad_code: '', image_url: '', image_file: null, remove_image: false, link_url: '', link_target: '_blank',
         is_active: true, order: 0,
     });
 
@@ -97,7 +97,7 @@ export default function AdManagement({ globalSettings, adSettings }) {
     };
     const openEdit = (ad) => {
         setEditingAd(ad);
-        adForm.setData({ ...ad, image_file: null });
+        adForm.setData({ ...ad, image_file: null, remove_image: false, image_url: ad.image_url || '' });
         setImagePreview(ad.image_url || null);
         setShowModal(true);
     };
@@ -508,45 +508,76 @@ export default function AdManagement({ globalSettings, adSettings }) {
                                     <>
                                         <div>
                                             <label style={labelStyle}>Ad Image *</label>
-                                            {/* Upload area */}
-                                            <div style={{
-                                                border: '2px dashed #e5e5e7', borderRadius: '12px', padding: '24px',
-                                                textAlign: 'center', cursor: 'pointer', transition: 'all 0.15s ease',
-                                                background: imagePreview ? '#f5f5f7' : '#fff',
-                                            }}
-                                                onClick={() => document.getElementById('ad-image-input').click()}
-                                                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#000'; e.currentTarget.style.background = '#fafafa'; }}
-                                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e5e7'; e.currentTarget.style.background = imagePreview ? '#f5f5f7' : '#fff'; }}
-                                            >
-                                                <input
-                                                    id="ad-image-input"
-                                                    type="file"
-                                                    accept="image/jpg,image/jpeg,image/png,image/gif,image/webp"
-                                                    style={{ display: 'none' }}
-                                                    onChange={(e) => {
-                                                        const file = e.target.files[0];
-                                                        if (file) {
-                                                            adForm.setData('image_file', file);
-                                                            setImagePreview(URL.createObjectURL(file));
-                                                        }
-                                                    }}
-                                                />
-                                                {imagePreview ? (
-                                                    <div>
-                                                        <img src={imagePreview} alt="Ad preview"
-                                                            style={{ maxWidth: '100%', maxHeight: '180px', borderRadius: '8px', objectFit: 'contain', marginBottom: '8px' }}
-                                                            onError={(e) => { e.target.style.display = 'none'; }}
-                                                        />
-                                                        <span style={{ display: 'block', fontSize: '12px', color: '#86868b' }}>Click to change image</span>
+                                            {imagePreview ? (
+                                                <div style={{
+                                                    position: 'relative', background: '#f5f5f7', borderRadius: '12px',
+                                                    padding: '16px', textAlign: 'center',
+                                                }}>
+                                                    <img src={imagePreview} alt="Ad preview"
+                                                        style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px', objectFit: 'contain' }}
+                                                        onError={(e) => { e.target.src = ''; e.target.alt = 'Image failed to load'; e.target.style.padding = '40px'; e.target.style.color = '#86868b'; }}
+                                                    />
+                                                    {/* Current URL display */}
+                                                    {adForm.data.image_url && !adForm.data.image_file && (
+                                                        <div style={{ marginTop: '8px', padding: '6px 12px', background: '#fff', borderRadius: '8px', border: '1px solid #e5e5e7' }}>
+                                                            <span style={{ fontSize: '11px', color: '#86868b', wordBreak: 'break-all' }}>{adForm.data.image_url}</span>
+                                                        </div>
+                                                    )}
+                                                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '12px' }}>
+                                                        <button type="button"
+                                                            onClick={() => document.getElementById('ad-image-input').click()}
+                                                            style={{
+                                                                padding: '6px 16px', borderRadius: '9999px', border: '1px solid #e5e5e7',
+                                                                background: '#fff', color: '#000', fontSize: '12px', fontWeight: 500, cursor: 'pointer',
+                                                                display: 'flex', alignItems: 'center', gap: '4px',
+                                                            }}
+                                                        >
+                                                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>swap_horiz</span>
+                                                            Change
+                                                        </button>
+                                                        <button type="button"
+                                                            onClick={() => {
+                                                                setImagePreview(null);
+                                                                adForm.setData(prev => ({ ...prev, image_file: null, image_url: '', remove_image: true }));
+                                                            }}
+                                                            style={{
+                                                                padding: '6px 16px', borderRadius: '9999px', border: '1px solid #fecaca',
+                                                                background: '#fef2f2', color: '#dc2626', fontSize: '12px', fontWeight: 500, cursor: 'pointer',
+                                                                display: 'flex', alignItems: 'center', gap: '4px',
+                                                            }}
+                                                        >
+                                                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>delete</span>
+                                                            Remove
+                                                        </button>
                                                     </div>
-                                                ) : (
-                                                    <div>
-                                                        <span className="material-symbols-outlined" style={{ fontSize: '36px', color: '#d1d1d6', display: 'block', marginBottom: '8px' }}>cloud_upload</span>
-                                                        <span style={{ fontSize: '14px', fontWeight: 500, color: '#000', display: 'block', marginBottom: '4px' }}>Click to upload image</span>
-                                                        <span style={{ fontSize: '12px', color: '#86868b' }}>JPG, PNG, GIF, WebP — max 5MB</span>
-                                                    </div>
-                                                )}
-                                            </div>
+                                                </div>
+                                            ) : (
+                                                <div style={{
+                                                    border: '2px dashed #e5e5e7', borderRadius: '12px', padding: '24px',
+                                                    textAlign: 'center', cursor: 'pointer', transition: 'all 0.15s ease',
+                                                }}
+                                                    onClick={() => document.getElementById('ad-image-input').click()}
+                                                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#000'; e.currentTarget.style.background = '#fafafa'; }}
+                                                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e5e7'; e.currentTarget.style.background = '#fff'; }}
+                                                >
+                                                    <span className="material-symbols-outlined" style={{ fontSize: '36px', color: '#d1d1d6', display: 'block', marginBottom: '8px' }}>cloud_upload</span>
+                                                    <span style={{ fontSize: '14px', fontWeight: 500, color: '#000', display: 'block', marginBottom: '4px' }}>Click to upload image</span>
+                                                    <span style={{ fontSize: '12px', color: '#86868b' }}>JPG, PNG, GIF, WebP — max 5MB</span>
+                                                </div>
+                                            )}
+                                            <input
+                                                id="ad-image-input"
+                                                type="file"
+                                                accept="image/jpg,image/jpeg,image/png,image/gif,image/webp"
+                                                style={{ display: 'none' }}
+                                                onChange={(e) => {
+                                                    const file = e.target.files[0];
+                                                    if (file) {
+                                                        adForm.setData(prev => ({ ...prev, image_file: file, remove_image: false }));
+                                                        setImagePreview(URL.createObjectURL(file));
+                                                    }
+                                                }}
+                                            />
                                             {adForm.errors.image_file && (
                                                 <span style={{ display: 'block', fontSize: '12px', color: '#dc2626', marginTop: '4px' }}>{adForm.errors.image_file}</span>
                                             )}
@@ -557,7 +588,7 @@ export default function AdManagement({ globalSettings, adSettings }) {
                                             <input type="url" placeholder="https://example.com/ad-banner.jpg"
                                                 value={adForm.data.image_url || ''}
                                                 onChange={e => {
-                                                    adForm.setData('image_url', e.target.value);
+                                                    adForm.setData(prev => ({ ...prev, image_url: e.target.value, remove_image: false }));
                                                     if (e.target.value && !adForm.data.image_file) {
                                                         setImagePreview(e.target.value);
                                                     }

@@ -48,11 +48,26 @@ class AppServiceProvider extends ServiceProvider
                     $ads = AdSetting::active()->get()->keyBy('slot_name');
                     $slotsArray = [];
                     
+                    $r2PublicUrl = rtrim(env('VITE_R2_PUBLIC_URL', ''), '/');
+
                     foreach ($ads as $ad) {
+                        // Build full image URL
+                        $imageUrl = $ad->image_url;
+                        if ($imageUrl && !str_starts_with($imageUrl, 'http://') && !str_starts_with($imageUrl, 'https://')) {
+                            // Relative path - prepend R2 public URL or local storage URL
+                            $imageUrl = ltrim($imageUrl, '/');
+                            $imageUrl = preg_replace('#^storage/#', '', $imageUrl);
+                            if ($r2PublicUrl) {
+                                $imageUrl = $r2PublicUrl . '/' . $imageUrl;
+                            } else {
+                                $imageUrl = '/storage/' . $imageUrl;
+                            }
+                        }
+
                         $slotsArray[$ad->slot_name] = [
                             'ad_code' => $ad->ad_code,
                             'ad_type' => $ad->ad_type ?? 'adsense',
-                            'image_url' => $ad->image_url,
+                            'image_url' => $imageUrl,
                             'link_url' => $ad->link_url,
                             'link_target' => $ad->link_target ?? '_blank',
                             'is_visible' => $ad->is_visible,

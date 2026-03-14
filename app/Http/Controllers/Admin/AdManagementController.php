@@ -16,6 +16,17 @@ class AdManagementController extends Controller
         $globalSettings = AdGlobalSetting::getSetting();
         $adSettings = AdSetting::orderBy('page')->orderBy('order')->get();
 
+        // Build full image URLs for display
+        $r2PublicUrl = rtrim(env('VITE_R2_PUBLIC_URL', ''), '/');
+        $adSettings->transform(function ($ad) use ($r2PublicUrl) {
+            if ($ad->image_url && !str_starts_with($ad->image_url, 'http://') && !str_starts_with($ad->image_url, 'https://')) {
+                $path = ltrim($ad->image_url, '/');
+                $path = preg_replace('#^storage/#', '', $path);
+                $ad->image_url = $r2PublicUrl ? ($r2PublicUrl . '/' . $path) : ('/storage/' . $path);
+            }
+            return $ad;
+        });
+
         return Inertia::render('Admin/AdManagement', [
             'globalSettings' => $globalSettings,
             'adSettings' => $adSettings,
@@ -68,6 +79,7 @@ class AdManagementController extends Controller
             'ad_code' => 'nullable|string',
             'image_url' => 'nullable|string|max:2048',
             'image_file' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:5120',
+            'remove_image' => 'nullable',
             'link_url' => 'nullable|string|max:2048',
             'link_target' => 'nullable|string|in:_blank,_self',
             'is_active' => 'boolean',
@@ -78,7 +90,7 @@ class AdManagementController extends Controller
         if ($request->hasFile('image_file')) {
             $validated['image_url'] = $this->uploadAdImage($request->file('image_file'));
         }
-        unset($validated['image_file']);
+        unset($validated['image_file'], $validated['remove_image']);
 
         AdSetting::create($validated);
 
@@ -96,22 +108,25 @@ class AdManagementController extends Controller
             'ad_code' => 'nullable|string',
             'image_url' => 'nullable|string|max:2048',
             'image_file' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:5120',
+            'remove_image' => 'nullable',
             'link_url' => 'nullable|string|max:2048',
             'link_target' => 'nullable|string|in:_blank,_self',
             'is_active' => 'boolean',
             'order' => 'integer'
         ]);
 
+        // Handle image removal
+        if ($request->input('remove_image') === 'true' || $request->input('remove_image') === true) {
+            $this->deleteOldAdImage($adSetting->image_url);
+            $validated['image_url'] = null;
+        }
+
         // Handle image file upload
         if ($request->hasFile('image_file')) {
-            // Delete old uploaded image if it exists
-            if ($adSetting->image_url && str_starts_with($adSetting->image_url, '/storage/uploads/ads/')) {
-                $oldPath = str_replace('/storage/', '', $adSetting->image_url);
-                Storage::disk('public')->delete($oldPath);
-            }
+            $this->deleteOldAdImage($adSetting->image_url);
             $validated['image_url'] = $this->uploadAdImage($request->file('image_file'));
         }
-        unset($validated['image_file']);
+        unset($validated['image_file'], $validated['remove_image']);
 
         $adSetting->update($validated);
 
@@ -121,8 +136,44 @@ class AdManagementController extends Controller
     private function uploadAdImage($file)
     {
         $filename = uniqid('ad_') . '.' . $file->getClientOriginalExtension();
-        $path = $file->storeAs('uploads/ads', $filename, 'public');
-        return '/storage/' . $path;
+        $uploadPath = 'uploads/ads/' . $filename;
+
+        // Try R2 first, fallback to local
+        $r2Configured = env('R2_ACCESS_KEY_ID') && env('R2_BUCKET');
+
+        if ($r2Configured) {
+            try {
+                Storage::disk('r2')->put($uploadPath, file_get_contents($file));
+                \Log::info("Ad image uploaded to R2", ['path' => $uploadPath]);
+                // Return the relative path - frontend will prepend R2 public URL
+                return $uploadPath;
+            } catch (\Exception $e) {
+                \Log::warning("R2 ad upload failed, using local: " . $e->getMessage());
+            }
+        }
+
+        // Fallback to local public storage
+        Storage::disk('public')->put($uploadPath, file_get_contents($file));
+        \Log::info("Ad image uploaded to local storage", ['path' => $uploadPath]);
+        return $uploadPath;
+    }
+
+    private function deleteOldAdImage($imageUrl)
+    {
+        if (!$imageUrl) return;
+
+        // Skip external URLs
+        if (str_starts_with($imageUrl, 'http://') || str_starts_with($imageUrl, 'https://')) return;
+
+        $path = ltrim($imageUrl, '/');
+        // Remove /storage/ prefix if present (old format)
+        $path = preg_replace('#^storage/#', '', $path);
+
+        $r2Configured = env('R2_ACCESS_KEY_ID') && env('R2_BUCKET');
+        if ($r2Configured) {
+            try { Storage::disk('r2')->delete($path); } catch (\Exception $e) {}
+        }
+        try { Storage::disk('public')->delete($path); } catch (\Exception $e) {}
     }
 
     public function destroy(AdSetting $adSetting)
