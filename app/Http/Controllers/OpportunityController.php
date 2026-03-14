@@ -608,11 +608,7 @@ function store(Request $request)
 
     $op = $postId ? Oppty::findOrFail($postId) : new Oppty();
 
-    // Check user authorization for existing posts
-    if ($postId && $op->u_id !== Auth::id()) {
-        $isEditing = true;
-        return response()->json(["success" => false, "message" => "Unauthorized Access"], 403);
-    }
+    $isEditing = $postId ? true : false;
 
     // Handle file upload
     if ($request->hasFile('cover_img') && $request->file('cover_img')->isValid()) {
