@@ -7,7 +7,7 @@ import { Fragment, useState } from 'react';
 import Metadata from '@/Components/Metadata';
 import SocialLogin from '@/Components/SocialLogin';
 
-export default function Login({ status, canResetPassword }) {
+export default function Login({ status, canResetPassword, error }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -75,6 +75,21 @@ export default function Login({ status, canResetPassword }) {
                                 textAlign: 'center',
                             }}>
                                 {status}
+                            </div>
+                        )}
+
+                        {error && (
+                            <div style={{
+                                background: 'rgba(220,38,38,0.06)',
+                                border: '1px solid rgba(220,38,38,0.15)',
+                                borderRadius: '12px',
+                                padding: '12px 16px',
+                                fontSize: '13px',
+                                color: '#dc2626',
+                                marginBottom: '24px',
+                                textAlign: 'center',
+                            }}>
+                                {error}
                             </div>
                         )}
 

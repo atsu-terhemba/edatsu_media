@@ -28,11 +28,25 @@ class SocialAuthController extends Controller
             abort(404);
         }
 
+        // If user is already authenticated, redirect to dashboard
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+
         try {
             $socialUser = Socialite::driver($provider)->user();
+        } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
+            \Log::error("Social auth invalid state for {$provider}: " . $e->getMessage());
+            // State mismatch - try stateless as fallback
+            try {
+                $socialUser = Socialite::driver($provider)->stateless()->user();
+            } catch (\Exception $e2) {
+                \Log::error("Social auth stateless fallback also failed for {$provider}: " . $e2->getMessage());
+                return redirect()->route('login')->with('error', 'Login session expired. Please try again.');
+            }
         } catch (\Exception $e) {
             \Log::error("Social auth callback failed for {$provider}: " . $e->getMessage());
-            return redirect()->route('login')->with('error', 'Social login failed. Please try again.');
+            return redirect()->route('login')->with('error', 'Social login failed: ' . $e->getMessage());
         }
 
         try {

@@ -20,19 +20,47 @@ function getXsrfTokenFromCookie() {
     return match ? decodeURIComponent(match[1]) : null;
 }
 
+// Refresh CSRF token by making a lightweight GET request
+async function refreshCsrfToken() {
+    try {
+        const response = await axios.get('/csrf-token');
+        const newToken = response.data?.token;
+        if (newToken) {
+            window.axios.defaults.headers.common['X-CSRF-TOKEN'] = newToken;
+            // Also update the meta tag for any code that reads it directly
+            const metaTag = document.head.querySelector('meta[name="csrf-token"]');
+            if (metaTag) metaTag.content = newToken;
+            return newToken;
+        }
+    } catch {
+        // csrf-token endpoint failed
+    }
+    // Fallback: read from cookie
+    const cookieToken = getXsrfTokenFromCookie();
+    if (cookieToken) {
+        window.axios.defaults.headers.common['X-XSRF-TOKEN'] = cookieToken;
+    }
+    return cookieToken;
+}
+
 // Auto-refresh on CSRF token mismatch (419) - retry only once
 window.axios.interceptors.response.use(
     response => response,
-    error => {
+    async error => {
         if (error.response?.status === 419 && !error.config._retried) {
             error.config._retried = true;
-            // Read fresh token from cookie (Laravel sets XSRF-TOKEN cookie automatically)
-            const freshToken = getXsrfTokenFromCookie();
-            if (freshToken) {
-                error.config.headers['X-XSRF-TOKEN'] = freshToken;
-                return axios(error.config);
+            try {
+                const freshToken = await refreshCsrfToken();
+                if (freshToken) {
+                    // Update the request headers with fresh token
+                    error.config.headers['X-CSRF-TOKEN'] = freshToken;
+                    delete error.config.headers['X-XSRF-TOKEN'];
+                    return axios(error.config);
+                }
+            } catch {
+                // Refresh failed
             }
-            // If no cookie token, reload the page to get a fresh session
+            // If all else fails, reload the page
             window.location.reload();
             return Promise.reject(error);
         }

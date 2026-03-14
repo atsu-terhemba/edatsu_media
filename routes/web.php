@@ -47,6 +47,11 @@ use Inertia\Inertia;
 |
 */
 
+// CSRF token refresh endpoint
+Route::get('/csrf-token', function () {
+    return response()->json(['token' => csrf_token()]);
+});
+
 // Sitemap
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
