@@ -47,6 +47,11 @@ async function refreshCsrfToken() {
 window.axios.interceptors.response.use(
     response => response,
     async error => {
+        if (error.response?.status === 401) {
+            // Session expired - redirect to login
+            window.location.href = '/login';
+            return Promise.reject(error);
+        }
         if (error.response?.status === 419 && !error.config._retried) {
             error.config._retried = true;
             try {
