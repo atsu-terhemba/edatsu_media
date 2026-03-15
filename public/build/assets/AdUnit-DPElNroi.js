@@ -1,0 +1,38 @@
+import{S as s}from"./sweetalert2.esm.all-B0Dix5B2.js";import{b as z,r as n,j as a}from"./app-gUrEAanP.js";const T=(l={})=>{const{title:p="Subscribe",description:m="Get the latest updates delivered to your inbox",emailPlaceholder:o="Enter your email",successTitle:b="Successfully Subscribed!",successMessage:d="You'll receive the latest updates directly in your inbox.",submitButtonText:u="Subscribe Now",loadingText:f="Subscribing...",modalClass:t="subscription-modal-popup",endpoint:h="/subscribe",subscriptionType:x=null}=l;s.fire({title:"",html:`
+            <div style="text-align: center; padding: 20px;">
+                <h3 style="font-weight: bold; margin-bottom: 0.5rem; color: #1f2937; font-size: 1.25rem;">${p}</h3>
+                <p style="margin-bottom: 20px; color: #6b7280; font-size: 14px; line-height: 1.4;">
+                    ${m}
+                </p>
+                            
+                <form id="subscription-form" style="display: flex; flex-direction: column; gap: 12px; max-width: 320px; margin: 0 auto;">
+                    <input type="text" id="firstName" name="firstName" placeholder="First name" required
+                           style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.625rem 0.875rem; font-size: 0.875rem; background: #fafbfc; transition: all 0.2s ease;"
+                           onfocus="this.style.borderColor='#3b82f6'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.08)'"
+                           onblur="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='#fafbfc'; this.style.boxShadow='none'">
+                    
+                    <input type="text" id="lastName" name="lastName" placeholder="Last name" required
+                           style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.625rem 0.875rem; font-size: 0.875rem; background: #fafbfc; transition: all 0.2s ease;"
+                           onfocus="this.style.borderColor='#3b82f6'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.08)'"
+                           onblur="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='#fafbfc'; this.style.boxShadow='none'">
+                    
+                    <input type="email" id="email" name="email" placeholder="${o}" required
+                           style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.625rem 0.875rem; font-size: 0.875rem; background: #fafbfc; transition: all 0.2s ease;"
+                           onfocus="this.style.borderColor='#3b82f6'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.08)'"
+                           onblur="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='#fafbfc'; this.style.boxShadow='none'">
+                    
+                    <button type="submit" id="subscribe-btn"
+                            style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; border: none; border-radius: 8px; padding: 0.75rem 1.5rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);"
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(59, 130, 246, 0.4)'"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(59, 130, 246, 0.3)'">
+                        ${u}
+                    </button>
+                </form>
+                
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+                    <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                        🔒 Your email is safe with us. No spam, unsubscribe anytime.
+                    </p>
+                </div>
+            </div>
+        `,showConfirmButton:!1,showCloseButton:!0,width:"480px",padding:"0",background:"white",customClass:{popup:t,closeButton:"subscription-modal-close"},didOpen:()=>{const y=document.getElementById("subscription-form"),c=document.getElementById("subscribe-btn");y.addEventListener("submit",async C=>{var w,v;C.preventDefault();const B=document.getElementById("firstName").value,k=document.getElementById("lastName").value,E=document.getElementById("email").value;c.disabled=!0,c.innerHTML=f;try{(await z.post(h,{first_name:B,last_name:k,email:E,subscription_type:x})).data.success&&(s.close(),s.mixin({toast:!0,position:"top-end",showConfirmButton:!1,timer:4e3,timerProgressBar:!0,didOpen:g=>{g.addEventListener("mouseenter",s.stopTimer),g.addEventListener("mouseleave",s.resumeTimer)}}).fire({icon:"success",title:b,text:d}))}catch(e){console.error("Subscription error:",e);let r="An error occurred. Please try again.";if(e.response&&e.response.status===422){const i=e.response.data.errors;i&&(r=e.response.data.first_error||Object.values(i)[0][0])}else e.response&&e.response.status===409?r=e.response.data.message||"This email is already subscribed.":(v=(w=e.response)==null?void 0:w.data)!=null&&v.message&&(r=e.response.data.message);s.mixin({toast:!0,position:"top-end",showConfirmButton:!1,timer:4e3,timerProgressBar:!0,didOpen:i=>{i.addEventListener("mouseenter",s.stopTimer),i.addEventListener("mouseleave",s.resumeTimer)}}).fire({icon:"error",title:"Subscription Failed",text:r}),c.disabled=!1,c.innerHTML=u}})}})},j=()=>{T({description:"Get the latest tools delivered to your inbox",successMessage:"You'll receive the latest tools and updates directly in your inbox.",modalClass:"subscription-modal-popup",subscriptionType:"tools"})},R=()=>{T({description:"Get opportunities delivered to your inbox",successTitle:"Subscribed!",successMessage:"You'll receive opportunities in your inbox",submitButtonText:"Subscribe",modalClass:"auth-modal-popup",subscriptionType:"opportunities"})},L="ca-pub-7365396698208751",S={horizontal:{slot:"7889919728",format:"auto",fullWidthResponsive:!0,minHeight:"100px"},infeed:{slot:"7226228488",format:"fluid",layoutKey:"-h6+1+2-i+l",minHeight:"120px"},square:{slot:"1848837203",format:"auto",fullWidthResponsive:!0,minHeight:"250px"}};function M({type:l="horizontal",className:p="",style:m={}}){const o=n.useRef(null),b=n.useRef(null),d=n.useRef(!1),[u,f]=n.useState(!1),t=S[l]||S.horizontal;return n.useEffect(()=>{if(d.current)return;const h=setTimeout(()=>{try{o.current&&((window.adsbygoogle=window.adsbygoogle||[]).push({}),d.current=!0)}catch{}},100),x=setTimeout(()=>{o.current&&o.current.offsetHeight>0&&f(!0)},2e3);return()=>{clearTimeout(h),clearTimeout(x)}},[]),a.jsxs("div",{ref:b,className:p,style:{background:"#fafafa",border:"1px solid #e5e5e7",borderRadius:"12px",padding:"12px 16px",textAlign:"center",overflow:"hidden",minHeight:t.minHeight,position:"relative",...m},children:[a.jsx("div",{style:{display:"flex",alignItems:"center",justifyContent:"center",gap:"6px",marginBottom:"8px"},children:a.jsx("span",{style:{fontSize:"10px",fontWeight:500,color:"#b0b0b0",textTransform:"uppercase",letterSpacing:"0.1em"},children:"Sponsored"})}),!u&&a.jsx("div",{style:{display:"flex",alignItems:"center",justifyContent:"center",minHeight:l==="square"?"200px":"60px",color:"#c7c7cc",fontSize:"12px",fontWeight:400,letterSpacing:"0.05em"},children:"Advertisement"}),a.jsx("ins",{ref:o,className:"adsbygoogle",style:{display:"block"},"data-ad-client":L,"data-ad-slot":t.slot,"data-ad-format":t.format,...t.layoutKey?{"data-ad-layout-key":t.layoutKey}:{},...t.fullWidthResponsive?{"data-full-width-responsive":"true"}:{}})]})}export{M as A,j as a,R as s};

@@ -1,44 +1,68 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const AD_CLIENT = 'ca-pub-7365396698208751';
 
 const AD_SLOTS = {
-    horizontal: { slot: '7889919728', format: 'auto', fullWidthResponsive: true },
-    infeed: { slot: '7226228488', format: 'fluid', layoutKey: '-h6+1+2-i+l' },
-    square: { slot: '1848837203', format: 'auto', fullWidthResponsive: true },
+    horizontal: { slot: '7889919728', format: 'auto', fullWidthResponsive: true, minHeight: '100px' },
+    infeed: { slot: '7226228488', format: 'fluid', layoutKey: '-h6+1+2-i+l', minHeight: '120px' },
+    square: { slot: '1848837203', format: 'auto', fullWidthResponsive: true, minHeight: '250px' },
 };
 
 export default function AdUnit({ type = 'horizontal', className = '', style = {} }) {
     const adRef = useRef(null);
+    const containerRef = useRef(null);
     const pushed = useRef(false);
+    const [adLoaded, setAdLoaded] = useState(false);
 
     const config = AD_SLOTS[type] || AD_SLOTS.horizontal;
 
     useEffect(() => {
         if (pushed.current) return;
-        try {
-            if (adRef.current && adRef.current.childElementCount === 0) {
-                (window.adsbygoogle = window.adsbygoogle || []).push({});
-                pushed.current = true;
+
+        const timer = setTimeout(() => {
+            try {
+                if (adRef.current) {
+                    (window.adsbygoogle = window.adsbygoogle || []).push({});
+                    pushed.current = true;
+                }
+            } catch (e) {
+                // AdSense not loaded or ad blocked
             }
-        } catch (e) {
-            // AdSense not loaded or ad blocked
-        }
+        }, 100);
+
+        // Check if ad actually rendered after a delay
+        const checkTimer = setTimeout(() => {
+            if (adRef.current) {
+                const adHeight = adRef.current.offsetHeight;
+                if (adHeight > 0) {
+                    setAdLoaded(true);
+                }
+            }
+        }, 2000);
+
+        return () => {
+            clearTimeout(timer);
+            clearTimeout(checkTimer);
+        };
     }, []);
 
     return (
         <div
+            ref={containerRef}
             className={className}
             style={{
                 background: '#fafafa',
-                border: '1px solid #f0f0f0',
+                border: '1px solid #e5e5e7',
                 borderRadius: '12px',
-                padding: '16px',
+                padding: '12px 16px',
                 textAlign: 'center',
                 overflow: 'hidden',
+                minHeight: config.minHeight,
+                position: 'relative',
                 ...style,
             }}
         >
+            {/* Sponsored label */}
             <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -56,10 +80,28 @@ export default function AdUnit({ type = 'horizontal', className = '', style = {}
                     Sponsored
                 </span>
             </div>
+
+            {/* Placeholder shown until ad loads */}
+            {!adLoaded && (
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: type === 'square' ? '200px' : '60px',
+                    color: '#c7c7cc',
+                    fontSize: '12px',
+                    fontWeight: 400,
+                    letterSpacing: '0.05em',
+                }}>
+                    Advertisement
+                </div>
+            )}
+
+            {/* AdSense unit */}
             <ins
                 ref={adRef}
                 className="adsbygoogle"
-                style={{ display: 'block', ...(type === 'infeed' ? {} : {}) }}
+                style={{ display: 'block' }}
                 data-ad-client={AD_CLIENT}
                 data-ad-slot={config.slot}
                 data-ad-format={config.format}
