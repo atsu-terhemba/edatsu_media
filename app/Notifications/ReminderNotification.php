@@ -39,8 +39,8 @@ class ReminderNotification extends Notification implements ShouldQueue
      */
     public function via($notifiable)
     {
-        // Send via mail, custom database, and broadcast (for push notifications)
-        return ['mail', CustomDatabaseChannel::class, 'broadcast'];
+        // Send via mail and custom database (push is handled by WebPushService in the scheduler)
+        return ['mail', CustomDatabaseChannel::class];
     }
 
     /**

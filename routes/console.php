@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote')->hourly();
 
 Schedule::command('bookmarks:process-reminders')->everyMinute();
+Schedule::command('subscriptions:handle-expired')->daily();

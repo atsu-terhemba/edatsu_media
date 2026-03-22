@@ -34,6 +34,12 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
+                'currentPlan' => fn () => $request->user()
+                    ? (rescue(fn () => $request->user()->activeSubscription?->plan->name, 'Free', false) ?? 'Free')
+                    : null,
+                'isPro' => fn () => $request->user()
+                    ? rescue(fn () => $request->user()->isPro(), false, false)
+                    : false,
             ],
             'ziggy' => fn () => [
                 ...(new Ziggy)->toArray(),

@@ -1,13 +1,12 @@
 import { Fragment, useState, useEffect } from "react";
 import { Link, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import UserAvatar from './UserAvatar';
 
 const FixedAuthNav = () => {
-  const { auth, url } = usePage().props;
+  const { auth } = usePage().props;
+  const currentPath = usePage().url;
   const user = auth?.user;
   const isAdmin = user?.role === 'admin';
-  const currentPath = url || (typeof window !== 'undefined' ? window.location.pathname : '/');
   const [showDrawer, setShowDrawer] = useState(false);
   const [notifCount, setNotifCount] = useState(0);
   const [openMenus, setOpenMenus] = useState({});
@@ -103,6 +102,22 @@ const FixedAuthNav = () => {
             { label: 'Categories', path: '/product-categories' },
           ],
         },
+        {
+          key: 'events',
+          icon: 'event',
+          label: 'Events',
+          items: [
+            { label: 'Create Event', path: '/admin-post-event' },
+          ],
+        },
+        {
+          key: 'feeds',
+          icon: 'rss_feed',
+          label: 'Feeds',
+          items: [
+            { label: 'Manage Channels', path: '/admin-post-feeds-category' },
+          ],
+        },
       ],
     },
     {
@@ -110,19 +125,33 @@ const FixedAuthNav = () => {
       items: [
         { label: 'Opportunities', icon: 'explore', path: '/opportunities' },
         { label: 'Toolshed', icon: 'handyman', path: '/toolshed' },
+        { label: 'News', icon: 'newspaper', path: '/news' },
+        { label: 'Events', icon: 'event', path: '/events' },
+      ],
+    },
+    {
+      title: 'Account',
+      items: [
+        { label: 'Profile', icon: 'person', path: '/profile' },
+        { label: 'Directory', icon: 'folder', path: '/admin-directory' },
       ],
     },
   ];
 
-  // Subscriber drawer sections
+  // Subscriber drawer sections — matches desktop SideNav fully
   const subscriberDrawerSections = [
     {
       title: 'Account',
       items: [
         { label: 'Dashboard', icon: 'dashboard', path: '/subscriber-dashboard' },
-        { label: 'Profile', icon: 'person', path: '/profile' },
+        { label: 'Saved Opportunities', icon: 'event', path: '/bookmarked-opportunities' },
+        { label: 'Saved Tools', icon: 'handyman', path: '/bookmarked-tools' },
+        { label: 'Notifications', icon: 'notifications', path: '/notifications' },
+        { label: 'Messages', icon: 'mail', path: '/messages' },
         { label: 'Preferences', icon: 'tune', path: '/preferences' },
-        { label: 'Notification Settings', icon: 'settings', path: '/notification-settings' },
+        { label: 'Notification Settings', icon: 'settings_suggest', path: '/notification-settings' },
+        { label: 'Billing', icon: 'credit_card', path: '/billing' },
+        { label: 'Profile', icon: 'person', path: '/profile' },
       ],
     },
     {
@@ -412,6 +441,7 @@ const FixedAuthNav = () => {
                     style={{
                       fontSize: 22,
                       color: active ? '#f97316' : 'rgba(255,255,255,0.5)',
+                      fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
                       transition: 'color 0.15s',
                     }}
                   >
@@ -432,7 +462,7 @@ const FixedAuthNav = () => {
                   )}
                 </div>
                 <span style={{
-                  fontSize: 10, fontWeight: 500, letterSpacing: '0.01em',
+                  fontSize: 10, fontWeight: active ? 600 : 500, letterSpacing: '0.01em',
                   color: active ? '#f97316' : 'rgba(255,255,255,0.45)',
                   transition: 'color 0.15s',
                 }}>

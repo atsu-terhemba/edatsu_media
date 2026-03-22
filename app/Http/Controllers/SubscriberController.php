@@ -134,8 +134,13 @@ class SubscriberController extends Controller
     
     //
     function index(){
-        // Return the dashboard view - data will be loaded via API
-        return Inertia::render('Subscriber/Dashboard');
+        $user = Auth::user();
+        $activeSubscription = $user->activeSubscription()->with('plan')->first();
+
+        return Inertia::render('Subscriber/Dashboard', [
+            'currentPlan' => $activeSubscription ? $activeSubscription->plan->name : 'Free',
+            'activeSubscription' => $activeSubscription,
+        ]);
     }        
     
     function bookmarkedOpportunities(){

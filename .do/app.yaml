@@ -51,3 +51,15 @@ spec:
         - key: VAPID_PRIVATE_KEY
           value: "${VAPID_PRIVATE_KEY}"
           type: SECRET
+        - key: FLUTTERWAVE_PUBLIC_KEY
+          value: "${FLUTTERWAVE_PUBLIC_KEY}"
+          type: SECRET
+        - key: FLUTTERWAVE_SECRET_KEY
+          value: "${FLUTTERWAVE_SECRET_KEY}"
+          type: SECRET
+        - key: FLUTTERWAVE_ENCRYPTION_KEY
+          value: "${FLUTTERWAVE_ENCRYPTION_KEY}"
+          type: SECRET
+        - key: FLUTTERWAVE_WEBHOOK_HASH
+          value: "${FLUTTERWAVE_WEBHOOK_HASH}"
+          type: SECRET

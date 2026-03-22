@@ -19,9 +19,14 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $user = $request->user();
+        $activeSubscription = $user->activeSubscription()->with('plan')->first();
+
         return Inertia::render('Profile/Edit', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => session('status'),
+            'currentPlan' => $activeSubscription ? $activeSubscription->plan->name : 'Free',
+            'activeSubscription' => $activeSubscription,
         ]);
     }
 

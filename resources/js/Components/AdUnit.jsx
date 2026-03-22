@@ -12,23 +12,29 @@ export default function AdUnit({ type = 'horizontal', className = '', style = {}
     const adRef = useRef(null);
     const containerRef = useRef(null);
     const pushed = useRef(false);
+    const [isClient, setIsClient] = useState(false);
     const [adLoaded, setAdLoaded] = useState(false);
 
     const config = AD_SLOTS[type] || AD_SLOTS.horizontal;
 
+    // Only render the ad <ins> tag on the client, never during SSR
     useEffect(() => {
-        if (pushed.current) return;
+        setIsClient(true);
+    }, []);
+
+    useEffect(() => {
+        if (!isClient || pushed.current) return;
 
         const timer = setTimeout(() => {
             try {
-                if (adRef.current) {
+                if (adRef.current && window.adsbygoogle) {
                     (window.adsbygoogle = window.adsbygoogle || []).push({});
                     pushed.current = true;
                 }
             } catch (e) {
                 // AdSense not loaded or ad blocked
             }
-        }, 100);
+        }, 300);
 
         // Check if ad actually rendered after a delay
         const checkTimer = setTimeout(() => {
@@ -38,13 +44,13 @@ export default function AdUnit({ type = 'horizontal', className = '', style = {}
                     setAdLoaded(true);
                 }
             }
-        }, 2000);
+        }, 3000);
 
         return () => {
             clearTimeout(timer);
             clearTimeout(checkTimer);
         };
-    }, []);
+    }, [isClient]);
 
     return (
         <div
@@ -97,17 +103,19 @@ export default function AdUnit({ type = 'horizontal', className = '', style = {}
                 </div>
             )}
 
-            {/* AdSense unit */}
-            <ins
-                ref={adRef}
-                className="adsbygoogle"
-                style={{ display: 'block' }}
-                data-ad-client={AD_CLIENT}
-                data-ad-slot={config.slot}
-                data-ad-format={config.format}
-                {...(config.layoutKey ? { 'data-ad-layout-key': config.layoutKey } : {})}
-                {...(config.fullWidthResponsive ? { 'data-full-width-responsive': 'true' } : {})}
-            />
+            {/* AdSense unit — only rendered client-side to avoid SSR/hydration conflicts */}
+            {isClient && (
+                <ins
+                    ref={adRef}
+                    className="adsbygoogle"
+                    style={{ display: 'block' }}
+                    data-ad-client={AD_CLIENT}
+                    data-ad-slot={config.slot}
+                    data-ad-format={config.format}
+                    {...(config.layoutKey ? { 'data-ad-layout-key': config.layoutKey } : {})}
+                    {...(config.fullWidthResponsive ? { 'data-full-width-responsive': 'true' } : {})}
+                />
+            )}
         </div>
     );
 }

@@ -153,6 +153,52 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get the user's subscriptions
+     */
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class)->latest();
+    }
+
+    /**
+     * Get the user's active subscription
+     */
+    public function activeSubscription()
+    {
+        return $this->hasOne(Subscription::class)
+            ->where('status', 'active')
+            ->where('ends_at', '>', now())
+            ->latest();
+    }
+
+    /**
+     * Get the user's transactions
+     */
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class)->latest();
+    }
+
+    /**
+     * Check if user has an active pro subscription
+     */
+    public function isPro()
+    {
+        return $this->activeSubscription()
+            ->whereHas('plan', fn($q) => $q->where('slug', 'pro'))
+            ->exists();
+    }
+
+    /**
+     * Get current plan name
+     */
+    public function currentPlanName()
+    {
+        $sub = $this->activeSubscription;
+        return $sub ? $sub->plan->name : 'Free';
+    }
+
+    /**
      * Route notifications for the custom database channel.
      */
     public function routeNotificationForDatabase()

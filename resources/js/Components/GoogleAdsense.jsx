@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const GoogleAdsense = ({
   client = 'ca-pub-7365396698208751',
@@ -8,11 +8,19 @@ const GoogleAdsense = ({
   style = { display: 'block' },
   className = '',
 }) => {
-  
+  const [isClient, setIsClient] = useState(false);
+
+  // Only render on the client to avoid SSR/hydration conflicts
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+
     // Load the AdSense script if it hasn't been loaded yet
     const hasScript = document.querySelector(`script[src*="adsbygoogle"][data-ad-client="${client}"]`);
-    
+
     if (!hasScript) {
       const script = document.createElement('script');
       script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${client}`;
@@ -26,15 +34,11 @@ const GoogleAdsense = ({
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch (error) {
-      console.error('AdSense error:', error);
+      // AdSense not loaded or ad blocked
     }
-    
-    // Cleanup function not strictly necessary for AdSense,
-    // but good practice for component unmounting
-    return () => {
-      // No real cleanup needed for AdSense
-    };
-  }, [client]);
+  }, [isClient, client]);
+
+  if (!isClient) return null;
 
   return (
     <ins

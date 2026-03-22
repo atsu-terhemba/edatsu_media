@@ -1,9 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Container, Row, Col } from 'react-bootstrap';
-import { Head } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import SubscriberSideNav from './Components/SideNav';
-import { Link } from '@inertiajs/react';
 import axios from 'axios';
 import Footer from '@/Components/Footer';
 import DashboardSkeleton from '@/Components/DashboardSkeleton';
@@ -107,10 +106,12 @@ function StatCard({ label, value, icon, badge }) {
 }
 
 export default function Dashboard() {
+    const { currentPlan, activeSubscription } = usePage().props;
     const [subscriberData, setSubscriberData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [refreshHovered, setRefreshHovered] = useState(false);
+    const isPro = currentPlan === 'Pro';
 
     useEffect(() => {
         fetchSubscriberDetails();
@@ -277,6 +278,98 @@ export default function Dashboard() {
                                         Refresh
                                     </button>
                                 </div>
+                            </div>
+
+                            {/* Subscription Plan Card */}
+                            <div style={{
+                                background: isPro
+                                    ? 'linear-gradient(145deg, #1a1a1a 0%, #0a0a0a 100%)'
+                                    : '#fff',
+                                borderRadius: '16px',
+                                padding: '20px 24px',
+                                marginBottom: '16px',
+                                border: isPro ? 'none' : '1px solid #f0f0f0',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: '12px',
+                                flexWrap: 'wrap',
+                                position: 'relative',
+                                overflow: 'hidden',
+                            }}>
+                                {isPro && (
+                                    <div style={{
+                                        position: 'absolute', top: '-30px', right: '-20px',
+                                        width: '120px', height: '120px',
+                                        background: 'radial-gradient(circle, rgba(249,115,22,0.1) 0%, transparent 70%)',
+                                        pointerEvents: 'none',
+                                    }} />
+                                )}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative', zIndex: 1 }}>
+                                    <div style={{
+                                        width: '38px', height: '38px', borderRadius: '10px',
+                                        background: isPro ? 'rgba(249,115,22,0.12)' : '#f5f5f7',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        flexShrink: 0,
+                                    }}>
+                                        <span className="material-symbols-outlined" style={{
+                                            fontSize: '20px',
+                                            color: isPro ? '#f97316' : '#86868b',
+                                        }}>
+                                            {isPro ? 'workspace_premium' : 'star'}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span style={{
+                                                fontSize: '15px', fontWeight: 600,
+                                                color: isPro ? '#fff' : '#000',
+                                            }}>
+                                                {currentPlan || 'Free'} Plan
+                                            </span>
+                                            {isPro && (
+                                                <span style={{
+                                                    fontSize: '10px', fontWeight: 600,
+                                                    background: 'rgba(22,163,74,0.15)',
+                                                    color: '#4ade80',
+                                                    padding: '2px 8px',
+                                                    borderRadius: '9999px',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.04em',
+                                                }}>
+                                                    Active
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div style={{
+                                            fontSize: '12px',
+                                            color: isPro ? 'rgba(255,255,255,0.4)' : '#86868b',
+                                            marginTop: '1px',
+                                        }}>
+                                            {isPro && activeSubscription
+                                                ? `Renews ${new Date(activeSubscription.ends_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                                                : 'Upgrade to unlock all features'}
+                                        </div>
+                                    </div>
+                                </div>
+                                <Link
+                                    href={isPro ? route('subscriber.billing') : route('subscription')}
+                                    style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: '5px',
+                                        padding: '8px 18px', borderRadius: '9999px',
+                                        fontSize: '12px', fontWeight: 500,
+                                        textDecoration: 'none',
+                                        background: isPro ? 'rgba(255,255,255,0.08)' : '#000',
+                                        color: isPro ? 'rgba(255,255,255,0.7)' : '#fff',
+                                        border: isPro ? '1px solid rgba(255,255,255,0.12)' : 'none',
+                                        position: 'relative', zIndex: 1,
+                                    }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+                                        {isPro ? 'credit_card' : 'upgrade'}
+                                    </span>
+                                    {isPro ? 'Billing' : 'Upgrade'}
+                                </Link>
                             </div>
 
                             {/* Stats Cards */}

@@ -119,7 +119,7 @@ export default function Advertise() {
                                         </p>
 
                                         <a
-                                            href="mailto:advertise@edatsu.com"
+                                            href="mailto:ads@edatsu.com"
                                             style={{
                                                 background: '#fff',
                                                 color: '#000',
@@ -447,7 +447,7 @@ export default function Advertise() {
 
                         <div className="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3 mb-4">
                             <a
-                                href="mailto:advertise@edatsu.com"
+                                href="mailto:ads@edatsu.com"
                                 style={{
                                     display: 'inline-flex',
                                     alignItems: 'center',
@@ -466,7 +466,7 @@ export default function Advertise() {
                                 onMouseLeave={(e) => e.currentTarget.style.background = '#fff'}
                             >
                                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>mail</span>
-                                advertise@edatsu.com
+                                ads@edatsu.com
                             </a>
                             <a
                                 href="tel:+2349018355951"

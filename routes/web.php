@@ -73,7 +73,8 @@ Route::get('/privacy-policy', fn() => Inertia::render('Privacy'))->name('privacy
 Route::get('/help', fn()=>Inertia::render('Help'))->name('help');
 Route::get('/sponsorship', [App::class, 'initSponsorshipPage'])->name('sponsorship');
 Route::get('/subscription', fn() => Inertia::render('Subscription'))->name('pricing');
-Route::get('/upgrade-plan', fn() => Inertia::render('Upgrade'))->name('subscription');
+Route::get('/upgrade-plan', [SubscriptionController::class, 'showUpgrade'])->name('subscription');
+Route::get('/subscription/callback', [SubscriptionController::class, 'handleCallback'])->name('subscription.callback');
 
 // Search endpoints
 Route::get('/search-opportunities', [App::class, 'searchOpportunities']);
@@ -108,7 +109,8 @@ Route::get('/podcast', [App::class, 'initPodcastPage'])->name('podcast');
 
 // Ratings and Comments
 Route::post('/ratings', [RatingController::class, 'store'])->name('rating.store');
-Route::post('/process-subscription', [SubscriptionController::class, 'process'])->name('subscription.process');
+// Flutterwave webhook (no CSRF)
+Route::post('/webhook/flutterwave', [SubscriptionController::class, 'handleWebhook'])->name('subscription.webhook');
 Route::post('/comment/{id}/reply', [CommentController::class, 'reply'])->name('comment.reply');
 
 // User registration
@@ -157,6 +159,11 @@ Route::middleware('auth')->group(function () {
     // User activity tracking
     Route::post('/track-activity', [UserActivityController::class, 'store']);
     
+    // Subscription & Billing
+    Route::post('/subscription/initiate', [SubscriptionController::class, 'initiatePayment'])->name('subscription.initiate');
+    Route::get('/billing', [SubscriptionController::class, 'billing'])->name('subscriber.billing');
+    Route::post('/subscription/cancel', [SubscriptionController::class, 'cancelSubscription'])->name('subscription.cancel');
+
     // Profile management
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

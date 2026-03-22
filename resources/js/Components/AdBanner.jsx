@@ -15,8 +15,14 @@ const sizeMap = {
 
 const AdBanner = ({ slot, page = 'all', position = 'top', size = 'responsive', className = '', style = {} }) => {
     const [hidden, setHidden] = useState(false);
+    const [isClient, setIsClient] = useState(false);
     const adRef = useRef(null);
     const { adSettings, auth } = usePage().props;
+
+    // Only render ad code on the client, never during SSR
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const enabled = adSettings?.enabled || false;
     const showPlaceholders = adSettings?.show_placeholders !== false;
@@ -41,9 +47,9 @@ const AdBanner = ({ slot, page = 'all', position = 'top', size = 'responsive', c
 
     const hasContent = adType === 'custom' ? !!imageUrl : !!adCode;
 
-    // Execute AdSense code scripts after mount
+    // Execute AdSense code scripts after mount (client-side only)
     useEffect(() => {
-        if (!enabled || adType !== 'adsense' || !adCode || !adRef.current || hidden) return;
+        if (!isClient || !enabled || adType !== 'adsense' || !adCode || !adRef.current || hidden) return;
 
         const container = adRef.current;
         container.innerHTML = '';
@@ -86,7 +92,7 @@ const AdBanner = ({ slot, page = 'all', position = 'top', size = 'responsive', c
                 // Ad already pushed or blocked
             }
         }
-    }, [enabled, adCode, adType, hidden, publisherId]);
+    }, [isClient, enabled, adCode, adType, hidden, publisherId]);
 
     if (hidden || !isVisible) return null;
 

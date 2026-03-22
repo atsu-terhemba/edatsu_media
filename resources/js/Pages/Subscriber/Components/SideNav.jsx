@@ -9,6 +9,7 @@ export default function SubscriberSideNav() {
         { href: route('subscriber.bookmarked_tools'), icon: 'handyman', label: 'Tools' },
         { href: route('subscriber.notifications'), icon: 'notifications', label: 'Notifications' },
         { href: route('subscriber.preferences'), icon: 'tune', label: 'Preferences' },
+        { href: route('subscriber.billing'), icon: 'credit_card', label: 'Billing' },
         { href: route('profile.edit'), icon: 'settings', label: 'Settings' },
     ];
 
