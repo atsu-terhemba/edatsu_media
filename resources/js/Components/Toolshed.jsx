@@ -3,7 +3,8 @@ import { Image } from "react-bootstrap";
 import axios from "axios";
 import Swal from 'sweetalert2';
 import { Link } from "@inertiajs/react";
-import { getDaysLeft, toggleShare, createSharingLinks, bookmark, pageLink } from "@/utils/Index";
+import { getDaysLeft, bookmark, pageLink } from "@/utils/Index";
+import ShareButton from '@/Components/ShareButton';
 
 const DisplayToolshed = ({ data, showLabels }) => {
   const [loadedImages, setLoadedImages] = useState({});
@@ -277,30 +278,7 @@ const DisplayToolshed = ({ data, showLabels }) => {
                   {/* Actions */}
                   <div className="d-flex align-items-center justify-content-between" style={{ marginTop: 'auto', paddingTop: '12px', borderTop: '1px solid #f5f5f7' }}>
                     <div className="d-flex align-items-center gap-2">
-                      <button
-                        className="btn p-0"
-                        data-title={tool.product_name}
-                        data-id={tool.id}
-                        onClick={(e) => toggleShare(e.currentTarget)}
-                        style={{
-                          border: 'none',
-                          background: 'transparent',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '50%',
-                          transition: 'background 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f7'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                      >
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#86868b' }}>
-                          share
-                        </span>
-                      </button>
+                      <ShareButton title={tool.product_name} id={tool.id} type="tool" variant="icon" />
                       <button
                         className="btn p-0"
                         data-id={tool.id}

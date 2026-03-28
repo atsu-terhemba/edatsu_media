@@ -1,7 +1,8 @@
 import React, { useEffect, useCallback, useState } from "react";
 import { Image } from "react-bootstrap";
 import Swal from 'sweetalert2';
-import { getDaysLeft, toggleShare, bookmark, pageLink } from "@/utils/Index";
+import { getDaysLeft, bookmark, pageLink } from "@/utils/Index";
+import ShareButton from '@/Components/ShareButton';
 
 const DisplayOpportunities = ({ data, isAuthenticated }) => {
   const [loadedImages, setLoadedImages] = useState({});
@@ -303,26 +304,7 @@ const DisplayOpportunities = ({ data, isAuthenticated }) => {
                   </span>
 
                   <div className="d-flex align-items-center gap-2">
-                    {/* Share */}
-                    <div className="position-relative">
-                      <div className="position-absolute share-panel d-none" style={{
-                        top: 'auto', right: '0px', bottom: '35px', zIndex: 1050, minWidth: '280px'
-                      }}></div>
-                      <button
-                        className="btn p-0"
-                        data-title={o.title}
-                        data-id={o.id}
-                        onClick={(e) => toggleShare(e.currentTarget)}
-                        style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}
-                      >
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#86868b', transition: 'color 0.15s ease' }}
-                          onMouseEnter={(e) => e.currentTarget.style.color = '#000'}
-                          onMouseLeave={(e) => e.currentTarget.style.color = '#86868b'}
-                        >
-                          share
-                        </span>
-                      </button>
-                    </div>
+                    <ShareButton title={o.title} id={o.id} type="opp" variant="icon" />
 
                     {/* Bookmark */}
                     <button

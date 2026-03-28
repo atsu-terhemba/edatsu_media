@@ -5,7 +5,8 @@ import Col from 'react-bootstrap/Col';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Link, usePage } from '@inertiajs/react';
 import Container from 'react-bootstrap/Container';
-import { getDaysLeft, getDaysLeftText, toggleShare, bookmark, pageLink } from "@/utils/Index";
+import { getDaysLeft, getDaysLeftText, bookmark, pageLink } from "@/utils/Index";
+import ShareButton from '@/Components/ShareButton';
 import RecommendedContent from "@/Components/RecommendedContent";
 import FixedMobileNav from '@/Components/FixedMobileNav';
 import axios from 'axios';
@@ -305,19 +306,7 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
 
                         {/* Share + Comments */}
                         <div className="d-flex align-items-center gap-3">
-                            <button
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
-                                data-title={opp_posts.title}
-                                data-id={opp_posts.id}
-                                onClick={(e) => toggleShare(e.currentTarget)}
-                            >
-                                <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#86868b', transition: 'color 0.15s ease' }}
-                                    onMouseEnter={(e) => e.currentTarget.style.color = '#000'}
-                                    onMouseLeave={(e) => e.currentTarget.style.color = '#86868b'}
-                                >
-                                    share
-                                </span>
-                            </button>
+                            <ShareButton title={opp_posts.title} id={opp_posts.id} type="opp" variant="icon" />
                             <button
                                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}
                                 onClick={() => document.getElementById('comments-section')?.scrollIntoView({behavior: 'smooth'})}
@@ -480,33 +469,7 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                             {opp_posts.is_bookmarked === 1 ? 'Saved' : 'Save'}
                         </button>
 
-                        <div className="position-relative">
-                            <div className="position-absolute share-panel border rounded fs-8 d-none"></div>
-                            <button
-                                style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                    padding: '12px 32px',
-                                    borderRadius: '9999px',
-                                    background: 'transparent',
-                                    color: '#000',
-                                    fontSize: '14px',
-                                    fontWeight: 500,
-                                    border: '1px solid #e5e5e5',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.15s ease',
-                                }}
-                                data-title={opp_posts.title}
-                                data-id={opp_posts.id}
-                                onClick={(e) => toggleShare(e.currentTarget)}
-                                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#000'; }}
-                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e5e5'; }}
-                            >
-                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>share</span>
-                                Share
-                            </button>
-                        </div>
+                        <ShareButton title={opp_posts.title} id={opp_posts.id} type="opp" variant="button-lg" />
                     </div>
                 </div>
 

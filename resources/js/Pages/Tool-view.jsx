@@ -5,7 +5,8 @@ import Col from 'react-bootstrap/Col';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import Container from 'react-bootstrap/Container';
-import { getDaysLeft, toggleShare, bookmark, pageLink, renderLabels, dateStringFormat} from "@/utils/Index";
+import { getDaysLeft, bookmark, pageLink, renderLabels, dateStringFormat} from "@/utils/Index";
+import ShareButton from '@/Components/ShareButton';
 import ProductRating from "@/Components/ProductRating";
 import ProductComments from "@/Components/ProductComments";
 import { router } from '@inertiajs/react'
@@ -183,33 +184,7 @@ const ReadTool = ({tool_data, similarPosts}) => {
                                         <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>language</span>
                                     </a>
                                 )}
-                                <div className="position-relative">
-                                    <div className="position-absolute share-panel border rounded fs-8 d-none"></div>
-                                    <button
-                                        style={{
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                            padding: '10px 24px',
-                                            borderRadius: '9999px',
-                                            border: '1px solid #e5e5e5',
-                                            background: 'transparent',
-                                            color: '#000',
-                                            fontSize: '13px',
-                                            fontWeight: 500,
-                                            cursor: 'pointer',
-                                            transition: 'all 0.15s ease',
-                                        }}
-                                        data-title={tool_data.title}
-                                        data-id={tool_data.id}
-                                        onClick={(e) => toggleShare(e.currentTarget)}
-                                        onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#000'; }}
-                                        onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e5e5'; }}
-                                    >
-                                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>share</span>
-                                        Share
-                                    </button>
-                                </div>
+                                <ShareButton title={tool_data.title} id={tool_data.id} type="tool" variant="button" />
                                 <button
                                     style={{
                                         display: 'inline-flex',
