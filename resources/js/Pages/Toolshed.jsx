@@ -368,7 +368,7 @@ const Toolshed = () => {
                                     )}
 
                                     {/* Pagination */}
-                                    <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #f0f0f0' }}>
+                                    <div style={{ marginTop: '32px', paddingTop: '24px' }}>
                                         {(pagination.length > 0) && (
                                             <DefaultPagination
                                                 pagination={pagination}

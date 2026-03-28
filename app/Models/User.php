@@ -34,7 +34,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'device_name',
         'last_ip_address',
         'user_agent',
-        'is_online'
+        'is_online',
+        'two_factor_secret',
+        'two_factor_confirmed_at',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -46,7 +49,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'remember_token',
         'user_agent',
-        'last_ip_address'
+        'last_ip_address',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -57,8 +62,17 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
         'last_seen_at' => 'datetime',
-        'is_online' => 'boolean'
+        'is_online' => 'boolean',
+        'two_factor_confirmed_at' => 'datetime',
     ];
+
+    /**
+     * Check if user has 2FA enabled and confirmed.
+     */
+    public function hasTwoFactorEnabled(): bool
+    {
+        return !is_null($this->two_factor_secret) && !is_null($this->two_factor_confirmed_at);
+    }
 
     /**
      * Check if user is online (active within last 5 minutes)

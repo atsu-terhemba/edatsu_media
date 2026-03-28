@@ -95,7 +95,7 @@ export default function Billing() {
         <AuthenticatedLayout>
             <Head title="Billing & Subscription" />
 
-            <section style={{ paddingTop: '40px', paddingBottom: '80px', minHeight: '80vh', background: '#fafafa' }}>
+            <section style={{ paddingTop: '96px', paddingBottom: '80px', minHeight: '80vh', background: '#fafafa' }}>
                 <Container>
                     <Row>
                         {/* Sidebar */}

@@ -41,6 +41,12 @@ Route::middleware('guest')->group(function () {
                 ->name('password.store');
 });
 
+// 2FA challenge (accessible without auth — user is mid-login)
+Route::get('two-factor-challenge', [AuthenticatedSessionController::class, 'twoFactorChallenge'])
+    ->name('2fa.challenge');
+Route::post('two-factor-challenge', [AuthenticatedSessionController::class, 'twoFactorVerify'])
+    ->name('2fa.verify');
+
 Route::middleware('auth')->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)
                 ->name('verification.notice');

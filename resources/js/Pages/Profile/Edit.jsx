@@ -1,8 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 import { Container, Row, Col } from 'react-bootstrap';
-import DeleteUserForm from './Partials/DeleteUserForm';
-import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import UpdateProfilePhotoForm from './Partials/UpdateProfilePhotoForm';
 
@@ -16,6 +14,15 @@ export default function Edit({ mustVerifyEmail, status, currentPlan, activeSubsc
         });
     };
 
+    const tabStyle = (active) => ({
+        display: 'inline-flex', alignItems: 'center', gap: '6px',
+        padding: '8px 18px', borderRadius: '9999px', fontSize: '13px', fontWeight: 500,
+        textDecoration: 'none', transition: 'all 0.15s ease',
+        background: active ? '#000' : '#f5f5f7',
+        color: active ? '#fff' : '#6e6e73',
+        border: 'none',
+    });
+
     return (
         <AuthenticatedLayout>
             <Head title="Profile" />
@@ -24,24 +31,32 @@ export default function Edit({ mustVerifyEmail, status, currentPlan, activeSubsc
                 <Container>
                     <Row className="justify-content-center">
                         <Col lg={8}>
-                            <div style={{ paddingTop: '96px', marginBottom: '32px' }}>
+                            <div style={{ paddingTop: '96px', marginBottom: '24px' }}>
                                 <h2 style={{
                                     fontSize: 'clamp(24px, 4vw, 28px)',
-                                    fontWeight: 600,
-                                    color: '#000',
-                                    letterSpacing: '-0.02em',
-                                    margin: 0,
+                                    fontWeight: 600, color: '#000',
+                                    letterSpacing: '-0.02em', margin: 0,
                                 }}>
-                                    Profile Settings
+                                    Profile
                                 </h2>
                                 <p style={{
-                                    fontSize: '14px',
-                                    color: '#86868b',
-                                    marginTop: '6px',
-                                    marginBottom: 0,
+                                    fontSize: '14px', color: '#86868b',
+                                    marginTop: '6px', marginBottom: 0,
                                 }}>
-                                    Manage your account details and security
+                                    Manage your personal information
                                 </p>
+                            </div>
+
+                            {/* Tab Navigation */}
+                            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+                                <span style={tabStyle(true)}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>person</span>
+                                    Profile
+                                </span>
+                                <Link href={route('settings')} style={tabStyle(false)}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>settings</span>
+                                    Settings
+                                </Link>
                             </div>
 
                             {/* Subscription Plan Card */}
@@ -53,13 +68,10 @@ export default function Edit({ mustVerifyEmail, status, currentPlan, activeSubsc
                                 borderRadius: '16px',
                                 padding: '24px 32px',
                                 marginBottom: '12px',
-                                display: 'flex',
-                                alignItems: 'center',
+                                display: 'flex', alignItems: 'center',
                                 justifyContent: 'space-between',
-                                gap: '16px',
-                                flexWrap: 'wrap',
-                                position: 'relative',
-                                overflow: 'hidden',
+                                gap: '16px', flexWrap: 'wrap',
+                                position: 'relative', overflow: 'hidden',
                             }}>
                                 {isPro && (
                                     <div style={{
@@ -84,9 +96,7 @@ export default function Edit({ mustVerifyEmail, status, currentPlan, activeSubsc
                                         </span>
                                     </div>
                                     <div>
-                                        <div style={{
-                                            display: 'flex', alignItems: 'center', gap: '8px',
-                                        }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <span style={{
                                                 fontSize: '16px', fontWeight: 600,
                                                 color: isPro ? '#fff' : '#000',
@@ -97,14 +107,10 @@ export default function Edit({ mustVerifyEmail, status, currentPlan, activeSubsc
                                                 <span style={{
                                                     fontSize: '10px', fontWeight: 600,
                                                     background: 'rgba(22,163,74,0.15)',
-                                                    color: '#4ade80',
-                                                    padding: '3px 10px',
-                                                    borderRadius: '9999px',
-                                                    textTransform: 'uppercase',
+                                                    color: '#4ade80', padding: '3px 10px',
+                                                    borderRadius: '9999px', textTransform: 'uppercase',
                                                     letterSpacing: '0.04em',
-                                                }}>
-                                                    Active
-                                                </span>
+                                                }}>Active</span>
                                             )}
                                         </div>
                                         <div style={{
@@ -123,8 +129,7 @@ export default function Edit({ mustVerifyEmail, status, currentPlan, activeSubsc
                                     style={{
                                         display: 'inline-flex', alignItems: 'center', gap: '6px',
                                         padding: '9px 20px', borderRadius: '9999px',
-                                        fontSize: '13px', fontWeight: 500,
-                                        textDecoration: 'none',
+                                        fontSize: '13px', fontWeight: 500, textDecoration: 'none',
                                         background: isPro ? 'rgba(255,255,255,0.08)' : '#000',
                                         color: isPro ? 'rgba(255,255,255,0.7)' : '#fff',
                                         border: isPro ? '1px solid rgba(255,255,255,0.12)' : 'none',
@@ -140,53 +145,23 @@ export default function Edit({ mustVerifyEmail, status, currentPlan, activeSubsc
 
                             {/* Photo */}
                             <div style={{
-                                background: '#fff',
-                                border: '1px solid #f0f0f0',
-                                borderRadius: '16px',
-                                padding: '32px',
-                                marginBottom: '12px',
-                                transition: 'all 0.3s ease',
+                                background: '#fff', border: '1px solid #f0f0f0',
+                                borderRadius: '16px', padding: '32px',
+                                marginBottom: '12px', transition: 'all 0.3s ease',
                             }}>
                                 <UpdateProfilePhotoForm />
                             </div>
 
                             {/* Profile info */}
                             <div style={{
-                                background: '#fff',
-                                border: '1px solid #f0f0f0',
-                                borderRadius: '16px',
-                                padding: '32px',
-                                marginBottom: '12px',
-                                transition: 'all 0.3s ease',
+                                background: '#fff', border: '1px solid #f0f0f0',
+                                borderRadius: '16px', padding: '32px',
+                                marginBottom: '64px', transition: 'all 0.3s ease',
                             }}>
                                 <UpdateProfileInformationForm
                                     mustVerifyEmail={mustVerifyEmail}
                                     status={status}
                                 />
-                            </div>
-
-                            {/* Password */}
-                            <div style={{
-                                background: '#fff',
-                                border: '1px solid #f0f0f0',
-                                borderRadius: '16px',
-                                padding: '32px',
-                                marginBottom: '12px',
-                                transition: 'all 0.3s ease',
-                            }}>
-                                <UpdatePasswordForm />
-                            </div>
-
-                            {/* Delete */}
-                            <div style={{
-                                background: '#fff',
-                                border: '1px solid #f0f0f0',
-                                borderRadius: '16px',
-                                padding: '32px',
-                                marginBottom: '64px',
-                                transition: 'all 0.3s ease',
-                            }}>
-                                <DeleteUserForm />
                             </div>
                         </Col>
                     </Row>

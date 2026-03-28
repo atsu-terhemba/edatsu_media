@@ -6,6 +6,7 @@ import SubscriberSideNav from './Components/SideNav';
 import axios from 'axios';
 import Footer from '@/Components/Footer';
 import DashboardSkeleton from '@/Components/DashboardSkeleton';
+import PWAInstallBanner from '@/Components/PWAInstallBanner';
 
 // Eyebrow + orange bar pattern
 function SectionEyebrow({ text }) {
@@ -279,6 +280,9 @@ export default function Dashboard() {
                                     </button>
                                 </div>
                             </div>
+
+                            {/* PWA Install Banner */}
+                            <PWAInstallBanner />
 
                             {/* Subscription Plan Card */}
                             <div style={{

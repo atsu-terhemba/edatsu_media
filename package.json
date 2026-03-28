@@ -34,6 +34,7 @@
         "i18next-browser-languagedetector": "^8.2.1",
         "lexical": "^0.30.0",
         "lucide-react": "^0.484.0",
+        "qrcode.react": "^4.2.0",
         "quill": "^2.0.3",
         "react-bootstrap": "^2.10.9",
         "react-easy-crop": "^5.5.3",

@@ -35,6 +35,7 @@ function UserDropdown({ auth }) {
     const menuItems = [
         { label: 'Dashboard', href: dashboardRoute, icon: 'dashboard' },
         { label: 'Profile', href: route('profile.edit'), icon: 'person' },
+        { label: 'Settings', href: route('settings'), icon: 'settings' },
     ];
 
     return (

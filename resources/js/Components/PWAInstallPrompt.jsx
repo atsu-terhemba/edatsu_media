@@ -183,7 +183,7 @@ const PWAInstallPrompt = () => {
                     {/* App Icon + Info */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
                         <img
-                            src="/img/E-STACK/icons_solid/android-icon-96x96.png"
+                            src="/img/logo/main.png"
                             alt="Edatsu Media"
                             style={{
                                 width: '56px',

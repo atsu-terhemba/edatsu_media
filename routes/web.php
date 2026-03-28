@@ -166,10 +166,18 @@ Route::middleware('auth')->group(function () {
 
     // Profile management
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/settings', [ProfileController::class, 'settings'])->name('settings');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
     Route::delete('/profile/photo', [ProfileController::class, 'deletePhoto'])->name('profile.photo.delete');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Two-Factor Authentication
+    Route::post('/profile/two-factor/enable', [ProfileController::class, 'enableTwoFactor'])->name('profile.2fa.enable');
+    Route::post('/profile/two-factor/confirm', [ProfileController::class, 'confirmTwoFactor'])->name('profile.2fa.confirm');
+    Route::post('/profile/two-factor/disable', [ProfileController::class, 'disableTwoFactor'])->name('profile.2fa.disable');
+    Route::post('/profile/two-factor/recovery-codes', [ProfileController::class, 'getRecoveryCodes'])->name('profile.2fa.recovery');
+    Route::post('/profile/two-factor/regenerate', [ProfileController::class, 'regenerateRecoveryCodes'])->name('profile.2fa.regenerate');
 });
 
 // Admin routes
