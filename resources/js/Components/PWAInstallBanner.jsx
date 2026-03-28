@@ -58,8 +58,8 @@ const PWAInstallBanner = () => {
                 setIsStandalone(true);
             }
             setDeferredPrompt(null);
+            handleDismiss();
         }
-        handleDismiss();
     };
 
     const handleDismiss = () => {
