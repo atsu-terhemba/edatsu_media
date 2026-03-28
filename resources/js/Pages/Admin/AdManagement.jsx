@@ -73,7 +73,9 @@ export default function AdManagement({ globalSettings, adSettings }) {
     };
     const handleSubmit = (e) => {
         e.preventDefault();
-        const options = { forceFormData: true };
+        // Only use FormData when uploading a file — otherwise ad_code HTML/scripts get mangled
+        const hasFile = !!adForm.data.image_file;
+        const options = hasFile ? { forceFormData: true } : {};
         if (editingAd) {
             adForm.put(`/admin/ads/${editingAd.id}`, {
                 ...options,
@@ -498,7 +500,7 @@ export default function AdManagement({ globalSettings, adSettings }) {
                                             onFocus={focusH} onBlur={blurH}
                                         />
                                         <span style={{ display: 'block', fontSize: '12px', color: '#b0b0b5', marginTop: '4px' }}>
-                                            Paste the full ad unit code from Google AdSense. Leave empty for placeholder only.
+                                            Paste the full ad unit code from Google AdSense (including all script tags). The code will be parsed automatically.
                                         </span>
                                     </div>
                                 )}

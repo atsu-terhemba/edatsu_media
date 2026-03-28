@@ -47,20 +47,21 @@ const AdBanner = ({ slot, page = 'all', position = 'top', size = 'responsive', c
 
     const hasContent = adType === 'custom' ? !!imageUrl : !!adCode;
 
-    // Execute AdSense code scripts after mount (client-side only)
+    // Execute AdSense code after mount (client-side only)
     useEffect(() => {
         if (!isClient || !enabled || adType !== 'adsense' || !adCode || !adRef.current || hidden) return;
 
         const container = adRef.current;
         container.innerHTML = '';
 
-        // Parse the ad code HTML
-        const temp = document.createElement('div');
-        temp.innerHTML = adCode;
+        // Extract the publisher ID from the ad code if not set globally
+        // Handles: data-ad-client="ca-pub-XXXXX" in the pasted code
+        const clientMatch = adCode.match(/data-ad-client=["']([^"']+)["']/);
+        const adClient = clientMatch ? clientMatch[1] : publisherId;
 
         // Ensure AdSense library is loaded
-        if (publisherId) {
-            const src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${publisherId}`;
+        if (adClient) {
+            const src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClient}`;
             if (!document.querySelector(`script[src="${src}"]`)) {
                 const lib = document.createElement('script');
                 lib.src = src;
@@ -70,28 +71,32 @@ const AdBanner = ({ slot, page = 'all', position = 'top', size = 'responsive', c
             }
         }
 
-        // Insert non-script nodes first, then create and execute scripts
-        Array.from(temp.childNodes).forEach((node) => {
-            if (node.nodeName === 'SCRIPT') {
-                const script = document.createElement('script');
-                Array.from(node.attributes || []).forEach((attr) => {
-                    script.setAttribute(attr.name, attr.value);
-                });
-                script.textContent = node.textContent;
-                container.appendChild(script);
-            } else {
-                container.appendChild(node.cloneNode(true));
-            }
-        });
+        // Extract data attributes from the pasted <ins> tag
+        const slotMatch = adCode.match(/data-ad-slot=["']([^"']+)["']/);
+        const formatMatch = adCode.match(/data-ad-format=["']([^"']+)["']/);
+        const responsiveMatch = adCode.match(/data-full-width-responsive=["']([^"']+)["']/);
 
-        // Push adsbygoogle if an <ins> tag was inserted
-        if (container.querySelector('ins.adsbygoogle')) {
+        // Build a clean <ins> element directly instead of parsing raw HTML with scripts
+        const ins = document.createElement('ins');
+        ins.className = 'adsbygoogle';
+        ins.style.display = 'block';
+        if (adClient) ins.setAttribute('data-ad-client', adClient);
+        if (slotMatch) ins.setAttribute('data-ad-slot', slotMatch[1]);
+        if (formatMatch) ins.setAttribute('data-ad-format', formatMatch[1]);
+        if (responsiveMatch) ins.setAttribute('data-full-width-responsive', responsiveMatch[1]);
+
+        container.appendChild(ins);
+
+        // Push to adsbygoogle after a brief delay to let the library initialize
+        const timer = setTimeout(() => {
             try {
                 (window.adsbygoogle = window.adsbygoogle || []).push({});
             } catch (e) {
                 // Ad already pushed or blocked
             }
-        }
+        }, 100);
+
+        return () => clearTimeout(timer);
     }, [isClient, enabled, adCode, adType, hidden, publisherId]);
 
     if (hidden || !isVisible) return null;
@@ -163,15 +168,27 @@ const AdBanner = ({ slot, page = 'all', position = 'top', size = 'responsive', c
 
     // Render AdSense ad code via ref (scripts execute properly)
     return (
-        <div
-            ref={adRef}
-            className={`ad-container ${className}`}
-            style={{
-                width: dimensions.width, maxWidth: '100%',
-                minHeight: dimensions.height === 'auto' ? '90px' : dimensions.height,
-                margin: '0 auto', textAlign: 'center', ...style,
-            }}
-        />
+        <div className={`ad-container ${className}`} style={{
+            width: dimensions.width, maxWidth: '100%',
+            minHeight: dimensions.height === 'auto' ? '90px' : dimensions.height,
+            margin: '0 auto', textAlign: 'center',
+            position: 'relative', ...style,
+        }}>
+            {/* Fallback outline visible when ad doesn't render */}
+            <div style={{
+                position: 'absolute', inset: 0,
+                border: '2px dashed #d2d2d7', borderRadius: '8px',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                gap: '4px', background: '#fafafa', zIndex: 0,
+            }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#b0b0b0' }}>ad_units</span>
+                <span style={{ fontSize: '11px', color: '#b0b0b0', fontWeight: 500 }}>Ad — {slot}</span>
+            </div>
+            <div
+                ref={adRef}
+                style={{ position: 'relative', zIndex: 1 }}
+            />
+        </div>
     );
 };
 
