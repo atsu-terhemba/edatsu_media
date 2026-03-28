@@ -1,10 +1,283 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Container, Row, Col, Card, Badge, Button, Form, Table, Alert, Modal } from 'react-bootstrap';
+import { Container, Row, Col, Modal } from 'react-bootstrap';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AdminSideNav from './Components/SideNav';
-import { Plus, Edit, Trash2, Folder, FolderOpen, Upload } from 'lucide-react';
 import axios from 'axios';
+
+function SectionHeader({ eyebrow, title, action }) {
+    return (
+        <div className="d-flex justify-content-between align-items-start mb-4" style={{ paddingBottom: '16px' }}>
+            <div>
+                <div style={{
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.2em',
+                    color: '#86868b',
+                    marginBottom: '8px'
+                }}>
+                    {eyebrow}
+                </div>
+                <div style={{
+                    width: '24px',
+                    height: '2px',
+                    backgroundColor: '#f97316',
+                    borderRadius: '9999px',
+                    marginBottom: '12px'
+                }} />
+                <h2 style={{
+                    fontSize: '30px',
+                    fontWeight: 600,
+                    color: '#000',
+                    margin: 0,
+                    letterSpacing: '-0.01em'
+                }}>
+                    {title}
+                </h2>
+            </div>
+            {action}
+        </div>
+    );
+}
+
+function CategoryCard({ category, onEdit, onDelete }) {
+    const [hovered, setHovered] = useState(false);
+
+    return (
+        <div
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            style={{
+                padding: '24px',
+                borderRadius: '16px',
+                backgroundColor: '#fff',
+                border: `1px solid ${hovered ? '#e5e5e5' : '#f0f0f0'}`,
+                boxShadow: hovered ? '0 20px 40px rgba(0,0,0,0.08)' : 'none',
+                transition: 'all 300ms ease',
+                transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '20px',
+            }}
+        >
+            {/* Cover Image / Icon */}
+            <div style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                flexShrink: 0,
+                backgroundColor: '#000',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}>
+                {category.cover_img ? (
+                    <img
+                        src={`/storage/uploads/channels/${category.cover_img}`}
+                        alt={category.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                ) : (
+                    <span className="material-symbols-outlined" style={{ color: '#fff', fontSize: '24px' }}>
+                        folder_open
+                    </span>
+                )}
+            </div>
+
+            {/* Info */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    color: '#000',
+                    marginBottom: '2px',
+                    letterSpacing: '-0.01em',
+                }}>
+                    {category.name}
+                </div>
+                <div style={{
+                    fontSize: '13px',
+                    color: '#86868b',
+                    fontFamily: 'monospace',
+                    marginBottom: '4px',
+                }}>
+                    {category.slug}
+                </div>
+                {category.description && (
+                    <div style={{
+                        fontSize: '14px',
+                        color: '#6e6e73',
+                        lineHeight: 1.5,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                    }}>
+                        {category.description}
+                    </div>
+                )}
+            </div>
+
+            {/* Date */}
+            <div style={{
+                fontSize: '12px',
+                color: '#86868b',
+                flexShrink: 0,
+                textAlign: 'right',
+                minWidth: '80px',
+            }}>
+                {new Date(category.created_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                })}
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                <button
+                    onClick={() => onEdit(category)}
+                    style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '9999px',
+                        border: '1px solid #e5e5e5',
+                        backgroundColor: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        transition: 'all 150ms ease',
+                    }}
+                    onMouseEnter={e => {
+                        e.currentTarget.style.backgroundColor = '#000';
+                        e.currentTarget.style.borderColor = '#000';
+                        e.currentTarget.querySelector('span').style.color = '#fff';
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.backgroundColor = '#fff';
+                        e.currentTarget.style.borderColor = '#e5e5e5';
+                        e.currentTarget.querySelector('span').style.color = '#000';
+                    }}
+                    title="Edit"
+                >
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#000', transition: 'color 150ms ease' }}>edit</span>
+                </button>
+                <button
+                    onClick={() => onDelete(category.id)}
+                    style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '9999px',
+                        border: '1px solid #e5e5e5',
+                        backgroundColor: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        transition: 'all 150ms ease',
+                    }}
+                    onMouseEnter={e => {
+                        e.currentTarget.style.backgroundColor = '#dc2626';
+                        e.currentTarget.style.borderColor = '#dc2626';
+                        e.currentTarget.querySelector('span').style.color = '#fff';
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.backgroundColor = '#fff';
+                        e.currentTarget.style.borderColor = '#e5e5e5';
+                        e.currentTarget.querySelector('span').style.color = '#dc2626';
+                    }}
+                    title="Delete"
+                >
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#dc2626', transition: 'color 150ms ease' }}>delete</span>
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function StyledModal({ show, onHide, title, children }) {
+    return (
+        <Modal show={show} onHide={onHide} size="lg" centered>
+            <div style={{ borderRadius: '16px', overflow: 'hidden' }}>
+                <div style={{
+                    padding: '24px 32px 16px',
+                    borderBottom: '1px solid #f0f0f0',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                }}>
+                    <div>
+                        <div style={{
+                            fontSize: '11px',
+                            fontWeight: 500,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.2em',
+                            color: '#86868b',
+                            marginBottom: '6px'
+                        }}>
+                            Opportunity Category
+                        </div>
+                        <div style={{
+                            width: '20px',
+                            height: '2px',
+                            backgroundColor: '#f97316',
+                            borderRadius: '9999px',
+                            marginBottom: '10px'
+                        }} />
+                        <h3 style={{
+                            fontSize: '22px',
+                            fontWeight: 600,
+                            color: '#000',
+                            margin: 0,
+                        }}>
+                            {title}
+                        </h3>
+                    </div>
+                    <button
+                        onClick={onHide}
+                        style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '9999px',
+                            border: '1px solid #e5e5e5',
+                            backgroundColor: '#fff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'all 150ms ease',
+                        }}
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#86868b' }}>close</span>
+                    </button>
+                </div>
+                {children}
+            </div>
+        </Modal>
+    );
+}
+
+const inputStyle = {
+    width: '100%',
+    padding: '12px 16px',
+    borderRadius: '12px',
+    border: '1px solid #e5e5e5',
+    fontSize: '14px',
+    color: '#000',
+    outline: 'none',
+    transition: 'border-color 150ms ease',
+    fontFamily: 'inherit',
+};
+
+const labelStyle = {
+    fontSize: '12px',
+    fontWeight: 500,
+    color: '#6e6e73',
+    marginBottom: '6px',
+    display: 'block',
+};
 
 export default function ManageCategories({ categories, edit }) {
     const [showModal, setShowModal] = useState(false);
@@ -12,7 +285,8 @@ export default function ManageCategories({ categories, edit }) {
     const [editingCategory, setEditingCategory] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [alert, setAlert] = useState({ show: false, message: '', type: 'success' });
-    
+    const [searchQuery, setSearchQuery] = useState('');
+
     const [formData, setFormData] = useState({
         name: '',
         slug: '',
@@ -20,7 +294,6 @@ export default function ManageCategories({ categories, edit }) {
         cover_img: null
     });
 
-    // Set initial form data if editing
     useState(() => {
         if (edit) {
             setFormData({
@@ -34,43 +307,27 @@ export default function ManageCategories({ categories, edit }) {
         }
     }, [edit]);
 
-    const showAlert = (message, type = 'success') => {
+    const showAlertMsg = (message, type = 'success') => {
         setAlert({ show: true, message, type });
         setTimeout(() => setAlert({ show: false, message: '', type: 'success' }), 5000);
     };
 
     const handleInputChange = (e) => {
         const { name, value, type, files } = e.target;
-        
+
         if (type === 'file') {
-            setFormData(prev => ({
-                ...prev,
-                [name]: files[0]
-            }));
+            setFormData(prev => ({ ...prev, [name]: files[0] }));
         } else {
-            setFormData(prev => ({
-                ...prev,
-                [name]: value
-            }));
-            
-            // Auto-generate slug from name
+            setFormData(prev => ({ ...prev, [name]: value }));
             if (name === 'name') {
                 const slug = value.toLowerCase().replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '-');
-                setFormData(prev => ({
-                    ...prev,
-                    slug: slug
-                }));
+                setFormData(prev => ({ ...prev, slug }));
             }
         }
     };
 
     const resetForm = () => {
-        setFormData({
-            name: '',
-            slug: '',
-            description: '',
-            cover_img: null
-        });
+        setFormData({ name: '', slug: '', description: '', cover_img: null });
         setEditingCategory(null);
     };
 
@@ -80,55 +337,44 @@ export default function ManageCategories({ categories, edit }) {
 
         try {
             const url = editingCategory ? `/edit-category/${editingCategory.id}` : '/admin-store-category';
-            
-            // Create FormData for file upload
             const formDataToSend = new FormData();
             formDataToSend.append('name', formData.name);
             formDataToSend.append('slug', formData.slug);
             formDataToSend.append('description', formData.description);
-            
+
             if (formData.cover_img) {
                 formDataToSend.append('cover_img', formData.cover_img);
             }
-            
+
             if (editingCategory) {
                 formDataToSend.append('post_id', editingCategory.id);
             }
 
-            // Add HMAC signature for security
             const signature = await generateSignature(editingCategory?.id || '');
             formDataToSend.append('signature', signature);
 
             const response = await axios.post(url, formDataToSend, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                }
+                headers: { 'Content-Type': 'multipart/form-data' }
             });
 
-            const data = response.data;
-
-            if (data.success) {
-                showAlert(data.message, 'success');
+            if (response.data.success) {
+                showAlertMsg(response.data.message, 'success');
                 resetForm();
                 setShowModal(false);
                 setShowEditModal(false);
-                // Refresh the page to show updated data
                 router.visit(route('admin.categories'), { preserveState: false });
             } else {
-                showAlert(data.message || 'An error occurred', 'danger');
+                showAlertMsg(response.data.message || 'An error occurred', 'danger');
             }
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'An error occurred while saving';
-            showAlert(errorMessage, 'danger');
+            showAlertMsg(error.response?.data?.message || 'An error occurred while saving', 'danger');
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Simple signature generation (this should match your backend logic)
     const generateSignature = async (postId) => {
-        // This is a simplified version - you might need to implement proper HMAC
-        return btoa(postId + 'your-app-key'); // Basic encoding - implement proper HMAC
+        return btoa(postId + 'your-app-key');
     };
 
     const handleEdit = (category) => {
@@ -143,287 +389,326 @@ export default function ManageCategories({ categories, edit }) {
     };
 
     const handleDelete = async (categoryId) => {
-        if (!confirm('Are you sure you want to delete this category?')) {
-            return;
-        }
+        if (!confirm('Are you sure you want to delete this category?')) return;
 
         setIsLoading(true);
         try {
-            const response = await axios.post('/delete-category', {
-                id: categoryId
-            });
-
-            const data = response.data;
-
-            if (data.success) {
-                showAlert(data.message, 'success');
-                // Refresh the page to show updated data
+            const response = await axios.post('/delete-category', { id: categoryId });
+            if (response.data.success) {
+                showAlertMsg(response.data.message, 'success');
                 router.visit(route('admin.categories'), { preserveState: false });
             } else {
-                showAlert(data.message || 'An error occurred', 'danger');
+                showAlertMsg(response.data.message || 'An error occurred', 'danger');
             }
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'An error occurred while deleting';
-            showAlert(errorMessage, 'danger');
+            showAlertMsg(error.response?.data?.message || 'An error occurred while deleting', 'danger');
         } finally {
             setIsLoading(false);
         }
     };
 
+    const filteredCategories = categories.filter(cat =>
+        cat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        cat.slug.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const CategoryForm = ({ onCancel, submitLabel }) => (
+        <form onSubmit={handleSubmit}>
+            <div style={{ padding: '32px' }}>
+                <div style={{ marginBottom: '24px' }}>
+                    <label style={labelStyle}>Category Name *</label>
+                    <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="Enter category name"
+                        style={inputStyle}
+                        onFocus={e => e.target.style.borderColor = '#000'}
+                        onBlur={e => e.target.style.borderColor = '#e5e5e5'}
+                    />
+                </div>
+
+                <div style={{ marginBottom: '24px' }}>
+                    <label style={labelStyle}>Slug *</label>
+                    <input
+                        type="text"
+                        name="slug"
+                        value={formData.slug}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="category-slug"
+                        style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '13px' }}
+                        onFocus={e => e.target.style.borderColor = '#000'}
+                        onBlur={e => e.target.style.borderColor = '#e5e5e5'}
+                    />
+                    <div style={{ fontSize: '12px', color: '#86868b', marginTop: '6px' }}>
+                        URL-friendly version of the name (auto-generated)
+                    </div>
+                </div>
+
+                <div style={{ marginBottom: '24px' }}>
+                    <label style={labelStyle}>Description *</label>
+                    <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        required
+                        rows={3}
+                        placeholder="Enter category description"
+                        style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }}
+                        onFocus={e => e.target.style.borderColor = '#000'}
+                        onBlur={e => e.target.style.borderColor = '#e5e5e5'}
+                    />
+                </div>
+
+                <div style={{ marginBottom: '8px' }}>
+                    <label style={labelStyle}>Cover Image</label>
+                    <div style={{
+                        padding: '24px',
+                        borderRadius: '12px',
+                        border: '1px dashed #d1d1d6',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        transition: 'border-color 150ms ease',
+                        position: 'relative',
+                    }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '32px', color: '#86868b', display: 'block', marginBottom: '8px' }}>
+                            cloud_upload
+                        </span>
+                        <div style={{ fontSize: '14px', color: '#86868b' }}>
+                            {formData.cover_img ? formData.cover_img.name : 'Click to upload or drag an image'}
+                        </div>
+                        <input
+                            type="file"
+                            name="cover_img"
+                            onChange={handleInputChange}
+                            accept="image/*"
+                            style={{
+                                position: 'absolute',
+                                inset: 0,
+                                opacity: 0,
+                                cursor: 'pointer',
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div style={{
+                padding: '20px 32px',
+                borderTop: '1px solid #f0f0f0',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '12px',
+            }}>
+                <button
+                    type="button"
+                    onClick={onCancel}
+                    style={{
+                        padding: '10px 24px',
+                        borderRadius: '9999px',
+                        border: '1px solid #e5e5e5',
+                        backgroundColor: '#fff',
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        color: '#000',
+                        cursor: 'pointer',
+                        transition: 'all 150ms ease',
+                    }}
+                >
+                    Cancel
+                </button>
+                <button
+                    type="submit"
+                    disabled={isLoading}
+                    style={{
+                        padding: '10px 24px',
+                        borderRadius: '9999px',
+                        border: 'none',
+                        backgroundColor: '#000',
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        color: '#fff',
+                        cursor: isLoading ? 'not-allowed' : 'pointer',
+                        opacity: isLoading ? 0.6 : 1,
+                        transition: 'all 150ms ease',
+                    }}
+                >
+                    {isLoading ? 'Saving...' : submitLabel}
+                </button>
+            </div>
+        </form>
+    );
+
     return (
         <AuthenticatedLayout>
             <Head title="Manage Opportunity Categories" />
-            
-            <Container fluid className="py-4">
+
+            <Container style={{ paddingTop: '70px', paddingBottom: '16px', maxWidth: '1280px' }}>
                 <Row>
                     <Col md={3}>
                         <AdminSideNav />
                     </Col>
                     <Col md={9}>
-                        <Card className="shadow-sm">
-                            <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
-                                <h4 className="mb-0 d-flex align-items-center gap-2">
-                                    <FolderOpen size={24} />
-                                    Manage Opportunity Categories
-                                </h4>
-                                <Button 
-                                    variant="light" 
-                                    size="sm"
-                                    onClick={() => setShowModal(true)}
-                                    className="d-flex align-items-center gap-1"
-                                >
-                                    <Plus size={16} />
-                                    Add Category
-                                </Button>
-                            </Card.Header>
-                            <Card.Body>
-                                {alert.show && (
-                                    <Alert variant={alert.type} onClose={() => setAlert({show: false, message: '', type: 'success'})} dismissible>
-                                        {alert.message}
-                                    </Alert>
-                                )}
+                        <div style={{ padding: '8px 0' }}>
+                            <SectionHeader
+                                eyebrow="Opportunities"
+                                title="Categories"
+                                action={
+                                    <button
+                                        onClick={() => { resetForm(); setShowModal(true); }}
+                                        style={{
+                                            padding: '10px 24px',
+                                            borderRadius: '9999px',
+                                            border: 'none',
+                                            backgroundColor: '#000',
+                                            color: '#fff',
+                                            fontSize: '14px',
+                                            fontWeight: 500,
+                                            cursor: 'pointer',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            transition: 'background-color 150ms ease',
+                                        }}
+                                        onMouseEnter={e => e.currentTarget.style.backgroundColor = '#333'}
+                                        onMouseLeave={e => e.currentTarget.style.backgroundColor = '#000'}
+                                    >
+                                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
+                                        Add Category
+                                    </button>
+                                }
+                            />
 
-                                <div className="table-responsive">
-                                    <Table striped bordered hover>
-                                        <thead className="table-dark">
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>Name</th>
-                                                <th>Slug</th>
-                                                <th>Description</th>
-                                                <th>Cover Image</th>
-                                                <th>Created At</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {categories.length > 0 ? (
-                                                categories.map((category) => (
-                                                    <tr key={category.id}>
-                                                        <td>{category.id}</td>
-                                                        <td>
-                                                            <Badge bg="primary" className="p-2">
-                                                                {category.name}
-                                                            </Badge>
-                                                        </td>
-                                                        <td>
-                                                            <code>{category.slug}</code>
-                                                        </td>
-                                                        <td>{category.description}</td>
-                                                        <td>
-                                                            {category.cover_img ? (
-                                                                <img 
-                                                                    src={`/storage/uploads/channels/${category.cover_img}`} 
-                                                                    alt={category.name}
-                                                                    style={{ width: '50px', height: '50px', objectFit: 'cover' }}
-                                                                    className="rounded"
-                                                                />
-                                                            ) : (
-                                                                <span className="text-muted">No image</span>
-                                                            )}
-                                                        </td>
-                                                        <td>{new Date(category.created_at).toLocaleDateString()}</td>
-                                                        <td>
-                                                            <div className="d-flex gap-1">
-                                                                <Button
-                                                                    variant="outline-primary"
-                                                                    size="sm"
-                                                                    onClick={() => handleEdit(category)}
-                                                                    className="d-flex align-items-center gap-1"
-                                                                >
-                                                                    <Edit size={14} />
-                                                                    Edit
-                                                                </Button>
-                                                                <Button
-                                                                    variant="outline-danger"
-                                                                    size="sm"
-                                                                    onClick={() => handleDelete(category.id)}
-                                                                    className="d-flex align-items-center gap-1"
-                                                                >
-                                                                    <Trash2 size={14} />
-                                                                    Delete
-                                                                </Button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            ) : (
-                                                <tr>
-                                                    <td colSpan="7" className="text-center text-muted py-4">
-                                                        No categories found. Create your first category!
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </Table>
+                            {/* Alert */}
+                            {alert.show && (
+                                <div style={{
+                                    padding: '14px 20px',
+                                    borderRadius: '12px',
+                                    backgroundColor: alert.type === 'success' ? '#f0fdf4' : '#fef2f2',
+                                    border: `1px solid ${alert.type === 'success' ? '#bbf7d0' : '#fecaca'}`,
+                                    color: alert.type === 'success' ? '#166534' : '#991b1b',
+                                    fontSize: '14px',
+                                    marginBottom: '24px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                                            {alert.type === 'success' ? 'check_circle' : 'error'}
+                                        </span>
+                                        {alert.message}
+                                    </div>
+                                    <button
+                                        onClick={() => setAlert({ show: false, message: '', type: 'success' })}
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
+                                    >
+                                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'inherit' }}>close</span>
+                                    </button>
                                 </div>
-                            </Card.Body>
-                        </Card>
+                            )}
+
+                            {/* Stats Bar */}
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                marginBottom: '24px',
+                            }}>
+                                <div style={{ fontSize: '14px', color: '#86868b' }}>
+                                    {filteredCategories.length} {filteredCategories.length === 1 ? 'category' : 'categories'}
+                                </div>
+
+                                {/* Search */}
+                                <div style={{ position: 'relative', width: '280px' }}>
+                                    <span className="material-symbols-outlined" style={{
+                                        position: 'absolute',
+                                        left: '14px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        fontSize: '18px',
+                                        color: '#86868b',
+                                    }}>search</span>
+                                    <input
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={e => setSearchQuery(e.target.value)}
+                                        placeholder="Search categories..."
+                                        style={{
+                                            ...inputStyle,
+                                            paddingLeft: '40px',
+                                            borderColor: '#f0f0f0',
+                                            backgroundColor: '#f5f5f7',
+                                        }}
+                                        onFocus={e => {
+                                            e.target.style.borderColor = '#000';
+                                            e.target.style.backgroundColor = '#fff';
+                                        }}
+                                        onBlur={e => {
+                                            e.target.style.borderColor = '#f0f0f0';
+                                            e.target.style.backgroundColor = '#f5f5f7';
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Category Cards */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                {filteredCategories.length > 0 ? (
+                                    filteredCategories.map(category => (
+                                        <CategoryCard
+                                            key={category.id}
+                                            category={category}
+                                            onEdit={handleEdit}
+                                            onDelete={handleDelete}
+                                        />
+                                    ))
+                                ) : (
+                                    <div style={{
+                                        padding: '64px 32px',
+                                        borderRadius: '16px',
+                                        backgroundColor: '#f5f5f7',
+                                        textAlign: 'center',
+                                    }}>
+                                        <span className="material-symbols-outlined" style={{
+                                            fontSize: '48px',
+                                            color: '#d1d1d6',
+                                            display: 'block',
+                                            marginBottom: '16px',
+                                        }}>folder_open</span>
+                                        <div style={{
+                                            fontSize: '16px',
+                                            fontWeight: 600,
+                                            color: '#000',
+                                            marginBottom: '8px',
+                                        }}>
+                                            {searchQuery ? 'No matching categories' : 'No categories yet'}
+                                        </div>
+                                        <div style={{ fontSize: '14px', color: '#86868b' }}>
+                                            {searchQuery
+                                                ? 'Try adjusting your search query.'
+                                                : 'Create your first opportunity category to get started.'}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </Col>
                 </Row>
             </Container>
 
             {/* Add Category Modal */}
-            <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
-                <Modal.Header closeButton>
-                    <Modal.Title>Add New Category</Modal.Title>
-                </Modal.Header>
-                <Form onSubmit={handleSubmit}>
-                    <Modal.Body>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Category Name *</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleInputChange}
-                                required
-                                placeholder="Enter category name"
-                            />
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Slug *</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="slug"
-                                value={formData.slug}
-                                onChange={handleInputChange}
-                                required
-                                placeholder="category-slug"
-                            />
-                            <Form.Text className="text-muted">
-                                URL-friendly version of the name (auto-generated)
-                            </Form.Text>
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Description *</Form.Label>
-                            <Form.Control
-                                as="textarea"
-                                rows={3}
-                                name="description"
-                                value={formData.description}
-                                onChange={handleInputChange}
-                                required
-                                placeholder="Enter category description"
-                            />
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Cover Image</Form.Label>
-                            <Form.Control
-                                type="file"
-                                name="cover_img"
-                                onChange={handleInputChange}
-                                accept="image/*"
-                            />
-                            <Form.Text className="text-muted">
-                                Upload a cover image for this category (optional)
-                            </Form.Text>
-                        </Form.Group>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="secondary" onClick={() => setShowModal(false)}>
-                            Cancel
-                        </Button>
-                        <Button variant="primary" type="submit" disabled={isLoading}>
-                            {isLoading ? 'Saving...' : 'Save Category'}
-                        </Button>
-                    </Modal.Footer>
-                </Form>
-            </Modal>
+            <StyledModal show={showModal} onHide={() => setShowModal(false)} title="Add New Category">
+                <CategoryForm onCancel={() => setShowModal(false)} submitLabel="Save Category" />
+            </StyledModal>
 
             {/* Edit Category Modal */}
-            <Modal show={showEditModal} onHide={() => setShowEditModal(false)} size="lg">
-                <Modal.Header closeButton>
-                    <Modal.Title>Edit Category</Modal.Title>
-                </Modal.Header>
-                <Form onSubmit={handleSubmit}>
-                    <Modal.Body>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Category Name *</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleInputChange}
-                                required
-                                placeholder="Enter category name"
-                            />
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Slug *</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="slug"
-                                value={formData.slug}
-                                onChange={handleInputChange}
-                                required
-                                placeholder="category-slug"
-                            />
-                            <Form.Text className="text-muted">
-                                URL-friendly version of the name
-                            </Form.Text>
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Description *</Form.Label>
-                            <Form.Control
-                                as="textarea"
-                                rows={3}
-                                name="description"
-                                value={formData.description}
-                                onChange={handleInputChange}
-                                required
-                                placeholder="Enter category description"
-                            />
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Cover Image</Form.Label>
-                            <Form.Control
-                                type="file"
-                                name="cover_img"
-                                onChange={handleInputChange}
-                                accept="image/*"
-                            />
-                            <Form.Text className="text-muted">
-                                Upload a new cover image (leave empty to keep current image)
-                            </Form.Text>
-                        </Form.Group>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="secondary" onClick={() => setShowEditModal(false)}>
-                            Cancel
-                        </Button>
-                        <Button variant="primary" type="submit" disabled={isLoading}>
-                            {isLoading ? 'Updating...' : 'Update Category'}
-                        </Button>
-                    </Modal.Footer>
-                </Form>
-            </Modal>
+            <StyledModal show={showEditModal} onHide={() => setShowEditModal(false)} title="Edit Category">
+                <CategoryForm onCancel={() => setShowEditModal(false)} submitLabel="Update Category" />
+            </StyledModal>
         </AuthenticatedLayout>
     );
 }

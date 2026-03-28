@@ -398,11 +398,11 @@ export default function AdManagement({ globalSettings, adSettings }) {
                     position: 'fixed', inset: 0, zIndex: 9999,
                     background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px',
-                }} onClick={closeModal}>
+                }}>
                     <div style={{
                         background: '#fff', borderRadius: '20px', width: '100%', maxWidth: '640px',
                         maxHeight: '90vh', overflowY: 'auto',
-                    }} onClick={(e) => e.stopPropagation()}>
+                    }}>
                         <div style={{ padding: '24px 28px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#000', margin: 0 }}>
                                 {editingAd ? 'Edit Ad Slot' : 'Add New Ad Slot'}
@@ -630,13 +630,14 @@ export default function AdManagement({ globalSettings, adSettings }) {
                                 }}>Cancel</button>
                                 <button type="submit" disabled={adForm.processing} style={{
                                     padding: '10px 24px', borderRadius: '9999px', border: 'none',
-                                    background: '#000', color: '#fff', fontSize: '13px', fontWeight: 500,
+                                    background: adForm.processing ? '#999' : '#000', color: '#fff', fontSize: '13px', fontWeight: 500,
                                     cursor: adForm.processing ? 'not-allowed' : 'pointer', transition: 'all 0.15s ease',
+                                    opacity: adForm.processing ? 0.7 : 1,
                                 }}
-                                    onMouseEnter={(e) => e.currentTarget.style.background = '#333'}
-                                    onMouseLeave={(e) => e.currentTarget.style.background = '#000'}
+                                    onMouseEnter={(e) => { if (!adForm.processing) e.currentTarget.style.background = '#333'; }}
+                                    onMouseLeave={(e) => { if (!adForm.processing) e.currentTarget.style.background = '#000'; }}
                                 >
-                                    {editingAd ? 'Update' : 'Create'} Ad Slot
+                                    {adForm.processing ? 'Saving...' : `${editingAd ? 'Update' : 'Create'} Ad Slot`}
                                 </button>
                             </div>
                         </form>

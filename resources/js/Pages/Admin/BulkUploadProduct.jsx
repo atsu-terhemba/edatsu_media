@@ -455,6 +455,7 @@ export default function BulkUploadProduct() {
                                             {[
                                                 { col: 'title', desc: 'Product name', required: true },
                                                 { col: 'description', desc: 'Product description', required: true },
+                                                { col: 'image_url', desc: 'Public URL to product image (jpg, png, webp)', required: false },
                                                 { col: 'direct_link', desc: 'Direct URL to product', required: false },
                                                 { col: 'youtube_link', desc: 'YouTube video URL (auto-converted)', required: false },
                                                 { col: 'categories', desc: 'Comma-separated category names', required: false },
@@ -470,7 +471,7 @@ export default function BulkUploadProduct() {
                                                         alignItems: 'flex-start',
                                                         justifyContent: 'space-between',
                                                         padding: '10px 0',
-                                                        borderBottom: i < 8 ? '1px solid #f5f5f7' : 'none',
+                                                        borderBottom: i < 9 ? '1px solid #f5f5f7' : 'none',
                                                         gap: '12px',
                                                     }}
                                                 >
@@ -522,6 +523,7 @@ export default function BulkUploadProduct() {
                                                     <li>Category/tag/brand names must match existing ones</li>
                                                     <li>Separate multiple values with commas</li>
                                                     <li>Empty rows are automatically skipped</li>
+                                                    <li>Image URLs must be publicly accessible</li>
                                                 </ul>
                                             </div>
                                         </div>

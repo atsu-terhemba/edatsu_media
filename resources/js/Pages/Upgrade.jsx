@@ -1,20 +1,16 @@
 import { useState } from "react";
 import { Container, Row, Col, Offcanvas } from 'react-bootstrap';
-import { Head, usePage, router } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 
 const Upgrade = () => {
     const { props } = usePage();
-    const { activeSubscription, currentPlan } = props;
     const [showPayment, setShowPayment] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [currency, setCurrency] = useState('NGN');
     const [billingPeriod, setBillingPeriod] = useState('monthly');
     const [paymentMethod, setPaymentMethod] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
-    const [error, setError] = useState('');
-
-    const isCurrentlyPro = currentPlan === 'pro';
 
     const plans = [
         {
@@ -39,8 +35,8 @@ const Upgrade = () => {
                 'No calendar integration',
                 'No AI assistant'
             ],
-            buttonText: isCurrentlyPro ? 'Free Plan' : 'Current Plan',
-            current: !isCurrentlyPro
+            buttonText: 'Current Plan',
+            current: true
         },
         {
             id: 'pro',
@@ -62,75 +58,53 @@ const Upgrade = () => {
                 { text: 'Export saved items (PDF / CSV)' }
             ],
             limitations: [],
-            buttonText: isCurrentlyPro ? 'Current Plan' : 'Upgrade Now',
-            current: isCurrentlyPro
+            buttonText: 'Upgrade Now',
+            current: false
         }
     ];
 
     const formatPrice = (price) => {
         if (price === 0) return 'Free';
         if (currency === 'NGN') {
-            return `\u20A6${price.toLocaleString()}`;
+            return `₦${price.toLocaleString()}`;
         }
         return `$${price.toFixed(2)}`;
     };
 
     const handleSelectPlan = (plan) => {
-        if (plan.current || plan.id === 'free') return;
+        if (plan.id === 'free') return;
         setSelectedPlan(plan);
         setShowPayment(true);
-        setError('');
-        setPaymentMethod('');
     };
 
     const handlePayment = async () => {
         if (!paymentMethod) {
-            setError('Please select a payment method');
-            return;
-        }
-
-        if (paymentMethod === 'stablecoin') {
-            setError('Stablecoin payments coming soon!');
+            alert('Please select a payment method');
             return;
         }
 
         setIsProcessing(true);
-        setError('');
 
         try {
-            const response = await fetch(route('subscription.initiate'), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    plan_id: selectedPlan.id,
-                    billing_period: billingPeriod,
-                    currency: currency,
-                    payment_provider: 'flutterwave',
-                }),
+            console.log('Processing payment:', {
+                plan: selectedPlan,
+                method: paymentMethod,
+                currency,
+                billingPeriod
             });
 
-            const data = await response.json();
-
-            if (data.success && data.payment_url) {
-                window.location.href = data.payment_url;
-            } else {
-                setError(data.message || 'Something went wrong. Please try again.');
+            setTimeout(() => {
                 setIsProcessing(false);
-            }
-        } catch (err) {
-            console.error('Payment error:', err);
-            setError('Network error. Please check your connection and try again.');
+                alert('Payment feature coming soon!');
+            }, 1500);
+        } catch (error) {
+            console.error('Payment error:', error);
             setIsProcessing(false);
         }
     };
 
     const paymentMethods = [
-        { id: 'flutterwave', name: 'Flutterwave', icon: 'payments', description: 'Card, Bank Transfer, USSD' },
-        { id: 'stablecoin', name: 'Stablecoin', icon: 'currency_bitcoin', description: 'USDT / USDC (Coming Soon)', disabled: true },
+        { id: 'flutterwave', name: 'Flutterwave', icon: 'payments', description: 'Card, Bank Transfer, USSD' }
     ];
 
     return (
@@ -263,85 +237,58 @@ const Upgrade = () => {
                             }}
                         >
                             <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>currency_exchange</span>
-                            {currency === 'USD' ? 'NGN (\u20A6)' : 'USD ($)'}
+                            {currency === 'USD' ? 'NGN (₦)' : 'USD ($)'}
                         </button>
                     </div>
                 </Container>
             </section>
 
-            {/* Active Subscription Banner */}
-            {isCurrentlyPro && activeSubscription && (
-                <section style={{ padding: '0 0 0', background: '#f5f5f7' }}>
-                    <Container>
-                        <div style={{
-                            background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
-                            borderRadius: '20px',
-                            padding: '24px 32px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '16px',
-                            color: '#fff',
-                        }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>verified</span>
-                            <div>
-                                <div style={{ fontSize: '16px', fontWeight: 600 }}>You're on the Pro plan</div>
-                                <div style={{ fontSize: '13px', opacity: 0.85 }}>
-                                    Your subscription is active until {new Date(activeSubscription.ends_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                                </div>
-                            </div>
-                        </div>
-                    </Container>
-                </section>
-            )}
-
             {/* Pricing Cards */}
             <section style={{ padding: '48px 0 64px', background: '#f5f5f7' }}>
                 <Container>
                     {/* Free Access Banner */}
-                    {!isCurrentlyPro && (
+                    <div style={{
+                        background: '#fff',
+                        borderRadius: '20px',
+                        padding: '28px 32px',
+                        marginBottom: '40px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '20px',
+                        border: '1px solid #e5e5e7',
+                        position: 'relative',
+                        overflow: 'hidden',
+                    }}>
                         <div style={{
-                            background: '#fff',
-                            borderRadius: '20px',
-                            padding: '28px 32px',
-                            marginBottom: '40px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '20px',
-                            border: '1px solid #e5e5e7',
-                            position: 'relative',
-                            overflow: 'hidden',
+                            position: 'absolute', top: '-40px', right: '-40px',
+                            width: '160px', height: '160px',
+                            background: 'radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%)',
+                            borderRadius: '50%',
+                        }} />
+                        <div style={{
+                            width: '52px', height: '52px', borderRadius: '16px',
+                            background: 'rgba(249,115,22,0.1)', flexShrink: 0,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}>
-                            <div style={{
-                                position: 'absolute', top: '-40px', right: '-40px',
-                                width: '160px', height: '160px',
-                                background: 'radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%)',
-                                borderRadius: '50%',
-                            }} />
-                            <div style={{
-                                width: '52px', height: '52px', borderRadius: '16px',
-                                background: 'rgba(249,115,22,0.1)', flexShrink: 0,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            }}>
-                                <span className="material-symbols-outlined" style={{ fontSize: '26px', color: '#f97316' }}>
-                                    celebration
-                                </span>
-                            </div>
-                            <div style={{ position: 'relative', zIndex: 1 }}>
-                                <h3 style={{
-                                    fontSize: '17px', fontWeight: 600, color: '#000',
-                                    margin: '0 0 4px', letterSpacing: '-0.01em',
-                                }}>
-                                    All features are free until April 1st!
-                                </h3>
-                                <p style={{
-                                    fontSize: '13px', color: '#86868b',
-                                    margin: 0, lineHeight: 1.5,
-                                }}>
-                                    We're opening up every Pro feature at no cost while we build something amazing. Explore everything, save unlimited opportunities, and enjoy an ad-free experience — on us.
-                                </p>
-                            </div>
+                            <span className="material-symbols-outlined" style={{ fontSize: '26px', color: '#f97316' }}>
+                                celebration
+                            </span>
                         </div>
-                    )}
+                        <div style={{ position: 'relative', zIndex: 1 }}>
+                            <h3 style={{
+                                fontSize: '17px', fontWeight: 600, color: '#000',
+                                margin: '0 0 4px', letterSpacing: '-0.01em',
+                            }}>
+                                All features are free until April 1st!
+                            </h3>
+                            <p style={{
+                                fontSize: '13px', color: '#86868b',
+                                margin: 0, lineHeight: 1.5,
+                            }}>
+                                We're opening up every Pro feature at no cost while we build something amazing. Explore everything, save unlimited opportunities, and enjoy an ad-free experience — on us.
+                            </p>
+                        </div>
+                    </div>
 
                     <Row className="justify-content-center align-items-stretch g-4">
                         {plans.map((plan) => {
@@ -447,7 +394,7 @@ const Upgrade = () => {
                                                 ) : (
                                                     <>
                                                         <span style={{ fontSize: '28px', fontWeight: 500, verticalAlign: 'top', position: 'relative', top: '6px' }}>
-                                                            {currency === 'USD' ? '$' : '\u20A6'}
+                                                            {currency === 'USD' ? '$' : '₦'}
                                                         </span>
                                                         {plan.price[billingPeriod][currency].toLocaleString()}
                                                     </>
@@ -471,7 +418,7 @@ const Upgrade = () => {
                                         }}>
                                             {isPro
                                                 ? (billingPeriod === 'yearly'
-                                                    ? `Save ${currency === 'USD' ? '$' : '\u20A6'}${(plan.price.monthly[currency] * 12 - plan.price.yearly[currency]).toLocaleString()} per year`
+                                                    ? `Save ${currency === 'USD' ? '$' : '₦'}${(plan.price.monthly[currency] * 12 - plan.price.yearly[currency]).toLocaleString()} per year`
                                                     : 'Cancel anytime')
                                                 : 'Forever free'}
                                         </div>
@@ -505,7 +452,7 @@ const Upgrade = () => {
                                                     : isPro
                                                         ? '#fff'
                                                         : '#000',
-                                                boxShadow: isPro && !plan.current ? '0 4px 16px rgba(249,115,22,0.3)' : 'none',
+                                                boxShadow: isPro ? '0 4px 16px rgba(249,115,22,0.3)' : 'none',
                                                 letterSpacing: '-0.01em',
                                                 opacity: plan.current ? 0.7 : 1,
                                             }}
@@ -660,7 +607,7 @@ const Upgrade = () => {
             {/* Payment Slide-in Panel */}
             <Offcanvas
                 show={showPayment}
-                onHide={() => { setShowPayment(false); setIsProcessing(false); setError(''); }}
+                onHide={() => setShowPayment(false)}
                 placement="end"
                 style={{ width: '380px' }}
             >
@@ -709,25 +656,6 @@ const Upgrade = () => {
                                 </div>
                             </div>
 
-                            {/* Error Message */}
-                            {error && (
-                                <div style={{
-                                    background: '#fef2f2',
-                                    border: '1px solid #fecaca',
-                                    borderRadius: '12px',
-                                    padding: '12px 16px',
-                                    marginBottom: '16px',
-                                    fontSize: '13px',
-                                    color: '#dc2626',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                }}>
-                                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>error</span>
-                                    {error}
-                                </div>
-                            )}
-
                             {/* Payment Methods */}
                             <div style={{ fontSize: '14px', fontWeight: 600, color: '#000', marginBottom: '12px' }}>
                                 Payment Method
@@ -742,36 +670,18 @@ const Upgrade = () => {
                                         padding: '14px 16px',
                                         border: `1px solid ${paymentMethod === method.id ? '#000' : '#e5e7eb'}`,
                                         borderRadius: '12px',
-                                        cursor: method.disabled ? 'not-allowed' : 'pointer',
+                                        cursor: 'pointer',
                                         transition: 'all 0.15s ease',
                                         marginBottom: '8px',
                                         background: paymentMethod === method.id ? '#fafafa' : '#fff',
-                                        opacity: method.disabled ? 0.55 : 1,
                                     }}
-                                    onClick={() => !method.disabled && setPaymentMethod(method.id)}
+                                    onClick={() => setPaymentMethod(method.id)}
                                 >
                                     <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#374151' }}>
                                         {method.icon}
                                     </span>
                                     <div className="flex-grow-1">
-                                        <div style={{ fontSize: '14px', fontWeight: 500, color: '#000' }}>
-                                            {method.name}
-                                            {method.disabled && (
-                                                <span style={{
-                                                    fontSize: '10px',
-                                                    fontWeight: 600,
-                                                    background: '#f5f5f7',
-                                                    color: '#86868b',
-                                                    padding: '2px 8px',
-                                                    borderRadius: '9999px',
-                                                    marginLeft: '8px',
-                                                    textTransform: 'uppercase',
-                                                    letterSpacing: '0.04em',
-                                                }}>
-                                                    Soon
-                                                </span>
-                                            )}
-                                        </div>
+                                        <div style={{ fontSize: '14px', fontWeight: 500, color: '#000' }}>{method.name}</div>
                                         <div style={{ fontSize: '12px', color: '#86868b' }}>{method.description}</div>
                                     </div>
                                     {paymentMethod === method.id && (
@@ -820,7 +730,7 @@ const Upgrade = () => {
                                 marginTop: '16px',
                             }}>
                                 <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>lock</span>
-                                Secure payment powered by Flutterwave
+                                Secure payment powered by trusted providers
                             </div>
                         </>
                     )}

@@ -12,7 +12,6 @@ import { router } from '@inertiajs/react'
 import RecommendedContent from "@/Components/RecommendedContent";
 import { showToolsSubscriptionModal } from '@/Components/SubscriptionModal';
 import AdBanner from '@/Components/AdBanner';
-import AdUnit from '@/Components/AdUnit';
 
 const ReadTool = ({tool_data, similarPosts}) => {
 
@@ -354,7 +353,7 @@ const ReadTool = ({tool_data, similarPosts}) => {
 
                             {/* Ad: Mid-Content */}
                             <div style={{ marginBottom: '24px' }}>
-                                <AdUnit type="horizontal" />
+                                <AdBanner slot="tool_view_content" page="tool-view" position="in-content-middle" size="leaderboard" />
                             </div>
 
                             {/* Tags */}
@@ -474,7 +473,7 @@ const ReadTool = ({tool_data, similarPosts}) => {
                             <div style={{ position: 'sticky', top: '72px' }}>
                                 {/* Ad: Sidebar */}
                                 <div style={{ marginBottom: '24px' }}>
-                                    <AdUnit type="square" />
+                                    <AdBanner slot="tool_view_sidebar" page="tool-view" position="sidebar-right" size="medium-rectangle" />
                                 </div>
 
                                 {/* Tool Quick Info */}

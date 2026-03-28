@@ -17,7 +17,6 @@ import FixedMobileNav from '@/Components/FixedMobileNav';
 import { showOpportunitiesSubscriptionModal } from '@/Components/SubscriptionModal';
 import OpportunitiesSkeleton from '@/Components/OpportunitiesSkeleton';
 import AdBanner from '@/Components/AdBanner';
-import AdUnit from '@/Components/AdUnit';
 
 const DisplayOpportunities = React.lazy(() => import('@/Components/DisplayOpportunities'));
 
@@ -362,7 +361,7 @@ const Opportunities = () => {
 
                                     {/* Ad: Sidebar */}
                                     <div style={{ marginTop: '16px' }}>
-                                        <AdUnit type="square" />
+                                        <AdBanner slot="opportunities_sidebar" page="opportunities" position="sidebar-right" size="medium-rectangle" />
                                     </div>
                                 </div>
                             </div>
@@ -372,7 +371,7 @@ const Opportunities = () => {
                         <Col xs={12} md={8} lg={9}>
                             {/* Ad: Top of Results */}
                             <div style={{ marginBottom: 24 }}>
-                                <AdUnit type="horizontal" />
+                                <AdBanner slot="opportunities_top" page="opportunities" position="top" size="leaderboard" />
                             </div>
 
                             <div
@@ -419,7 +418,7 @@ const Opportunities = () => {
 
                             {/* Ad: Below Results */}
                             <div style={{ marginTop: 24 }}>
-                                <AdUnit type="horizontal" />
+                                <AdBanner slot="opportunities_bottom" page="opportunities" position="bottom" size="leaderboard" />
                             </div>
                         </Col>
                     </Row>

@@ -17,7 +17,6 @@ import FixedMobileNav from '@/Components/FixedMobileNav';
 import { showToolsSubscriptionModal } from '@/Components/SubscriptionModal';
 import ToolshedSkeleton from '@/Components/ToolshedSkeleton';
 import AdBanner from '@/Components/AdBanner';
-import AdUnit from '@/Components/AdUnit';
 
 const DisplayToolshed = React.lazy(() => import('@/Components/Toolshed'));
 
@@ -323,7 +322,7 @@ const Toolshed = () => {
 
                                     {/* Ad: Sidebar */}
                                     <div style={{ marginTop: '16px' }}>
-                                        <AdUnit type="square" />
+                                        <AdBanner slot="toolshed_sidebar" page="toolshed" position="sidebar-right" size="medium-rectangle" />
                                     </div>
                                 </div>
                             </div>
@@ -333,7 +332,7 @@ const Toolshed = () => {
                         <Col xs={12} md={8} lg={9}>
                             {/* Ad: Top of Results */}
                             <div style={{ marginBottom: 24 }}>
-                                <AdUnit type="horizontal" />
+                                <AdBanner slot="toolshed_top" page="toolshed" position="top" size="leaderboard" />
                             </div>
 
                             <div
@@ -383,7 +382,7 @@ const Toolshed = () => {
 
                             {/* Ad: Below Results */}
                             <div style={{ marginTop: 24 }}>
-                                <AdUnit type="horizontal" />
+                                <AdBanner slot="toolshed_bottom" page="toolshed" position="bottom" size="leaderboard" />
                             </div>
                         </Col>
                     </Row>

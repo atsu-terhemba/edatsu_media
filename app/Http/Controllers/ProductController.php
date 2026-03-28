@@ -1479,7 +1479,7 @@ public function store(Request $request)
         $sheet->setTitle('Products Template');
 
         // Headers
-        $headers = ['title', 'description', 'direct_link', 'youtube_link', 'categories', 'tags', 'brand_labels', 'meta_keywords', 'meta_description'];
+        $headers = ['title', 'description', 'image_url', 'direct_link', 'youtube_link', 'categories', 'tags', 'brand_labels', 'meta_keywords', 'meta_description'];
         foreach ($headers as $col => $header) {
             $cell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col + 1) . '1';
             $sheet->setCellValue($cell, $header);
@@ -1487,23 +1487,24 @@ public function store(Request $request)
         }
 
         // Auto-size columns
-        foreach (range('A', 'I') as $col) {
+        foreach (range('A', 'J') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
         // Example row
         $sheet->setCellValue('A2', 'Example Product Title');
         $sheet->setCellValue('B2', 'A detailed product description goes here.');
-        $sheet->setCellValue('C2', 'https://example.com/product');
-        $sheet->setCellValue('D2', 'https://www.youtube.com/watch?v=example');
-        $sheet->setCellValue('E2', 'Category One, Category Two');
-        $sheet->setCellValue('F2', 'tag1, tag2');
-        $sheet->setCellValue('G2', 'Brand A, Brand B');
-        $sheet->setCellValue('H2', 'product, tool, software');
-        $sheet->setCellValue('I2', 'Meta description for SEO');
+        $sheet->setCellValue('C2', 'https://example.com/product-image.jpg');
+        $sheet->setCellValue('D2', 'https://example.com/product');
+        $sheet->setCellValue('E2', 'https://www.youtube.com/watch?v=example');
+        $sheet->setCellValue('F2', 'Category One, Category Two');
+        $sheet->setCellValue('G2', 'tag1, tag2');
+        $sheet->setCellValue('H2', 'Brand A, Brand B');
+        $sheet->setCellValue('I2', 'product, tool, software');
+        $sheet->setCellValue('J2', 'Meta description for SEO');
 
         // Style example row as italic/gray
-        $sheet->getStyle('A2:I2')->getFont()->setItalic(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FF888888'));
+        $sheet->getStyle('A2:J2')->getFont()->setItalic(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FF888888'));
 
         // Add instructions sheet
         $instructions = $spreadsheet->createSheet();
@@ -1516,18 +1517,20 @@ public function store(Request $request)
         $instructions->setCellValue('A5', '- description: Product description (required)');
         $instructions->setCellValue('A7', 'Optional columns:');
         $instructions->getStyle('A7')->getFont()->setBold(true);
-        $instructions->setCellValue('A8', '- direct_link: Direct URL to the product');
-        $instructions->setCellValue('A9', '- youtube_link: YouTube video URL (auto-converted to embed format)');
-        $instructions->setCellValue('A10', '- categories: Comma-separated category names (must match existing categories)');
-        $instructions->setCellValue('A11', '- tags: Comma-separated tag names (must match existing tags)');
-        $instructions->setCellValue('A12', '- brand_labels: Comma-separated brand label names (must match existing labels)');
-        $instructions->setCellValue('A13', '- meta_keywords: SEO keywords');
-        $instructions->setCellValue('A14', '- meta_description: SEO description');
-        $instructions->setCellValue('A16', 'Notes:');
-        $instructions->getStyle('A16')->getFont()->setBold(true);
-        $instructions->setCellValue('A17', '- Delete the example row (row 2) before uploading');
-        $instructions->setCellValue('A18', '- Category, tag, and brand label names are matched case-insensitively');
-        $instructions->setCellValue('A19', '- Unmatched category/tag/brand names will be skipped (product still created)');
+        $instructions->setCellValue('A8', '- image_url: Public URL to a product image (jpg, png, webp — downloaded automatically)');
+        $instructions->setCellValue('A9', '- direct_link: Direct URL to the product');
+        $instructions->setCellValue('A10', '- youtube_link: YouTube video URL (auto-converted to embed format)');
+        $instructions->setCellValue('A11', '- categories: Comma-separated category names (must match existing categories)');
+        $instructions->setCellValue('A12', '- tags: Comma-separated tag names (must match existing tags)');
+        $instructions->setCellValue('A13', '- brand_labels: Comma-separated brand label names (must match existing labels)');
+        $instructions->setCellValue('A14', '- meta_keywords: SEO keywords');
+        $instructions->setCellValue('A15', '- meta_description: SEO description');
+        $instructions->setCellValue('A17', 'Notes:');
+        $instructions->getStyle('A17')->getFont()->setBold(true);
+        $instructions->setCellValue('A18', '- Delete the example row (row 2) before uploading');
+        $instructions->setCellValue('A19', '- Category, tag, and brand label names are matched case-insensitively');
+        $instructions->setCellValue('A20', '- Unmatched category/tag/brand names will be skipped (product still created)');
+        $instructions->setCellValue('A21', '- Image URLs must be publicly accessible; failed downloads are skipped (product still created)');
         $instructions->getColumnDimension('A')->setWidth(80);
 
         $spreadsheet->setActiveSheetIndex(0);
@@ -1592,9 +1595,9 @@ public function store(Request $request)
         }
 
         // Preload taxonomy lookups (case-insensitive)
-        $allCategories = ProductCategory::where('deleted', 0)->get()->keyBy(fn($c) => strtolower($c->name));
-        $allTags = Tag::where('deleted', 0)->get()->keyBy(fn($t) => strtolower($t->name));
-        $allBrandLabels = BrandLabel::where('deleted', 0)->get()->keyBy(fn($b) => strtolower($b->name));
+        $allCategories = ProductCategory::all()->keyBy(fn($c) => strtolower($c->name));
+        $allTags = Tag::all()->keyBy(fn($t) => strtolower($t->name));
+        $allBrandLabels = BrandLabel::all()->keyBy(fn($b) => strtolower($b->name));
 
         $created = 0;
         $errors = [];
@@ -1649,6 +1652,30 @@ public function store(Request $request)
                 $product->youtube_link = $ytLink ?: null;
                 $product->meta_keywords = trim($row[$colMap['meta_keywords'] ?? ''] ?? '') ?: null;
                 $product->meta_description = trim($row[$colMap['meta_description'] ?? ''] ?? '') ?: null;
+
+                // Handle image_url: download from URL and upload to R2
+                $imageUrl = trim($row[$colMap['image_url'] ?? ''] ?? '');
+                if ($imageUrl && filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+                    try {
+                        $imageContents = file_get_contents($imageUrl);
+                        if ($imageContents !== false) {
+                            $extension = pathinfo(parse_url($imageUrl, PHP_URL_PATH), PATHINFO_EXTENSION);
+                            $allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+                            if (!in_array(strtolower($extension), $allowedExts)) {
+                                $extension = 'jpg';
+                            }
+                            $imageName = time() . '_' . uniqid() . '.' . $extension;
+                            $userFolder = $this->getUserFolderPath(Auth::user()->name);
+                            $uploadPath = 'uploads/prod/' . $userFolder . '/' . $imageName;
+
+                            Storage::disk('r2')->put($uploadPath, $imageContents);
+                            $product->cover_img = $userFolder . '/' . $imageName;
+                        }
+                    } catch (\Exception $e) {
+                        Log::warning("Row {$rowNum}: Could not download image from {$imageUrl}: " . $e->getMessage());
+                    }
+                }
+
                 $product->save();
 
                 $postId = $product->id;

@@ -12,14 +12,30 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->timestamp('last_seen_at')->nullable();
-            $table->string('device_type')->nullable(); // mobile, desktop, tablet
-            $table->string('browser')->nullable();
-            $table->string('operating_system')->nullable();
-            $table->string('device_name')->nullable();
-            $table->ipAddress('last_ip_address')->nullable();
-            $table->string('user_agent')->nullable();
-            $table->boolean('is_online')->default(false);
+            if (!Schema::hasColumn('users', 'last_seen_at')) {
+                $table->timestamp('last_seen_at')->nullable();
+            }
+            if (!Schema::hasColumn('users', 'device_type')) {
+                $table->string('device_type')->nullable();
+            }
+            if (!Schema::hasColumn('users', 'browser')) {
+                $table->string('browser')->nullable();
+            }
+            if (!Schema::hasColumn('users', 'operating_system')) {
+                $table->string('operating_system')->nullable();
+            }
+            if (!Schema::hasColumn('users', 'device_name')) {
+                $table->string('device_name')->nullable();
+            }
+            if (!Schema::hasColumn('users', 'last_ip_address')) {
+                $table->ipAddress('last_ip_address')->nullable();
+            }
+            if (!Schema::hasColumn('users', 'user_agent')) {
+                $table->string('user_agent')->nullable();
+            }
+            if (!Schema::hasColumn('users', 'is_online')) {
+                $table->boolean('is_online')->default(false);
+            }
         });
     }
 
