@@ -22,20 +22,18 @@ const FixedMobileNav = ({
 
   // Bottom bar items for guest
   const guestTabs = [
-    { id: 'home', icon: 'home', label: 'Home', path: '/' },
-    { id: 'search', icon: 'search', label: 'Search', action: handleSearchClick },
+    { id: 'feeds', icon: 'rss_feed', label: 'Feeds', path: '/feeds' },
     { id: 'opps', icon: 'explore', label: 'Explore', path: '/opportunities' },
     { id: 'tools', icon: 'handyman', label: 'Tools', path: '/toolshed' },
-    { id: 'login', icon: 'person', label: 'Login', path: '/login' },
+    { id: 'more', icon: 'menu', label: 'Menu', action: () => setShowDrawer(true) },
   ];
 
   // Bottom bar items for logged-in user (guest pages context)
   const authTabs = [
-    { id: 'home', icon: 'home', label: 'Home', path: '/' },
-    { id: 'search', icon: 'search', label: 'Search', action: handleSearchClick },
+    { id: 'feeds', icon: 'rss_feed', label: 'Feeds', path: '/feeds' },
     { id: 'opps', icon: 'explore', label: 'Explore', path: '/opportunities' },
     { id: 'tools', icon: 'handyman', label: 'Tools', path: '/toolshed' },
-    { id: 'more', icon: 'menu', label: 'More', action: () => setShowDrawer(true) },
+    { id: 'more', icon: 'menu', label: 'Menu', action: () => setShowDrawer(true) },
   ];
 
   const tabs = isAuthenticated ? authTabs : guestTabs;
@@ -47,12 +45,19 @@ const FixedMobileNav = ({
     { label: 'Notifications', icon: 'notifications', path: '/notifications' },
     { label: 'Saved Items', icon: 'bookmark', path: '/bookmarked-opportunities' },
     { type: 'divider' },
+    { label: 'Home', icon: 'home', path: '/' },
+    { label: 'Feeds', icon: 'rss_feed', path: '/feeds' },
+    { label: 'Opportunities', icon: 'explore', path: '/opportunities' },
+    { label: 'Toolshed', icon: 'handyman', path: '/toolshed' },
+    { type: 'divider' },
     { label: 'Pricing', icon: 'diamond', path: '/subscription' },
     { label: 'Advertise', icon: 'campaign', path: '/advertise' },
     { label: 'Help', icon: 'help', path: '/help' },
     { type: 'divider' },
     { label: 'Logout', icon: 'logout', path: '/logout', method: 'post', danger: true },
   ] : [
+    { label: 'Home', icon: 'home', path: '/' },
+    { label: 'Feeds', icon: 'rss_feed', path: '/feeds' },
     { label: 'Opportunities', icon: 'explore', path: '/opportunities' },
     { label: 'Toolshed', icon: 'handyman', path: '/toolshed' },
     { type: 'divider' },

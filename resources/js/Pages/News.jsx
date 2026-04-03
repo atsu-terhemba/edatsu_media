@@ -4,12 +4,13 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Link, usePage } from '@inertiajs/react';
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect, useCallback } from 'react';
 import { AuthContext } from '@/Layouts/GuestLayout';
 import { showOpportunitiesSubscriptionModal } from '@/Components/SubscriptionModal';
 import AdBanner from '@/Components/AdBanner';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import FixedMobileNav from '@/Components/FixedMobileNav';
 
 /* ── Feed Card Skeleton ── */
 const FeedCardSkeleton = () => (
@@ -38,6 +39,7 @@ const FeedCardSkeleton = () => (
 /* ── Feed Card ── */
 const FeedCard = ({ feed, onRemove, isAuthenticated, savedArticleLinks, onToggleSaveArticle }) => {
     const [expanded, setExpanded] = useState(false);
+    const isLoading = feed.articles === null;
     const visibleArticles = feed.articles ? (expanded ? feed.articles : feed.articles.slice(0, 5)) : [];
     const hasMore = feed.articles && feed.articles.length > 5;
 
@@ -93,8 +95,20 @@ const FeedCard = ({ feed, onRemove, isAuthenticated, savedArticleLinks, onToggle
                 )}
             </div>
 
+            {/* Loading skeleton for articles */}
+            {isLoading && (
+                <div>
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} style={{ marginBottom: 16 }}>
+                            <div style={{ width: '80%', height: 13, borderRadius: 6, background: '#f0f0f0', marginBottom: 8 }} />
+                            <div style={{ width: '50%', height: 11, borderRadius: 6, background: '#f5f5f7' }} />
+                        </div>
+                    ))}
+                </div>
+            )}
+
             {/* Articles */}
-            {visibleArticles.length > 0 ? (
+            {!isLoading && visibleArticles.length > 0 ? (
                 <div>
                     {visibleArticles.map((article, i) => {
                         const isSaved = savedArticleLinks.includes(article.link);
@@ -191,11 +205,11 @@ const FeedCard = ({ feed, onRemove, isAuthenticated, savedArticleLinks, onToggle
                         </button>
                     )}
                 </div>
-            ) : (
+            ) : !isLoading ? (
                 <p style={{ fontSize: '13px', color: '#86868b', margin: 0 }}>
                     No articles found
                 </p>
-            )}
+            ) : null}
         </div>
     );
 };
@@ -296,12 +310,67 @@ const News = () => {
     const [showSavePrompt, setShowSavePrompt] = useState(false);
     const [savedArticleLinks, setSavedArticleLinks] = useState(initialSavedLinks);
 
+    // Default feeds state — mutable so we can populate articles
+    const [defaultFeeds, setDefaultFeeds] = useState(defaultFeedsByRegion);
+
     // Region selection — default to first available region
-    const availableRegions = regions.filter((r) => defaultFeedsByRegion[r]?.length > 0);
+    const availableRegions = regions.filter((r) => defaultFeeds[r]?.length > 0 || defaultFeedsByRegion[r]?.length > 0);
     const [activeRegion, setActiveRegion] = useState(availableRegions[0] || '');
 
     // Track which default feeds are visible (by feed_url) — all visible by default
     const [hiddenFeedUrls, setHiddenFeedUrls] = useState(new Set());
+
+    // Lazy-load articles for a single feed
+    const fetchFeedArticles = useCallback(async (feedUrl) => {
+        try {
+            const res = await axios.post('/api/news-feeds/fetch-articles', { url: feedUrl });
+            return res.data;
+        } catch {
+            return null;
+        }
+    }, []);
+
+    // Fetch articles for saved feeds on mount
+    useEffect(() => {
+        feeds.forEach((feed, index) => {
+            if (feed.articles !== null) return;
+            fetchFeedArticles(feed.feed_url).then((data) => {
+                if (!data) return;
+                setFeeds((prev) => prev.map((f, i) =>
+                    i === index ? {
+                        ...f,
+                        title: data.title || f.title,
+                        favicon: data.favicon || f.favicon,
+                        articles: data.articles || [],
+                    } : f
+                ));
+            });
+        });
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Fetch articles for the active region's default feeds
+    useEffect(() => {
+        if (!activeRegion) return;
+        const regionFeeds = defaultFeeds[activeRegion] || [];
+        regionFeeds.forEach((feed, index) => {
+            if (feed.articles !== null) return; // already loaded
+            fetchFeedArticles(feed.feed_url).then((data) => {
+                if (!data) return;
+                setDefaultFeeds((prev) => {
+                    const updated = { ...prev };
+                    updated[activeRegion] = (updated[activeRegion] || []).map((f, i) =>
+                        i === index ? {
+                            ...f,
+                            title: data.title || f.title,
+                            favicon: data.favicon || f.favicon,
+                            articles: data.articles || [],
+                        } : f
+                    );
+                    return updated;
+                });
+            });
+        });
+    }, [activeRegion]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const toggleDefaultFeedVisibility = (feed) => {
         setHiddenFeedUrls((prev) => {
@@ -316,7 +385,7 @@ const News = () => {
     };
 
     // Get current region's feeds
-    const currentRegionFeeds = defaultFeedsByRegion[activeRegion] || [];
+    const currentRegionFeeds = defaultFeeds[activeRegion] || [];
     const visibleRegionFeeds = currentRegionFeeds.filter((f) => !hiddenFeedUrls.has(f.feed_url));
 
     const handleToggleSaveArticle = async (article, feed) => {
@@ -396,7 +465,7 @@ const News = () => {
 
         // Check for duplicates across user feeds and all default feeds
         const normalizedUrl = url.toLowerCase().replace(/\/$/, '');
-        const allDefaultFeeds = Object.values(defaultFeedsByRegion).flat();
+        const allDefaultFeeds = Object.values(defaultFeeds).flat();
         const allFeeds = [...feeds, ...allDefaultFeeds];
         const isDuplicate = allFeeds.some(
             (f) =>
@@ -503,7 +572,7 @@ const News = () => {
                                 marginBottom: '12px',
                             }}
                         >
-                            News
+                            Feeds
                         </h1>
                         <p
                             style={{
@@ -609,6 +678,11 @@ const News = () => {
 
                         {/* Main Content */}
                         <Col xs={12} md={8} lg={9}>
+                            {/* Ad: Top */}
+                            <div style={{ marginBottom: 16 }}>
+                                <AdBanner slot="feeds_top" page="feeds" position="top" size="leaderboard" />
+                            </div>
+
                             {/* Feed Input */}
                             <div
                                 style={{
@@ -903,10 +977,17 @@ const News = () => {
                                     </p>
                                 </div>
                             )}
+
+                            {/* Ad: Bottom */}
+                            <div style={{ marginTop: 24 }}>
+                                <AdBanner slot="feeds_bottom" page="feeds" position="bottom" size="leaderboard" />
+                            </div>
                         </Col>
                     </Row>
                 </Container>
             </section>
+
+            <FixedMobileNav isAuthenticated={isAuthenticated} />
         </GuestLayout>
     );
 };

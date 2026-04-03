@@ -99,6 +99,7 @@ Route::get('/ev/{id}/{title}', [Event::class, 'show'])->name('read.ev');
 // Feeds and Events
 Route::get('/feeds', [NewsFeedController::class, 'index'])->name('feeds');
 Route::post('/api/news-feeds/preview', [NewsFeedController::class, 'preview'])->middleware('throttle:15,1');
+Route::post('/api/news-feeds/fetch-articles', [NewsFeedController::class, 'fetchArticles'])->middleware('throttle:60,1');
 Route::get('/news/{id}', [NewsFeedController::class, 'show'])->name('read.news');
 Route::get('/events', [Event::class, 'index'])->name('events');
 Route::get('/legacy-feeds', [FeedsController::class, 'displayFeeds'])->name('find.feeds');

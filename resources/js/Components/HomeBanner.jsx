@@ -96,7 +96,7 @@ export default function HomeBanner() {
                                                 <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>arrow_forward</span>
                                             </a>
                                             <a
-                                                href="/toolshed"
+                                                href="/feeds"
                                                 style={{
                                                     background: 'transparent',
                                                     color: 'rgba(255, 255, 255, 0.9)',
@@ -118,7 +118,7 @@ export default function HomeBanner() {
                                                     e.currentTarget.style.background = 'transparent';
                                                 }}
                                             >
-                                                Explore Tools
+                                                Browse Feeds
                                             </a>
                                         </div>
                                     </div>

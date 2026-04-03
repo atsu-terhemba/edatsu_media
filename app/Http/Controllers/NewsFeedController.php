@@ -59,7 +59,7 @@ class NewsFeedController extends Controller
     }
 
     /**
-     * Render the News page. Pass default feeds + saved feeds for auth users.
+     * Render the News page. Pass feed metadata only — articles are fetched client-side.
      */
     public function index()
     {
@@ -72,20 +72,19 @@ class NewsFeedController extends Controller
                 ->get();
 
             foreach ($userFeeds as $feed) {
-                $feedData = $this->rssFeedService->fetchFeed($feed->feed_url);
                 $savedFeeds[] = [
                     'id' => $feed->id,
                     'feed_url' => $feed->feed_url,
                     'site_url' => $feed->site_url,
-                    'title' => $feedData['title'] ?? $feed->feed_title,
-                    'favicon' => $feedData['favicon'] ?? $feed->feed_favicon,
-                    'articles' => $feedData['articles'] ?? [],
+                    'title' => $feed->feed_title,
+                    'favicon' => $feed->feed_favicon,
+                    'articles' => null, // loaded client-side
                 ];
                 $savedFeedUrls[] = $feed->feed_url;
             }
         }
 
-        // Load default feeds organized by region (skip any the user already has saved)
+        // Build default feed metadata by region (no HTTP fetching)
         $defaultFeedsByRegion = [];
         $regions = array_keys(self::DEFAULT_FEEDS);
 
@@ -94,19 +93,19 @@ class NewsFeedController extends Controller
             foreach ($feedUrls as $feedUrl) {
                 if (in_array($feedUrl, $savedFeedUrls)) continue;
 
-                $feedData = $this->rssFeedService->fetchFeed($feedUrl);
-                if ($feedData) {
-                    $regionFeeds[] = [
-                        'id' => null,
-                        'feed_url' => $feedData['feed_url'],
-                        'site_url' => $feedData['site_url'],
-                        'title' => $feedData['title'],
-                        'favicon' => $feedData['favicon'],
-                        'articles' => $feedData['articles'],
-                        'is_default' => true,
-                        'region' => $region,
-                    ];
-                }
+                $parsed = parse_url($feedUrl);
+                $host = $parsed['host'] ?? '';
+
+                $regionFeeds[] = [
+                    'id' => null,
+                    'feed_url' => $feedUrl,
+                    'site_url' => ($parsed['scheme'] ?? 'https') . '://' . $host,
+                    'title' => ucfirst(str_replace('www.', '', $host)),
+                    'favicon' => 'https://www.google.com/s2/favicons?domain=' . urlencode($host) . '&sz=32',
+                    'articles' => null, // loaded client-side
+                    'is_default' => true,
+                    'region' => $region,
+                ];
             }
             if (!empty($regionFeeds)) {
                 $defaultFeedsByRegion[$region] = $regionFeeds;
@@ -127,6 +126,28 @@ class NewsFeedController extends Controller
             'regions' => $regions,
             'savedArticleLinks' => $savedArticleLinks,
         ]);
+    }
+
+    /**
+     * Fetch articles for a single feed URL (used for lazy-loading).
+     */
+    public function fetchArticles(Request $request)
+    {
+        $request->validate([
+            'url' => 'required|string|max:500',
+        ]);
+
+        $feedData = $this->rssFeedService->fetchFeed($request->url);
+
+        if (!$feedData) {
+            return response()->json([
+                'articles' => [],
+                'title' => null,
+                'favicon' => null,
+            ]);
+        }
+
+        return response()->json($feedData);
     }
 
     /**
