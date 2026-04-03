@@ -128,6 +128,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/subscriber-dashboard', [SubscriberController::class, 'index'])->name('subscriber.dashboard');
     Route::get('/bookmarked-opportunities', [SubscriberController::class, 'bookmarkedOpportunities'])->name('subscriber.bookmarked_opportunities');
     Route::get('/bookmarked-tools', [SubscriberController::class, 'bookmarkedTools'])->name('subscriber.bookmarked_tools');
+    Route::get('/saved-articles', [SubscriberController::class, 'savedArticles'])->name('subscriber.saved_articles');
+    Route::delete('/saved-articles/{id}', [SubscriberController::class, 'deleteSavedArticle'])->name('subscriber.delete_saved_article');
+    Route::post('/saved-articles/bulk-delete', [SubscriberController::class, 'deleteSavedArticlesBulk'])->name('subscriber.delete_saved_articles_bulk');
     Route::get('/notifications', [SubscriberController::class, 'notifications'])->name('subscriber.notifications');
     Route::get('/messages', [SubscriberController::class, 'messages'])->name('subscriber.messages');
     Route::get('/notification-settings', [SubscriberController::class, 'notificationSettings'])->name('subscriber.notification_settings');

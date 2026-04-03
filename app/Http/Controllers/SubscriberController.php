@@ -22,6 +22,7 @@ use App\Models\Tag;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use App\Notifications\ReminderNotification;
+use App\Models\SavedFeedArticle;
 use App\Models\PushSubscription;
 
 class SubscriberController extends Controller
@@ -255,6 +256,34 @@ class SubscriberController extends Controller
         return Inertia::render('Subscriber/BookmarkedTools', [
             'tools' => $tools
         ]);
+    }
+
+    function savedArticles(){
+        $articles = SavedFeedArticle::where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return Inertia::render('Subscriber/SavedArticles', [
+            'articles' => $articles,
+        ]);
+    }
+
+    function deleteSavedArticle($id){
+        SavedFeedArticle::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->delete();
+
+        return response()->json(['status' => 'success', 'message' => 'Article removed']);
+    }
+
+    function deleteSavedArticlesBulk(Request $request){
+        $request->validate(['ids' => 'required|array']);
+
+        SavedFeedArticle::whereIn('id', $request->ids)
+            ->where('user_id', Auth::id())
+            ->delete();
+
+        return response()->json(['status' => 'success', 'message' => count($request->ids) . ' articles removed']);
     }
 
     function notifications(){

@@ -787,6 +787,43 @@ const News = () => {
                                 </form>
                             </div>
 
+                            {/* How it works banner */}
+                            <div
+                                style={{
+                                    borderRadius: '16px',
+                                    border: '1px solid #f0f0f0',
+                                    background: '#fff',
+                                    padding: '16px 24px',
+                                    marginBottom: '16px',
+                                }}
+                            >
+                                <div className="d-flex flex-wrap gap-3 align-items-center" style={{ fontSize: '12px' }}>
+                                    {[
+                                        { icon: 'language', text: 'Paste any website URL' },
+                                        { icon: 'rss_feed', text: 'We find the RSS feed' },
+                                        { icon: 'bolt', text: 'Articles load instantly' },
+                                    ].map((step, i) => (
+                                        <div key={i} className="d-flex align-items-center gap-1">
+                                            <span
+                                                className="material-symbols-outlined"
+                                                style={{ fontSize: '14px', color: '#f97316' }}
+                                            >
+                                                {step.icon}
+                                            </span>
+                                            <span style={{ fontWeight: 500, color: '#6e6e73' }}>{step.text}</span>
+                                            {i < 2 && (
+                                                <span
+                                                    className="material-symbols-outlined d-none d-sm-inline"
+                                                    style={{ fontSize: '14px', color: '#d1d1d6', marginLeft: '8px' }}
+                                                >
+                                                    arrow_forward
+                                                </span>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
                             {/* Save prompt for guests */}
                             {showSavePrompt && !isAuthenticated && (
                                 <div
