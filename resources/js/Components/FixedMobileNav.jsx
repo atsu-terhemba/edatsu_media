@@ -4,10 +4,11 @@ import { Images } from "@/utils/Images";
 
 const FixedMobileNav = ({
   isAuthenticated = false,
-  currentPath = '/',
   toggleSearch
 }) => {
-  const { auth } = usePage().props;
+  const { auth, url: pageUrl } = usePage().props;
+  const { url: inertiaUrl } = usePage();
+  const currentPath = inertiaUrl || '/';
   const [showDrawer, setShowDrawer] = useState(false);
 
   const isActive = (path) => {
