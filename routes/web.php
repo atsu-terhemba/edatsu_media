@@ -96,11 +96,12 @@ Route::post('/product/{id}/comment', [CommentController::class, 'store'])->name(
 Route::get('/product/{id}/{product_name}', [ProductController::class, 'readProductData'])->name('read.product_blog');
 Route::get('/ev/{id}/{title}', [Event::class, 'show'])->name('read.ev');
 
-// News and Events
-Route::get('/news', [NewsFeedController::class, 'index'])->name('news');
+// Feeds and Events
+Route::get('/feeds', [NewsFeedController::class, 'index'])->name('feeds');
+Route::post('/api/news-feeds/preview', [NewsFeedController::class, 'preview'])->middleware('throttle:15,1');
 Route::get('/news/{id}', [NewsFeedController::class, 'show'])->name('read.news');
 Route::get('/events', [Event::class, 'index'])->name('events');
-Route::get('/feeds', [FeedsController::class, 'displayFeeds'])->name('find.feeds');
+Route::get('/legacy-feeds', [FeedsController::class, 'displayFeeds'])->name('find.feeds');
 Route::get('/news-feed', [RssFeedController::class, 'index'])->name('daily.feeds');
 
 // Additional pages
@@ -133,6 +134,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/subscriber/preferences', [SubscriberController::class, 'updatePreferences'])->name('subscriber.update_preferences');
     Route::post('/subscriber/update-profile', [SubscriberController::class, 'updateProfile'])->name('subscriber.update-profile');
     
+    // News Feeds
+    Route::get('/api/news-feeds', [NewsFeedController::class, 'savedFeeds']);
+    Route::post('/api/news-feeds', [NewsFeedController::class, 'store']);
+    Route::delete('/api/news-feeds/{id}', [NewsFeedController::class, 'destroy']);
+    Route::post('/api/news-feeds/save-article', [NewsFeedController::class, 'saveArticle']);
+    Route::post('/api/news-feeds/unsave-article', [NewsFeedController::class, 'unsaveArticle']);
+
     // Bookmarking
     Route::post('/bookmark', [App::class, 'bookmark']); // General bookmark endpoint
     Route::post('/bookmark-opps', [App::class, 'bookmark']);

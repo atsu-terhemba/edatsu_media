@@ -275,6 +275,17 @@ return(
         <Nav className="m-0 p-0 d-flex flex-row align-items-center" style={{ height: '100%' }}>
             <Nav.Item>
                 <Link
+                    href={route('feeds')}
+                    className={`nav-link me-3 ${ActiveLink('/feeds')}`}
+                    style={navLinkStyle}
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)'}
+                >
+                    Feeds
+                </Link>
+            </Nav.Item>
+            <Nav.Item>
+                <Link
                     href={route('opportunities')}
                     className={`nav-link me-3 ${ActiveLink('/opportunities')}`}
                     style={navLinkStyle}
