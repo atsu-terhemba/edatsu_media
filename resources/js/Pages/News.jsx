@@ -12,6 +12,37 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import FixedMobileNav from '@/Components/FixedMobileNav';
 
+/* ── Last-seen helpers (localStorage) ── */
+const LAST_SEEN_KEY = 'edatsu_feeds_last_seen';
+
+const getLastSeenMap = () => {
+    try {
+        return JSON.parse(localStorage.getItem(LAST_SEEN_KEY) || '{}');
+    } catch { return {}; }
+};
+
+const getLastSeen = (feedUrl) => {
+    const map = getLastSeenMap();
+    return map[feedUrl] ? new Date(map[feedUrl]) : null;
+};
+
+const markFeedSeen = (feedUrl) => {
+    const map = getLastSeenMap();
+    map[feedUrl] = new Date().toISOString();
+    localStorage.setItem(LAST_SEEN_KEY, JSON.stringify(map));
+};
+
+const countNewArticles = (articles, feedUrl) => {
+    if (!articles || articles.length === 0) return 0;
+    const lastSeen = getLastSeen(feedUrl);
+    if (!lastSeen) return 0; // first visit — nothing is "new"
+    return articles.filter((a) => {
+        if (!a.published_at) return false;
+        const pubDate = new Date(a.published_at);
+        return !isNaN(pubDate.getTime()) && pubDate > lastSeen;
+    }).length;
+};
+
 /* ── Feed Card Skeleton ── */
 const FeedCardSkeleton = () => (
     <div
@@ -39,9 +70,21 @@ const FeedCardSkeleton = () => (
 /* ── Feed Card ── */
 const FeedCard = ({ feed, feedId, onRemove, isAuthenticated, savedArticleLinks, onToggleSaveArticle }) => {
     const [expanded, setExpanded] = useState(false);
+    const [seen, setSeen] = useState(false);
     const isLoading = feed.articles === null;
     const visibleArticles = feed.articles ? (expanded ? feed.articles : feed.articles.slice(0, 5)) : [];
     const hasMore = feed.articles && feed.articles.length > 5;
+    const newCount = !seen && feed.articles ? countNewArticles(feed.articles, feed.feed_url) : 0;
+
+    // Mark feed as seen after articles load, with a short delay so user sees the badge
+    useEffect(() => {
+        if (!feed.articles || feed.articles.length === 0) return;
+        const timer = setTimeout(() => {
+            markFeedSeen(feed.feed_url);
+            setSeen(true);
+        }, 3000);
+        return () => clearTimeout(timer);
+    }, [feed.articles, feed.feed_url]);
 
     return (
         <div
@@ -71,6 +114,19 @@ const FeedCard = ({ feed, feedId, onRemove, isAuthenticated, savedArticleLinks, 
                     <span style={{ fontSize: '14px', fontWeight: 600, color: '#000' }}>
                         {feed.title}
                     </span>
+                    {newCount > 0 && (
+                        <span style={{
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            color: '#fff',
+                            background: '#f97316',
+                            borderRadius: '9999px',
+                            padding: '2px 8px',
+                            lineHeight: 1.4,
+                        }}>
+                            {newCount} new
+                        </span>
+                    )}
                 </div>
                 {onRemove && (
                     <button
@@ -113,6 +169,11 @@ const FeedCard = ({ feed, feedId, onRemove, isAuthenticated, savedArticleLinks, 
                 <div>
                     {visibleArticles.map((article, i) => {
                         const isSaved = savedArticleLinks.includes(article.link);
+                        const lastSeen = getLastSeen(feed.feed_url);
+                        const isNew = !seen && lastSeen && article.published_at && (() => {
+                            const d = new Date(article.published_at);
+                            return !isNaN(d.getTime()) && d > lastSeen;
+                        })();
                         return (
                             <div
                                 key={i}
@@ -136,8 +197,14 @@ const FeedCard = ({ feed, feedId, onRemove, isAuthenticated, savedArticleLinks, 
                                     onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
                                     onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                                 >
-                                    <div style={{ fontSize: '14px', fontWeight: 500, color: '#000', lineHeight: 1.4, marginBottom: '4px' }}>
+                                    <div style={{ fontSize: '14px', fontWeight: 500, color: '#000', lineHeight: 1.4, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         {article.title}
+                                        {isNew && (
+                                            <span style={{
+                                                width: '7px', height: '7px', borderRadius: '50%',
+                                                background: '#f97316', flexShrink: 0,
+                                            }} />
+                                        )}
                                     </div>
                                     {article.description && (
                                         <div style={{ fontSize: '13px', color: '#86868b', lineHeight: 1.5, marginBottom: '4px' }}>
