@@ -308,6 +308,7 @@ const News = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [showSavePrompt, setShowSavePrompt] = useState(false);
+    const [inputFocused, setInputFocused] = useState(false);
     const [savedArticleLinks, setSavedArticleLinks] = useState(initialSavedLinks);
 
     // Default feeds state — mutable so we can populate articles
@@ -732,9 +733,11 @@ const News = () => {
                                                 onFocus={(e) => {
                                                     e.target.style.borderColor = '#000';
                                                     e.target.style.background = '#fff';
+                                                    setInputFocused(true);
                                                 }}
                                                 onBlur={(e) => {
                                                     e.target.style.borderColor = '#e5e5e5';
+                                                    setInputFocused(false);
                                                     e.target.style.background = '#f9f9f9';
                                                 }}
                                             />
@@ -787,42 +790,44 @@ const News = () => {
                                 </form>
                             </div>
 
-                            {/* How it works banner */}
-                            <div
-                                style={{
-                                    borderRadius: '16px',
-                                    border: '1px solid #f0f0f0',
-                                    background: '#fff',
-                                    padding: '16px 24px',
-                                    marginBottom: '16px',
-                                }}
-                            >
-                                <div className="d-flex flex-wrap gap-3 align-items-center" style={{ fontSize: '12px' }}>
-                                    {[
-                                        { icon: 'language', text: 'Paste any website URL' },
-                                        { icon: 'rss_feed', text: 'We find the RSS feed' },
-                                        { icon: 'bolt', text: 'Articles load instantly' },
-                                    ].map((step, i) => (
-                                        <div key={i} className="d-flex align-items-center gap-1">
-                                            <span
-                                                className="material-symbols-outlined"
-                                                style={{ fontSize: '14px', color: '#f97316' }}
-                                            >
-                                                {step.icon}
-                                            </span>
-                                            <span style={{ fontWeight: 500, color: '#6e6e73' }}>{step.text}</span>
-                                            {i < 2 && (
+                            {/* How it works banner — shown when input is focused or has text */}
+                            {(inputFocused || inputUrl.trim()) && (
+                                <div
+                                    style={{
+                                        borderRadius: '16px',
+                                        border: '1px solid #f0f0f0',
+                                        background: '#fff',
+                                        padding: '16px 24px',
+                                        marginBottom: '16px',
+                                    }}
+                                >
+                                    <div className="d-flex flex-wrap gap-3 align-items-center" style={{ fontSize: '12px' }}>
+                                        {[
+                                            { icon: 'language', text: 'Paste any website URL' },
+                                            { icon: 'rss_feed', text: 'We find the RSS feed' },
+                                            { icon: 'bolt', text: 'Articles load instantly' },
+                                        ].map((step, i) => (
+                                            <div key={i} className="d-flex align-items-center gap-1">
                                                 <span
-                                                    className="material-symbols-outlined d-none d-sm-inline"
-                                                    style={{ fontSize: '14px', color: '#d1d1d6', marginLeft: '8px' }}
+                                                    className="material-symbols-outlined"
+                                                    style={{ fontSize: '14px', color: '#f97316' }}
                                                 >
-                                                    arrow_forward
+                                                    {step.icon}
                                                 </span>
-                                            )}
-                                        </div>
-                                    ))}
+                                                <span style={{ fontWeight: 500, color: '#6e6e73' }}>{step.text}</span>
+                                                {i < 2 && (
+                                                    <span
+                                                        className="material-symbols-outlined d-none d-sm-inline"
+                                                        style={{ fontSize: '14px', color: '#d1d1d6', marginLeft: '8px' }}
+                                                    >
+                                                        arrow_forward
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             {/* Save prompt for guests */}
                             {showSavePrompt && !isAuthenticated && (
