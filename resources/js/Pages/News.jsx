@@ -404,6 +404,14 @@ const News = () => {
     const currentRegionFeeds = defaultFeeds[activeRegion] || [];
     const visibleRegionFeeds = currentRegionFeeds.filter((f) => !hiddenFeedUrls.has(f.feed_url));
 
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+    });
+
     const handleToggleSaveArticle = async (article, feed) => {
         if (!isAuthenticated) {
             Swal.fire({
@@ -445,9 +453,11 @@ const News = () => {
             setSavedArticleLinks((prev) => prev.filter((l) => l !== article.link));
             try {
                 await axios.post('/api/news-feeds/unsave-article', { article_link: article.link });
+                Toast.fire({ icon: 'success', title: 'Article removed' });
             } catch (err) {
                 console.error('Failed to unsave article:', err);
                 setSavedArticleLinks((prev) => [...prev, article.link]);
+                Toast.fire({ icon: 'error', title: 'Failed to remove article' });
             }
         } else {
             // Save
@@ -461,9 +471,11 @@ const News = () => {
                     feed_title: feed.title,
                     feed_favicon: feed.favicon,
                 });
+                Toast.fire({ icon: 'success', title: 'Article saved for later' });
             } catch (err) {
                 console.error('Failed to save article:', err);
                 setSavedArticleLinks((prev) => prev.filter((l) => l !== article.link));
+                Toast.fire({ icon: 'error', title: 'Failed to save article' });
             }
         }
     };
