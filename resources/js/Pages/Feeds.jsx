@@ -382,6 +382,7 @@ const News = () => {
     const [showSavePrompt, setShowSavePrompt] = useState(false);
     const [inputFocused, setInputFocused] = useState(false);
     const [savedArticleLinks, setSavedArticleLinks] = useState(initialSavedLinks);
+    const [activeTab, setActiveTab] = useState(feeds.length > 0 ? 'your' : 'trending');
 
     // Default feeds state — mutable so we can populate articles
     const [defaultFeeds, setDefaultFeeds] = useState(defaultFeedsByRegion);
@@ -599,6 +600,7 @@ const News = () => {
 
             setFeeds((prev) => [feedData, ...prev]);
             setInputUrl('');
+            setActiveTab('your');
 
             // Show save prompt for guests after 2 feeds
             if (!isAuthenticated && feeds.length >= 1) {
@@ -985,38 +987,105 @@ const News = () => {
                             {/* Loading skeleton */}
                             {isLoading && feeds.length === 0 && <FeedCardSkeleton />}
 
-                            {/* User's Feed Cards */}
-                            {feeds.length > 0 && (
+                            {/* Feed Tabs */}
+                            {(feeds.length > 0 || availableRegions.length > 0) && (
+                                <div style={{
+                                    display: 'inline-flex',
+                                    background: '#e8e8ed',
+                                    borderRadius: '9999px',
+                                    padding: '4px',
+                                    marginBottom: '16px',
+                                }}>
+                                    {[
+                                        { key: 'your', label: 'Your Feeds', count: feeds.length },
+                                        { key: 'trending', label: 'Trending' },
+                                    ].map((tab) => {
+                                        const isActive = activeTab === tab.key;
+                                        return (
+                                            <button
+                                                key={tab.key}
+                                                onClick={() => setActiveTab(tab.key)}
+                                                style={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px',
+                                                    padding: '9px 22px',
+                                                    borderRadius: '9999px',
+                                                    fontSize: '13px',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer',
+                                                    border: 'none',
+                                                    transition: 'all 0.25s cubic-bezier(.4,0,.2,1)',
+                                                    background: isActive ? '#000' : 'transparent',
+                                                    color: isActive ? '#fff' : '#6e6e73',
+                                                    boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+                                                }}
+                                            >
+                                                {tab.label}
+                                                {tab.count !== undefined && tab.count > 0 && (
+                                                    <span style={{
+                                                        fontSize: '11px',
+                                                        fontWeight: 700,
+                                                        background: isActive ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.06)',
+                                                        color: isActive ? '#fff' : '#6e6e73',
+                                                        borderRadius: '9999px',
+                                                        padding: '0 7px',
+                                                        lineHeight: '18px',
+                                                        minWidth: '18px',
+                                                        textAlign: 'center',
+                                                        transition: 'all 0.25s ease',
+                                                    }}>
+                                                        {tab.count}
+                                                    </span>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* Your Feeds Tab */}
+                            {activeTab === 'your' && (
                                 <>
-                                    <div style={{ marginBottom: '8px' }}>
-                                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                            Your Feeds
-                                        </span>
-                                    </div>
-                                    {feeds.map((feed, index) => (
-                                        <FeedCard
-                                            key={feed.id || feed.feed_url || index}
-                                            feedId={getFeedId(feed.feed_url)}
-                                            feed={feed}
-                                            onRemove={handleRemoveFeed}
-                                            isAuthenticated={isAuthenticated}
-                                            savedArticleLinks={savedArticleLinks}
-                                            onToggleSaveArticle={handleToggleSaveArticle}
-                                        />
-                                    ))}
+                                    {feeds.length > 0 ? (
+                                        <>
+                                            {feeds.map((feed, index) => (
+                                                <FeedCard
+                                                    key={feed.id || feed.feed_url || index}
+                                                    feedId={getFeedId(feed.feed_url)}
+                                                    feed={feed}
+                                                    onRemove={handleRemoveFeed}
+                                                    isAuthenticated={isAuthenticated}
+                                                    savedArticleLinks={savedArticleLinks}
+                                                    onToggleSaveArticle={handleToggleSaveArticle}
+                                                />
+                                            ))}
+                                        </>
+                                    ) : (
+                                        <div
+                                            style={{
+                                                backgroundColor: '#fff',
+                                                borderRadius: '16px',
+                                                border: '1px solid #f0f0f0',
+                                                padding: '48px 24px',
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '40px', color: '#d1d1d6', marginBottom: '12px', display: 'block' }}>
+                                                rss_feed
+                                            </span>
+                                            <p style={{ fontSize: '14px', color: '#86868b', margin: 0 }}>
+                                                No feeds yet — paste a URL above to add your first feed
+                                            </p>
+                                        </div>
+                                    )}
                                 </>
                             )}
 
-                            {/* Regional Default Feeds */}
-                            {availableRegions.length > 0 && (
+                            {/* Trending Sources Tab */}
+                            {activeTab === 'trending' && availableRegions.length > 0 && (
                                 <>
-                                    <div style={{ marginTop: feeds.length > 0 ? '24px' : '0', marginBottom: '16px' }}>
-                                        <div className="d-flex align-items-center justify-content-between mb-3">
-                                            <span style={{ fontSize: '13px', fontWeight: 600, color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                                Trending Sources
-                                            </span>
-                                        </div>
-
+                                    <div style={{ marginBottom: '16px' }}>
                                         {/* Region Pills */}
                                         <div className="d-flex gap-2" style={{ flexWrap: 'wrap' }}>
                                             {availableRegions.map((region) => (

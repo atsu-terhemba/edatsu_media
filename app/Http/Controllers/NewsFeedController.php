@@ -120,7 +120,7 @@ class NewsFeedController extends Controller
                 ->toArray();
         }
 
-        return Inertia::render('News', [
+        return Inertia::render('Feeds', [
             'savedFeeds' => $savedFeeds,
             'defaultFeedsByRegion' => $defaultFeedsByRegion,
             'regions' => $regions,
