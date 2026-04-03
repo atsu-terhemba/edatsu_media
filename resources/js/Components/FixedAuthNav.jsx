@@ -147,6 +147,7 @@ const FixedAuthNav = () => {
         { label: 'Saved Opportunities', icon: 'event', path: '/bookmarked-opportunities' },
         { label: 'Saved Tools', icon: 'handyman', path: '/bookmarked-tools' },
         { label: 'Saved Articles', icon: 'article', path: '/saved-articles' },
+        { label: 'My Feeds', icon: 'rss_feed', path: '/my-feeds' },
         { label: 'Notifications', icon: 'notifications', path: '/notifications' },
         { label: 'Messages', icon: 'mail', path: '/messages' },
         { label: 'Preferences', icon: 'tune', path: '/preferences' },

@@ -23,6 +23,7 @@ use Inertia\Inertia;
 use Carbon\Carbon;
 use App\Notifications\ReminderNotification;
 use App\Models\SavedFeedArticle;
+use App\Models\UserNewsFeed;
 use App\Models\PushSubscription;
 
 class SubscriberController extends Controller
@@ -284,6 +285,16 @@ class SubscriberController extends Controller
             ->delete();
 
         return response()->json(['status' => 'success', 'message' => count($request->ids) . ' articles removed']);
+    }
+
+    function myFeeds(){
+        $feeds = UserNewsFeed::where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return Inertia::render('Subscriber/MyFeeds', [
+            'feeds' => $feeds,
+        ]);
     }
 
     function notifications(){

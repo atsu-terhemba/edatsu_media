@@ -8,6 +8,7 @@ export default function SubscriberSideNav() {
         { href: route('subscriber.bookmarked_opportunities'), icon: 'event', label: 'Opportunities' },
         { href: route('subscriber.bookmarked_tools'), icon: 'handyman', label: 'Tools' },
         { href: route('subscriber.saved_articles'), icon: 'article', label: 'Saved Articles' },
+        { href: route('subscriber.my_feeds'), icon: 'rss_feed', label: 'My Feeds' },
         { href: route('subscriber.notifications'), icon: 'notifications', label: 'Notifications' },
         { href: route('subscriber.preferences'), icon: 'tune', label: 'Preferences' },
         { href: route('subscriber.billing'), icon: 'credit_card', label: 'Billing' },
