@@ -37,7 +37,7 @@ const FeedCardSkeleton = () => (
 );
 
 /* ── Feed Card ── */
-const FeedCard = ({ feed, onRemove, isAuthenticated, savedArticleLinks, onToggleSaveArticle }) => {
+const FeedCard = ({ feed, feedId, onRemove, isAuthenticated, savedArticleLinks, onToggleSaveArticle }) => {
     const [expanded, setExpanded] = useState(false);
     const isLoading = feed.articles === null;
     const visibleArticles = feed.articles ? (expanded ? feed.articles : feed.articles.slice(0, 5)) : [];
@@ -45,6 +45,7 @@ const FeedCard = ({ feed, onRemove, isAuthenticated, savedArticleLinks, onToggle
 
     return (
         <div
+            id={feedId}
             style={{
                 backgroundColor: '#fff',
                 borderRadius: '16px',
@@ -248,7 +249,7 @@ const RegionPill = ({ label, isActive, onClick }) => (
 );
 
 /* ── Default Feed Toggle Row ── */
-const DefaultFeedToggle = ({ feed, isVisible, onToggle }) => (
+const DefaultFeedToggle = ({ feed, isVisible, onToggle, onScrollTo }) => (
     <div
         className="d-flex align-items-center justify-content-between"
         style={{
@@ -256,7 +257,11 @@ const DefaultFeedToggle = ({ feed, isVisible, onToggle }) => (
             borderBottom: '1px solid #f5f5f7',
         }}
     >
-        <div className="d-flex align-items-center gap-2" style={{ flex: 1, minWidth: 0 }}>
+        <div
+            className="d-flex align-items-center gap-2"
+            style={{ flex: 1, minWidth: 0, cursor: isVisible ? 'pointer' : 'default' }}
+            onClick={() => { if (isVisible && onScrollTo) onScrollTo(feed); }}
+        >
             <img
                 src={feed.favicon}
                 alt=""
@@ -373,7 +378,10 @@ const News = () => {
         });
     }, [activeRegion]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    const getFeedId = (feedUrl) => 'feed-' + feedUrl.replace(/[^a-zA-Z0-9]/g, '-');
+
     const toggleDefaultFeedVisibility = (feed) => {
+        const wasHidden = hiddenFeedUrls.has(feed.feed_url);
         setHiddenFeedUrls((prev) => {
             const next = new Set(prev);
             if (next.has(feed.feed_url)) {
@@ -383,6 +391,13 @@ const News = () => {
             }
             return next;
         });
+        // Scroll to the feed card when making it visible
+        if (wasHidden) {
+            setTimeout(() => {
+                const el = document.getElementById(getFeedId(feed.feed_url));
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
     };
 
     // Get current region's feeds
@@ -902,6 +917,7 @@ const News = () => {
                                     {feeds.map((feed, index) => (
                                         <FeedCard
                                             key={feed.id || feed.feed_url || index}
+                                            feedId={getFeedId(feed.feed_url)}
                                             feed={feed}
                                             onRemove={handleRemoveFeed}
                                             isAuthenticated={isAuthenticated}
@@ -963,6 +979,10 @@ const News = () => {
                                                     feed={feed}
                                                     isVisible={!hiddenFeedUrls.has(feed.feed_url)}
                                                     onToggle={toggleDefaultFeedVisibility}
+                                                    onScrollTo={(f) => {
+                                                        const el = document.getElementById(getFeedId(f.feed_url));
+                                                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                    }}
                                                 />
                                             ))}
                                         </div>
@@ -972,6 +992,7 @@ const News = () => {
                                     {visibleRegionFeeds.map((feed, index) => (
                                         <FeedCard
                                             key={`default-${activeRegion}-${feed.feed_url || index}`}
+                                            feedId={getFeedId(feed.feed_url)}
                                             feed={feed}
                                             isAuthenticated={isAuthenticated}
                                             savedArticleLinks={savedArticleLinks}
