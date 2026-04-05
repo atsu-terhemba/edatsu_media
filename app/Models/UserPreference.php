@@ -21,6 +21,7 @@ class UserPreference extends Model
         'email_notifications',
         'opportunity_notifications',
         'product_notifications',
+        'forum_notifications',
     ];
 
     protected $casts = [
@@ -34,6 +35,7 @@ class UserPreference extends Model
         'email_notifications' => 'boolean',
         'opportunity_notifications' => 'boolean',
         'product_notifications' => 'boolean',
+        'forum_notifications' => 'boolean',
     ];
 
     // Relationship with User

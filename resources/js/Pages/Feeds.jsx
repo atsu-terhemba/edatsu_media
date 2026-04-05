@@ -68,7 +68,7 @@ const FeedCardSkeleton = () => (
 );
 
 /* ── Feed Card ── */
-const FeedCard = ({ feed, feedId, onRemove, isAuthenticated, savedArticleLinks, onToggleSaveArticle }) => {
+const FeedCard = ({ feed, feedId, onRemove, isAuthenticated, savedArticleLinks, onToggleSaveArticle, onDiscussArticle }) => {
     const [expanded, setExpanded] = useState(false);
     const [seen, setSeen] = useState(false);
     const isLoading = feed.articles === null;
@@ -246,6 +246,34 @@ const FeedCard = ({ feed, feedId, onRemove, isAuthenticated, savedArticleLinks, 
                                         bookmark
                                     </span>
                                 </button>
+                                <button
+                                    onClick={() => onDiscussArticle(article, feed)}
+                                    title="Start a discussion"
+                                    style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        padding: '4px',
+                                        borderRadius: '8px',
+                                        transition: 'background 0.15s ease',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        flexShrink: 0,
+                                        marginTop: '2px',
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f7'}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                >
+                                    <span
+                                        className="material-symbols-outlined"
+                                        style={{
+                                            fontSize: '20px',
+                                            color: '#b0b0b5',
+                                        }}
+                                    >
+                                        chat_bubble
+                                    </span>
+                                </button>
                             </div>
                         );
                     })}
@@ -369,6 +397,221 @@ const DefaultFeedToggle = ({ feed, isVisible, onToggle, onScrollTo }) => (
     </div>
 );
 
+/* ── Discuss Modal ── */
+const DiscussModal = ({ open, onClose, article, feed, onCreated }) => {
+    const [categories, setCategories] = useState([]);
+    const [selected, setSelected] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [title, setTitle] = useState('');
+    const [body, setBody] = useState('');
+
+    useEffect(() => {
+        if (!open) return;
+        setTitle(article?.title || '');
+        setBody('');
+        setSelected([]);
+        setLoading(true);
+        axios.get('/api/forum/categories')
+            .then((res) => setCategories(res.data.categories || []))
+            .catch(() => setCategories([]))
+            .finally(() => setLoading(false));
+    }, [open, article]);
+
+    if (!open) return null;
+
+    const toggleCategory = (id) => {
+        setSelected((prev) => {
+            if (prev.includes(id)) return prev.filter((c) => c !== id);
+            if (prev.length >= 3) return prev;
+            return [...prev, id];
+        });
+    };
+
+    const submit = async (force = false) => {
+        setSubmitting(true);
+        try {
+            const res = await axios.post('/api/forum/threads', {
+                title: title.trim(),
+                body: body.trim() || null,
+                article_link: article?.link || null,
+                article_title: article?.title || null,
+                article_source: feed?.title || null,
+                category_ids: selected,
+                force,
+            });
+            onCreated?.(res.data);
+            onClose();
+        } catch (err) {
+            if (err.response?.status === 409 && err.response.data?.duplicate) {
+                const existing = err.response.data.thread;
+                const result = await Swal.fire({
+                    title: 'Discussion exists',
+                    html: `<p style="font-size:13px;color:#86868b;margin:0 0 8px;">A discussion for this article already exists:</p>
+                           <p style="font-size:14px;font-weight:500;color:#000;margin:0;">${existing.title}</p>
+                           <p style="font-size:12px;color:#86868b;margin-top:6px;">${existing.posts_count} replies</p>`,
+                    showCancelButton: true,
+                    showDenyButton: true,
+                    confirmButtonText: 'Join existing',
+                    denyButtonText: 'Create new',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#000',
+                    denyButtonColor: '#f97316',
+                });
+                setSubmitting(false);
+                if (result.isConfirmed) {
+                    onClose();
+                    window.location.href = `/forum/${existing.id}`;
+                } else if (result.isDenied) {
+                    await submit(true);
+                }
+                return;
+            }
+            console.error('Failed to create discussion:', err);
+            onCreated?.({ error: true });
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleSubmit = () => {
+        if (!title.trim() || selected.length === 0 || submitting) return;
+        submit(false);
+    };
+
+    return (
+        <div
+            onClick={onClose}
+            style={{
+                position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 9999, padding: '20px',
+            }}
+        >
+            <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                    background: '#fff', borderRadius: '16px', width: '100%', maxWidth: '520px',
+                    maxHeight: '90vh', overflowY: 'auto', padding: '28px',
+                    fontFamily: "'Poppins', sans-serif",
+                }}
+            >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                    <div>
+                        <div style={{ fontSize: '11px', fontWeight: 600, color: '#f97316', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+                            Start a discussion
+                        </div>
+                        <div style={{ width: '24px', height: '2px', background: '#f97316', marginBottom: '12px' }} />
+                        <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#000', margin: 0 }}>Create a conversation</h3>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex' }}
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#86868b' }}>close</span>
+                    </button>
+                </div>
+
+                {article && (
+                    <div style={{ background: '#f5f5f7', borderRadius: '10px', padding: '12px', marginBottom: '16px' }}>
+                        <div style={{ fontSize: '11px', color: '#86868b', marginBottom: '4px' }}>From {feed?.title}</div>
+                        <div style={{ fontSize: '13px', color: '#000', fontWeight: 500, lineHeight: 1.4 }}>
+                            {article.title}
+                        </div>
+                    </div>
+                )}
+
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, color: '#000', marginBottom: '6px' }}>
+                    Discussion title
+                </label>
+                <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    maxLength={255}
+                    style={{
+                        width: '100%', padding: '10px 12px', border: '1px solid #e5e5e5',
+                        borderRadius: '8px', fontSize: '13px', fontFamily: "'Poppins', sans-serif",
+                        marginBottom: '14px', outline: 'none',
+                    }}
+                />
+
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, color: '#000', marginBottom: '6px' }}>
+                    Your take (optional)
+                </label>
+                <textarea
+                    value={body}
+                    onChange={(e) => setBody(e.target.value)}
+                    rows={3}
+                    maxLength={10000}
+                    placeholder="What do you want to discuss about this article?"
+                    style={{
+                        width: '100%', padding: '10px 12px', border: '1px solid #e5e5e5',
+                        borderRadius: '8px', fontSize: '13px', fontFamily: "'Poppins', sans-serif",
+                        marginBottom: '16px', outline: 'none', resize: 'vertical',
+                    }}
+                />
+
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, color: '#000', marginBottom: '6px' }}>
+                    Categories <span style={{ color: '#86868b', fontWeight: 400 }}>(pick up to 3)</span>
+                </label>
+                {loading ? (
+                    <div style={{ fontSize: '13px', color: '#86868b', padding: '12px 0' }}>Loading…</div>
+                ) : (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '20px' }}>
+                        {categories.map((cat) => {
+                            const isSel = selected.includes(cat.id);
+                            return (
+                                <button
+                                    key={cat.id}
+                                    type="button"
+                                    onClick={() => toggleCategory(cat.id)}
+                                    style={{
+                                        padding: '6px 14px', borderRadius: '9999px',
+                                        border: isSel ? 'none' : '1px solid #e5e5e5',
+                                        background: isSel ? '#000' : '#fff',
+                                        color: isSel ? '#fff' : '#86868b',
+                                        fontSize: '12px', fontWeight: 500, cursor: 'pointer',
+                                        fontFamily: "'Poppins', sans-serif",
+                                    }}
+                                >
+                                    {cat.name}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            padding: '10px 20px', borderRadius: '9999px', border: '1px solid #e5e5e5',
+                            background: '#fff', color: '#000', fontSize: '13px', fontWeight: 500,
+                            cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
+                        }}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={!title.trim() || selected.length === 0 || submitting}
+                        style={{
+                            padding: '10px 20px', borderRadius: '9999px', border: 'none',
+                            background: (!title.trim() || selected.length === 0 || submitting) ? '#b0b0b5' : '#000',
+                            color: '#fff', fontSize: '13px', fontWeight: 500,
+                            cursor: (!title.trim() || selected.length === 0 || submitting) ? 'not-allowed' : 'pointer',
+                            fontFamily: "'Poppins', sans-serif",
+                        }}
+                    >
+                        {submitting ? 'Creating…' : 'Create'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 /* ── Main News Page ── */
 const News = () => {
     const { savedFeeds: initialFeeds = [], defaultFeedsByRegion = {}, regions = [], savedArticleLinks: initialSavedLinks = [], auth } = usePage().props;
@@ -382,6 +625,7 @@ const News = () => {
     const [showSavePrompt, setShowSavePrompt] = useState(false);
     const [inputFocused, setInputFocused] = useState(false);
     const [savedArticleLinks, setSavedArticleLinks] = useState(initialSavedLinks);
+    const [discussModal, setDiscussModal] = useState({ open: false, article: null, feed: null });
     const [activeTab, setActiveTab] = useState(feeds.length > 0 ? 'your' : 'trending');
 
     // Default feeds state — mutable so we can populate articles
@@ -545,6 +789,45 @@ const News = () => {
                 setSavedArticleLinks((prev) => prev.filter((l) => l !== article.link));
                 Toast.fire({ icon: 'error', title: 'Failed to save article' });
             }
+        }
+    };
+
+    const handleDiscussArticle = (article, feed) => {
+        if (!isAuthenticated) {
+            Swal.fire({
+                title: '',
+                html: `
+                    <div style="text-align: center; padding: 20px;">
+                        <span class="material-symbols-outlined" style="font-size: 48px; color: #f97316; margin-bottom: 16px; display: block;">chat_bubble</span>
+                        <h3 style="font-weight: 600; margin-bottom: 8px; color: #000; font-size: 1.15rem; font-family: 'Poppins', sans-serif;">Join the conversation</h3>
+                        <p style="color: #86868b; font-size: 14px; line-height: 1.5; margin-bottom: 24px;">
+                            Create a free account to start discussions and connect with others.
+                        </p>
+                        <div style="display: flex; gap: 10px; justify-content: center;">
+                            <a href="/login" style="padding: 10px 24px; border-radius: 9999px; border: 1px solid #e5e5e5; background: #fff; color: #000; font-size: 13px; font-weight: 500; text-decoration: none; font-family: 'Poppins', sans-serif;">Login</a>
+                            <a href="/sign-up" style="padding: 10px 24px; border-radius: 9999px; border: none; background: #000; color: #fff; font-size: 13px; font-weight: 500; text-decoration: none; font-family: 'Poppins', sans-serif;">Sign Up Free</a>
+                        </div>
+                    </div>
+                `,
+                showConfirmButton: false,
+                showCloseButton: true,
+                width: '420px',
+                padding: '0',
+                background: 'white',
+            });
+            return;
+        }
+        setDiscussModal({ open: true, article, feed });
+    };
+
+    const handleDiscussionCreated = (result) => {
+        if (result?.error) {
+            Toast.fire({ icon: 'error', title: 'Failed to create discussion' });
+            return;
+        }
+        Toast.fire({ icon: 'success', title: 'Discussion started' });
+        if (result?.thread?.id) {
+            setTimeout(() => { window.location.href = `/forum/${result.thread.id}`; }, 600);
         }
     };
 
@@ -1058,6 +1341,7 @@ const News = () => {
                                                     isAuthenticated={isAuthenticated}
                                                     savedArticleLinks={savedArticleLinks}
                                                     onToggleSaveArticle={handleToggleSaveArticle}
+                                                    onDiscussArticle={handleDiscussArticle}
                                                 />
                                             ))}
                                         </>
@@ -1145,6 +1429,7 @@ const News = () => {
                                             isAuthenticated={isAuthenticated}
                                             savedArticleLinks={savedArticleLinks}
                                             onToggleSaveArticle={handleToggleSaveArticle}
+                                            onDiscussArticle={handleDiscussArticle}
                                         />
                                     ))}
 
@@ -1199,6 +1484,14 @@ const News = () => {
             </section>
 
             <FixedMobileNav isAuthenticated={isAuthenticated} />
+
+            <DiscussModal
+                open={discussModal.open}
+                onClose={() => setDiscussModal({ open: false, article: null, feed: null })}
+                article={discussModal.article}
+                feed={discussModal.feed}
+                onCreated={handleDiscussionCreated}
+            />
         </GuestLayout>
     );
 };

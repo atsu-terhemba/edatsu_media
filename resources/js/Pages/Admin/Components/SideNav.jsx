@@ -8,6 +8,7 @@ export default function AdminSideNav() {
         generalOptions: false,
         opportunityPosts: false,
         toolshedPosts: false,
+        forum: false,
     });
 
     const toggleMenu = (menu) => {
@@ -59,6 +60,15 @@ export default function AdminSideNav() {
                 { href: route('admin.bulk_upload_product'), label: 'Bulk Upload' },
                 { href: route('admin.all_products'), label: 'All Products' },
                 { href: route('admin.product_categories'), label: 'Categories' },
+            ],
+        },
+        {
+            key: 'forum',
+            icon: 'forum',
+            label: 'Forum',
+            items: [
+                { href: route('admin.forum_threads'), label: 'All Threads' },
+                { href: route('admin.forum_reports'), label: 'Reports' },
             ],
         },
     ];

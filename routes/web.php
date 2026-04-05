@@ -16,6 +16,7 @@ use App\Http\Controllers\RegionController;
 use App\Http\Controllers\BrandLabelController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\FeedsController;
+use App\Http\Controllers\ForumController;
 use App\Http\Controllers\UserActivityController;
 use App\Http\Controllers\App;
 use App\Http\Controllers\Auth\RegisteredUserController;
@@ -103,6 +104,11 @@ Route::post('/api/news-feeds/fetch-articles', [NewsFeedController::class, 'fetch
 Route::get('/news/{id}', [NewsFeedController::class, 'show'])->name('read.news');
 Route::get('/events', [Event::class, 'index'])->name('events');
 Route::get('/legacy-feeds', [FeedsController::class, 'displayFeeds'])->name('find.feeds');
+
+// Forum
+Route::get('/forum', [ForumController::class, 'index'])->name('forum');
+Route::get('/forum/{id}', [ForumController::class, 'show'])->name('forum.show')->where('id', '[0-9]+');
+Route::get('/api/forum/categories', [ForumController::class, 'categories']);
 Route::get('/news-feed', [RssFeedController::class, 'index'])->name('daily.feeds');
 
 // Additional pages
@@ -145,6 +151,13 @@ Route::middleware('auth')->group(function () {
     Route::delete('/api/news-feeds/{id}', [NewsFeedController::class, 'destroy']);
     Route::post('/api/news-feeds/save-article', [NewsFeedController::class, 'saveArticle']);
     Route::post('/api/news-feeds/unsave-article', [NewsFeedController::class, 'unsaveArticle']);
+
+    // Forum (auth-only writes)
+    Route::post('/api/forum/threads', [ForumController::class, 'store']);
+    Route::post('/api/forum/threads/{id}/posts', [ForumController::class, 'reply'])->where('id', '[0-9]+');
+    Route::post('/api/forum/threads/{id}/mute', [ForumController::class, 'mute'])->where('id', '[0-9]+');
+    Route::delete('/api/forum/threads/{id}/mute', [ForumController::class, 'unmute'])->where('id', '[0-9]+');
+    Route::post('/api/forum/report', [ForumController::class, 'report']);
 
     // Bookmarking
     Route::post('/bookmark', [App::class, 'bookmark']); // General bookmark endpoint
@@ -195,6 +208,13 @@ Route::middleware('auth')->group(function () {
 
 // Admin routes
 Route::middleware(['auth', 'role:admin'])->group(function () {
+    // Forum moderation
+    Route::get('/admin-forum-reports', [ForumController::class, 'adminReports'])->name('admin.forum_reports');
+    Route::post('/admin-forum-reports/action', [ForumController::class, 'adminHide'])->name('admin.forum_reports.action');
+    Route::get('/admin-forum-threads', [ForumController::class, 'adminThreads'])->name('admin.forum_threads');
+    Route::post('/admin-forum-threads/{id}/action', [ForumController::class, 'adminThreadAction'])->where('id', '[0-9]+')->name('admin.forum_threads.action');
+    Route::delete('/admin-forum-threads/{id}', [ForumController::class, 'adminDeleteThread'])->where('id', '[0-9]+')->name('admin.forum_threads.delete');
+
     // Admin Dashboard...
     Route::get('/admin-dashboard', [Dashboard::class, 'accessControl'])->name('admin.dashboard');
     Route::get('/all-users', [Dashboard::class, 'allUsers'])->name('admin.users');

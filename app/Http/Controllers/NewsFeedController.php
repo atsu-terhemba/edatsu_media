@@ -22,7 +22,7 @@ class NewsFeedController extends Controller
             'https://www.reuters.com/rssFeed/technologyNews',
         ],
         'Africa' => [
-            'https://disrupt-africa.com/feed/',
+            'https://disruptafrica.com/feed/',
             'https://techpoint.africa/feed/',
             'https://techcabal.com/feed/',
             'https://technext24.com/feed/',

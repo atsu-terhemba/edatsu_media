@@ -48,7 +48,7 @@ class FeedsController extends Controller
             $parsedUrl = parse_url($url);
         } else {
             $feeds = [
-                "https://disrupt-africa.com/feed/",
+                "https://disruptafrica.com/feed/",
                 "https://techpoint.africa/feed/",
                 "https://techcabal.com/feed/",
                 "https://technext24.com/feed/",

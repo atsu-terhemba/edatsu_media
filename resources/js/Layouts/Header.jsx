@@ -307,6 +307,17 @@ return(
                 </Link>
             </Nav.Item>
             <Nav.Item>
+                <Link
+                    href={route('forum')}
+                    className={`nav-link me-3 ${ActiveLink('/forum')}`}
+                    style={navLinkStyle}
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)'}
+                >
+                    Forum
+                </Link>
+            </Nav.Item>
+            <Nav.Item>
                 {auth?.id ? (
                     <Link
                         href={route('subscription')}
