@@ -229,9 +229,9 @@ const Opportunities = () => {
             {/* Main Content */}
             <section style={{ paddingBottom: '96px', background: '#f5f5f7' }}>
                 <Container>
-                    <Row className="g-4" style={{ paddingTop: '32px' }}>
+                    <Row className="g-4">
                         {/* Sidebar */}
-                        <Col xs={12} md={4} lg={3}>
+                        <Col xs={12} md={4} lg={3} className={isMobileSearchVisible ? '' : 'd-none d-md-block'}>
                             <div
                                 className={`${isMobileSearchVisible ? 'mobile-fixed-toggle' : 'd-none d-md-block'}`}
                                 id="searchBar"
