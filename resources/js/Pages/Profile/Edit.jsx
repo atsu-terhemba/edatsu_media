@@ -119,7 +119,7 @@ export default function Edit({ mustVerifyEmail, status, currentPlan, activeSubsc
                                             marginTop: '2px',
                                         }}>
                                             {isPro && activeSubscription
-                                                ? `Renews ${formatDate(activeSubscription.ends_at)}`
+                                                ? `Expires ${formatDate(activeSubscription.ends_at)}`
                                                 : 'Upgrade for unlimited features'}
                                         </div>
                                     </div>

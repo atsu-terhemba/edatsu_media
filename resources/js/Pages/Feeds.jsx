@@ -11,6 +11,7 @@ import AdBanner from '@/Components/AdBanner';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import FixedMobileNav from '@/Components/FixedMobileNav';
+import ScrollToTop from '@/Components/ScrollToTop';
 
 /* ── Last-seen helpers (localStorage) ── */
 const LAST_SEEN_KEY = 'edatsu_feeds_last_seen';
@@ -1901,6 +1902,7 @@ const News = () => {
                 </Container>
             </section>
 
+            <ScrollToTop />
             <FixedMobileNav isAuthenticated={isAuthenticated} />
 
             <ArticleReaderModal

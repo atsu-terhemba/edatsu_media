@@ -351,7 +351,7 @@ export default function Dashboard() {
                                             marginTop: '1px',
                                         }}>
                                             {isPro && activeSubscription
-                                                ? `Renews ${new Date(activeSubscription.ends_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                                                ? `Expires ${new Date(activeSubscription.ends_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
                                                 : 'Upgrade to unlock all features'}
                                         </div>
                                     </div>

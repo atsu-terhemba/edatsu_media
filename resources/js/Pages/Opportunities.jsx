@@ -13,6 +13,7 @@ import FilterLabels from '@/Components/FilterSearchLabels';
 import { useContext } from 'react';
 import { AuthContext } from '@/Layouts/GuestLayout';
 import FixedMobileNav from '@/Components/FixedMobileNav';
+import ScrollToTop from '@/Components/ScrollToTop';
 
 import { showOpportunitiesSubscriptionModal } from '@/Components/SubscriptionModal';
 import OpportunitiesSkeleton from '@/Components/OpportunitiesSkeleton';
@@ -425,6 +426,7 @@ const Opportunities = () => {
                 </Container>
             </section>
 
+            <ScrollToTop />
             <FixedMobileNav isAuthenticated={(props.auth.user)? true : false} toggleSearch={toggleSearch} />
         </GuestLayout>
     );

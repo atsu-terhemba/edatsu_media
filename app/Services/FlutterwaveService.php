@@ -37,7 +37,7 @@ class FlutterwaveService
                 'description' => $data['description'] ?? 'Pro subscription payment',
                 'logo' => url('/images/logo.png'),
             ],
-            'payment_options' => 'card,banktransfer,ussd',
+            'payment_options' => $data['payment_options'] ?? 'card,banktransfer',
             'meta' => $data['meta'] ?? [],
         ];
 
@@ -59,6 +59,50 @@ class FlutterwaveService
         return [
             'success' => false,
             'message' => $response->json('message', 'Payment initialization failed'),
+        ];
+    }
+
+    /**
+     * Create a one-time virtual account for a bank transfer charge.
+     * Returns the account number + bank + expiry so the UI can display them inline.
+     */
+    public function chargeBankTransfer(array $data): array
+    {
+        $payload = [
+            'tx_ref' => $data['tx_ref'],
+            'amount' => $data['amount'],
+            'email' => $data['email'],
+            'currency' => $data['currency'] ?? 'NGN',
+            'fullname' => $data['name'] ?? $data['email'],
+            'narration' => $data['narration'] ?? 'Edatsu Media Subscription',
+            'is_permanent' => false,
+            'meta' => $data['meta'] ?? [],
+        ];
+
+        $response = Http::withToken($this->secretKey)
+            ->post("{$this->baseUrl}/charges?type=bank_transfer", $payload);
+
+        $authorization = $response->json('meta.authorization');
+
+        if ($response->successful() && $response->json('status') === 'success' && $authorization) {
+            return [
+                'success' => true,
+                'account_number' => $authorization['transfer_account'] ?? null,
+                'bank_name' => $authorization['transfer_bank'] ?? null,
+                'amount' => $authorization['transfer_amount'] ?? $data['amount'],
+                'expires_at' => $authorization['account_expiration'] ?? null,
+                'reference' => $authorization['transfer_reference'] ?? null,
+            ];
+        }
+
+        Log::error('Flutterwave bank transfer charge failed', [
+            'response' => $response->json(),
+            'status' => $response->status(),
+        ]);
+
+        return [
+            'success' => false,
+            'message' => $response->json('message', 'Could not generate virtual account'),
         ];
     }
 

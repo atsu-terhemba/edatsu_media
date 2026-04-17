@@ -175,8 +175,8 @@ export default function Billing() {
                                             {activeSubscription ? (
                                                 <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>
                                                     <div>{formatCurrency(activeSubscription.amount, activeSubscription.currency)} / {activeSubscription.billing_period === 'yearly' ? 'year' : 'month'}</div>
-                                                    <div>Renews on {formatDate(activeSubscription.ends_at)}</div>
-                                                    {activeSubscription.status === 'cancelled' && (
+                                                    <div>Expires on {formatDate(activeSubscription.ends_at)}</div>
+                                                    {activeSubscription.cancelled_at && (
                                                         <div style={{ color: '#f97316', marginTop: '4px' }}>
                                                             Cancelled — access until {formatDate(activeSubscription.ends_at)}
                                                         </div>

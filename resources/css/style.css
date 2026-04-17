@@ -3734,13 +3734,6 @@ SKELETAL LOADER
         height: 46px;
     }
 
-    .progress-ring-circle-bg,
-    .progress-ring-circle {
-        cx: 23;
-        cy: 23;
-        r: 19;
-    }
-
     .floating-bookmark-btn {
         width: 36px;
         height: 36px;

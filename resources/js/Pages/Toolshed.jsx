@@ -13,6 +13,7 @@ import FilterLabels from '@/Components/FilterSearchLabels';
 import { useContext } from 'react';
 import { AuthContext } from '@/Layouts/GuestLayout';
 import FixedMobileNav from '@/Components/FixedMobileNav';
+import ScrollToTop from '@/Components/ScrollToTop';
 
 import { showToolsSubscriptionModal } from '@/Components/SubscriptionModal';
 import ToolshedSkeleton from '@/Components/ToolshedSkeleton';
@@ -389,6 +390,7 @@ const Toolshed = () => {
                 </Container>
             </section>
 
+            <ScrollToTop />
             <FixedMobileNav isAuthenticated={(props.auth.user)? true : false} toggleSearch={toggleSearch} />
         </GuestLayout>
     );

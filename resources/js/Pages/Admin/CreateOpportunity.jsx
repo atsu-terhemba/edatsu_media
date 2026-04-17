@@ -194,6 +194,30 @@ export default function CreateOpportunity({ edits, categories, brand_label, coun
             });
             if (response.data.success) {
                 Toast.fire({ icon: 'success', title: response.data.message, swalConfig });
+
+                // Reset form to prevent double submission
+                if (!isEditing) {
+                    setFormData({
+                        cover_img: null,
+                        title: '',
+                        description: '',
+                        deadline: '',
+                        source_url: '',
+                        direct_link: '',
+                        meta_keywords: '',
+                        meta_description: '',
+                        post_id: '',
+                        categories: [],
+                        brand_labels: [],
+                        countries: [],
+                        continents: [],
+                        signature: '',
+                        save_as_draft: false,
+                    });
+                    if (imagePreview) URL.revokeObjectURL(imagePreview);
+                    setImagePreview(null);
+                    setSection('details');
+                }
             } else {
                 Toast.fire({ icon: 'warning', title: response.data.message, swalConfig });
             }

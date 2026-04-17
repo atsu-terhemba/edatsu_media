@@ -15,60 +15,11 @@ const Subscription = () => {
     const [currency, setCurrency] = useState('NGN');
     const [billingPeriod, setBillingPeriod] = useState('monthly');
 
-    const pricingPlans = [
-        {
-            id: 'free',
-            name: 'Free',
-            price: {
-                monthly: { USD: 0, NGN: 0 },
-                yearly: { USD: 0, NGN: 0 }
-            },
-            period: 'Forever',
-            description: 'Perfect for getting started with opportunities',
-            popular: false,
-            icon: 'star',
-            features: [
-                { text: 'Access to basic opportunities', icon: 'check_circle' },
-                { text: 'Weekly newsletter', icon: 'mail' },
-                { text: 'Community access', icon: 'groups' },
-                { text: 'Basic search filters', icon: 'search' },
-                { text: 'Mobile app access', icon: 'smartphone' },
-                { text: 'Save up to 10 opportunities & tools', icon: 'bookmark' }
-            ],
-            limitations: [
-                'Limited bookmarks (10 max)',
-                'Ads displayed while browsing',
-                'No calendar integration',
-                'No push notifications',
-                'No AI assistant',
-                'No export features'
-            ],
-            buttonText: 'Get Started Free',
-        },
-        {
-            id: 'premium',
-            name: 'Pro',
-            price: {
-                monthly: { USD: 3.68, NGN: 5000 },
-                yearly: { USD: 39.74, NGN: 54000 }
-            },
-            period: billingPeriod === 'monthly' ? 'month' : 'year',
-            description: 'Supercharge your opportunity hunting',
-            popular: true,
-            icon: 'workspace_premium',
-            features: [
-                { text: 'Unlimited saved Opportunities & Tools', icon: 'all_inclusive', highlight: true },
-                { text: 'Smart reminders via push & email', icon: 'notifications_active', highlight: true },
-                { text: 'Google Calendar sync for deadlines', icon: 'calendar_month', highlight: true },
-                { text: 'Personalized AI Assistant', icon: 'smart_toy', highlight: true },
-                { text: 'Ad-free browsing experience', icon: 'block' },
-                { text: 'Priority access to new opportunities', icon: 'bolt' },
-                { text: 'Export saved items (PDF / CSV)', icon: 'download' }
-            ],
-            limitations: [],
-            buttonText: 'Upgrade to Pro',
-        }
-    ];
+    const plansFromProps = props.plans || [];
+    const pricingPlans = plansFromProps.map((p) => ({
+        ...p,
+        buttonText: p.popular ? 'Upgrade to Pro' : 'Get Started Free',
+    }));
 
     const handlePlanSelect = (planId) => {
         setSelectedPlan(planId);
@@ -423,7 +374,7 @@ const Subscription = () => {
                                         color: isPro ? 'rgba(255,255,255,0.35)' : '#86868b',
                                         marginBottom: '28px',
                                     }}>
-                                        {plan.id === 'premium'
+                                        {plan.popular
                                             ? (billingPeriod === 'yearly'
                                                 ? `Save ${currency === 'USD' ? '$' : '₦'}${(plan.price.monthly[currency] * 12 - plan.price.yearly[currency]).toLocaleString()} per year`
                                                 : 'Cancel anytime')

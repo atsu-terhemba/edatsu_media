@@ -189,7 +189,7 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
 <div className={`floating-bookmark-container ${showFloatingBookmark ? 'visible' : 'hidden'} ${isFloatingBookmarkVisible ? 'animate-in' : 'animate-out'}`}>
     <div className="floating-bookmark-wrapper">
         <div className="progress-ring">
-            <svg className="progress-ring-svg" width="52" height="52">
+            <svg className="progress-ring-svg" viewBox="0 0 52 52" width="52" height="52">
                 <circle className="progress-ring-circle-bg" cx="26" cy="26" r="22" />
                 <circle
                     className="progress-ring-circle"

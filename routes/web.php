@@ -73,7 +73,7 @@ Route::get('/terms', fn()=> Inertia::render('Terms'))->name('terms');
 Route::get('/privacy-policy', fn() => Inertia::render('Privacy'))->name('privacy');
 Route::get('/help', fn()=>Inertia::render('Help'))->name('help');
 Route::get('/sponsorship', [App::class, 'initSponsorshipPage'])->name('sponsorship');
-Route::get('/subscription', fn() => Inertia::render('Subscription'))->name('pricing');
+Route::get('/subscription', [SubscriptionController::class, 'show'])->name('pricing');
 Route::get('/upgrade-plan', [SubscriptionController::class, 'showUpgrade'])->name('subscription');
 Route::get('/subscription/callback', [SubscriptionController::class, 'handleCallback'])->name('subscription.callback');
 
@@ -188,6 +188,8 @@ Route::middleware('auth')->group(function () {
     
     // Subscription & Billing
     Route::post('/subscription/initiate', [SubscriptionController::class, 'initiatePayment'])->name('subscription.initiate');
+    Route::post('/subscription/initiate-transfer', [SubscriptionController::class, 'initiateBankTransfer'])->name('subscription.initiate_transfer');
+    Route::get('/subscription/status/{txRef}', [SubscriptionController::class, 'checkStatus'])->name('subscription.status');
     Route::get('/billing', [SubscriptionController::class, 'billing'])->name('subscriber.billing');
     Route::post('/subscription/cancel', [SubscriptionController::class, 'cancelSubscription'])->name('subscription.cancel');
 

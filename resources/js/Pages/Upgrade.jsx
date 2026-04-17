@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from 'axios';
 import { Container, Row, Col, Offcanvas } from 'react-bootstrap';
 import { Head, usePage } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -9,59 +10,40 @@ const Upgrade = () => {
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [currency, setCurrency] = useState('NGN');
     const [billingPeriod, setBillingPeriod] = useState('monthly');
-    const [paymentMethod, setPaymentMethod] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState('card');
     const [isProcessing, setIsProcessing] = useState(false);
+    const [transferDetails, setTransferDetails] = useState(null);
+    const [copied, setCopied] = useState(false);
+    const [now, setNow] = useState(Date.now());
 
-    const plans = [
-        {
-            id: 'free',
-            name: 'Free',
-            price: {
-                monthly: { USD: 0, NGN: 0 },
-                yearly: { USD: 0, NGN: 0 }
-            },
-            description: 'Perfect for getting started with opportunities',
-            icon: 'star',
-            features: [
-                { text: 'Access to basic opportunities', icon: 'check_circle' },
-                { text: 'Weekly newsletter', icon: 'mail' },
-                { text: 'Community access', icon: 'groups' },
-                { text: 'Basic search filters', icon: 'search' },
-                { text: 'Save up to 10 opportunities', icon: 'bookmark' }
-            ],
-            limitations: [
-                'Limited bookmarks (10 max)',
-                'Ads displayed while browsing',
-                'No calendar integration',
-                'No AI assistant'
-            ],
-            buttonText: 'Current Plan',
-            current: true
-        },
-        {
-            id: 'pro',
-            name: 'Pro',
-            price: {
-                monthly: { USD: 3.50, NGN: 5000 },
-                yearly: { USD: 38.00, NGN: 54000 }
-            },
-            description: 'Unlock all features and supercharge your hunt',
-            icon: 'workspace_premium',
-            popular: true,
-            features: [
-                { text: 'Unlimited saved opportunities', highlight: true },
-                { text: 'Smart reminders via push & email', highlight: true },
-                { text: 'Google Calendar sync', highlight: true },
-                { text: 'AI Assistant', highlight: true },
-                { text: 'Ad-free browsing' },
-                { text: 'Priority access to new opportunities' },
-                { text: 'Export saved items (PDF / CSV)' }
-            ],
-            limitations: [],
-            buttonText: 'Upgrade Now',
-            current: false
-        }
-    ];
+    useEffect(() => {
+        if (!transferDetails?.tx_ref) return;
+        const poll = setInterval(async () => {
+            try {
+                const { data } = await axios.get(`/subscription/status/${transferDetails.tx_ref}`);
+                if (data.status === 'successful') {
+                    clearInterval(poll);
+                    window.location.href = '/billing';
+                } else if (data.status === 'failed') {
+                    clearInterval(poll);
+                    setTransferDetails(null);
+                    alert('Payment was not completed. Please try again.');
+                }
+            } catch (e) { /* transient */ }
+        }, 5000);
+        const tick = setInterval(() => setNow(Date.now()), 1000);
+        return () => { clearInterval(poll); clearInterval(tick); };
+    }, [transferDetails?.tx_ref]);
+
+    const plansFromProps = props.plans || [];
+    const currentPlanSlug = props.currentPlan || 'free';
+    const plans = plansFromProps.map((p) => ({
+        ...p,
+        current: p.id === currentPlanSlug,
+        buttonText: p.id === currentPlanSlug
+            ? 'Current Plan'
+            : p.popular ? 'Upgrade Now' : 'Get Started Free',
+    }));
 
     const formatPrice = (price) => {
         if (price === 0) return 'Free';
@@ -86,26 +68,87 @@ const Upgrade = () => {
         setIsProcessing(true);
 
         try {
-            console.log('Processing payment:', {
-                plan: selectedPlan,
-                method: paymentMethod,
+            if (paymentMethod === 'banktransfer') {
+                const { data } = await axios.post('/subscription/initiate-transfer', {
+                    plan_id: selectedPlan.id,
+                    billing_period: billingPeriod,
+                    currency,
+                });
+
+                if (data?.success) {
+                    setTransferDetails({
+                        tx_ref: data.tx_ref,
+                        account_number: data.account_number,
+                        bank_name: data.bank_name,
+                        amount: data.amount,
+                        expires_at: data.expires_at,
+                    });
+                    setIsProcessing(false);
+                    return;
+                }
+
+                setIsProcessing(false);
+                alert(data?.message || 'Could not generate virtual account. Please try again.');
+                return;
+            }
+
+            const { data } = await axios.post('/subscription/initiate', {
+                plan_id: selectedPlan.id,
+                billing_period: billingPeriod,
                 currency,
-                billingPeriod
+                payment_provider: 'flutterwave',
+                payment_method: paymentMethod,
             });
 
-            setTimeout(() => {
-                setIsProcessing(false);
-                alert('Payment feature coming soon!');
-            }, 1500);
-        } catch (error) {
-            console.error('Payment error:', error);
+            if (data?.success && data?.payment_url) {
+                window.location.href = data.payment_url;
+                return;
+            }
+
             setIsProcessing(false);
+            alert(data?.message || 'Could not start payment. Please try again.');
+        } catch (error) {
+            setIsProcessing(false);
+            const msg = error?.response?.data?.message || 'Payment failed. Please try again.';
+            alert(msg);
+            console.error('Payment error:', error);
         }
     };
 
-    const paymentMethods = [
-        { id: 'flutterwave', name: 'Flutterwave', icon: 'payments', description: 'Card, Bank Transfer, USSD' }
+    const copyAccount = () => {
+        if (!transferDetails?.account_number) return;
+        navigator.clipboard.writeText(transferDetails.account_number);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1800);
+    };
+
+    const formatExpiry = () => {
+        if (!transferDetails?.expires_at) return '';
+        const ms = new Date(transferDetails.expires_at).getTime() - now;
+        if (ms <= 0) return 'Expired';
+        const mins = Math.floor(ms / 60000);
+        const secs = Math.floor((ms % 60000) / 1000);
+        return `${mins}m ${secs.toString().padStart(2, '0')}s`;
+    };
+
+    const allPaymentMethods = [
+        {
+            id: 'card',
+            name: 'Card',
+            icon: 'credit_card',
+            description: 'Debit or credit card',
+            currencies: ['NGN', 'USD'],
+        },
+        {
+            id: 'banktransfer',
+            name: 'Bank Transfer',
+            icon: 'account_balance',
+            description: 'Pay with a bank transfer',
+            currencies: ['NGN'],
+        },
     ];
+
+    const paymentMethods = allPaymentMethods.filter(m => m.currencies.includes(currency));
 
     return (
         <AuthenticatedLayout>
@@ -220,7 +263,11 @@ const Upgrade = () => {
                         </div>
 
                         <button
-                            onClick={() => setCurrency(currency === 'NGN' ? 'USD' : 'NGN')}
+                            onClick={() => {
+                                const next = currency === 'NGN' ? 'USD' : 'NGN';
+                                setCurrency(next);
+                                if (next === 'USD') setPaymentMethod('card');
+                            }}
                             style={{
                                 padding: '8px 16px',
                                 border: '1px solid #d1d5db',
@@ -246,50 +293,6 @@ const Upgrade = () => {
             {/* Pricing Cards */}
             <section style={{ padding: '48px 0 64px', background: '#f5f5f7' }}>
                 <Container>
-                    {/* Free Access Banner */}
-                    <div style={{
-                        background: '#fff',
-                        borderRadius: '20px',
-                        padding: '28px 32px',
-                        marginBottom: '40px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '20px',
-                        border: '1px solid #e5e5e7',
-                        position: 'relative',
-                        overflow: 'hidden',
-                    }}>
-                        <div style={{
-                            position: 'absolute', top: '-40px', right: '-40px',
-                            width: '160px', height: '160px',
-                            background: 'radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%)',
-                            borderRadius: '50%',
-                        }} />
-                        <div style={{
-                            width: '52px', height: '52px', borderRadius: '16px',
-                            background: 'rgba(249,115,22,0.1)', flexShrink: 0,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '26px', color: '#f97316' }}>
-                                celebration
-                            </span>
-                        </div>
-                        <div style={{ position: 'relative', zIndex: 1 }}>
-                            <h3 style={{
-                                fontSize: '17px', fontWeight: 600, color: '#000',
-                                margin: '0 0 4px', letterSpacing: '-0.01em',
-                            }}>
-                                All features are free until April 1st!
-                            </h3>
-                            <p style={{
-                                fontSize: '13px', color: '#86868b',
-                                margin: 0, lineHeight: 1.5,
-                            }}>
-                                We're opening up every Pro feature at no cost while we build something amazing. Explore everything, save unlimited opportunities, and enjoy an ad-free experience — on us.
-                            </p>
-                        </div>
-                    </div>
-
                     <Row className="justify-content-center align-items-stretch g-4">
                         {plans.map((plan) => {
                             const isPro = plan.popular;
@@ -607,7 +610,7 @@ const Upgrade = () => {
             {/* Payment Slide-in Panel */}
             <Offcanvas
                 show={showPayment}
-                onHide={() => setShowPayment(false)}
+                onHide={() => { setShowPayment(false); setTransferDetails(null); }}
                 placement="end"
                 style={{ width: '380px' }}
             >
@@ -617,7 +620,7 @@ const Upgrade = () => {
                     </Offcanvas.Title>
                 </Offcanvas.Header>
                 <Offcanvas.Body style={{ padding: '24px' }}>
-                    {selectedPlan && (
+                    {selectedPlan && !transferDetails && (
                         <>
                             {/* Order Summary */}
                             <div style={{
@@ -731,6 +734,96 @@ const Upgrade = () => {
                             }}>
                                 <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>lock</span>
                                 Secure payment powered by trusted providers
+                            </div>
+                        </>
+                    )}
+
+                    {transferDetails && (
+                        <>
+                            <div style={{
+                                background: '#f5f5f7',
+                                borderRadius: '16px',
+                                padding: '20px',
+                                marginBottom: '20px',
+                            }}>
+                                <div style={{
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.1em',
+                                    color: '#86868b',
+                                    marginBottom: '16px',
+                                }}>
+                                    Transfer details
+                                </div>
+
+                                <div style={{ marginBottom: '14px' }}>
+                                    <div style={{ fontSize: '12px', color: '#86868b', marginBottom: '4px' }}>Bank</div>
+                                    <div style={{ fontSize: '15px', fontWeight: 500, color: '#000' }}>{transferDetails.bank_name || '—'}</div>
+                                </div>
+
+                                <div style={{ marginBottom: '14px' }}>
+                                    <div style={{ fontSize: '12px', color: '#86868b', marginBottom: '4px' }}>Account number</div>
+                                    <div className="d-flex align-items-center justify-content-between" style={{ gap: '8px' }}>
+                                        <span style={{ fontSize: '22px', fontWeight: 600, color: '#000', letterSpacing: '0.04em' }}>
+                                            {transferDetails.account_number || '—'}
+                                        </span>
+                                        <button
+                                            onClick={copyAccount}
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '4px',
+                                                padding: '6px 12px',
+                                                border: '1px solid #e5e7eb',
+                                                background: '#fff',
+                                                borderRadius: '9999px',
+                                                fontSize: '12px',
+                                                fontWeight: 500,
+                                                color: copied ? '#16a34a' : '#000',
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+                                                {copied ? 'check' : 'content_copy'}
+                                            </span>
+                                            {copied ? 'Copied' : 'Copy'}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="d-flex justify-content-between" style={{ paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
+                                    <div>
+                                        <div style={{ fontSize: '12px', color: '#86868b', marginBottom: '4px' }}>Amount</div>
+                                        <div style={{ fontSize: '15px', fontWeight: 600, color: '#000' }}>
+                                            {currency === 'NGN' ? '₦' : '$'}{Number(transferDetails.amount).toLocaleString()}
+                                        </div>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ fontSize: '12px', color: '#86868b', marginBottom: '4px' }}>Expires in</div>
+                                        <div style={{ fontSize: '15px', fontWeight: 500, color: '#000', fontVariantNumeric: 'tabular-nums' }}>
+                                            {formatExpiry()}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="d-flex align-items-center" style={{
+                                gap: '12px',
+                                padding: '14px 16px',
+                                background: '#fff7ed',
+                                border: '1px solid #fed7aa',
+                                borderRadius: '12px',
+                                marginBottom: '16px',
+                            }}>
+                                <span className="spinner-border spinner-border-sm" style={{ color: '#f97316' }} />
+                                <div style={{ fontSize: '13px', color: '#7c2d12', lineHeight: 1.4 }}>
+                                    Waiting for payment… Your Pro plan activates automatically once the transfer is received.
+                                </div>
+                            </div>
+
+                            <div style={{ fontSize: '12px', color: '#86868b', lineHeight: 1.5 }}>
+                                Send the exact amount from your banking app to this account. Transfers usually confirm within 1–2 minutes.
                             </div>
                         </>
                     )}
