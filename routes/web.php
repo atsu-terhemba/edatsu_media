@@ -157,6 +157,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/api/forum/threads/{id}/posts', [ForumController::class, 'reply'])->where('id', '[0-9]+');
     Route::post('/api/forum/threads/{id}/mute', [ForumController::class, 'mute'])->where('id', '[0-9]+');
     Route::delete('/api/forum/threads/{id}/mute', [ForumController::class, 'unmute'])->where('id', '[0-9]+');
+    Route::delete('/api/forum/posts/{id}', [ForumController::class, 'deletePost'])->where('id', '[0-9]+');
     Route::post('/api/forum/report', [ForumController::class, 'report']);
 
     // Bookmarking

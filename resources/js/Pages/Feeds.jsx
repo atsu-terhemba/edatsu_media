@@ -67,8 +67,309 @@ const FeedCardSkeleton = () => (
     </div>
 );
 
+/* ── Article Reader Modal ── */
+const ArticleReaderModal = ({ article, onClose, isSaved, onToggleSave, isAuthenticated, onDiscuss }) => {
+    const [iframeError, setIframeError] = useState(false);
+    const [showTooltip, setShowTooltip] = useState(false);
+    const [showDiscussPrompt, setShowDiscussPrompt] = useState(false);
+
+    useEffect(() => {
+        if (!article) return;
+        setIframeError(false);
+        setShowDiscussPrompt(false);
+        document.body.style.overflow = 'hidden';
+        const handleEsc = (e) => { if (e.key === 'Escape') onClose(); };
+        window.addEventListener('keydown', handleEsc);
+
+        // Show bookmark tooltip if user hasn't dismissed it before
+        const dismissed = localStorage.getItem('edatsu_reader_tooltip_dismissed');
+        let tooltipTimer;
+        if (!dismissed) {
+            setShowTooltip(true);
+            tooltipTimer = setTimeout(() => setShowTooltip(false), 5000);
+        }
+
+        // Show discuss prompt after 15 seconds of reading
+        const discussTimer = setTimeout(() => setShowDiscussPrompt(true), 15000);
+
+        return () => {
+            document.body.style.overflow = '';
+            window.removeEventListener('keydown', handleEsc);
+            if (tooltipTimer) clearTimeout(tooltipTimer);
+            clearTimeout(discussTimer);
+        };
+    }, [article, onClose]);
+
+    if (!article) return null;
+
+    return (
+        <>
+        <style>{`
+            @media (min-width: 768px) {
+                .article-reader-backdrop { align-items: center !important; padding: 20px; }
+                .article-reader-modal { height: 90vh !important; border-radius: 16px !important; box-shadow: 0 24px 48px rgba(0,0,0,0.2) !important; }
+            }
+            @keyframes fadeInUp {
+                from { opacity: 0; transform: translateY(-8px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes slideUp {
+                from { opacity: 0; transform: translateY(100%); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        `}</style>
+        <div
+            onClick={onClose}
+            className="article-reader-backdrop"
+            style={{
+                position: 'fixed', inset: 0, zIndex: 9999,
+                background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+                display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+            }}
+        >
+            <div
+                onClick={(e) => e.stopPropagation()}
+                className="article-reader-modal"
+                style={{
+                    width: '100%', maxWidth: '960px', height: '95vh',
+                    background: '#fff', borderRadius: '16px 16px 0 0',
+                    display: 'flex', flexDirection: 'column',
+                    overflow: 'hidden', boxShadow: '0 -4px 48px rgba(0,0,0,0.2)',
+                }}
+            >
+                {/* Header bar */}
+                <div style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '10px 16px', borderBottom: '1px solid #f0f0f0',
+                    background: '#fafafa', flexShrink: 0,
+                }}>
+                    <div style={{ flex: 1, minWidth: 0, marginRight: '10px' }}>
+                        <div style={{
+                            fontSize: '13px', fontWeight: 600, color: '#000',
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            fontFamily: "'Poppins', sans-serif",
+                        }}>
+                            {article.title}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#86868b', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {article.link}
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, position: 'relative' }}>
+                        {/* Bookmark button */}
+                        <button
+                            onClick={() => {
+                                if (onToggleSave) onToggleSave(article);
+                                if (showTooltip) {
+                                    setShowTooltip(false);
+                                    localStorage.setItem('edatsu_reader_tooltip_dismissed', '1');
+                                }
+                            }}
+                            title={isSaved ? 'Remove from saved' : 'Save for later'}
+                            style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                width: '32px', height: '32px', borderRadius: '8px',
+                                border: '1px solid #e5e5e5', background: '#fff',
+                                color: isSaved ? '#f97316' : '#86868b',
+                                cursor: 'pointer', transition: 'all 0.15s ease',
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#f97316'; e.currentTarget.style.color = '#f97316'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e5e5'; e.currentTarget.style.color = isSaved ? '#f97316' : '#86868b'; }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: isSaved ? "'FILL' 1" : "'FILL' 0" }}>
+                                bookmark
+                            </span>
+                        </button>
+
+                        {/* Tooltip */}
+                        {showTooltip && (
+                            <div style={{
+                                position: 'absolute', top: '42px', right: '40px',
+                                background: '#000', color: '#fff', fontSize: '12px',
+                                padding: '8px 14px', borderRadius: '10px', whiteSpace: 'nowrap',
+                                fontFamily: "'Poppins', sans-serif", fontWeight: 500,
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                                animation: 'fadeInUp 0.3s ease',
+                                zIndex: 10,
+                            }}>
+                                <div style={{
+                                    position: 'absolute', top: '-6px', right: '68px',
+                                    width: '12px', height: '12px', background: '#000',
+                                    transform: 'rotate(45deg)', borderRadius: '2px',
+                                }} />
+                                Save this article to read later
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowTooltip(false);
+                                        localStorage.setItem('edatsu_reader_tooltip_dismissed', '1');
+                                    }}
+                                    style={{
+                                        background: 'transparent', border: 'none', color: '#86868b',
+                                        cursor: 'pointer', marginLeft: '10px', padding: '0',
+                                        fontSize: '12px', fontFamily: "'Poppins', sans-serif",
+                                    }}
+                                >
+                                    Got it
+                                </button>
+                            </div>
+                        )}
+
+                        <a
+                            href={article.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Open in new tab"
+                            style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                width: '32px', height: '32px', borderRadius: '8px',
+                                border: '1px solid #e5e5e5', background: '#fff',
+                                color: '#86868b', textDecoration: 'none',
+                                transition: 'all 0.15s ease',
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#000'; e.currentTarget.style.color = '#000'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e5e5'; e.currentTarget.style.color = '#86868b'; }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>open_in_new</span>
+                        </a>
+                        <button
+                            onClick={onClose}
+                            title="Close"
+                            style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                width: '32px', height: '32px', borderRadius: '50%',
+                                border: 'none', background: '#dc2626', color: '#fff',
+                                cursor: 'pointer', transition: 'all 0.15s ease',
+                                boxShadow: '0 2px 8px rgba(220,38,38,0.3)',
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = '#b91c1c'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = '#dc2626'; e.currentTarget.style.transform = 'scale(1)'; }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Content */}
+                <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+                    {!iframeError ? (
+                        <iframe
+                            src={article.link}
+                            title={article.title}
+                            onError={() => setIframeError(true)}
+                            onLoad={(e) => {
+                                try {
+                                    // If we can't access contentDocument, the site blocks framing
+                                    // eslint-disable-next-line no-unused-expressions
+                                    e.target.contentDocument;
+                                } catch {
+                                    setIframeError(true);
+                                }
+                            }}
+                            style={{
+                                width: '100%', height: '100%', border: 'none',
+                            }}
+                            sandbox="allow-scripts allow-same-origin allow-popups"
+                        />
+                    ) : (
+                        <div style={{
+                            display: 'flex', flexDirection: 'column', alignItems: 'center',
+                            justifyContent: 'center', height: '100%', padding: '40px 24px',
+                            textAlign: 'center',
+                        }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '48px', color: '#d1d1d6', marginBottom: '16px' }}>
+                                public_off
+                            </span>
+                            <p style={{ fontSize: '15px', fontWeight: 600, color: '#000', margin: '0 0 8px', fontFamily: "'Poppins', sans-serif" }}>
+                                This site can't be displayed here
+                            </p>
+                            <p style={{ fontSize: '13px', color: '#86868b', margin: '0 0 20px', lineHeight: 1.5 }}>
+                                Some websites don't allow embedding. You can open it in a new tab instead.
+                            </p>
+                            <a
+                                href={article.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                    padding: '10px 24px', borderRadius: '9999px',
+                                    background: '#000', color: '#fff',
+                                    fontSize: '13px', fontWeight: 500,
+                                    textDecoration: 'none', fontFamily: "'Poppins', sans-serif",
+                                    transition: 'background 0.15s ease',
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = '#333'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = '#000'}
+                            >
+                                Open in new tab
+                            </a>
+                        </div>
+                    )}
+
+                    {/* Discuss prompt */}
+                    {showDiscussPrompt && (
+                        <div style={{
+                            position: 'absolute', bottom: 0, left: 0, right: 0,
+                            padding: '14px 20px',
+                            background: 'linear-gradient(135deg, #000 0%, #1a1a1a 100%)',
+                            display: 'flex', alignItems: 'center', gap: '12px',
+                            animation: 'slideUp 0.4s ease',
+                            zIndex: 5,
+                        }}>
+                            <span className="material-symbols-outlined" style={{
+                                fontSize: '22px', color: '#f97316', flexShrink: 0,
+                                fontVariationSettings: "'FILL' 1",
+                            }}>
+                                forum
+                            </span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <p style={{
+                                    fontSize: '13px', fontWeight: 600, color: '#fff', margin: '0 0 2px',
+                                    fontFamily: "'Poppins', sans-serif",
+                                }}>
+                                    Have thoughts on this?
+                                </p>
+                                <p style={{ fontSize: '12px', color: '#b0b0b5', margin: 0 }}>
+                                    Start a conversation in the forum and connect with others.
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    if (onDiscuss) onDiscuss(article);
+                                }}
+                                style={{
+                                    padding: '8px 18px', borderRadius: '9999px',
+                                    border: 'none', background: '#f97316', color: '#fff',
+                                    fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+                                    fontFamily: "'Poppins', sans-serif",
+                                    transition: 'all 0.15s ease', whiteSpace: 'nowrap',
+                                    flexShrink: 0,
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = '#ea6c0e'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = '#f97316'}
+                            >
+                                Discuss
+                            </button>
+                            <button
+                                onClick={() => setShowDiscussPrompt(false)}
+                                style={{
+                                    background: 'transparent', border: 'none',
+                                    color: '#86868b', cursor: 'pointer', padding: '2px',
+                                    display: 'flex', flexShrink: 0,
+                                }}
+                            >
+                                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+        </>
+    );
+};
+
 /* ── Feed Card ── */
-const FeedCard = ({ feed, feedId, onRemove, isAuthenticated, savedArticleLinks, onToggleSaveArticle, onDiscussArticle }) => {
+const FeedCard = ({ feed, feedId, onRemove, isAuthenticated, savedArticleLinks, onToggleSaveArticle, onDiscussArticle, onReadArticle }) => {
     const [expanded, setExpanded] = useState(false);
     const [seen, setSeen] = useState(false);
     const isLoading = feed.articles === null;
@@ -185,13 +486,11 @@ const FeedCard = ({ feed, feedId, onRemove, isAuthenticated, savedArticleLinks, 
                                     alignItems: 'flex-start',
                                 }}
                             >
-                                <a
-                                    href={article.link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                <div
+                                    onClick={() => onReadArticle?.(article, feed)}
                                     style={{
                                         flex: 1,
-                                        textDecoration: 'none',
+                                        cursor: 'pointer',
                                         transition: 'opacity 0.15s ease',
                                     }}
                                     onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
@@ -216,7 +515,7 @@ const FeedCard = ({ feed, feedId, onRemove, isAuthenticated, savedArticleLinks, 
                                             {article.published_at}
                                         </div>
                                     )}
-                                </a>
+                                </div>
                                 <button
                                     onClick={() => onToggleSaveArticle(article, feed)}
                                     title={isSaved ? 'Remove from saved' : 'Save for later'}
@@ -626,6 +925,8 @@ const News = () => {
     const [inputFocused, setInputFocused] = useState(false);
     const [savedArticleLinks, setSavedArticleLinks] = useState(initialSavedLinks);
     const [discussModal, setDiscussModal] = useState({ open: false, article: null, feed: null });
+    const [readerArticle, setReaderArticle] = useState(null);
+    const [readerFeed, setReaderFeed] = useState(null);
     const [activeTab, setActiveTab] = useState(feeds.length > 0 ? 'your' : 'trending');
 
     // Default feeds state — mutable so we can populate articles
@@ -637,6 +938,9 @@ const News = () => {
 
     // Track which default feeds are visible (by feed_url) — all visible by default
     const [hiddenFeedUrls, setHiddenFeedUrls] = useState(new Set());
+
+    // Track which user feeds are visible (by feed_url) — all visible by default
+    const [hiddenUserFeedUrls, setHiddenUserFeedUrls] = useState(new Set());
 
     // Lazy-load articles for a single feed
     const fetchFeedArticles = useCallback(async (feedUrl) => {
@@ -711,6 +1015,27 @@ const News = () => {
             }, 100);
         }
     };
+
+    const toggleUserFeedVisibility = (feed) => {
+        const wasHidden = hiddenUserFeedUrls.has(feed.feed_url);
+        setHiddenUserFeedUrls((prev) => {
+            const next = new Set(prev);
+            if (next.has(feed.feed_url)) {
+                next.delete(feed.feed_url);
+            } else {
+                next.add(feed.feed_url);
+            }
+            return next;
+        });
+        if (wasHidden) {
+            setTimeout(() => {
+                const el = document.getElementById(getFeedId(feed.feed_url));
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+    };
+
+    const visibleUserFeeds = feeds.filter((f) => !hiddenUserFeedUrls.has(f.feed_url));
 
     // Get current region's feeds
     const currentRegionFeeds = defaultFeeds[activeRegion] || [];
@@ -905,6 +1230,44 @@ const News = () => {
     };
 
     const handleRemoveFeed = async (feed) => {
+        const result = await Swal.fire({
+            title: '',
+            html: `
+                <div style="text-align: center; padding: 20px;">
+                    <span class="material-symbols-outlined" style="font-size: 48px; color: #f97316; margin-bottom: 16px; display: block; font-variation-settings: 'FILL' 1;">delete</span>
+                    <h3 style="font-weight: 600; margin-bottom: 8px; color: #000; font-size: 1.15rem; font-family: 'Poppins', sans-serif;">Remove feed?</h3>
+                    <p style="color: #86868b; font-size: 14px; line-height: 1.5; margin-bottom: 6px;">
+                        This feed will be removed from your list:
+                    </p>
+                    <p style="color: #000; font-size: 14px; font-weight: 500; margin-bottom: 24px; font-family: 'Poppins', sans-serif;">
+                        ${feed.title || feed.feed_url}
+                    </p>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button id="swal-cancel-btn" style="padding: 10px 24px; border-radius: 9999px; border: 1px solid #e5e5e5; background: #fff; color: #000; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s ease; font-family: 'Poppins', sans-serif;">
+                            Cancel
+                        </button>
+                        <button id="swal-confirm-btn" style="padding: 10px 24px; border-radius: 9999px; border: none; background: #000; color: #fff; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s ease; font-family: 'Poppins', sans-serif;">
+                            Remove
+                        </button>
+                    </div>
+                </div>
+            `,
+            showConfirmButton: false,
+            showCloseButton: true,
+            width: '420px',
+            padding: '0',
+            background: 'white',
+            customClass: {
+                popup: 'auth-modal-popup',
+                closeButton: 'subscription-modal-close',
+            },
+            didOpen: () => {
+                document.getElementById('swal-confirm-btn').addEventListener('click', () => Swal.close({ isConfirmed: true }));
+                document.getElementById('swal-cancel-btn').addEventListener('click', () => Swal.close({ isConfirmed: false }));
+            },
+        });
+        if (!result.isConfirmed) return;
+
         // If saved to account, delete from backend
         if (feed.id && isAuthenticated) {
             try {
@@ -914,6 +1277,7 @@ const News = () => {
             }
         }
         setFeeds((prev) => prev.filter((f) => f !== feed));
+        Toast.fire({ icon: 'success', title: 'Feed removed' });
     };
 
     return (
@@ -1332,7 +1696,43 @@ const News = () => {
                                 <>
                                     {feeds.length > 0 ? (
                                         <>
-                                            {feeds.map((feed, index) => (
+                                            {/* Feed Selector — toggle which feeds to show */}
+                                            <div
+                                                style={{
+                                                    backgroundColor: '#fff',
+                                                    borderRadius: '16px',
+                                                    border: '1px solid #f0f0f0',
+                                                    padding: '16px 20px',
+                                                    marginBottom: '16px',
+                                                }}
+                                            >
+                                                <div className="d-flex align-items-center gap-2 mb-2">
+                                                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#86868b' }}>
+                                                        tune
+                                                    </span>
+                                                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#000' }}>
+                                                        Select feeds to display
+                                                    </span>
+                                                    <span style={{ fontSize: '12px', color: '#86868b', marginLeft: 'auto' }}>
+                                                        {visibleUserFeeds.length}/{feeds.length} visible
+                                                    </span>
+                                                </div>
+                                                {feeds.map((feed, i) => (
+                                                    <DefaultFeedToggle
+                                                        key={feed.feed_url || i}
+                                                        feed={feed}
+                                                        isVisible={!hiddenUserFeedUrls.has(feed.feed_url)}
+                                                        onToggle={toggleUserFeedVisibility}
+                                                        onScrollTo={(f) => {
+                                                            const el = document.getElementById(getFeedId(f.feed_url));
+                                                            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                        }}
+                                                    />
+                                                ))}
+                                            </div>
+
+                                            {/* Visible Feed Cards */}
+                                            {visibleUserFeeds.map((feed, index) => (
                                                 <FeedCard
                                                     key={feed.id || feed.feed_url || index}
                                                     feedId={getFeedId(feed.feed_url)}
@@ -1342,8 +1742,25 @@ const News = () => {
                                                     savedArticleLinks={savedArticleLinks}
                                                     onToggleSaveArticle={handleToggleSaveArticle}
                                                     onDiscussArticle={handleDiscussArticle}
+                                                    onReadArticle={(article, feed) => { setReaderArticle(article); setReaderFeed(feed); }}
                                                 />
                                             ))}
+
+                                            {visibleUserFeeds.length === 0 && feeds.length > 0 && (
+                                                <div
+                                                    style={{
+                                                        backgroundColor: '#fff',
+                                                        borderRadius: '16px',
+                                                        border: '1px solid #f0f0f0',
+                                                        padding: '40px 24px',
+                                                        textAlign: 'center',
+                                                    }}
+                                                >
+                                                    <p style={{ fontSize: '13px', color: '#86868b', margin: 0 }}>
+                                                        All feeds hidden — toggle some on above to see articles
+                                                    </p>
+                                                </div>
+                                            )}
                                         </>
                                     ) : (
                                         <div
@@ -1430,6 +1847,7 @@ const News = () => {
                                             savedArticleLinks={savedArticleLinks}
                                             onToggleSaveArticle={handleToggleSaveArticle}
                                             onDiscussArticle={handleDiscussArticle}
+                                            onReadArticle={(article, feed) => { setReaderArticle(article); setReaderFeed(feed); }}
                                         />
                                     ))}
 
@@ -1484,6 +1902,19 @@ const News = () => {
             </section>
 
             <FixedMobileNav isAuthenticated={isAuthenticated} />
+
+            <ArticleReaderModal
+                article={readerArticle}
+                onClose={() => { setReaderArticle(null); setReaderFeed(null); }}
+                isSaved={readerArticle ? savedArticleLinks.includes(readerArticle.link) : false}
+                onToggleSave={(article) => handleToggleSaveArticle(article, readerFeed)}
+                isAuthenticated={isAuthenticated}
+                onDiscuss={(article) => {
+                    setReaderArticle(null);
+                    setReaderFeed(null);
+                    handleDiscussArticle(article, readerFeed);
+                }}
+            />
 
             <DiscussModal
                 open={discussModal.open}

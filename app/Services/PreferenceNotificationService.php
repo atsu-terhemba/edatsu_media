@@ -102,44 +102,67 @@ class PreferenceNotificationService
     }
 
     /**
-     * Check if opportunity matches user preferences
+     * Check if opportunity matches user preferences.
+     * Uses AND logic: ALL set preferences must match.
+     * If user has no preferences set at all, returns false (no spam).
      */
     private function doesOpportunityMatchPreferences($userPreference, $categories, $countries, $regions, $brands)
     {
-        // Check if any of the opportunity's attributes match user preferences
-        $matchesCategory = empty($userPreference->opportunity_categories) || 
-                          !empty(array_intersect($userPreference->opportunity_categories, $categories));
-        
-        $matchesCountry = empty($userPreference->opportunity_countries) || 
-                         !empty(array_intersect($userPreference->opportunity_countries, $countries));
-        
-        $matchesRegion = empty($userPreference->opportunity_regions) || 
-                        !empty(array_intersect($userPreference->opportunity_regions, $regions));
-        
-        $matchesBrand = empty($userPreference->opportunity_brands) || 
-                       !empty(array_intersect($userPreference->opportunity_brands, $brands));
+        $hasCats = !empty($userPreference->opportunity_categories);
+        $hasCountries = !empty($userPreference->opportunity_countries);
+        $hasRegions = !empty($userPreference->opportunity_regions);
+        $hasBrands = !empty($userPreference->opportunity_brands);
 
-        // Return true if at least one preference matches
-        return $matchesCategory || $matchesCountry || $matchesRegion || $matchesBrand;
+        // If user hasn't set any preferences, don't notify
+        if (!$hasCats && !$hasCountries && !$hasRegions && !$hasBrands) {
+            return false;
+        }
+
+        // Every set preference must match (AND logic); unset ones are ignored
+        if ($hasCats && empty(array_intersect($userPreference->opportunity_categories, $categories))) {
+            return false;
+        }
+        if ($hasCountries && empty(array_intersect($userPreference->opportunity_countries, $countries))) {
+            return false;
+        }
+        if ($hasRegions && empty(array_intersect($userPreference->opportunity_regions, $regions))) {
+            return false;
+        }
+        if ($hasBrands && empty(array_intersect($userPreference->opportunity_brands, $brands))) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
-     * Check if product matches user preferences
+     * Check if product matches user preferences.
+     * Uses AND logic: ALL set preferences must match.
+     * If user has no preferences set at all, returns false (no spam).
      */
     private function doesProductMatchPreferences($userPreference, $categories, $brands, $tags)
     {
-        // Check if any of the product's attributes match user preferences
-        $matchesCategory = empty($userPreference->product_categories) || 
-                          !empty(array_intersect($userPreference->product_categories, $categories));
-        
-        $matchesBrand = empty($userPreference->product_brands) || 
-                       !empty(array_intersect($userPreference->product_brands, $brands));
-        
-        $matchesTags = empty($userPreference->product_tags) || 
-                      !empty(array_intersect($userPreference->product_tags, $tags));
+        $hasCats = !empty($userPreference->product_categories);
+        $hasBrands = !empty($userPreference->product_brands);
+        $hasTags = !empty($userPreference->product_tags);
 
-        // Return true if at least one preference matches
-        return $matchesCategory || $matchesBrand || $matchesTags;
+        // If user hasn't set any preferences, don't notify
+        if (!$hasCats && !$hasBrands && !$hasTags) {
+            return false;
+        }
+
+        // Every set preference must match (AND logic); unset ones are ignored
+        if ($hasCats && empty(array_intersect($userPreference->product_categories, $categories))) {
+            return false;
+        }
+        if ($hasBrands && empty(array_intersect($userPreference->product_brands, $brands))) {
+            return false;
+        }
+        if ($hasTags && empty(array_intersect($userPreference->product_tags, $tags))) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

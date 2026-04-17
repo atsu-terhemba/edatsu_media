@@ -32,7 +32,7 @@ const reportConfirm = async (type, id) => {
     }
 };
 
-const PostBlock = ({ post, isAuthenticated, onReply, isReply = false, children }) => (
+const PostBlock = ({ post, isAuthenticated, currentUserId, onReply, onDelete, isReply = false, children }) => (
     <div style={{
         background: '#fff', borderRadius: '12px', border: '1px solid #f0f0f0',
         padding: isReply ? '14px 16px' : '20px', marginBottom: '10px',
@@ -46,13 +46,24 @@ const PostBlock = ({ post, isAuthenticated, onReply, isReply = false, children }
                 <span style={{ fontSize: '11px', color: '#b0b0b5' }}>· {post.created_at}</span>
             </div>
             {isAuthenticated && (
-                <button
-                    onClick={() => reportConfirm('post', post.id)}
-                    title="Report"
-                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', display: 'flex' }}
-                >
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#b0b0b5' }}>flag</span>
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    {currentUserId && post.user?.id === currentUserId && onDelete && (
+                        <button
+                            onClick={() => onDelete(post)}
+                            title="Delete"
+                            style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', display: 'flex' }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#b0b0b5' }}>delete</span>
+                        </button>
+                    )}
+                    <button
+                        onClick={() => reportConfirm('post', post.id)}
+                        title="Report"
+                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', display: 'flex' }}
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#b0b0b5' }}>flag</span>
+                    </button>
+                </div>
             )}
         </div>
         <p style={{ fontSize: isReply ? '12.5px' : '13px', color: '#000', lineHeight: 1.55, margin: '0 0 8px', whiteSpace: 'pre-wrap' }}>{post.body}</p>
@@ -80,6 +91,7 @@ const ForumThread = () => {
     const { thread, posts: initialPosts = [], isMuted: initialMuted, auth } = usePage().props;
     const authUser = useContext(AuthContext);
     const isAuthenticated = !!authUser || !!auth?.user;
+    const currentUserId = authUser?.id || auth?.user?.id || null;
 
     const [posts, setPosts] = useState(initialPosts);
     const [muted, setMuted] = useState(initialMuted);
@@ -150,6 +162,51 @@ const ForumThread = () => {
             }
         } catch {
             Toast.fire({ icon: 'error', title: 'Failed' });
+        }
+    };
+
+    const handleDeletePost = async (post) => {
+        const result = await Swal.fire({
+            title: '',
+            html: `
+                <div style="text-align: center; padding: 20px;">
+                    <span class="material-symbols-outlined" style="font-size: 48px; color: #f97316; margin-bottom: 16px; display: block; font-variation-settings: 'FILL' 1;">delete</span>
+                    <h3 style="font-weight: 600; margin-bottom: 8px; color: #000; font-size: 1.15rem; font-family: 'Poppins', sans-serif;">Delete comment?</h3>
+                    <p style="color: #86868b; font-size: 14px; line-height: 1.5; margin-bottom: 24px;">
+                        This action cannot be undone. Any replies to this comment will also be removed.
+                    </p>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button id="swal-cancel-btn" style="padding: 10px 24px; border-radius: 9999px; border: 1px solid #e5e5e5; background: #fff; color: #000; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s ease; font-family: 'Poppins', sans-serif;">
+                            Cancel
+                        </button>
+                        <button id="swal-confirm-btn" style="padding: 10px 24px; border-radius: 9999px; border: none; background: #000; color: #fff; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s ease; font-family: 'Poppins', sans-serif;">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            `,
+            showConfirmButton: false,
+            showCloseButton: true,
+            width: '420px',
+            padding: '0',
+            background: 'white',
+            customClass: {
+                popup: 'auth-modal-popup',
+                closeButton: 'subscription-modal-close',
+            },
+            didOpen: () => {
+                document.getElementById('swal-confirm-btn').addEventListener('click', () => Swal.close({ isConfirmed: true }));
+                document.getElementById('swal-cancel-btn').addEventListener('click', () => Swal.close({ isConfirmed: false }));
+            },
+        });
+        if (!result.isConfirmed) return;
+
+        try {
+            await axios.delete(`/api/forum/posts/${post.id}`);
+            setPosts((prev) => prev.filter((p) => p.id !== post.id && p.parent_id !== post.id));
+            Toast.fire({ icon: 'success', title: 'Comment deleted' });
+        } catch {
+            Toast.fire({ icon: 'error', title: 'Failed to delete' });
         }
     };
 
@@ -244,9 +301,9 @@ const ForumThread = () => {
                             </div>
 
                             {topLevel.map((p) => (
-                                <PostBlock key={p.id} post={p} isAuthenticated={isAuthenticated} onReply={setReplyingTo}>
+                                <PostBlock key={p.id} post={p} isAuthenticated={isAuthenticated} currentUserId={currentUserId} onReply={setReplyingTo} onDelete={handleDeletePost}>
                                     {(childrenByParent[p.id] || []).map((c) => (
-                                        <PostBlock key={c.id} post={c} isAuthenticated={isAuthenticated} isReply />
+                                        <PostBlock key={c.id} post={c} isAuthenticated={isAuthenticated} currentUserId={currentUserId} onDelete={handleDeletePost} isReply />
                                     ))}
                                     {replyingTo?.id === p.id && (
                                         <form onSubmit={handleInlineReply} style={{ marginTop: '12px', marginLeft: '36px' }}>

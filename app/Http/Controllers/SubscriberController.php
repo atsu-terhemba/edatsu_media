@@ -346,6 +346,8 @@ class SubscriberController extends Controller
             'email_notifications' => 'boolean',
             'opportunity_notifications' => 'boolean',
             'product_notifications' => 'boolean',
+            'forum_notifications' => 'boolean',
+            'forum_categories' => 'nullable|array',
         ]);
 
         UserPreference::updateOrCreate(

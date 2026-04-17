@@ -114,6 +114,9 @@ export default function Preferences({ userPreferences, categories, countries, re
         email_notifications: userPreferences?.email_notifications || false,
         opportunity_notifications: userPreferences?.opportunity_notifications || true,
         product_notifications: userPreferences?.product_notifications || true,
+        forum_notifications: userPreferences?.forum_notifications ?? true,
+        forum_categories: userPreferences?.forum_categories?.map(id =>
+            categoryOptions.find(opt => opt.value === id)).filter(Boolean) || [],
     });
 
     const [loading, setLoading] = useState(false);
@@ -143,6 +146,8 @@ export default function Preferences({ userPreferences, categories, countries, re
             email_notifications: formData.email_notifications,
             opportunity_notifications: formData.opportunity_notifications,
             product_notifications: formData.product_notifications,
+            forum_notifications: formData.forum_notifications,
+            forum_categories: formData.forum_categories.map(opt => opt.value),
         };
 
         try {
@@ -193,6 +198,13 @@ export default function Preferences({ userPreferences, categories, countries, re
             icon: 'handyman',
             title: 'Product Alerts',
             description: 'Receive alerts about new tools and products that match your interests',
+        },
+        {
+            id: 'forum_notifications',
+            field: 'forum_notifications',
+            icon: 'forum',
+            title: 'Forum Notifications',
+            description: 'Get notified when someone replies to discussions you participate in',
         },
     ];
 
@@ -381,6 +393,49 @@ export default function Preferences({ userPreferences, categories, countries, re
                                                 onChange={(selected) => handleSelectChange(selected, 'product_brands')}
                                                 styles={selectStyles}
                                                 placeholder="Select brands..."
+                                            />
+                                        </Col>
+                                    </Row>
+                                </div>
+
+                                {/* Forum Preferences */}
+                                <div style={{
+                                    background: '#fff',
+                                    border: '1px solid #f0f0f0',
+                                    borderRadius: '16px',
+                                    padding: '28px',
+                                    marginBottom: '12px',
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                                        <span style={{
+                                            width: '32px',
+                                            height: '32px',
+                                            borderRadius: '10px',
+                                            background: '#f5f5f7',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#000' }}>forum</span>
+                                        </span>
+                                        <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#000', margin: 0 }}>
+                                            Forum Preferences
+                                        </h3>
+                                    </div>
+                                    <p style={{ fontSize: '13px', color: '#86868b', margin: '0 0 24px 42px' }}>
+                                        Pick the topics you care about — you'll only get forum notifications for discussions in these categories. Leave empty to get notified about all topics.
+                                    </p>
+
+                                    <Row className="g-3">
+                                        <Col md={12}>
+                                            <label style={labelStyle}>Topics</label>
+                                            <Select
+                                                isMulti
+                                                value={formData.forum_categories}
+                                                options={categoryOptions}
+                                                onChange={(selected) => handleSelectChange(selected, 'forum_categories')}
+                                                styles={selectStyles}
+                                                placeholder="All topics (select to filter)..."
                                             />
                                         </Col>
                                     </Row>

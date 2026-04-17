@@ -212,6 +212,32 @@ class ForumController extends Controller
     }
 
     /**
+     * Delete a post (only the author can delete their own post).
+     */
+    public function deletePost($id)
+    {
+        $post = ForumPost::findOrFail($id);
+
+        if ($post->user_id !== Auth::id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        DB::transaction(function () use ($post) {
+            // Delete child replies too
+            $childCount = ForumPost::where('parent_id', $post->id)->count();
+            ForumPost::where('parent_id', $post->id)->delete();
+            $post->delete();
+
+            $thread = ForumThread::find($post->thread_id);
+            if ($thread) {
+                $thread->decrement('posts_count', 1 + $childCount);
+            }
+        });
+
+        return response()->json(['deleted' => true]);
+    }
+
+    /**
      * Mute a thread (stop reply notifications for this user).
      */
     public function mute($id)
@@ -524,7 +550,23 @@ class ForumController extends Controller
                 ->pluck('user_id')
                 ->toArray();
 
-            $recipients = array_diff($candidates, $muted, $optedOut);
+            // Remove users whose forum_categories preference doesn't match this thread's categories
+            $threadCategoryIds = $thread->categories()->pluck('categories.id')->toArray();
+            $categoryFiltered = [];
+            if (!empty($threadCategoryIds)) {
+                $prefsWithCategories = UserPreference::whereIn('user_id', $candidates)
+                    ->whereNotNull('forum_categories')
+                    ->get(['user_id', 'forum_categories']);
+
+                foreach ($prefsWithCategories as $pref) {
+                    $userCats = $pref->forum_categories;
+                    if (!empty($userCats) && empty(array_intersect($userCats, $threadCategoryIds))) {
+                        $categoryFiltered[] = $pref->user_id;
+                    }
+                }
+            }
+
+            $recipients = array_diff($candidates, $muted, $optedOut, $categoryFiltered);
             if (empty($recipients)) return;
 
             $replierName = $post->user?->name ?? 'Someone';
