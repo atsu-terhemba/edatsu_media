@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SavedFeedArticle;
 use App\Models\UserNewsFeed;
+use App\Services\FeatureGate;
 use App\Services\RssFeedService;
 use fivefilters\Readability\Configuration as ReadabilityConfiguration;
 use fivefilters\Readability\Readability;
@@ -199,6 +200,22 @@ class NewsFeedController extends Controller
             'feed_favicon' => 'nullable|string|max:500',
         ]);
 
+        $alreadyHas = UserNewsFeed::where('user_id', Auth::id())
+            ->where('feed_url', $request->feed_url)
+            ->exists();
+
+        if (!$alreadyHas) {
+            $currentCount = UserNewsFeed::where('user_id', Auth::id())->count();
+            if (!FeatureGate::withinQuota($request->user(), 'custom_feeds', $currentCount)) {
+                $limit = FeatureGate::quotaFor('custom_feeds');
+                return FeatureGate::denied(
+                    'custom_feeds',
+                    "Free plan supports {$limit} custom feeds. Upgrade to Pro to follow unlimited sources.",
+                    $limit
+                );
+            }
+        }
+
         $feed = UserNewsFeed::firstOrCreate(
             [
                 'user_id' => Auth::id(),
@@ -274,6 +291,22 @@ class NewsFeedController extends Controller
             'feed_title' => 'nullable|string|max:255',
             'feed_favicon' => 'nullable|string|max:500',
         ]);
+
+        $alreadySaved = SavedFeedArticle::where('user_id', Auth::id())
+            ->where('article_link_hash', hash('sha256', $request->article_link))
+            ->exists();
+
+        if (!$alreadySaved) {
+            $currentCount = SavedFeedArticle::where('user_id', Auth::id())->count();
+            if (!FeatureGate::withinQuota($request->user(), 'saved_articles', $currentCount)) {
+                $limit = FeatureGate::quotaFor('saved_articles');
+                return FeatureGate::denied(
+                    'saved_articles',
+                    "Free plan lets you save {$limit} articles. Upgrade to Pro for unlimited saves.",
+                    $limit
+                );
+            }
+        }
 
         $article = SavedFeedArticle::firstOrCreate(
             [

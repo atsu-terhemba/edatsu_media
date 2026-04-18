@@ -102,9 +102,19 @@ const ArticleReaderModal = ({ article, onClose, isSaved, onToggleSave, isAuthent
     return (
         <>
         <style>{`
+            .article-reader-modal { height: 100vh; }
+            @supports (height: 100dvh) {
+                .article-reader-modal { height: 100dvh; }
+            }
             @media (min-width: 768px) {
                 .article-reader-backdrop { align-items: center !important; padding: 20px; }
-                .article-reader-modal { height: 90vh !important; border-radius: 16px !important; box-shadow: 0 24px 48px rgba(0,0,0,0.2) !important; }
+                .article-reader-modal {
+                    height: 90vh !important;
+                    border-radius: 16px !important;
+                    box-shadow: 0 24px 48px rgba(0,0,0,0.2) !important;
+                    padding-top: 0 !important;
+                    padding-bottom: 0 !important;
+                }
             }
             @keyframes fadeInUp {
                 from { opacity: 0; transform: translateY(-8px); }
@@ -147,10 +157,12 @@ const ArticleReaderModal = ({ article, onClose, isSaved, onToggleSave, isAuthent
                 onClick={(e) => e.stopPropagation()}
                 className="article-reader-modal"
                 style={{
-                    width: '100%', maxWidth: '960px', height: '95vh',
-                    background: '#fff', borderRadius: '16px 16px 0 0',
+                    width: '100%', maxWidth: '960px', height: '100dvh',
+                    background: '#fff', borderRadius: 0,
                     display: 'flex', flexDirection: 'column',
                     overflow: 'hidden', boxShadow: '0 -4px 48px rgba(0,0,0,0.2)',
+                    paddingTop: 'env(safe-area-inset-top)',
+                    paddingBottom: 'env(safe-area-inset-bottom)',
                 }}
             >
                 {/* Header bar */}

@@ -25,6 +25,7 @@ use App\Notifications\ReminderNotification;
 use App\Models\SavedFeedArticle;
 use App\Models\UserNewsFeed;
 use App\Models\PushSubscription;
+use App\Services\FeatureGate;
 
 class SubscriberController extends Controller
 {
@@ -161,7 +162,14 @@ class SubscriberController extends Controller
     }
 
     function exportBookmarkedOpportunities(){
-        $user_id = Auth::user()->id;
+        $user = Auth::user();
+        if (!FeatureGate::proOnly($user, 'bulk_export')) {
+            return FeatureGate::denied(
+                'bulk_export',
+                'Bulk export is a Pro feature. Upgrade to Pro to download your bookmarks.'
+            );
+        }
+        $user_id = $user->id;
 
         $bookmarks = Bookmark::with('opportunity')
             ->where('user_id', $user_id)
@@ -209,7 +217,14 @@ class SubscriberController extends Controller
     }
 
     function exportBookmarkedTools(){
-        $user_id = Auth::user()->id;
+        $user = Auth::user();
+        if (!FeatureGate::proOnly($user, 'bulk_export')) {
+            return FeatureGate::denied(
+                'bulk_export',
+                'Bulk export is a Pro feature. Upgrade to Pro to download your bookmarks.'
+            );
+        }
+        $user_id = $user->id;
 
         $bookmarks = Bookmark::with('product')
             ->where('user_id', $user_id)
@@ -757,6 +772,22 @@ class SubscriberController extends Controller
                 ], 404);
             }
 
+            if (empty($bookmark->reminder_date)) {
+                $activeCount = Bookmark::where('user_id', $user_id)
+                    ->whereNotNull('reminder_date')
+                    ->where('reminder_sent', false)
+                    ->where('reminder_date', '>=', now())
+                    ->count();
+                if (!FeatureGate::withinQuota(Auth::user(), 'reminders', $activeCount)) {
+                    $limit = FeatureGate::quotaFor('reminders');
+                    return FeatureGate::denied(
+                        'reminders',
+                        "Free plan allows {$limit} active reminders. Upgrade to Pro for unlimited reminders.",
+                        $limit
+                    );
+                }
+            }
+
             $bookmark->update([
                 'reminder_date' => $request->reminder_date,
                 'reminder_sent' => false
@@ -775,7 +806,7 @@ class SubscriberController extends Controller
             ));
 
             return response()->json([
-                'status' => 'success', 
+                'status' => 'success',
                 'message' => 'Reminder set successfully'
             ]);
         }
@@ -886,7 +917,14 @@ class SubscriberController extends Controller
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $userId = Auth::user()->id;
+            $user = Auth::user();
+            if (!FeatureGate::proOnly($user, 'web_push')) {
+                return FeatureGate::denied(
+                    'web_push',
+                    'Web push notifications are a Pro feature. Upgrade to Pro to get real-time alerts.'
+                );
+            }
+            $userId = $user->id;
 
             PushSubscription::updateOrCreate(
                 ['endpoint' => $request->endpoint, 'user_id' => $userId],

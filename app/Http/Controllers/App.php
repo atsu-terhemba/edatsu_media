@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Oppty;
 use App\Models\Bookmark;
+use App\Services\FeatureGate;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -70,6 +71,19 @@ class App extends Controller
                 }
 
                // return response()->json(['status' => 'error', 'message'=> 'Already Bookmarked']);
+            }
+
+            //enforce bookmark quota for free users
+            $currentCount = Bookmark::where('user_id', $user_id)
+                ->where('removed', 0)
+                ->count();
+            if (!FeatureGate::withinQuota($request->user(), 'bookmarks', $currentCount)) {
+                $limit = FeatureGate::quotaFor('bookmarks');
+                return FeatureGate::denied(
+                    'bookmarks',
+                    "Free plan lets you save up to {$limit} items. Upgrade to Pro for unlimited bookmarks.",
+                    $limit
+                );
             }
 
             //save data...
@@ -233,58 +247,21 @@ private function buildBaseQuery($user_id)
  */
 private function applySearchKeywordFilter($query, $searchKeyword)
 {
-    if (empty($searchKeyword)) {
+    $searchKeyword = trim((string) $searchKeyword);
+    if ($searchKeyword === '') {
         return $query;
     }
 
     $words = preg_split('/\s+/', $searchKeyword, -1, PREG_SPLIT_NO_EMPTY);
-    
-    // Strategy 1: Full-text search
-    $fullTextQuery = clone $query;
-    $fullTextQuery->where(function ($q) use ($searchKeyword, $words) {
-        $q->whereRaw("MATCH(opportunities.title, opportunities.description) AGAINST(? IN BOOLEAN MODE)", [$searchKeyword . '*']);
+
+    return $query->where(function ($q) use ($searchKeyword, $words) {
+        $q->where('opportunities.title', 'LIKE', "%{$searchKeyword}%")
+          ->orWhere('opportunities.description', 'LIKE', "%{$searchKeyword}%");
         foreach ($words as $word) {
-            $q->orWhereRaw("MATCH(opportunities.title, opportunities.description) AGAINST(? IN BOOLEAN MODE)", [$word . '*']);
+            $q->orWhere('opportunities.title', 'LIKE', "%{$word}%")
+              ->orWhere('opportunities.description', 'LIKE', "%{$word}%");
         }
     });
-    
-    $results = $fullTextQuery->paginate(1);
-    
-    if (!$results->isEmpty()) {
-        return $fullTextQuery;
-    }
-    
-    // Strategy 2: LIKE search
-    $likeQuery = clone $query;
-    $likeQuery->where(function ($q) use ($searchKeyword, $words) {
-        $q->where('opportunities.title', 'LIKE', "%$searchKeyword%")
-          ->orWhere('opportunities.description', 'LIKE', "%$searchKeyword%");
-          
-        foreach ($words as $word) {
-            $q->orWhere('opportunities.title', 'LIKE', "%$word%")
-              ->orWhere('opportunities.description', 'LIKE', "%$word%");
-        }
-    });
-    
-    $results = $likeQuery->paginate(1);
-    
-    if (!$results->isEmpty()) {
-        return $likeQuery;
-    }
-    
-    // Strategy 3: SOUNDEX search
-    $soundexQuery = clone $query;
-    $soundexQuery->where(function ($q) use ($searchKeyword, $words) {
-        $q->whereRaw('SOUNDEX(opportunities.title) = SOUNDEX(?)', [$searchKeyword])
-          ->orWhereRaw('SOUNDEX(opportunities.description) = SOUNDEX(?)', [$searchKeyword]);
-          
-        foreach ($words as $word) {
-            $q->orWhereRaw('SOUNDEX(opportunities.title) = SOUNDEX(?)', [$word])
-              ->orWhereRaw('SOUNDEX(opportunities.description) = SOUNDEX(?)', [$word]);
-        }
-    });
-    
-    return $soundexQuery;
 }
 
 /**

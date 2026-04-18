@@ -169,9 +169,7 @@ const Toolshed = () => {
         });
     }, []);
 
-    useEffect(()=>{
-        initSearch();
-    }, [filter_data])
+    const prevKeywordRef = useRef(search_keyword);
 
     const initSearch = useCallback((e) => {
         e?.preventDefault();
@@ -209,6 +207,19 @@ const Toolshed = () => {
                 setIsLoading('');
             });
     },[rootURL, filter_data, search_keyword, isMobileSearchVisible]);
+
+    useEffect(()=>{
+        initSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filter_data]);
+
+    useEffect(() => {
+        const prev = prevKeywordRef.current;
+        prevKeywordRef.current = search_keyword;
+        if (prev && !search_keyword) {
+            initSearch();
+        }
+    }, [search_keyword, initSearch]);
 
     function triggerPagination(url) {
         const container = paginationContainerRef.current;

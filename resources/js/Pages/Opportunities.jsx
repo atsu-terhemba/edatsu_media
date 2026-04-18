@@ -73,13 +73,7 @@ const Opportunities = () => {
 
     const [isInitialMount, setIsInitialMount] = useState(true);
 
-    useEffect(()=>{
-        if (isInitialMount) {
-            setIsInitialMount(false);
-            return;
-        }
-        initSearch();
-    }, [filter_data])
+    const prevKeywordRef = useRef(search_keyword);
 
     const initSearch = useCallback((e) => {
         e?.preventDefault();
@@ -127,6 +121,23 @@ const Opportunities = () => {
             setIsLoading('');
         });
     },[rootURL, filter_data, search_keyword, isMobileSearchVisible]);
+
+    useEffect(()=>{
+        if (isInitialMount) {
+            setIsInitialMount(false);
+            return;
+        }
+        initSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filter_data]);
+
+    useEffect(() => {
+        const prev = prevKeywordRef.current;
+        prevKeywordRef.current = search_keyword;
+        if (prev && !search_keyword) {
+            initSearch();
+        }
+    }, [search_keyword, initSearch]);
 
     function triggerPagination(url) {
         const container = paginationContainerRef.current;

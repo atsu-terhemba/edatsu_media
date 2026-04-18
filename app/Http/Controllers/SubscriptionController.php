@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -152,96 +153,108 @@ class SubscriptionController extends Controller
 
         $user = Auth::user();
 
-        // Check if user already has an active subscription
-        if ($user->isPro()) {
+        // Serialize concurrent initiate calls per-user so double-clicks + tab races
+        // can't stack up pending subscriptions or charge the user twice.
+        $lock = Cache::lock("subscription-init-user-{$user->id}", 10);
+        if (!$lock->get()) {
             return response()->json([
                 'success' => false,
-                'message' => 'You already have an active Pro subscription.',
-            ], 400);
+                'message' => 'Another payment is being set up for your account. Please wait a moment and try again.',
+            ], 429);
         }
 
-        $plan = SubscriptionPlan::where('slug', $request->plan_id)
-            ->where('is_active', true)
-            ->first();
+        try {
+            if ($user->isPro()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You already have an active Pro subscription.',
+                ], 400);
+            }
 
-        if (!$plan) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid plan selected.',
-            ], 404);
-        }
+            $plan = SubscriptionPlan::where('slug', $request->plan_id)
+                ->where('is_active', true)
+                ->first();
 
-        $amount = $plan->getPrice($request->billing_period, $request->currency);
+            if (!$plan) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid plan selected.',
+                ], 404);
+            }
 
-        if ($amount <= 0) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This plan does not require payment.',
-            ], 400);
-        }
+            $amount = $plan->getPrice($request->billing_period, $request->currency);
 
-        // Create a unique transaction reference
-        $txRef = 'EDATSU-' . strtoupper(Str::random(12)) . '-' . time();
+            if ($amount <= 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This plan does not require payment.',
+                ], 400);
+            }
 
-        // Create pending transaction
-        $transaction = Transaction::create([
-            'user_id' => $user->id,
-            'reference' => $txRef,
-            'payment_provider' => 'flutterwave',
-            'amount' => $amount,
-            'currency' => $request->currency,
-            'status' => 'pending',
-            'type' => 'subscription',
-            'description' => "{$plan->name} plan - {$request->billing_period} ({$request->currency})",
-        ]);
+            // Cancel any prior pending subscriptions/transactions for this user so we
+            // never have more than one in-flight payment. This also protects the
+            // webhook path, which activates the first matching `status=pending` row.
+            $this->abandonPendingForUser($user->id);
 
-        // Create pending subscription
-        $subscription = Subscription::create([
-            'user_id' => $user->id,
-            'subscription_plan_id' => $plan->id,
-            'billing_period' => $request->billing_period,
-            'currency' => $request->currency,
-            'amount' => $amount,
-            'status' => 'pending',
-            'payment_provider' => 'flutterwave',
-        ]);
+            $txRef = 'EDATSU-' . strtoupper(Str::random(12)) . '-' . time();
 
-        // Link transaction to subscription
-        $transaction->update(['subscription_id' => $subscription->id]);
-
-        // Initialize Flutterwave payment
-        $result = $this->flutterwave->initializePayment([
-            'tx_ref' => $txRef,
-            'amount' => $amount,
-            'currency' => $request->currency,
-            'redirect_url' => route('subscription.callback'),
-            'email' => $user->email,
-            'name' => $user->name,
-            'description' => $transaction->description,
-            'payment_options' => $request->payment_method ?? 'card,banktransfer',
-            'meta' => [
+            $transaction = Transaction::create([
                 'user_id' => $user->id,
-                'plan_id' => $plan->id,
-                'subscription_id' => $subscription->id,
-                'billing_period' => $request->billing_period,
-            ],
-        ]);
-
-        if ($result['success']) {
-            return response()->json([
-                'success' => true,
-                'payment_url' => $result['payment_url'],
+                'reference' => $txRef,
+                'payment_provider' => 'flutterwave',
+                'amount' => $amount,
+                'currency' => $request->currency,
+                'status' => 'pending',
+                'type' => 'subscription',
+                'description' => "{$plan->name} plan - {$request->billing_period} ({$request->currency})",
             ]);
+
+            $subscription = Subscription::create([
+                'user_id' => $user->id,
+                'subscription_plan_id' => $plan->id,
+                'billing_period' => $request->billing_period,
+                'currency' => $request->currency,
+                'amount' => $amount,
+                'status' => 'pending',
+                'payment_provider' => 'flutterwave',
+            ]);
+
+            $transaction->update(['subscription_id' => $subscription->id]);
+
+            $result = $this->flutterwave->initializePayment([
+                'tx_ref' => $txRef,
+                'amount' => $amount,
+                'currency' => $request->currency,
+                'redirect_url' => route('subscription.callback'),
+                'email' => $user->email,
+                'name' => $user->name,
+                'description' => "Edatsu Media #U{$user->id}",
+                'payment_options' => $request->payment_method ?? 'card,banktransfer',
+                'meta' => [
+                    'user_id' => $user->id,
+                    'plan_id' => $plan->id,
+                    'subscription_id' => $subscription->id,
+                    'billing_period' => $request->billing_period,
+                ],
+            ]);
+
+            if ($result['success']) {
+                return response()->json([
+                    'success' => true,
+                    'payment_url' => $result['payment_url'],
+                ]);
+            }
+
+            $transaction->update(['status' => 'failed']);
+            $subscription->delete();
+
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Could not initialize payment. Please try again.',
+            ], 500);
+        } finally {
+            $lock->release();
         }
-
-        // Clean up on failure
-        $transaction->update(['status' => 'failed']);
-        $subscription->delete();
-
-        return response()->json([
-            'success' => false,
-            'message' => $result['message'] ?? 'Could not initialize payment. Please try again.',
-        ], 500);
     }
 
     /**
@@ -259,86 +272,129 @@ class SubscriptionController extends Controller
 
         $user = Auth::user();
 
-        if ($user->isPro()) {
+        // Serialize per-user so double-taps on "Bank transfer" don't spawn
+        // parallel virtual accounts (each would be a separate charge if paid).
+        $lock = Cache::lock("subscription-init-user-{$user->id}", 10);
+        if (!$lock->get()) {
             return response()->json([
                 'success' => false,
-                'message' => 'You already have an active Pro subscription.',
-            ], 400);
+                'message' => 'Another payment is being set up for your account. Please wait a moment and try again.',
+            ], 429);
         }
 
-        $plan = SubscriptionPlan::where('slug', $request->plan_id)
-            ->where('is_active', true)
-            ->first();
+        try {
+            if ($user->isPro()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You already have an active Pro subscription.',
+                ], 400);
+            }
 
-        if (!$plan) {
-            return response()->json(['success' => false, 'message' => 'Invalid plan.'], 404);
-        }
+            $plan = SubscriptionPlan::where('slug', $request->plan_id)
+                ->where('is_active', true)
+                ->first();
 
-        $amount = $plan->getPrice($request->billing_period, $request->currency);
+            if (!$plan) {
+                return response()->json(['success' => false, 'message' => 'Invalid plan.'], 404);
+            }
 
-        if ($amount <= 0) {
-            return response()->json(['success' => false, 'message' => 'This plan does not require payment.'], 400);
-        }
+            $amount = $plan->getPrice($request->billing_period, $request->currency);
 
-        $txRef = 'EDATSU-' . strtoupper(Str::random(12)) . '-' . time();
+            if ($amount <= 0) {
+                return response()->json(['success' => false, 'message' => 'This plan does not require payment.'], 400);
+            }
 
-        $transaction = Transaction::create([
-            'user_id' => $user->id,
-            'reference' => $txRef,
-            'payment_provider' => 'flutterwave',
-            'payment_method' => 'banktransfer',
-            'amount' => $amount,
-            'currency' => $request->currency,
-            'status' => 'pending',
-            'type' => 'subscription',
-            'description' => "{$plan->name} plan - {$request->billing_period} ({$request->currency})",
-        ]);
+            $this->abandonPendingForUser($user->id);
 
-        $subscription = Subscription::create([
-            'user_id' => $user->id,
-            'subscription_plan_id' => $plan->id,
-            'billing_period' => $request->billing_period,
-            'currency' => $request->currency,
-            'amount' => $amount,
-            'status' => 'pending',
-            'payment_provider' => 'flutterwave',
-        ]);
+            $txRef = 'EDATSU-' . strtoupper(Str::random(12)) . '-' . time();
 
-        $transaction->update(['subscription_id' => $subscription->id]);
-
-        $result = $this->flutterwave->chargeBankTransfer([
-            'tx_ref' => $txRef,
-            'amount' => $amount,
-            'currency' => $request->currency,
-            'email' => $user->email,
-            'name' => $user->name,
-            'narration' => $transaction->description,
-            'meta' => [
+            $transaction = Transaction::create([
                 'user_id' => $user->id,
-                'plan_id' => $plan->id,
-                'subscription_id' => $subscription->id,
-                'billing_period' => $request->billing_period,
-            ],
-        ]);
-
-        if ($result['success']) {
-            return response()->json([
-                'success' => true,
-                'tx_ref' => $txRef,
-                'account_number' => $result['account_number'],
-                'bank_name' => $result['bank_name'],
-                'amount' => $result['amount'],
-                'expires_at' => $result['expires_at'],
+                'reference' => $txRef,
+                'payment_provider' => 'flutterwave',
+                'payment_method' => 'banktransfer',
+                'amount' => $amount,
+                'currency' => $request->currency,
+                'status' => 'pending',
+                'type' => 'subscription',
+                'description' => "{$plan->name} plan - {$request->billing_period} ({$request->currency})",
             ]);
+
+            $subscription = Subscription::create([
+                'user_id' => $user->id,
+                'subscription_plan_id' => $plan->id,
+                'billing_period' => $request->billing_period,
+                'currency' => $request->currency,
+                'amount' => $amount,
+                'status' => 'pending',
+                'payment_provider' => 'flutterwave',
+            ]);
+
+            $transaction->update(['subscription_id' => $subscription->id]);
+
+            // Narration is capped short by banks — lead with brand + user ID so
+            // any payment can be traced to an account even if the webhook fails.
+            $narration = "Edatsu Media #U{$user->id}";
+
+            $result = $this->flutterwave->chargeBankTransfer([
+                'tx_ref' => $txRef,
+                'amount' => $amount,
+                'currency' => $request->currency,
+                'email' => $user->email,
+                'name' => $user->name,
+                'narration' => $narration,
+                'meta' => [
+                    'user_id' => $user->id,
+                    'plan_id' => $plan->id,
+                    'subscription_id' => $subscription->id,
+                    'billing_period' => $request->billing_period,
+                ],
+            ]);
+
+            if ($result['success']) {
+                return response()->json([
+                    'success' => true,
+                    'tx_ref' => $txRef,
+                    'account_number' => $result['account_number'],
+                    'bank_name' => $result['bank_name'],
+                    'amount' => $result['amount'],
+                    'expires_at' => $result['expires_at'],
+                ]);
+            }
+
+            $transaction->update(['status' => 'failed']);
+            $subscription->delete();
+
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Could not generate virtual account. Please try again.',
+            ], 500);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    /**
+     * Mark any in-flight (pending) subscriptions and their transactions as
+     * abandoned so a new payment flow starts from a clean slate. Idempotent.
+     */
+    protected function abandonPendingForUser(int $userId): void
+    {
+        $pendingSubs = Subscription::where('user_id', $userId)
+            ->where('status', 'pending')
+            ->pluck('id');
+
+        if ($pendingSubs->isEmpty()) {
+            return;
         }
 
-        $transaction->update(['status' => 'failed']);
-        $subscription->delete();
+        Transaction::whereIn('subscription_id', $pendingSubs)
+            ->where('status', 'pending')
+            ->update(['status' => 'abandoned', 'updated_at' => now()]);
 
-        return response()->json([
-            'success' => false,
-            'message' => $result['message'] ?? 'Could not generate virtual account. Please try again.',
-        ], 500);
+        Subscription::whereIn('id', $pendingSubs)
+            ->where('status', 'pending')
+            ->update(['status' => 'abandoned', 'updated_at' => now()]);
     }
 
     /**
@@ -525,11 +581,16 @@ class SubscriptionController extends Controller
     /**
      * Activate subscription after successful payment.
      *
-     * Uses a conditional UPDATE (`WHERE status='pending'`) as the race guard so
-     * a callback and a webhook arriving simultaneously can't both activate.
-     * MyISAM tables silently ignore lockForUpdate, so we rely on MySQL's
-     * per-row atomic UPDATE semantics instead. Affected-rows == 0 means another
-     * path already activated this subscription — bail out.
+     * Three-layer race guard for callback/webhook/retry overlap:
+     *  1. Cache lock scoped to tx_ref — serialises any concurrent handlers
+     *     touching the same transaction.
+     *  2. Conditional UPDATE (`WHERE status='pending'`) — even if the lock is
+     *     unavailable (cache backend issue), MySQL's atomic UPDATE ensures only
+     *     one caller can flip the row. MyISAM ignores lockForUpdate, so we rely
+     *     on per-row UPDATE semantics here rather than SELECT ... FOR UPDATE.
+     *  3. Duplicate-active check — if the user somehow already has an active
+     *     subscription from a parallel payment, we mark this one superseded
+     *     instead of double-activating.
      */
     protected function activateSubscription(Transaction $transaction, array $providerData): void
     {
@@ -539,35 +600,89 @@ class SubscriptionController extends Controller
             return;
         }
 
-        $startsAt = now();
-        $endsAt = $subscription->billing_period === 'yearly'
-            ? $startsAt->copy()->addYear()
-            : $startsAt->copy()->addMonth();
-
-        $affected = Subscription::where('id', $subscription->id)
-            ->where('status', 'pending')
-            ->update([
-                'status' => 'active',
-                'starts_at' => $startsAt,
-                'ends_at' => $endsAt,
-                'provider_subscription_id' => $providerData['id'] ?? null,
-                'updated_at' => now(),
-            ]);
-
-        if ($affected === 0) {
-            // Already activated by another path (callback vs. webhook race).
+        $lock = Cache::lock("activate-tx-{$transaction->reference}", 15);
+        if (!$lock->get()) {
+            // Another handler is already activating this exact transaction.
             return;
         }
 
-        Transaction::where('id', $transaction->id)
-            ->where('status', 'pending')
-            ->update([
-                'status' => 'successful',
-                'provider_reference' => $providerData['id'] ?? null,
-                'payment_method' => $providerData['payment_type'] ?? null,
-                'provider_response' => json_encode($providerData),
-                'paid_at' => now(),
-                'updated_at' => now(),
-            ]);
+        try {
+            // Re-read status inside the lock — another handler may have finished
+            // between lock acquisition attempts.
+            $freshSub = Subscription::where('id', $subscription->id)->first();
+            if (!$freshSub || $freshSub->status !== 'pending') {
+                return;
+            }
+
+            $startsAt = now();
+            $endsAt = $subscription->billing_period === 'yearly'
+                ? $startsAt->copy()->addYear()
+                : $startsAt->copy()->addMonth();
+
+            // Duplicate-active guard: if another sub for this user is already
+            // active (and not the one we're activating), don't stack a second.
+            $hasOtherActive = Subscription::where('user_id', $subscription->user_id)
+                ->where('id', '!=', $subscription->id)
+                ->where('status', 'active')
+                ->where('ends_at', '>', now())
+                ->exists();
+
+            if ($hasOtherActive) {
+                Subscription::where('id', $subscription->id)
+                    ->where('status', 'pending')
+                    ->update(['status' => 'superseded', 'updated_at' => now()]);
+
+                Transaction::where('id', $transaction->id)
+                    ->where('status', 'pending')
+                    ->update([
+                        'status' => 'refund_due',
+                        'provider_reference' => $providerData['id'] ?? null,
+                        'provider_response' => json_encode($providerData),
+                        'updated_at' => now(),
+                    ]);
+
+                Log::warning('Duplicate paid subscription for user — flagged for manual refund', [
+                    'user_id' => $subscription->user_id,
+                    'superseded_subscription_id' => $subscription->id,
+                    'transaction_reference' => $transaction->reference,
+                ]);
+                return;
+            }
+
+            $affected = Subscription::where('id', $subscription->id)
+                ->where('status', 'pending')
+                ->update([
+                    'status' => 'active',
+                    'starts_at' => $startsAt,
+                    'ends_at' => $endsAt,
+                    'provider_subscription_id' => $providerData['id'] ?? null,
+                    'updated_at' => now(),
+                ]);
+
+            if ($affected === 0) {
+                // Lost the race at the DB level — another handler activated first.
+                return;
+            }
+
+            Transaction::where('id', $transaction->id)
+                ->where('status', 'pending')
+                ->update([
+                    'status' => 'successful',
+                    'provider_reference' => $providerData['id'] ?? null,
+                    'payment_method' => $providerData['payment_type'] ?? null,
+                    'provider_response' => json_encode($providerData),
+                    'paid_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+            // Any sibling pending subs for this user (e.g. abandoned but not yet
+            // marked) are no longer relevant — close them out.
+            Subscription::where('user_id', $subscription->user_id)
+                ->where('id', '!=', $subscription->id)
+                ->where('status', 'pending')
+                ->update(['status' => 'abandoned', 'updated_at' => now()]);
+        } finally {
+            $lock->release();
+        }
     }
 }

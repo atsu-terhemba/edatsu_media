@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { installProUpgradeInterceptor } from './utils/proUpgrade';
 window.axios = axios;
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -42,6 +43,9 @@ async function refreshCsrfToken() {
     }
     return cookieToken;
 }
+
+// Show upgrade modal on 402 quota_exceeded responses
+installProUpgradeInterceptor(window.axios);
 
 // Auto-refresh on CSRF token mismatch (419) - retry only once
 window.axios.interceptors.response.use(

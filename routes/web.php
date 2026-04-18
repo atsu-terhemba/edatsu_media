@@ -233,6 +233,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // Admin Dashboard...
     Route::get('/admin-dashboard', [Dashboard::class, 'accessControl'])->name('admin.dashboard');
     Route::get('/all-users', [Dashboard::class, 'allUsers'])->name('admin.users');
+
+    // Pro gating
+    Route::get('/admin-pro-gating', [\App\Http\Controllers\Admin\ProGatingController::class, 'index'])->name('admin.pro_gating');
+    Route::post('/admin-pro-gating', [\App\Http\Controllers\Admin\ProGatingController::class, 'update'])->name('admin.pro_gating.update');
     
     // Product management
     Route::get('/post-product', [ProductController::class, 'show'])->name('admin.products');

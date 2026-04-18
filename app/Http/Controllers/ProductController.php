@@ -186,58 +186,21 @@ private function buildBaseQuery($user_id)
  */
 private function applySearchKeywordFilter($query, $searchKeyword)
 {
-    if (empty($searchKeyword)) {
+    $searchKeyword = trim((string) $searchKeyword);
+    if ($searchKeyword === '') {
         return $query;
     }
 
     $words = preg_split('/\s+/', $searchKeyword, -1, PREG_SPLIT_NO_EMPTY);
-    
-    // Strategy 1: Full-text search
-    $fullTextQuery = clone $query;
-    $fullTextQuery->where(function ($q) use ($searchKeyword, $words) {
-        $q->whereRaw("MATCH(products.product_name, products.product_description) AGAINST(? IN BOOLEAN MODE)", [$searchKeyword . '*']);
+
+    return $query->where(function ($q) use ($searchKeyword, $words) {
+        $q->where('products.product_name', 'LIKE', "%{$searchKeyword}%")
+          ->orWhere('products.product_description', 'LIKE', "%{$searchKeyword}%");
         foreach ($words as $word) {
-            $q->orWhereRaw("MATCH(products.product_name, products.product_description) AGAINST(? IN BOOLEAN MODE)", [$word . '*']);
+            $q->orWhere('products.product_name', 'LIKE', "%{$word}%")
+              ->orWhere('products.product_description', 'LIKE', "%{$word}%");
         }
     });
-    
-    $results = $fullTextQuery->paginate(1);
-    
-    if (!$results->isEmpty()) {
-        return $fullTextQuery;
-    }
-    
-    // Strategy 2: LIKE search
-    $likeQuery = clone $query;
-    $likeQuery->where(function ($q) use ($searchKeyword, $words) {
-        $q->where('products.product_name', 'LIKE', "%$searchKeyword%")
-          ->orWhere('products.product_description', 'LIKE', "%$searchKeyword%");
-          
-        foreach ($words as $word) {
-            $q->orWhere('products.product_name', 'LIKE', "%$word%")
-              ->orWhere('products.product_description', 'LIKE', "%$word%");
-        }
-    });
-    
-    $results = $likeQuery->paginate(1);
-    
-    if (!$results->isEmpty()) {
-        return $likeQuery;
-    }
-    
-    // Strategy 3: SOUNDEX search
-    $soundexQuery = clone $query;
-    $soundexQuery->where(function ($q) use ($searchKeyword, $words) {
-        $q->whereRaw('SOUNDEX(products.product_name) = SOUNDEX(?)', [$searchKeyword])
-          ->orWhereRaw('SOUNDEX(products.product_description) = SOUNDEX(?)', [$searchKeyword]);
-          
-        foreach ($words as $word) {
-            $q->orWhereRaw('SOUNDEX(products.product_name) = SOUNDEX(?)', [$word])
-              ->orWhereRaw('SOUNDEX(products.product_description) = SOUNDEX(?)', [$word]);
-        }
-    });
-    
-    return $soundexQuery;
 }
 
 /**
