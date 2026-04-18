@@ -7,6 +7,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import BookmarksSkeleton from '@/Components/BookmarksSkeleton';
 import Footer from '@/Components/Footer';
+import ArticleReaderModal from '@/Components/ArticleReaderModal';
 
 export default function SavedArticles({ articles: initialArticles }) {
     const [articles, setArticles] = useState(initialArticles || { data: [], total: 0 });
@@ -14,7 +15,20 @@ export default function SavedArticles({ articles: initialArticles }) {
     const [openMenuId, setOpenMenuId] = useState(null);
     const [selectMode, setSelectMode] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
+    const [readerArticle, setReaderArticle] = useState(null);
     const menuRef = useRef(null);
+
+    const openReader = (article) => {
+        setReaderArticle({
+            id: article.id,
+            link: article.article_link,
+            title: article.article_title,
+            description: article.article_description,
+            date: article.article_date,
+        });
+    };
+
+    const closeReader = () => setReaderArticle(null);
 
     const Toast = Swal.mixin({
         toast: true,
@@ -240,20 +254,20 @@ export default function SavedArticles({ articles: initialArticles }) {
                                                     </button>
                                                 )}
                                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                                    <a
-                                                        href={article.article_link}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
+                                                    <button
+                                                        onClick={() => openReader(article)}
                                                         style={{
                                                             fontSize: '15px', fontWeight: 500, color: '#000',
-                                                            textDecoration: 'none', display: 'block', marginBottom: '8px', lineHeight: 1.4,
-                                                            transition: 'opacity 0.15s ease',
+                                                            background: 'transparent', border: 'none', padding: 0,
+                                                            textAlign: 'left', cursor: 'pointer',
+                                                            display: 'block', marginBottom: '8px', lineHeight: 1.4,
+                                                            transition: 'opacity 0.15s ease', fontFamily: "'Poppins', sans-serif",
                                                         }}
                                                         onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
                                                         onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                                                     >
                                                         {article.article_title}
-                                                    </a>
+                                                    </button>
 
                                                     {article.article_description && (
                                                         <p style={{
@@ -320,6 +334,20 @@ export default function SavedArticles({ articles: initialArticles }) {
                                                             boxShadow: '0 12px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
                                                             border: '1px solid #f0f0f0', zIndex: 100, overflow: 'hidden', padding: '6px',
                                                         }}>
+                                                            <button
+                                                                onClick={() => { openReader(article); setOpenMenuId(null); }}
+                                                                style={{
+                                                                    display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px',
+                                                                    borderRadius: '10px', fontSize: '13px', fontWeight: 500,
+                                                                    color: '#000', background: 'transparent', border: 'none',
+                                                                    width: '100%', cursor: 'pointer', transition: 'background 0.15s ease', textAlign: 'left',
+                                                                }}
+                                                                onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f7'}
+                                                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                                            >
+                                                                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#86868b' }}>menu_book</span>
+                                                                Read Article
+                                                            </button>
                                                             <a
                                                                 href={article.article_link}
                                                                 target="_blank"
@@ -334,7 +362,7 @@ export default function SavedArticles({ articles: initialArticles }) {
                                                                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                                                             >
                                                                 <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#86868b' }}>open_in_new</span>
-                                                                Read Article
+                                                                Open original
                                                             </a>
                                                             <div style={{ height: '1px', background: '#f0f0f0', margin: '4px 0' }} />
                                                             <button
@@ -407,6 +435,20 @@ export default function SavedArticles({ articles: initialArticles }) {
                     </Row>
                 </Container>
             </Container>
+
+            <ArticleReaderModal
+                article={readerArticle}
+                onClose={closeReader}
+                isSaved={true}
+                onToggleSave={(article) => {
+                    if (readerArticle?.id) {
+                        removeArticle(readerArticle.id);
+                        closeReader();
+                    }
+                }}
+                isAuthenticated={true}
+            />
+
             <Footer />
         </AuthenticatedLayout>
     );

@@ -11,6 +11,7 @@ import AdBanner from '@/Components/AdBanner';
 import ArticleReaderModal from '@/Components/ArticleReaderModal';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { isQuotaError } from '@/utils/proUpgrade';
 import FixedMobileNav from '@/Components/FixedMobileNav';
 import ScrollToTop from '@/Components/ScrollToTop';
 
@@ -810,8 +811,8 @@ const News = () => {
                 });
                 Toast.fire({ icon: 'success', title: 'Article saved for later' });
             } catch (err) {
-                console.error('Failed to save article:', err);
                 setSavedArticleLinks((prev) => prev.filter((l) => l !== article.link));
+                if (isQuotaError(err)) return;
                 Toast.fire({ icon: 'error', title: 'Failed to save article' });
             }
         }
@@ -902,7 +903,11 @@ const News = () => {
                     });
                     feedData.id = saveResponse.data.id;
                 } catch (saveErr) {
-                    console.error('Failed to save feed:', saveErr);
+                    // Quota hit — upgrade modal already shown; bail without adding to UI
+                    if (isQuotaError(saveErr)) {
+                        setIsLoading(false);
+                        return;
+                    }
                 }
             }
 
@@ -915,7 +920,10 @@ const News = () => {
                 setShowSavePrompt(true);
             }
         } catch (err) {
-            if (err.response?.status === 404) {
+            if (isQuotaError(err)) {
+                // Upgrade modal already shown; clear any inline error
+                setError('');
+            } else if (err.response?.status === 404) {
                 setError('No RSS feed found for this URL. Try a different link.');
             } else if (err.response?.status === 422) {
                 setError('Please enter a valid URL');

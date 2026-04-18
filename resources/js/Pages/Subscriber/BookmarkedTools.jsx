@@ -7,6 +7,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import BookmarksSkeleton from '@/Components/BookmarksSkeleton';
 import Footer from '@/Components/Footer';
+import { downloadWithGate } from '@/utils/proUpgrade';
 
 export default function BookmarkedTools({ tools: initialTools }) {
     const [tools, setTools] = useState(initialTools || { data: [], total: 0 });
@@ -134,8 +135,9 @@ export default function BookmarkedTools({ tools: initialTools }) {
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         {tools.data && tools.data.length > 0 && (
-                                            <a
-                                                href="/export-bookmarked-tools"
+                                            <button
+                                                type="button"
+                                                onClick={() => downloadWithGate('/export-bookmarked-tools', 'bookmarked_tools.csv')}
                                                 style={{
                                                     display: 'inline-flex',
                                                     alignItems: 'center',
@@ -147,7 +149,7 @@ export default function BookmarkedTools({ tools: initialTools }) {
                                                     color: '#000',
                                                     border: '1px solid #e0e0e0',
                                                     background: '#fff',
-                                                    textDecoration: 'none',
+                                                    cursor: 'pointer',
                                                     transition: 'all 0.15s ease',
                                                 }}
                                                 onMouseEnter={(e) => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#000'; }}
@@ -155,7 +157,7 @@ export default function BookmarkedTools({ tools: initialTools }) {
                                             >
                                                 <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>download</span>
                                                 Export
-                                            </a>
+                                            </button>
                                         )}
                                         <span style={{
                                             display: 'inline-flex',

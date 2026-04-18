@@ -111,3 +111,37 @@ DROP TABLE IF EXISTS `forum_posts`;
 DROP TABLE IF EXISTS `forum_threads`;
 ALTER TABLE `user_preferences` DROP COLUMN `forum_notifications`;
 ```
+
+# MySQL Migration — Pro Gating Settings
+
+Singleton table that controls the Pro paywall master switch and per-feature free-plan quotas. Read via `ProGatingSetting::current()` and consumed by `FeatureGate` (`app/Services/FeatureGate.php`). The seed row with `id = 1` must exist — `current()` falls back to `firstOrCreate` but seeding up front avoids a race on first hit.
+
+## SQL
+
+```sql
+-- 1. pro_gating_settings
+CREATE TABLE `pro_gating_settings` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `enabled` tinyint NOT NULL DEFAULT 0,
+  `bookmarks_max` int unsigned NOT NULL DEFAULT 10,
+  `saved_articles_max` int unsigned NOT NULL DEFAULT 20,
+  `reminders_max` int unsigned NOT NULL DEFAULT 3,
+  `custom_feeds_max` int unsigned NOT NULL DEFAULT 5,
+  `bulk_export_pro_only` tinyint NOT NULL DEFAULT 1,
+  `web_push_pro_only` tinyint NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL,
+  `updated_at` timestamp NULL
+) ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 2. Seed the singleton row (id = 1)
+INSERT INTO `pro_gating_settings`
+  (`id`, `enabled`, `bookmarks_max`, `saved_articles_max`, `reminders_max`, `custom_feeds_max`, `bulk_export_pro_only`, `web_push_pro_only`, `created_at`, `updated_at`)
+VALUES
+  (1, 0, 10, 20, 3, 5, 1, 1, NOW(), NOW());
+```
+
+## Rollback
+
+```sql
+DROP TABLE IF EXISTS `pro_gating_settings`;
+```

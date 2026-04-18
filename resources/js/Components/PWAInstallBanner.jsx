@@ -133,29 +133,9 @@ const PWAInstallBanner = () => {
                         margin: 0, lineHeight: 1.4,
                     }}>
                         {isIOS
-                            ? 'Add Edatsu to your home screen for push notifications and offline access.'
-                            : 'Install the Edatsu app for push notifications, reminders, and offline access.'}
+                            ? 'Add Edatsu to your home screen for Push alerts, Faster, Offline access.'
+                            : 'Install the Edatsu app for Push alerts, Faster, Offline access.'}
                     </p>
-                </div>
-
-                {/* Feature pills */}
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                    {[
-                        { icon: 'notifications_active', label: 'Push alerts' },
-                        { icon: 'speed', label: 'Faster' },
-                        { icon: 'wifi_off', label: 'Offline' },
-                    ].map((f, i) => (
-                        <span key={i} style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '4px',
-                            background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)',
-                            fontSize: '11px', fontWeight: 500, padding: '4px 10px',
-                            borderRadius: '9999px', border: '1px solid rgba(255,255,255,0.06)',
-                            whiteSpace: 'nowrap',
-                        }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>{f.icon}</span>
-                            {f.label}
-                        </span>
-                    ))}
                 </div>
 
                 {/* Install button */}

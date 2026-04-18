@@ -5,6 +5,7 @@ import { useState } from 'react';
 import SubscriberSideNav from './Components/SideNav';
 import Select from 'react-select';
 import axios from 'axios';
+import { isQuotaError } from '@/utils/proUpgrade';
 
 const selectStyles = {
     control: (base, state) => ({
@@ -157,6 +158,11 @@ export default function Preferences({ userPreferences, categories, countries, re
                 setMessageType('success');
             }
         } catch (error) {
+            if (isQuotaError(error)) {
+                // Upgrade modal shown; clear any stale message
+                setMessage('');
+                return;
+            }
             console.error('Error updating preferences:', error);
             setMessage('Failed to update preferences. Please try again.');
             setMessageType('error');

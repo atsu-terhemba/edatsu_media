@@ -7,6 +7,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import BookmarksSkeleton from '@/Components/BookmarksSkeleton';
 import Footer from '@/Components/Footer';
+import { downloadWithGate } from '@/utils/proUpgrade';
 
 export default function BookmarkedOpportunities({ opportunities: initialOpportunities }) {
     const [opportunities, setOpportunities] = useState(initialOpportunities || { data: [], total: 0 });
@@ -283,8 +284,9 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         {opportunities.data && opportunities.data.length > 0 && (
-                                            <a
-                                                href="/export-bookmarked-opportunities"
+                                            <button
+                                                type="button"
+                                                onClick={() => downloadWithGate('/export-bookmarked-opportunities', 'bookmarked_opportunities.csv')}
                                                 style={{
                                                     display: 'inline-flex',
                                                     alignItems: 'center',
@@ -296,7 +298,7 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                                                     color: '#000',
                                                     border: '1px solid #e0e0e0',
                                                     background: '#fff',
-                                                    textDecoration: 'none',
+                                                    cursor: 'pointer',
                                                     transition: 'all 0.15s ease',
                                                 }}
                                                 onMouseEnter={(e) => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#000'; }}
@@ -304,7 +306,7 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
                                             >
                                                 <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>download</span>
                                                 Export
-                                            </a>
+                                            </button>
                                         )}
                                         <span style={{
                                             display: 'inline-flex',

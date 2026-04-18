@@ -311,16 +311,17 @@ export default function Dashboard() {
                                 )}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative', zIndex: 1 }}>
                                     <div style={{
-                                        width: '38px', height: '38px', borderRadius: '10px',
-                                        background: isPro ? 'rgba(249,115,22,0.12)' : '#f5f5f7',
+                                        width: '38px', height: '38px', borderRadius: '50%',
+                                        background: isPro ? 'rgba(249,115,22,0.12)' : '#facc15',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         flexShrink: 0,
                                     }}>
                                         <span className="material-symbols-outlined" style={{
                                             fontSize: '20px',
-                                            color: isPro ? '#f97316' : '#86868b',
+                                            color: isPro ? '#f97316' : '#fff',
+                                            fontVariationSettings: isPro ? '"FILL" 0' : '"FILL" 1',
                                         }}>
-                                            {isPro ? 'workspace_premium' : 'star'}
+                                            {isPro ? 'workspace_premium' : 'crown'}
                                         </span>
                                     </div>
                                     <div>

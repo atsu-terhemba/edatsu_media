@@ -1,5 +1,6 @@
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import { isQuotaError } from './proUpgrade';
 
 export const Toast = Swal.mixin({
   toast: true,
@@ -396,12 +397,11 @@ export const swalConfig = {
         }
     })
     .catch((error)=> {
-        console.log('Bookmark error:', error);
-        console.log('Error status:', error.response?.status);
-        console.log('Error message:', error.response?.data?.message);
-        
+        // Quota/Pro gate — upgrade modal already shown by global interceptor, skip toast
+        if (isQuotaError(error)) return;
+
         // Handle authentication error - check multiple conditions
-        if (error.response?.status === 401 || 
+        if (error.response?.status === 401 ||
             error.response?.data?.message === "Unauthenticated." ||
             error.response?.data?.message?.toLowerCase().includes('unauthenticated') ||
             error.response?.statusText === 'Unauthorized') {
