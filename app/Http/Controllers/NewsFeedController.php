@@ -5,8 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\SavedFeedArticle;
 use App\Models\UserNewsFeed;
 use App\Services\RssFeedService;
+use fivefilters\Readability\Configuration as ReadabilityConfiguration;
+use fivefilters\Readability\Readability;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class NewsFeedController extends Controller
@@ -302,5 +307,161 @@ class NewsFeedController extends Controller
             ->delete();
 
         return response()->json(['message' => 'Article removed'], 200);
+    }
+
+    public function checkFrameable(Request $request)
+    {
+        $request->validate([
+            'url' => 'required|url|max:2000',
+        ]);
+
+        $url = $request->query('url');
+        $host = parse_url($url, PHP_URL_HOST);
+        if (!$host || in_array(strtolower($host), ['localhost', '127.0.0.1', '0.0.0.0'], true)) {
+            return response()->json(['frameable' => false, 'reason' => 'invalid_host']);
+        }
+
+        try {
+            $response = Http::timeout(4)
+                ->withHeaders(['User-Agent' => 'Mozilla/5.0 (compatible; EdatsuBot/1.0; +https://edatsu.com)'])
+                ->withOptions(['allow_redirects' => ['max' => 3]])
+                ->head($url);
+        } catch (\Throwable $e) {
+            return response()->json(['frameable' => false, 'reason' => 'unreachable']);
+        }
+
+        $xfo = strtolower((string) $response->header('X-Frame-Options'));
+        if ($xfo && (str_contains($xfo, 'deny') || str_contains($xfo, 'sameorigin'))) {
+            return response()->json(['frameable' => false, 'reason' => 'x-frame-options']);
+        }
+
+        $csp = strtolower((string) $response->header('Content-Security-Policy'));
+        if ($csp && preg_match('/frame-ancestors\s+([^;]+)/', $csp, $m)) {
+            $sources = preg_split('/\s+/', trim($m[1]));
+            $allowed = false;
+            foreach ($sources as $src) {
+                if ($src === '*' || str_contains($src, 'edatsu')) {
+                    $allowed = true;
+                    break;
+                }
+            }
+            if (!$allowed) {
+                return response()->json(['frameable' => false, 'reason' => 'csp-frame-ancestors']);
+            }
+        }
+
+        return response()->json(['frameable' => true]);
+    }
+
+    /**
+     * Server-side fetch an article URL and run Readability to return a clean reader view.
+     * Caches results for an hour keyed by URL hash.
+     */
+    public function extractArticle(Request $request)
+    {
+        $request->validate([
+            'url' => 'required|url|max:2000',
+        ]);
+
+        $url = $request->query('url');
+
+        if (!$this->isSafeUrl($url)) {
+            return response()->json(['success' => false, 'reason' => 'blocked_host'], 400);
+        }
+
+        $cacheKey = 'reader:' . hash('sha256', $url);
+
+        $cached = Cache::get($cacheKey);
+        if ($cached) {
+            return response()->json($cached);
+        }
+
+        try {
+            $response = Http::timeout(10)
+                ->withHeaders([
+                    'User-Agent' => 'Mozilla/5.0 (compatible; EdatsuBot/1.0; +https://edatsu.com)',
+                    'Accept' => 'text/html,application/xhtml+xml',
+                ])
+                ->withOptions(['allow_redirects' => ['max' => 5]])
+                ->get($url);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'reason' => 'unreachable'], 502);
+        }
+
+        if (!$response->ok()) {
+            return response()->json(['success' => false, 'reason' => 'bad_status', 'status' => $response->status()], 502);
+        }
+
+        $contentType = strtolower((string) $response->header('Content-Type'));
+        if ($contentType && !str_contains($contentType, 'html')) {
+            return response()->json(['success' => false, 'reason' => 'not_html'], 415);
+        }
+
+        $html = $response->body();
+        if (strlen($html) > 3 * 1024 * 1024) {
+            return response()->json(['success' => false, 'reason' => 'too_large'], 413);
+        }
+
+        try {
+            $config = new ReadabilityConfiguration([
+                'fixRelativeURLs' => true,
+                'originalURL' => $url,
+                'summonCthulhu' => true,
+            ]);
+            $readability = new Readability($config);
+            $parsed = $readability->parse($html);
+        } catch (\Throwable $e) {
+            Log::warning('Readability parse failed', ['url' => $url, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'reason' => 'parse_failed'], 500);
+        }
+
+        if (!$parsed) {
+            return response()->json(['success' => false, 'reason' => 'no_content'], 422);
+        }
+
+        $payload = [
+            'success' => true,
+            'title' => $readability->getTitle(),
+            'content' => $readability->getContent(),
+            'excerpt' => $readability->getExcerpt(),
+            'author' => $readability->getAuthor(),
+            'image' => $readability->getImage(),
+            'site_name' => $readability->getSiteName(),
+            'direction' => $readability->getDirection(),
+            'url' => $url,
+        ];
+
+        Cache::put($cacheKey, $payload, now()->addHour());
+
+        return response()->json($payload);
+    }
+
+    /**
+     * Reject non-http(s) schemes and internal hosts to mitigate SSRF.
+     */
+    protected function isSafeUrl(string $url): bool
+    {
+        $parsed = parse_url($url);
+        if (!$parsed || empty($parsed['scheme']) || empty($parsed['host'])) {
+            return false;
+        }
+        if (!in_array(strtolower($parsed['scheme']), ['http', 'https'], true)) {
+            return false;
+        }
+
+        $host = strtolower($parsed['host']);
+        if (in_array($host, ['localhost', '0.0.0.0'], true)) {
+            return false;
+        }
+
+        $ips = @gethostbynamel($host) ?: [$host];
+        foreach ($ips as $ip) {
+            if (!filter_var($ip, FILTER_VALIDATE_IP)) continue;
+            if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

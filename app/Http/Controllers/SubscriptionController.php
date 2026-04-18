@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use App\Models\MailSubscriptionModel;
@@ -116,6 +117,19 @@ class SubscriptionController extends Controller
             'email' => $request->email,
             'subscription_type' => $request->subscription_type,
         ]);
+
+        try {
+            Mail::send('emails.newsletter-welcome', [
+                'firstName' => $request->first_name,
+                'email' => $request->email,
+                'appUrl' => config('app.url'),
+            ], function ($mail) use ($request) {
+                $mail->to($request->email, trim($request->first_name . ' ' . $request->last_name))
+                     ->subject("You're on the list — Edatsu Media");
+            });
+        } catch (\Throwable $e) {
+            Log::warning('Newsletter welcome mail failed: ' . $e->getMessage());
+        }
 
         return response()->json([
             'message' => 'Subscription successful!',

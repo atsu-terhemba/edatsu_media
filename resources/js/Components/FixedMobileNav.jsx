@@ -1,6 +1,7 @@
 import { Fragment, useState } from "react";
 import { Link, usePage } from '@inertiajs/react';
 import { Images } from "@/utils/Images";
+import useUnreadNotifications from '@/hooks/useUnreadNotifications';
 
 const FixedMobileNav = ({
   isAuthenticated = false,
@@ -10,6 +11,9 @@ const FixedMobileNav = ({
   const { url: inertiaUrl } = usePage();
   const currentPath = inertiaUrl || '/';
   const [showDrawer, setShowDrawer] = useState(false);
+  const { notificationCount } = useUnreadNotifications(auth?.user);
+  const hasUnread = notificationCount > 0;
+  const badgeText = notificationCount > 9 ? '9+' : String(notificationCount);
 
   const isActive = (path) => {
     if (path === '/') return currentPath === '/';
@@ -43,7 +47,7 @@ const FixedMobileNav = ({
   const drawerItems = isAuthenticated ? [
     { label: 'Dashboard', icon: 'dashboard', path: '/subscriber-dashboard' },
     { label: 'Profile', icon: 'person', path: '/profile' },
-    { label: 'Notifications', icon: 'notifications', path: '/notifications' },
+    { label: 'Notifications', icon: 'notifications', path: '/notifications', badge: notificationCount },
     { label: 'Saved Items', icon: 'bookmark', path: '/bookmarked-opportunities' },
     { type: 'divider' },
     { label: 'Home', icon: 'home', path: '/' },
@@ -168,7 +172,19 @@ const FixedMobileNav = ({
                     }}>
                       {item.label}
                     </span>
-                    {active && (
+                    {item.badge > 0 && (
+                      <span style={{
+                        marginLeft: 'auto',
+                        minWidth: 20, height: 20, padding: '0 6px',
+                        borderRadius: 10,
+                        background: '#ef4444', color: '#fff',
+                        fontSize: 11, fontWeight: 600,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {item.badge > 9 ? '9+' : item.badge}
+                      </span>
+                    )}
+                    {active && !(item.badge > 0) && (
                       <span style={{
                         marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%',
                         background: '#f97316',
@@ -198,10 +214,12 @@ const FixedMobileNav = ({
           {tabs.map((tab) => {
             const active = tab.path ? isActive(tab.path) : false;
 
+            const showMenuBadge = tab.id === 'more' && isAuthenticated && hasUnread;
+
             const content = (
               <div style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
-                gap: 2, padding: '4px 0', minWidth: 52,
+                gap: 2, padding: '4px 0', minWidth: 52, position: 'relative',
               }}>
                 <span
                   className="material-symbols-outlined"
@@ -213,6 +231,22 @@ const FixedMobileNav = ({
                 >
                   {tab.icon}
                 </span>
+                {showMenuBadge && (
+                  <span
+                    aria-label={`${notificationCount} unread notifications`}
+                    style={{
+                      position: 'absolute', top: 0, right: 8,
+                      minWidth: 16, height: 16, padding: '0 4px',
+                      borderRadius: 8, background: '#ef4444', color: '#fff',
+                      fontSize: 10, fontWeight: 600,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      border: '2px solid rgba(0,0,0,0.92)',
+                      boxSizing: 'content-box',
+                    }}
+                  >
+                    {badgeText}
+                  </span>
+                )}
                 <span style={{
                   fontSize: 10, fontWeight: 500, letterSpacing: '0.01em',
                   color: active ? '#f97316' : 'rgba(255,255,255,0.45)',

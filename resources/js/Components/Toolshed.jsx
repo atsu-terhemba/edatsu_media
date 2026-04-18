@@ -6,7 +6,8 @@ import { Link } from "@inertiajs/react";
 import { getDaysLeft, bookmark, pageLink } from "@/utils/Index";
 import ShareButton from '@/Components/ShareButton';
 
-const DisplayToolshed = ({ data, showLabels }) => {
+const DisplayToolshed = ({ data, showLabels, compareIdSet, onToggleCompare }) => {
+  const isInCompare = (id) => compareIdSet && compareIdSet.has(Number(id));
   const [loadedImages, setLoadedImages] = useState({});
   const fallbackImageUrl = "/img/logo/main_2.png";
 
@@ -279,6 +280,39 @@ const DisplayToolshed = ({ data, showLabels }) => {
                   <div className="d-flex align-items-center justify-content-between" style={{ marginTop: 'auto', paddingTop: '12px', borderTop: '1px solid #f5f5f7' }}>
                     <div className="d-flex align-items-center gap-2">
                       <ShareButton title={tool.product_name} id={tool.id} type="tool" variant="icon" />
+                      {onToggleCompare && (
+                        <button
+                          type="button"
+                          onClick={() => onToggleCompare(tool)}
+                          title={isInCompare(tool.id) ? 'Remove from compare' : 'Add to compare'}
+                          aria-pressed={isInCompare(tool.id)}
+                          style={{
+                            border: 'none',
+                            background: 'transparent',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            transition: 'background 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = '#f5f5f7')}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                        >
+                          <span
+                            className="material-symbols-outlined"
+                            style={{
+                              fontSize: '18px',
+                              color: isInCompare(tool.id) ? '#f97316' : '#86868b',
+                              fontVariationSettings: isInCompare(tool.id) ? '"FILL" 1' : '"FILL" 0',
+                            }}
+                          >
+                            compare_arrows
+                          </span>
+                        </button>
+                      )}
                       <button
                         className="btn p-0"
                         data-id={tool.id}

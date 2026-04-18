@@ -58,8 +58,11 @@ const selectStyles = {
         boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
         overflow: 'hidden',
     }),
+    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
     indicatorSeparator: () => ({ display: 'none' }),
 };
+
+const portalTarget = typeof document !== 'undefined' ? document.body : null;
 
 const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_data, setFilterData, categories, continents, countries, brands, initSearch}) => {
 
@@ -144,6 +147,33 @@ const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_dat
         });
     }
 
+    function clearKeyword() {
+        setSearchKeyword('');
+    }
+
+    function clearAllFilters() {
+        setFilterData({
+            categories: [],
+            continents: [],
+            countries: [],
+            brands: [],
+            datePosted: '',
+            month: '',
+            year: '',
+            program_status: '',
+        });
+    }
+
+    const activeFilterCount = (() => {
+        let count = 0;
+        Object.values(filter_data || {}).forEach((v) => {
+            if (Array.isArray(v)) count += v.length;
+            else if (v && v.value !== undefined && v.value !== '') count += 1;
+            else if (v && typeof v === 'string' && v !== '') count += 1;
+        });
+        return count;
+    })();
+
     function handleSearchClick(e) {
         initSearch(e);
         setTimeout(() => {
@@ -157,17 +187,31 @@ const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_dat
     return (
         <form onSubmit={initSearch} id="search_keyword">
             {/* Search Input */}
-            <div className="mb-3">
+            <div className="mb-3" style={{ position: 'relative' }}>
+                <span
+                    className="material-symbols-outlined"
+                    style={{
+                        position: 'absolute',
+                        left: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        fontSize: '18px',
+                        color: '#86868b',
+                        pointerEvents: 'none',
+                    }}
+                >
+                    search
+                </span>
                 <input
                     type='text'
                     name="search_keyword"
-                    placeholder="Search keywords..."
+                    placeholder="Search opportunities..."
                     id="keyword"
                     value={searchKeyword}
                     onChange={(e) => updateInput(e)}
                     style={{
                         width: '100%',
-                        padding: '10px 16px',
+                        padding: '10px 40px 10px 40px',
                         borderRadius: '12px',
                         border: '1px solid #e5e5e5',
                         fontSize: '13px',
@@ -178,6 +222,34 @@ const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_dat
                     onFocus={(e) => e.currentTarget.style.borderColor = '#000'}
                     onBlur={(e) => e.currentTarget.style.borderColor = '#e5e5e5'}
                 />
+                {searchKeyword && (
+                    <button
+                        type="button"
+                        onClick={clearKeyword}
+                        aria-label="Clear search"
+                        style={{
+                            position: 'absolute',
+                            right: '8px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            border: 'none',
+                            background: '#f5f5f7',
+                            color: '#86868b',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'background 0.15s ease, color 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = '#f5f5f7'; e.currentTarget.style.color = '#86868b'; }}
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>close</span>
+                    </button>
+                )}
             </div>
 
             {/* Search Button */}
@@ -207,6 +279,8 @@ const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_dat
 
             {/* Toggle Filters */}
             <div
+                role="button"
+                tabIndex={0}
                 className="d-flex justify-content-between align-items-center"
                 style={{
                     padding: '12px 16px',
@@ -214,13 +288,37 @@ const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_dat
                     border: '1px solid #f0f0f0',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
+                    userSelect: 'none',
                 }}
                 onClick={toggleFilterPanel}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleFilterPanel(); } }}
                 onMouseEnter={(e) => e.currentTarget.style.borderColor = '#e5e5e5'}
                 onMouseLeave={(e) => e.currentTarget.style.borderColor = '#f0f0f0'}
             >
-                <span style={{ fontSize: '13px', fontWeight: 500, color: '#000' }}>
-                    Toggle Filters
+                <span className="d-flex align-items-center gap-2">
+                    <span style={{ fontSize: '13px', fontWeight: 500, color: '#000' }}>
+                        Filters
+                    </span>
+                    {activeFilterCount > 0 && (
+                        <span
+                            aria-label={`${activeFilterCount} active filters`}
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                minWidth: '20px',
+                                height: '20px',
+                                padding: '0 6px',
+                                borderRadius: '9999px',
+                                background: '#f97316',
+                                color: '#fff',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                            }}
+                        >
+                            {activeFilterCount}
+                        </span>
+                    )}
                 </span>
                 <span
                     className="material-symbols-outlined"
@@ -234,6 +332,35 @@ const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_dat
                 </span>
             </div>
 
+            {activeFilterCount > 0 && (
+                <button
+                    type="button"
+                    onClick={clearAllFilters}
+                    style={{
+                        marginTop: '8px',
+                        width: '100%',
+                        padding: '8px 14px',
+                        borderRadius: '9999px',
+                        border: '1px solid #e5e5e5',
+                        background: 'transparent',
+                        color: '#86868b',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#000'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#86868b'; e.currentTarget.style.borderColor = '#e5e5e5'; }}
+                >
+                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>close</span>
+                    Clear all filters
+                </button>
+            )}
+
             {isFilterVisible && (
                 <div
                     style={{
@@ -241,8 +368,6 @@ const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_dat
                         padding: '16px',
                         borderRadius: '12px',
                         border: '1px solid #f0f0f0',
-                        maxHeight: '300px',
-                        overflowY: 'auto',
                     }}
                 >
                     <div className="mb-3">
@@ -252,6 +377,8 @@ const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_dat
                             name="program_status"
                             options={programStatus}
                             styles={selectStyles}
+                            menuPortalTarget={portalTarget}
+                            menuPosition="fixed"
                             onChange={(e) => updateSelection(e, 'program_status')}
                         />
                     </div>
@@ -263,6 +390,8 @@ const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_dat
                             name="categories"
                             options={categoryOptions}
                             styles={selectStyles}
+                            menuPortalTarget={portalTarget}
+                            menuPosition="fixed"
                             onChange={(e) => updateSelection(e, 'categories')}
                         />
                     </div>
@@ -274,6 +403,8 @@ const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_dat
                             name="continents"
                             options={continentOptions}
                             styles={selectStyles}
+                            menuPortalTarget={portalTarget}
+                            menuPosition="fixed"
                             onChange={(e) => updateSelection(e, 'continents')}
                         />
                     </div>
@@ -285,6 +416,8 @@ const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_dat
                             name="countries"
                             options={countryOptions}
                             styles={selectStyles}
+                            menuPortalTarget={portalTarget}
+                            menuPosition="fixed"
                             onChange={(e) => updateSelection(e, 'countries')}
                         />
                     </div>
@@ -296,6 +429,8 @@ const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_dat
                             name="brands"
                             options={brandOptions}
                             styles={selectStyles}
+                            menuPortalTarget={portalTarget}
+                            menuPosition="fixed"
                             onChange={(e) => updateSelection(e, 'brands')}
                         />
                     </div>
@@ -306,6 +441,8 @@ const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_dat
                             name="datePosted"
                             options={dateOptions}
                             styles={selectStyles}
+                            menuPortalTarget={portalTarget}
+                            menuPosition="fixed"
                             onChange={(e) => updateSelection(e, 'datePosted')}
                         />
                     </div>
@@ -316,6 +453,8 @@ const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_dat
                             name="month"
                             options={monthOptions}
                             styles={selectStyles}
+                            menuPortalTarget={portalTarget}
+                            menuPosition="fixed"
                             onChange={(e) => updateSelection(e, 'month')}
                         />
                     </div>
@@ -326,6 +465,8 @@ const OppSearchFilter = ({isloading, searchKeyword, setSearchKeyword, filter_dat
                             name="year"
                             options={yearOptions}
                             styles={selectStyles}
+                            menuPortalTarget={portalTarget}
+                            menuPosition="fixed"
                             onChange={(e) => updateSelection(e, 'year')}
                         />
                     </div>

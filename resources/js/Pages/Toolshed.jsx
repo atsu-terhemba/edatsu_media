@@ -18,8 +18,13 @@ import ScrollToTop from '@/Components/ScrollToTop';
 import { showToolsSubscriptionModal } from '@/Components/SubscriptionModal';
 import ToolshedSkeleton from '@/Components/ToolshedSkeleton';
 import AdBanner from '@/Components/AdBanner';
+import CompareBar from '@/Components/CompareBar';
+import Swal from 'sweetalert2';
 
 const DisplayToolshed = React.lazy(() => import('@/Components/Toolshed'));
+
+const COMPARE_STORAGE_KEY = 'edatsu:compareTools';
+const COMPARE_TIP_DISMISSED_KEY = 'edatsu:compareTipDismissed';
 
 const Toolshed = () => {
     const paginationContainerRef = useRef(null);
@@ -32,6 +37,110 @@ const Toolshed = () => {
     const [showLabels, setShowLabels] = useState(false);
 
     const authUser = useContext(AuthContext);
+    const props = usePage().props;
+
+    // Compare selection state (Pro feature: free=2, pro=5)
+    const isPro = Boolean(props?.auth?.isPro);
+    const compareMax = isPro ? 5 : 2;
+    const [compareTools, setCompareTools] = useState([]);
+
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(COMPARE_STORAGE_KEY);
+            if (!raw) return;
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) return;
+            // Backwards-compat: if legacy numeric-id array, reset it
+            if (parsed.length && typeof parsed[0] !== 'object') {
+                localStorage.removeItem(COMPARE_STORAGE_KEY);
+                return;
+            }
+            setCompareTools(parsed.filter((t) => t && t.id));
+        } catch (e) {
+            // ignore
+        }
+    }, []);
+
+    const persistCompare = useCallback((next) => {
+        setCompareTools(next);
+        try {
+            localStorage.setItem(COMPARE_STORAGE_KEY, JSON.stringify(next));
+        } catch (e) {
+            // ignore
+        }
+    }, []);
+
+    const toggleCompare = useCallback((tool) => {
+        if (!tool || !tool.id) return;
+        const id = Number(tool.id);
+        const already = compareTools.some((t) => Number(t.id) === id);
+        if (already) {
+            persistCompare(compareTools.filter((t) => Number(t.id) !== id));
+            return;
+        }
+        if (compareTools.length >= compareMax) {
+            if (isPro) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'info',
+                    title: `You can compare up to ${compareMax} tools at once`,
+                    showConfirmButton: false,
+                    timer: 2500,
+                });
+            } else {
+                Swal.fire({
+                    title: 'Compare up to 5 tools with Pro',
+                    html: `<p style="color:#86868b;font-size:14px;margin:0 0 16px;">Free plan lets you compare ${compareMax} tools at once. Upgrade to compare up to 5 side-by-side.</p>`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Upgrade to Pro',
+                    cancelButtonText: 'Not now',
+                    confirmButtonColor: '#f97316',
+                    customClass: { popup: 'subscription-modal-popup' },
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '/upgrade-plan';
+                    }
+                });
+            }
+            return;
+        }
+        const meta = {
+            id: Number(tool.id),
+            product_name: tool.product_name,
+            cover_img: tool.cover_img,
+            slug: tool.slug,
+        };
+        persistCompare([...compareTools, meta]);
+    }, [compareTools, compareMax, isPro, persistCompare]);
+
+    const removeCompare = useCallback((toolId) => {
+        persistCompare(compareTools.filter((t) => Number(t.id) !== Number(toolId)));
+    }, [compareTools, persistCompare]);
+
+    const clearCompare = useCallback(() => {
+        persistCompare([]);
+    }, [persistCompare]);
+
+    const compareIdSet = useMemo(() => new Set(compareTools.map((t) => Number(t.id))), [compareTools]);
+
+    const [showCompareTip, setShowCompareTip] = useState(false);
+    useEffect(() => {
+        try {
+            if (!localStorage.getItem(COMPARE_TIP_DISMISSED_KEY)) setShowCompareTip(true);
+        } catch (e) {
+            setShowCompareTip(true);
+        }
+    }, []);
+
+    const dismissCompareTip = useCallback(() => {
+        setShowCompareTip(false);
+        try {
+            localStorage.setItem(COMPARE_TIP_DISMISSED_KEY, '1');
+        } catch (e) {
+            // ignore
+        }
+    }, []);
 
     const [filter_data, setFilterData] = useState({
         categories: [],
@@ -43,8 +152,6 @@ const Toolshed = () => {
         year: '',
         program_status:'',
     });
-
-    const props = usePage().props;
 
     useEffect(() => {
         axios.get('search-products')
@@ -349,6 +456,103 @@ const Toolshed = () => {
                                     <FilterLabels filter_data={filter_data} setFilterData={setFilterData}/>
                                 </div>
 
+                                {/* Compare tip */}
+                                {showCompareTip && compareTools.length === 0 && (
+                                    <div
+                                        role="note"
+                                        style={{
+                                            position: 'relative',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 16,
+                                            padding: '16px 20px',
+                                            paddingRight: 56,
+                                            borderRadius: 16,
+                                            background: '#fff7ed',
+                                            border: '1px solid #fed7aa',
+                                            marginBottom: 16,
+                                        }}
+                                    >
+                                        {/* Compare icon in cool gradient circular container (left) */}
+                                        <div
+                                            aria-hidden="true"
+                                            style={{
+                                                flex: '0 0 auto',
+                                                width: 36,
+                                                height: 36,
+                                                borderRadius: '50%',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
+                                                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+                                            }}
+                                        >
+                                            <span
+                                                className="material-symbols-outlined"
+                                                style={{
+                                                    fontSize: 18,
+                                                    color: '#fff',
+                                                    fontVariationSettings: '"FILL" 1',
+                                                }}
+                                            >
+                                                compare_arrows
+                                            </span>
+                                        </div>
+
+                                        <div style={{ flex: '1 1 auto', minWidth: 0 }}>
+                                            <div style={{ fontSize: 13, fontWeight: 600, color: '#9a3412', marginBottom: 2 }}>
+                                                Tip: Compare tools side-by-side
+                                            </div>
+                                            <div style={{ fontSize: 12, color: '#9a3412', lineHeight: 1.5 }}>
+                                                Tap the compare icon on any {isPro ? '2–5' : '2'} tool cards, then hit <strong>Compare</strong>.{' '}
+                                                {!isPro && (
+                                                    <>
+                                                        Free plan compares 2 at a time —{' '}
+                                                        <Link href="/upgrade-plan" style={{ color: '#9a3412', fontWeight: 600, textDecoration: 'underline' }}>
+                                                            upgrade
+                                                        </Link>{' '}
+                                                        to compare up to 5.
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Circular red close button (top-right) */}
+                                        <button
+                                            onClick={dismissCompareTip}
+                                            aria-label="Dismiss tip"
+                                            style={{
+                                                position: 'absolute',
+                                                top: 10,
+                                                right: 10,
+                                                width: 26,
+                                                height: 26,
+                                                borderRadius: '50%',
+                                                border: 'none',
+                                                background: '#ef4444',
+                                                color: '#fff',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                boxShadow: '0 2px 6px rgba(239, 68, 68, 0.35)',
+                                                transition: 'transform 0.15s ease, background 0.15s ease',
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.background = '#dc2626';
+                                                e.currentTarget.style.transform = 'scale(1.08)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.background = '#ef4444';
+                                                e.currentTarget.style.transform = 'scale(1)';
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: 16, fontVariationSettings: '"wght" 600' }}>close</span>
+                                        </button>
+                                    </div>
+                                )}
+
                                 {/* Results Section */}
                                 <div
                                     ref={paginationContainerRef}
@@ -364,7 +568,12 @@ const Toolshed = () => {
                                                 <ToolshedSkeleton count={6} />
                                             </div>
                                         }>
-                                            <DisplayToolshed data={data} showLabels={showLabels} />
+                                            <DisplayToolshed
+                                                data={data}
+                                                showLabels={showLabels}
+                                                compareIdSet={compareIdSet}
+                                                onToggleCompare={toggleCompare}
+                                            />
                                         </Suspense>
                                     )}
 
@@ -392,6 +601,13 @@ const Toolshed = () => {
 
             <ScrollToTop />
             <FixedMobileNav isAuthenticated={(props.auth.user)? true : false} toggleSearch={toggleSearch} />
+            {compareTools.length > 0 && <div aria-hidden="true" style={{ height: 88 }} />}
+            <CompareBar
+                selected={compareTools}
+                maxAllowed={compareMax}
+                onRemove={removeCompare}
+                onClear={clearCompare}
+            />
         </GuestLayout>
     );
 };

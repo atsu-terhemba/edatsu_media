@@ -54,11 +54,14 @@ class ReminderNotification extends Notification implements ShouldQueue
 
         return (new MailMessage)
             ->subject("Reminder {$actionText} for: {$this->opportunityTitle}")
-            ->greeting("Hello {$notifiable->name}!")
-            ->line("Your reminder has been {$actionText} for the opportunity: **{$this->opportunityTitle}**")
-            ->line("You will be reminded on: **{$formattedDate}**")
-            ->action('View Opportunity', $actionUrl)
-            ->line('Thank you for using Edatsu!');
+            ->view('emails.reminder', [
+                'user' => $notifiable,
+                'actionText' => $actionText,
+                'opportunityTitle' => $this->opportunityTitle,
+                'formattedDate' => $formattedDate,
+                'actionUrl' => $actionUrl,
+                'appUrl' => config('app.url'),
+            ]);
     }
 
     /**

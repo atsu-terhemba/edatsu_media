@@ -367,6 +367,104 @@ private function applyDateFilters($query, $filters)
 
 
 
+/**
+ * Side-by-side tool comparison.
+ * Free plan: 2 tools max. Pro plan: 5 tools max.
+ */
+public function compare(Request $request)
+{
+    $user = Auth::user();
+    $maxAllowed = ($user && $user->isPro()) ? 5 : 2;
+
+    $idsParam = (string) $request->query('ids', '');
+    $ids = collect(explode(',', $idsParam))
+        ->map(fn($v) => (int) trim($v))
+        ->filter(fn($v) => $v > 0)
+        ->unique()
+        ->values();
+
+    $requestedCount = $ids->count();
+    $cappedForPlan = $requestedCount > $maxAllowed;
+    $ids = $ids->take($maxAllowed);
+
+    $tools = collect();
+
+    if ($ids->isNotEmpty()) {
+        $tools = DB::table('products')
+            ->whereIn('products.id', $ids->all())
+            ->where('products.deleted', 0)
+            ->whereNull('products.deleted_at')
+            ->leftJoin('category_selections', function ($join) {
+                $join->on('category_selections.post_id', '=', 'products.id')
+                    ->where('category_selections.post_type', '=', 'products');
+            })
+            ->leftJoin('product_categories', 'product_categories.id', '=', 'category_selections.category_id')
+            ->leftJoin('brand_labels_selections', function ($join) {
+                $join->on('brand_labels_selections.post_id', '=', 'products.id')
+                    ->where('brand_labels_selections.post_type', '=', 'products');
+            })
+            ->leftJoin('brand_labels', 'brand_labels.id', '=', 'brand_labels_selections.brand_label_id')
+            ->leftJoin('country_selections', function ($join) {
+                $join->on('country_selections.post_id', '=', 'products.id')
+                    ->where('country_selections.post_type', '=', 'products');
+            })
+            ->leftJoin('countries', 'countries.id', '=', 'country_selections.country_id')
+            ->leftJoin('tags_selections', function ($join) {
+                $join->on('tags_selections.post_id', '=', 'products.id')
+                    ->where('tags_selections.post_type', '=', 'products');
+            })
+            ->leftJoin('tags', 'tags.id', '=', 'tags_selections.tag_id')
+            ->leftJoin('ratings', function ($join) {
+                $join->on('ratings.rateable_id', '=', 'products.id')
+                    ->where('ratings.rateable_type', '=', 'App\\Models\\Product');
+            })
+            ->leftJoin('comments', function ($join) {
+                $join->on('comments.commentable_id', '=', 'products.id')
+                    ->where('comments.commentable_type', '=', 'App\\Models\\Product');
+            })
+            ->select(
+                'products.id',
+                'products.product_name as title',
+                'products.slug',
+                'products.product_description as description',
+                'products.cover_img',
+                'products.direct_link',
+                'products.source_url',
+                'products.youtube_link',
+                'products.created_at',
+                DB::raw('GROUP_CONCAT(DISTINCT product_categories.name) as categories'),
+                DB::raw('GROUP_CONCAT(DISTINCT brand_labels.name) as brand_labels'),
+                DB::raw('GROUP_CONCAT(DISTINCT countries.name) as countries'),
+                DB::raw('GROUP_CONCAT(DISTINCT tags.name) as tags'),
+                DB::raw('COALESCE(AVG(ratings.rating), 0) as average_rating'),
+                DB::raw('COUNT(DISTINCT ratings.id) as total_ratings'),
+                DB::raw('COUNT(DISTINCT comments.id) as total_comments')
+            )
+            ->groupBy(
+                'products.id',
+                'products.product_name',
+                'products.slug',
+                'products.product_description',
+                'products.cover_img',
+                'products.direct_link',
+                'products.source_url',
+                'products.youtube_link',
+                'products.created_at'
+            )
+            ->get()
+            ->sortBy(fn($t) => $ids->search($t->id))
+            ->values();
+    }
+
+    return Inertia::render('Tool-compare', [
+        'tools' => $tools,
+        'maxAllowed' => $maxAllowed,
+        'isPro' => (bool) ($user && $user->isPro()),
+        'cappedForPlan' => $cappedForPlan,
+        'requestedCount' => $requestedCount,
+    ]);
+}
+
  public function readProductData(Request $request, $id)
     {
         $user_id = null;

@@ -21,7 +21,19 @@ export default function SubscriberSideNav() {
     };
 
     return (
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <nav
+            style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
+                padding: '16px',
+                borderRadius: '16px',
+                background: '#ffffff',
+                border: '1px solid #d1d1d6',
+                position: 'sticky',
+                top: '80px',
+            }}
+        >
             {navItems.map((item) => {
                 const active = isActive(item.href);
                 return (
@@ -37,9 +49,9 @@ export default function SubscriberSideNav() {
                             textDecoration: 'none',
                             fontSize: '14px',
                             fontWeight: 500,
-                            color: active ? '#000' : '#6e6e73',
+                            color: active ? '#000' : '#86868b',
                             background: active ? '#f5f5f7' : 'transparent',
-                            transition: 'all 0.15s ease',
+                            transition: 'color 0.15s ease, background 0.15s ease',
                         }}
                         onMouseEnter={(e) => {
                             if (!active) {
@@ -50,24 +62,28 @@ export default function SubscriberSideNav() {
                         onMouseLeave={(e) => {
                             if (!active) {
                                 e.currentTarget.style.background = 'transparent';
-                                e.currentTarget.style.color = '#6e6e73';
+                                e.currentTarget.style.color = '#86868b';
                             }
                         }}
                     >
                         <span style={{
                             width: '36px',
                             height: '36px',
-                            borderRadius: '10px',
+                            borderRadius: '50%',
                             background: active ? '#000' : '#f5f5f7',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            transition: 'all 0.15s ease',
+                            transition: 'background 0.15s ease',
                         }}>
-                            <span className="material-symbols-outlined" style={{
-                                fontSize: '18px',
-                                color: active ? '#fff' : '#6e6e73',
-                            }}>
+                            <span
+                                className="material-symbols-outlined"
+                                style={{
+                                    fontSize: '18px',
+                                    color: active ? '#fff' : '#86868b',
+                                    fontVariationSettings: '"FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24',
+                                }}
+                            >
                                 {item.icon}
                             </span>
                         </span>
@@ -77,7 +93,7 @@ export default function SubscriberSideNav() {
             })}
 
             {/* Separator */}
-            <div style={{ height: '1px', background: '#f0f0f0', margin: '8px 0' }} />
+            <div style={{ height: '1px', background: '#d1d1d6', margin: '8px 0' }} />
 
             {/* Logout */}
             <Link
@@ -93,13 +109,13 @@ export default function SubscriberSideNav() {
                     textDecoration: 'none',
                     fontSize: '14px',
                     fontWeight: 500,
-                    color: '#6e6e73',
+                    color: '#86868b',
                     background: 'transparent',
                     border: 'none',
                     cursor: 'pointer',
                     width: '100%',
                     textAlign: 'left',
-                    transition: 'all 0.15s ease',
+                    transition: 'color 0.15s ease, background 0.15s ease',
                 }}
                 onMouseEnter={(e) => {
                     e.currentTarget.style.background = '#f5f5f7';
@@ -107,19 +123,26 @@ export default function SubscriberSideNav() {
                 }}
                 onMouseLeave={(e) => {
                     e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#6e6e73';
+                    e.currentTarget.style.color = '#86868b';
                 }}
             >
                 <span style={{
                     width: '36px',
                     height: '36px',
-                    borderRadius: '10px',
+                    borderRadius: '50%',
                     background: '#f5f5f7',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                 }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#6e6e73' }}>
+                    <span
+                        className="material-symbols-outlined"
+                        style={{
+                            fontSize: '18px',
+                            color: '#86868b',
+                            fontVariationSettings: '"FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24',
+                        }}
+                    >
                         logout
                     </span>
                 </span>

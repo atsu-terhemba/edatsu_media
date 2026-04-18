@@ -8,7 +8,9 @@ use App\Models\ForumReport;
 use App\Models\ForumThread;
 use App\Models\ForumThreadMute;
 use App\Models\Notification;
+use App\Models\User;
 use App\Models\UserPreference;
+use App\Notifications\ForumInviteNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -489,6 +491,11 @@ class ForumController extends Controller
             $preview = mb_strimwidth($thread->title, 0, 100, '…');
             $url = '/forum/' . $thread->id;
 
+            // Build category name map once for the email tag pills
+            $matchedCategoryNames = Category::whereIn('id', $categoryIds)
+                ->pluck('name')
+                ->toArray();
+
             foreach ($matchedUserIds as $uid) {
                 Notification::create([
                     'user_id' => $uid,
@@ -503,6 +510,20 @@ class ForumController extends Controller
                         'category_ids' => $categoryIds,
                     ],
                 ]);
+            }
+
+            // Send invite emails to matched users. Load the thread with its author
+            // so the email can show starter name without a per-user query.
+            $thread->loadMissing('user:id,name');
+            $recipients = User::whereIn('id', $matchedUserIds)
+                ->whereNotNull('email')
+                ->get(['id', 'name', 'email']);
+            foreach ($recipients as $recipient) {
+                try {
+                    $recipient->notify(new ForumInviteNotification($thread, $matchedCategoryNames));
+                } catch (\Throwable $e) {
+                    Log::warning("Forum invite mail failed for user {$recipient->id}: " . $e->getMessage());
+                }
             }
         } catch (\Throwable $e) {
             Log::error('Forum notification error: ' . $e->getMessage());

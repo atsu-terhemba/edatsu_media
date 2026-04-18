@@ -78,12 +78,7 @@ const Opportunities = () => {
             setIsInitialMount(false);
             return;
         }
-        const hasFilters = Object.values(filter_data).some(value =>
-            Array.isArray(value) ? value.length > 0 : value !== ''
-        );
-        if (hasFilters) {
-            initSearch();
-        }
+        initSearch();
     }, [filter_data])
 
     const initSearch = useCallback((e) => {

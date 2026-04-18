@@ -199,6 +199,30 @@ const DisplayOpportunities = ({ data, isAuthenticated }) => {
     };
   }, []);
 
+  if (!data || data.length === 0) {
+    return (
+      <div id="results-container">
+        <div
+          className="d-flex flex-column align-items-center justify-content-center"
+          style={{ padding: '64px 24px' }}
+        >
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: '48px', color: '#e5e5e5', marginBottom: '16px' }}
+          >
+            search_off
+          </span>
+          <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#000', marginBottom: '8px' }}>
+            No opportunities found
+          </h4>
+          <p style={{ fontSize: '13px', color: '#86868b', margin: 0, textAlign: 'center' }}>
+            Try adjusting your filters or search keywords.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div id="results-container">
       {data?.map((o, index) => {
@@ -314,7 +338,20 @@ const DisplayOpportunities = ({ data, isAuthenticated }) => {
                       data-type="opp"
                       data-url={pageLink('op', o.id, o.slug)}
                       onClick={handleBookmark}
-                      style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f7'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                     >
                       <span
                         className="material-symbols-outlined"
@@ -324,8 +361,6 @@ const DisplayOpportunities = ({ data, isAuthenticated }) => {
                           color: (o.is_bookmarked === 1) ? '#f97316' : '#86868b',
                           transition: 'color 0.15s ease',
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.color = '#f97316'}
-                        onMouseLeave={(e) => e.currentTarget.style.color = (o.is_bookmarked === 1) ? '#f97316' : '#86868b'}
                       >
                         bookmark
                       </span>

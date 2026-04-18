@@ -71,6 +71,13 @@ Route::get('/platforms', [App::class, 'initPlatformsPage'])->name('platforms');
 Route::get('/about-us', [App::class, 'initAboutPage'])->name('about');
 Route::get('/terms', fn()=> Inertia::render('Terms'))->name('terms');
 Route::get('/privacy-policy', fn() => Inertia::render('Privacy'))->name('privacy');
+Route::get('/pricing-features', function () {
+    $path = base_path('pricing_features.md');
+    $markdown = file_exists($path) ? file_get_contents($path) : '# pricing_features.md not found';
+    return Inertia::render('PricingFeatures', [
+        'html' => \Illuminate\Support\Str::markdown($markdown, ['html_input' => 'allow']),
+    ]);
+})->name('pricing.features');
 Route::get('/help', fn()=>Inertia::render('Help'))->name('help');
 Route::get('/sponsorship', [App::class, 'initSponsorshipPage'])->name('sponsorship');
 Route::get('/subscription', [SubscriptionController::class, 'show'])->name('pricing');
@@ -88,6 +95,9 @@ Route::middleware('auth')->get('/api/subscriber/details', [SubscriberController:
 // Dynamic content routes - matching ziggy routes
 Route::get('/op/{id}/{title}', [OpportunityController::class, 'readOpportunity'])->name('read.opportunity');
 
+// Tool comparison (Phase 1 Pro feature: free=2, pro=5)
+Route::get('/tools/compare', [ProductController::class, 'compare'])->name('tools.compare');
+
 // Ratings and Comments API routes (must come before the general product route)
 Route::get('/product/{id}/comments', [CommentController::class, 'getComments'])->name('product.comments');
 Route::get('/product/{id}/ratings', [RatingController::class, 'getRatings'])->name('product.ratings');
@@ -101,6 +111,8 @@ Route::get('/ev/{id}/{title}', [Event::class, 'show'])->name('read.ev');
 Route::get('/feeds', [NewsFeedController::class, 'index'])->name('feeds');
 Route::post('/api/news-feeds/preview', [NewsFeedController::class, 'preview'])->middleware('throttle:15,1');
 Route::post('/api/news-feeds/fetch-articles', [NewsFeedController::class, 'fetchArticles'])->middleware('throttle:60,1');
+Route::get('/api/news-feeds/check-frameable', [NewsFeedController::class, 'checkFrameable'])->middleware('throttle:120,1');
+Route::get('/api/news-feeds/extract-article', [NewsFeedController::class, 'extractArticle'])->middleware('throttle:30,1');
 Route::get('/news/{id}', [NewsFeedController::class, 'show'])->name('read.news');
 Route::get('/events', [Event::class, 'index'])->name('events');
 Route::get('/legacy-feeds', [FeedsController::class, 'displayFeeds'])->name('find.feeds');

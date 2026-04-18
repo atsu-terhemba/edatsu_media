@@ -5,10 +5,11 @@ import GuestLayout from '@/Layouts/GuestLayout';
 import Metadata from '@/Components/Metadata';
 import FixedMobileNav from '@/Components/FixedMobileNav';
 import { usePage, Link } from '@inertiajs/react';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { AuthContext } from '@/Layouts/GuestLayout';
+import ArticleReaderModal from '@/Components/ArticleReaderModal';
 
-const ThreadCard = ({ thread }) => (
+const ThreadCard = ({ thread, onReadArticle }) => (
     <div
         style={{
             backgroundColor: '#fff',
@@ -51,20 +52,29 @@ const ThreadCard = ({ thread }) => (
         )}
 
         {thread.article_link && (
-            <a
-                href={thread.article_link}
-                target="_blank"
-                rel="noopener noreferrer"
+            <button
+                type="button"
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onReadArticle?.({
+                        title: thread.article_title || thread.article_link,
+                        link: thread.article_link,
+                    });
+                }}
                 style={{
                     display: 'inline-flex', alignItems: 'center', gap: '6px',
                     fontSize: '12px', color: '#86868b', textDecoration: 'none',
                     background: '#f5f5f7', padding: '6px 12px', borderRadius: '8px',
-                    marginBottom: '12px',
+                    marginBottom: '12px', border: 'none', cursor: 'pointer',
+                    fontFamily: "'Poppins', sans-serif",
                 }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#ececf1'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = '#f5f5f7'; }}
             >
                 <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>link</span>
                 {thread.article_source ? `${thread.article_source}: ` : ''}{thread.article_title || thread.article_link}
-            </a>
+            </button>
         )}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px', color: '#b0b0b5' }}>
@@ -81,6 +91,7 @@ const Forum = () => {
     const { threads = [], auth } = usePage().props;
     const authUser = useContext(AuthContext);
     const isAuthenticated = !!authUser || !!auth?.user;
+    const [readerArticle, setReaderArticle] = useState(null);
 
     return (
         <GuestLayout>
@@ -117,12 +128,24 @@ const Forum = () => {
                                     </p>
                                 </div>
                             ) : (
-                                threads.map((t) => <ThreadCard key={t.id} thread={t} />)
+                                threads.map((t) => (
+                                    <ThreadCard
+                                        key={t.id}
+                                        thread={t}
+                                        onReadArticle={setReaderArticle}
+                                    />
+                                ))
                             )}
                         </Col>
                     </Row>
                 </Container>
             </section>
+
+            <ArticleReaderModal
+                article={readerArticle}
+                onClose={() => setReaderArticle(null)}
+                isAuthenticated={isAuthenticated}
+            />
 
             <FixedMobileNav isAuthenticated={isAuthenticated} />
         </GuestLayout>

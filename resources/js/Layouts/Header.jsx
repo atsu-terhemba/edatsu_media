@@ -8,6 +8,7 @@ import { Images } from "@/utils/Images";
 import axios from 'axios';
 import UserAvatar from '@/Components/UserAvatar';
 import usePushNotifications from '@/hooks/usePushNotifications';
+import useUnreadNotifications from '@/hooks/useUnreadNotifications';
 
 
 function UserDropdown({ auth }) {
@@ -163,14 +164,7 @@ function UserDropdown({ auth }) {
 export default function Header({auth}){
     const { vapidPublicKey } = usePage().props;
     const { isSubscribed, permission, subscribe } = usePushNotifications(vapidPublicKey);
-    const [notificationCount, setNotificationCount] = useState(0);
-    const [messageCount, setMessageCount] = useState(0);
-
-    useEffect(() => {
-        if (auth?.id && auth?.role === 'subscriber') {
-            fetchCounts();
-        }
-    }, [auth]);
+    const { notificationCount } = useUnreadNotifications(auth);
 
     // Auto-prompt for push notifications once (if not yet subscribed)
     useEffect(() => {
@@ -183,29 +177,6 @@ export default function Header({auth}){
             }
         }
     }, [auth, isSubscribed, permission, vapidPublicKey]);
-
-    const fetchCounts = async () => {
-        try {
-            const notificationsResponse = await axios.get('/api/notifications?filter=unread');
-            const notifCount = Array.isArray(notificationsResponse.data) ? notificationsResponse.data.length : 0;
-            setNotificationCount(notifCount);
-
-            const messagesResponse = await axios.get('/messages?type=inbox');
-            const unreadMessages = Array.isArray(messagesResponse.data) ? messagesResponse.data.filter(msg => !msg.is_read) : [];
-            setMessageCount(unreadMessages.length);
-        } catch (error) {
-            console.error('Error fetching counts:', error);
-            setNotificationCount(0);
-            setMessageCount(0);
-        }
-    };
-
-    // Poll for new notifications every 30 seconds
-    useEffect(() => {
-        if (!auth?.id || auth?.role !== 'subscriber') return;
-        const interval = setInterval(fetchCounts, 30000);
-        return () => clearInterval(interval);
-    }, [auth]);
 
     const navLinkStyle = {
         fontSize: '13px',

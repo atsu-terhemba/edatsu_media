@@ -9,6 +9,7 @@ import { useContext, useState } from 'react';
 import { AuthContext } from '@/Layouts/GuestLayout';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import ArticleReaderModal from '@/Components/ArticleReaderModal';
 
 const Toast = Swal.mixin({
     toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true,
@@ -100,6 +101,7 @@ const ForumThread = () => {
     const [replyingTo, setReplyingTo] = useState(null); // post object or null
     const [inlineBody, setInlineBody] = useState('');
     const [inlineSubmitting, setInlineSubmitting] = useState(false);
+    const [readerArticle, setReaderArticle] = useState(null);
 
     const submitReply = async (body, parent_id = null) => {
         const res = await axios.post(`/api/forum/threads/${thread.id}/posts`, {
@@ -254,15 +256,25 @@ const ForumThread = () => {
                                 )}
 
                                 {thread.article_link && (
-                                    <a href={thread.article_link} target="_blank" rel="noopener noreferrer"
+                                    <button
+                                        type="button"
+                                        onClick={() => setReaderArticle({
+                                            title: thread.article_title || thread.article_link,
+                                            link: thread.article_link,
+                                        })}
                                         style={{
                                             display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px',
                                             color: '#86868b', textDecoration: 'none', background: '#f5f5f7',
                                             padding: '8px 14px', borderRadius: '8px', marginBottom: '16px',
-                                        }}>
+                                            border: 'none', cursor: 'pointer',
+                                            fontFamily: "'Poppins', sans-serif",
+                                        }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.background = '#ececf1'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.background = '#f5f5f7'; }}
+                                    >
                                         <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>link</span>
                                         {thread.article_source ? `${thread.article_source}: ` : ''}{thread.article_title || thread.article_link}
-                                    </a>
+                                    </button>
                                 )}
 
                                 {isAuthenticated && (
@@ -388,6 +400,12 @@ const ForumThread = () => {
                     </Row>
                 </Container>
             </section>
+
+            <ArticleReaderModal
+                article={readerArticle}
+                onClose={() => setReaderArticle(null)}
+                isAuthenticated={isAuthenticated}
+            />
 
             <FixedMobileNav isAuthenticated={isAuthenticated} />
         </GuestLayout>
