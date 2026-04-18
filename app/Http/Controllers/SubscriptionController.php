@@ -376,7 +376,9 @@ class SubscriptionController extends Controller
 
     /**
      * Mark any in-flight (pending) subscriptions and their transactions as
-     * abandoned so a new payment flow starts from a clean slate. Idempotent.
+     * closed-out so a new payment flow starts from a clean slate. Idempotent.
+     * Uses the existing status enums: subscription→cancelled (never activated),
+     * transaction→failed (never captured).
      */
     protected function abandonPendingForUser(int $userId): void
     {
@@ -390,11 +392,11 @@ class SubscriptionController extends Controller
 
         Transaction::whereIn('subscription_id', $pendingSubs)
             ->where('status', 'pending')
-            ->update(['status' => 'abandoned', 'updated_at' => now()]);
+            ->update(['status' => 'failed', 'updated_at' => now()]);
 
         Subscription::whereIn('id', $pendingSubs)
             ->where('status', 'pending')
-            ->update(['status' => 'abandoned', 'updated_at' => now()]);
+            ->update(['status' => 'cancelled', 'cancelled_at' => now(), 'updated_at' => now()]);
     }
 
     /**
@@ -628,22 +630,28 @@ class SubscriptionController extends Controller
                 ->exists();
 
             if ($hasOtherActive) {
+                // Rare: user paid twice in parallel. Keep the duplicate sub as
+                // cancelled (not active) and record the successful payment so
+                // finances still reconcile. Ops watches for this log line and
+                // processes a manual refund, flipping the transaction to refunded.
                 Subscription::where('id', $subscription->id)
                     ->where('status', 'pending')
-                    ->update(['status' => 'superseded', 'updated_at' => now()]);
+                    ->update(['status' => 'cancelled', 'cancelled_at' => now(), 'updated_at' => now()]);
 
                 Transaction::where('id', $transaction->id)
                     ->where('status', 'pending')
                     ->update([
-                        'status' => 'refund_due',
+                        'status' => 'successful',
                         'provider_reference' => $providerData['id'] ?? null,
+                        'payment_method' => $providerData['payment_type'] ?? null,
                         'provider_response' => json_encode($providerData),
+                        'paid_at' => now(),
                         'updated_at' => now(),
                     ]);
 
                 Log::warning('Duplicate paid subscription for user — flagged for manual refund', [
                     'user_id' => $subscription->user_id,
-                    'superseded_subscription_id' => $subscription->id,
+                    'duplicate_subscription_id' => $subscription->id,
                     'transaction_reference' => $transaction->reference,
                 ]);
                 return;
@@ -675,12 +683,12 @@ class SubscriptionController extends Controller
                     'updated_at' => now(),
                 ]);
 
-            // Any sibling pending subs for this user (e.g. abandoned but not yet
-            // marked) are no longer relevant — close them out.
+            // Any sibling pending subs for this user (shouldn't exist because
+            // initiate-flow already abandons them, but belt-and-braces).
             Subscription::where('user_id', $subscription->user_id)
                 ->where('id', '!=', $subscription->id)
                 ->where('status', 'pending')
-                ->update(['status' => 'abandoned', 'updated_at' => now()]);
+                ->update(['status' => 'cancelled', 'cancelled_at' => now(), 'updated_at' => now()]);
         } finally {
             $lock->release();
         }
