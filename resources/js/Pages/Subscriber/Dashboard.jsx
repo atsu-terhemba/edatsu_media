@@ -236,16 +236,33 @@ export default function Dashboard() {
                         <Col md={9} xs={12}>
                             {/* Header */}
                             <div style={{ paddingBottom: '24px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                    <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                                    <div style={{ minWidth: 0, flex: 1 }}>
                                         <h1 style={{
                                             fontSize: '28px',
                                             fontWeight: 600,
                                             color: '#000',
                                             margin: 0,
                                             letterSpacing: '-0.01em',
+                                            display: 'flex',
+                                            alignItems: 'baseline',
+                                            flexWrap: 'nowrap',
+                                            minWidth: 0,
                                         }}>
-                                            Hi, <Link href={route('profile.edit')} style={{ textDecoration: 'none', color: '#000' }}>
+                                            <span style={{ flexShrink: 0 }}>Hi,&nbsp;</span>
+                                            <Link
+                                                href={route('profile.edit')}
+                                                title={subscriberData?.user?.name}
+                                                style={{
+                                                    textDecoration: 'none',
+                                                    color: '#000',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    whiteSpace: 'nowrap',
+                                                    minWidth: 0,
+                                                    flex: '0 1 auto',
+                                                }}
+                                            >
                                                 {subscriberData?.user?.name}
                                             </Link>
                                         </h1>
