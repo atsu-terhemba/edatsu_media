@@ -101,24 +101,6 @@ class Product extends Model
         return $this->morphMany(Comment::class, 'commentable');
     }
 
-    // Get average rating
-    public function getAverageRatingAttribute()
-    {
-        return round($this->ratings()->avg('rating'), 1);
-    }
-
-    // Get total ratings count
-    public function getTotalRatingsAttribute()
-    {
-        return $this->ratings()->count();
-    }
-
-    // Get total comments count (approved only)
-    public function getTotalCommentsAttribute()
-    {
-        return $this->comments()->where('is_approved', true)->count();
-    }
-
     // Get rating distribution
     public function getRatingDistribution()
     {

@@ -114,10 +114,12 @@ class ProductController extends Controller
  */
 private function buildBaseQuery($user_id)
 {
-    return Product::query()
+    $productType = 'App\\Models\\Product';
+
+    $query = Product::query()
         ->select([
-            'products.id', 
-            'products.product_name', 
+            'products.id',
+            'products.product_name',
             'products.slug',
             'products.product_description as description',
             'products.cover_img',
@@ -125,56 +127,61 @@ private function buildBaseQuery($user_id)
             'products.youtube_link',
             'products.created_at',
             'products.updated_at',
-            \DB::raw('GROUP_CONCAT(DISTINCT product_categories.name SEPARATOR ", ") as category_name'),
-            \DB::raw('GROUP_CONCAT(DISTINCT brand_labels.name SEPARATOR ", ") as brand_labels'),
-            \DB::raw('GROUP_CONCAT(DISTINCT tags.name SEPARATOR ", ") as tags'),
-            \DB::raw('CASE WHEN bookmarks.id IS NOT NULL AND bookmarks.removed != 1 THEN 1 ELSE 0 END as is_bookmarked'),
-            \DB::raw('COALESCE(AVG(ratings.rating), 0) as average_rating'),
-            \DB::raw('COUNT(DISTINCT ratings.id) as total_ratings'),
-            \DB::raw('COUNT(DISTINCT comments.id) as total_comments')
         ])
-        ->where('products.deleted', '!=', 1)
-        ->leftJoin('category_selections', function($join) {
-            $join->on('category_selections.post_id', '=', 'products.id')
-                 ->where('category_selections.post_type', '=', 'products');
-        })
-        ->leftJoin('product_categories', 'product_categories.id', '=', 'category_selections.category_id')
-        ->leftJoin('brand_labels_selections', function($join) {
-            $join->on('brand_labels_selections.post_id', '=', 'products.id')
-                 ->where('brand_labels_selections.post_type', '=', 'products');
-        })
-        ->leftJoin('brand_labels', 'brand_labels.id', '=', 'brand_labels_selections.brand_label_id')
-        ->leftJoin('tags_selections', function($join) {
-            $join->on('tags_selections.post_id', '=', 'products.id')
-                 ->where('tags_selections.post_type', '=', 'products');
-        })
-        ->leftJoin('tags', 'tags.id', '=', 'tags_selections.tag_id')
-        ->leftJoin('bookmarks', function ($join) use ($user_id) {
-            $join->on('bookmarks.post_id', '=', 'products.id')
-                ->where('bookmarks.post_type', '=', 'tool')
-                ->where('bookmarks.user_id', '=', $user_id);
-        })
-        ->leftJoin('ratings', function($join) {
-            $join->on('ratings.rateable_id', '=', 'products.id')
-                 ->where('ratings.rateable_type', '=', 'App\\Models\\Product');
-        })
-        ->leftJoin('comments', function($join) {
-            $join->on('comments.commentable_id', '=', 'products.id')
-                 ->where('comments.commentable_type', '=', 'App\\Models\\Product');
-        })
-        ->groupBy([
-            'products.id', 
-            'products.product_name', 
-            'products.slug',
-            'products.product_description',
-            'products.cover_img',
-            'products.direct_link',
-            'products.youtube_link',
-            'products.created_at',
-            'products.updated_at',
-            'bookmarks.id',
-            'bookmarks.removed'
-        ]);
+        ->selectSub(function ($q) {
+            $q->from('category_selections as cs')
+              ->leftJoin('product_categories as pc', 'pc.id', '=', 'cs.category_id')
+              ->whereColumn('cs.post_id', 'products.id')
+              ->where('cs.post_type', 'products')
+              ->selectRaw('GROUP_CONCAT(DISTINCT pc.name SEPARATOR ", ")');
+        }, 'category_name')
+        ->selectSub(function ($q) {
+            $q->from('brand_labels_selections as bls')
+              ->leftJoin('brand_labels as bl', 'bl.id', '=', 'bls.brand_label_id')
+              ->whereColumn('bls.post_id', 'products.id')
+              ->where('bls.post_type', 'products')
+              ->selectRaw('GROUP_CONCAT(DISTINCT bl.name SEPARATOR ", ")');
+        }, 'brand_labels')
+        ->selectSub(function ($q) {
+            $q->from('tags_selections as ts')
+              ->leftJoin('tags as t', 't.id', '=', 'ts.tag_id')
+              ->whereColumn('ts.post_id', 'products.id')
+              ->where('ts.post_type', 'products')
+              ->selectRaw('GROUP_CONCAT(DISTINCT t.name SEPARATOR ", ")');
+        }, 'tags')
+        ->selectSub(function ($q) use ($productType) {
+            $q->from('ratings')
+              ->whereColumn('ratings.rateable_id', 'products.id')
+              ->where('ratings.rateable_type', $productType)
+              ->selectRaw('COALESCE(AVG(rating), 0)');
+        }, 'average_rating')
+        ->selectSub(function ($q) use ($productType) {
+            $q->from('ratings')
+              ->whereColumn('ratings.rateable_id', 'products.id')
+              ->where('ratings.rateable_type', $productType)
+              ->selectRaw('COUNT(*)');
+        }, 'total_ratings')
+        ->selectSub(function ($q) use ($productType) {
+            $q->from('comments')
+              ->whereColumn('comments.commentable_id', 'products.id')
+              ->where('comments.commentable_type', $productType)
+              ->selectRaw('COUNT(*)');
+        }, 'total_comments');
+
+    if ($user_id) {
+        $query->selectSub(function ($q) use ($user_id) {
+            $q->from('bookmarks')
+              ->whereColumn('bookmarks.post_id', 'products.id')
+              ->where('bookmarks.post_type', 'tool')
+              ->where('bookmarks.user_id', $user_id)
+              ->where('bookmarks.removed', '!=', 1)
+              ->selectRaw('CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END');
+        }, 'is_bookmarked');
+    } else {
+        $query->selectRaw('0 as is_bookmarked');
+    }
+
+    return $query->where('products.deleted', '!=', 1);
 }
 
 /**

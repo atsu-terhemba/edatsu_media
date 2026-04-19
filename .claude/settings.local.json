@@ -34,7 +34,25 @@
       "Bash(find /c/Users/PRINCEPS/Desktop/projects/www/edatsu/edatsu_media/resources -type f \\\\\\(-name *.jsx -o -name *.js -o -name *.ts -o -name *.tsx \\\\\\))",
       "Bash(find /c/Users/PRINCEPS/Desktop/projects/www/edatsu/edatsu_media/resources/js -type f \\\\\\(-name *.jsx -o -name *.js \\\\\\))",
       "Bash(magick --version)",
-      "Bash(convert --version)"
+      "Bash(convert --version)",
+      "Bash(xargs cat *)",
+      "Bash(awk -F= '/^FLUTTERWAVE_/{print $1, \\(length\\($2\\) > 0 ? \"[set, \" length\\($2\\) \" chars]\" : \"[EMPTY]\"\\)}' .env)",
+      "WebSearch",
+      "WebFetch(domain:developer.flutterwave.com)",
+      "Bash(node -e \"require\\('esbuild'\\).buildSync\\({ entryPoints: ['resources/js/Pages/Toolshed.jsx','resources/js/Pages/Tool-compare.jsx','resources/js/Components/CompareBar.jsx','resources/js/Components/Toolshed.jsx'], bundle: false, write: false, loader: { '.jsx': 'jsx' }, logLevel: 'error' }\\)\")",
+      "Bash(node -e 'require\\('\\\\''esbuild'\\\\''\\).transformSync\\(require\\('\\\\''fs'\\\\''\\).readFileSync\\('\\\\''__TRACKED_VAR__'\\\\'','\\\\''utf8'\\\\''\\), { loader: '\\\\''jsx'\\\\'' }\\)')",
+      "Bash(node -e \"require\\('esbuild'\\).transformSync\\(require\\('fs'\\).readFileSync\\('resources/js/Pages/Toolshed.jsx','utf8'\\), { loader: 'jsx' }\\)\")",
+      "Bash(node -e \"require\\('esbuild'\\).transformSync\\(require\\('fs'\\).readFileSync\\('resources/js/Pages/Subscriber/Components/SideNav.jsx','utf8'\\), { loader: 'jsx' }\\)\")",
+      "Bash(kill %1)",
+      "Bash(awk '{print $2}')",
+      "Bash(netstat -ano)",
+      "Bash(date echo *)",
+      "Bash(php artisan *)",
+      "Bash(echo \"started, pid=$!\")",
+      "Read(//tmp/**)",
+      "Bash(node *)",
+      "Bash(git show *)",
+      "Bash(sed -n '100,250p' /tmp/toolshed_diff.txt)"
     ]
   }
 }
