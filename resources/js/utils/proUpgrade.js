@@ -30,6 +30,10 @@ const FEATURE_COPY = {
         title: 'Upgrade to Pro for push notifications',
         body: 'Web push notifications are a Pro feature. Upgrade to get real-time alerts even when the tab is closed.',
     },
+    compare_tools: {
+        title: 'Compare up to 5 tools with Pro',
+        body: (limit) => `Free plan lets you compare ${limit} tools at a time. Upgrade to Pro to compare up to 5 side-by-side.`,
+    },
 };
 
 export function resolveCopy(feature, limit, override) {

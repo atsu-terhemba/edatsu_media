@@ -50,7 +50,7 @@ export default function CompareBar({ selected, maxAllowed, onRemove, onClear }) 
                     <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
                         Compare ({selected.length}/{maxAllowed})
                     </span>
-                    <div style={{ display: 'flex', gap: 6, overflowX: 'auto' }}>
+                    <div style={{ display: 'flex', gap: 10, overflowX: 'auto', padding: '6px 6px 6px 0' }}>
                         {selected.map((tool) => (
                             <div
                                 key={tool.id}
@@ -59,19 +59,26 @@ export default function CompareBar({ selected, maxAllowed, onRemove, onClear }) 
                                     flex: '0 0 auto',
                                     width: 44,
                                     height: 44,
-                                    borderRadius: 10,
-                                    overflow: 'hidden',
-                                    background: '#333',
-                                    border: '1px solid rgba(255,255,255,0.2)',
                                 }}
                                 title={tool.product_name}
                             >
-                                <img
-                                    src={thumbUrl(tool.cover_img)}
-                                    alt={tool.product_name}
-                                    onError={(e) => (e.currentTarget.src = fallbackImageUrl)}
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                />
+                                <div
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        borderRadius: 10,
+                                        overflow: 'hidden',
+                                        background: '#333',
+                                        border: '1px solid rgba(255,255,255,0.2)',
+                                    }}
+                                >
+                                    <img
+                                        src={thumbUrl(tool.cover_img)}
+                                        alt={tool.product_name}
+                                        onError={(e) => (e.currentTarget.src = fallbackImageUrl)}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
+                                </div>
                                 <button
                                     onClick={() => onRemove(tool.id)}
                                     aria-label={`Remove ${tool.product_name}`}

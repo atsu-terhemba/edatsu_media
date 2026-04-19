@@ -20,6 +20,7 @@ import ToolshedSkeleton from '@/Components/ToolshedSkeleton';
 import AdBanner from '@/Components/AdBanner';
 import CompareBar from '@/Components/CompareBar';
 import Swal from 'sweetalert2';
+import { showProUpgrade } from '@/utils/proUpgrade';
 
 const DisplayToolshed = React.lazy(() => import('@/Components/Toolshed'));
 
@@ -89,19 +90,7 @@ const Toolshed = () => {
                     timer: 2500,
                 });
             } else {
-                Swal.fire({
-                    title: 'Compare up to 5 tools with Pro',
-                    html: `<p style="color:#86868b;font-size:14px;margin:0 0 16px;">Free plan lets you compare ${compareMax} tools at once. Upgrade to compare up to 5 side-by-side.</p>`,
-                    showCancelButton: true,
-                    confirmButtonText: 'Upgrade to Pro',
-                    cancelButtonText: 'Not now',
-                    confirmButtonColor: '#f97316',
-                    customClass: { popup: 'subscription-modal-popup' },
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = '/upgrade-plan';
-                    }
-                });
+                showProUpgrade({ feature: 'compare_tools', limit: compareMax });
             }
             return;
         }
@@ -449,6 +438,34 @@ const Toolshed = () => {
 
                         {/* Main Content */}
                         <Col xs={12} md={8} lg={9}>
+                            {/* Mobile Search & Filter toggle */}
+                            <div className="d-md-none" style={{ marginBottom: 16 }}>
+                                <button
+                                    type="button"
+                                    onClick={toggleSearch}
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px 16px',
+                                        borderRadius: '9999px',
+                                        border: '1px solid #e5e5e5',
+                                        background: '#fff',
+                                        color: '#000',
+                                        fontSize: '14px',
+                                        fontWeight: 500,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 8,
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                                        search
+                                    </span>
+                                    Search & Filter
+                                </button>
+                            </div>
+
                             {/* Ad: Top of Results */}
                             <div style={{ marginBottom: 24 }}>
                                 <AdBanner slot="toolshed_top" page="toolshed" position="top" size="leaderboard" />
