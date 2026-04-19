@@ -91,7 +91,46 @@ const Forum = () => {
     const { threads = [], auth } = usePage().props;
     const authUser = useContext(AuthContext);
     const isAuthenticated = !!authUser || !!auth?.user;
+    const currentUserId = auth?.user?.id ?? authUser?.id ?? null;
     const [readerArticle, setReaderArticle] = useState(null);
+    const [activeTab, setActiveTab] = useState('all');
+
+    const myThreadCount = currentUserId
+        ? threads.filter((t) => t.user?.id === currentUserId).length
+        : 0;
+
+    const visibleThreads = activeTab === 'mine' && currentUserId
+        ? threads.filter((t) => t.user?.id === currentUserId)
+        : activeTab === 'others' && currentUserId
+            ? threads.filter((t) => t.user?.id !== currentUserId)
+            : threads;
+
+    const tabs = [
+        { id: 'all', label: 'All discussions', count: threads.length },
+        ...(isAuthenticated ? [
+            { id: 'mine', label: 'My discussions', count: myThreadCount },
+            { id: 'others', label: 'Others', count: threads.length - myThreadCount },
+        ] : []),
+    ];
+
+    const emptyCopy = activeTab === 'mine'
+        ? {
+            title: "You haven't started any discussions yet",
+            body: (
+                <>Head to <a href="/feeds" style={{ color: '#f97316', textDecoration: 'none' }}>/feeds</a> and start one from an article.</>
+            ),
+        }
+        : activeTab === 'others'
+        ? {
+            title: 'No other discussions yet',
+            body: 'When others start discussions, they will appear here.',
+        }
+        : {
+            title: 'No discussions yet',
+            body: (
+                <>Head to <a href="/feeds" style={{ color: '#f97316', textDecoration: 'none' }}>/feeds</a> and start one from an article.</>
+            ),
+        };
 
     return (
         <GuestLayout>
@@ -101,7 +140,7 @@ const Forum = () => {
                 <Container>
                     <Row className="justify-content-center">
                         <Col lg={8}>
-                            <div style={{ marginBottom: '32px' }}>
+                            <div style={{ marginBottom: '24px' }}>
                                 <div style={{ fontSize: '11px', fontWeight: 600, color: '#f97316', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
                                     Community
                                 </div>
@@ -114,7 +153,48 @@ const Forum = () => {
                                 </p>
                             </div>
 
-                            {threads.length === 0 ? (
+                            {isAuthenticated && (
+                                <div style={{
+                                    display: 'flex', gap: '6px', flexWrap: 'wrap',
+                                    marginBottom: '20px', padding: '4px',
+                                    background: '#fff', border: '1px solid #f0f0f0',
+                                    borderRadius: '9999px', width: 'fit-content', maxWidth: '100%',
+                                    overflowX: 'auto',
+                                }}>
+                                    {tabs.map((tab) => {
+                                        const isActive = activeTab === tab.id;
+                                        return (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => setActiveTab(tab.id)}
+                                                style={{
+                                                    display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                                    padding: '7px 16px', borderRadius: '9999px',
+                                                    fontSize: '13px', fontWeight: 500,
+                                                    background: isActive ? '#000' : 'transparent',
+                                                    color: isActive ? '#fff' : '#86868b',
+                                                    border: 'none', cursor: 'pointer',
+                                                    transition: 'all 0.15s ease',
+                                                    fontFamily: "'Poppins', sans-serif",
+                                                    whiteSpace: 'nowrap',
+                                                }}
+                                            >
+                                                {tab.label}
+                                                <span style={{
+                                                    fontSize: '11px', fontWeight: 600,
+                                                    padding: '1px 8px', borderRadius: '9999px',
+                                                    background: isActive ? 'rgba(255,255,255,0.18)' : '#f5f5f7',
+                                                    color: isActive ? '#fff' : '#86868b',
+                                                }}>
+                                                    {tab.count}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {visibleThreads.length === 0 ? (
                                 <div style={{
                                     background: '#fff', borderRadius: '16px', border: '1px solid #f0f0f0',
                                     padding: '48px 24px', textAlign: 'center',
@@ -122,13 +202,13 @@ const Forum = () => {
                                     <span className="material-symbols-outlined" style={{ fontSize: '40px', color: '#b0b0b5', marginBottom: '12px', display: 'block' }}>
                                         chat_bubble
                                     </span>
-                                    <h3 style={{ fontSize: '15px', fontWeight: 600, color: '#000', margin: '0 0 6px' }}>No discussions yet</h3>
+                                    <h3 style={{ fontSize: '15px', fontWeight: 600, color: '#000', margin: '0 0 6px' }}>{emptyCopy.title}</h3>
                                     <p style={{ fontSize: '13px', color: '#86868b', margin: 0 }}>
-                                        Head to <a href="/feeds" style={{ color: '#f97316', textDecoration: 'none' }}>/feeds</a> and start one from an article.
+                                        {emptyCopy.body}
                                     </p>
                                 </div>
                             ) : (
-                                threads.map((t) => (
+                                visibleThreads.map((t) => (
                                     <ThreadCard
                                         key={t.id}
                                         thread={t}
