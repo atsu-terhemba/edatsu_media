@@ -23,6 +23,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 use App\Models\Product;
 use Inertia\Inertia;
 
@@ -365,7 +366,10 @@ public function compare(Request $request)
     if ($ids->isNotEmpty()) {
         $tools = DB::table('products')
             ->whereIn('products.id', $ids->all())
-            ->where('products.deleted', 0)
+            ->where(function ($q) {
+                $q->where('products.deleted', 0)
+                  ->orWhereNull('products.deleted');
+            })
             ->whereNull('products.deleted_at')
             ->leftJoin('category_selections', function ($join) {
                 $join->on('category_selections.post_id', '=', 'products.id')
@@ -1624,6 +1628,9 @@ public function store(Request $request)
      */
     public function bulkStore(Request $request)
     {
+        @set_time_limit(0);
+        @ignore_user_abort(true);
+
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls|max:10240',
         ]);
@@ -1678,28 +1685,28 @@ public function store(Request $request)
         $userId = Auth::id();
         $userRole = Auth::user()->role;
 
-        DB::beginTransaction();
-        try {
-            $rowNum = 1; // data row counter (excluding header)
-            foreach ($rows as $row) {
-                $rowNum++;
-                $title = trim($row[$colMap['title'] ?? ''] ?? '');
-                $description = trim($row[$colMap['description'] ?? ''] ?? '');
+        $rowNum = 1; // data row counter (excluding header)
+        foreach ($rows as $row) {
+            $rowNum++;
+            $title = trim($row[$colMap['title'] ?? ''] ?? '');
+            $description = trim($row[$colMap['description'] ?? ''] ?? '');
 
-                // Skip completely empty rows
-                if (empty($title) && empty($description)) {
-                    continue;
-                }
+            // Skip completely empty rows
+            if (empty($title) && empty($description)) {
+                continue;
+            }
 
-                if (empty($title)) {
-                    $errors[] = "Row {$rowNum}: Title is required.";
-                    continue;
-                }
-                if (empty($description)) {
-                    $errors[] = "Row {$rowNum}: Description is required.";
-                    continue;
-                }
+            if (empty($title)) {
+                $errors[] = "Row {$rowNum}: Title is required.";
+                continue;
+            }
+            if (empty($description)) {
+                $errors[] = "Row {$rowNum}: Description is required.";
+                continue;
+            }
 
+            DB::beginTransaction();
+            try {
                 // Check for duplicate slug
                 $slug = $this->createSlug($title);
                 if (Product::where('slug', $slug)->exists()) {
@@ -1727,12 +1734,13 @@ public function store(Request $request)
                 $product->meta_keywords = trim($row[$colMap['meta_keywords'] ?? ''] ?? '') ?: null;
                 $product->meta_description = trim($row[$colMap['meta_description'] ?? ''] ?? '') ?: null;
 
-                // Handle image_url: download from URL and upload to R2
+                // Handle image_url: download from URL and upload to R2 (bounded at 10s)
                 $imageUrl = trim($row[$colMap['image_url'] ?? ''] ?? '');
                 if ($imageUrl && filter_var($imageUrl, FILTER_VALIDATE_URL)) {
                     try {
-                        $imageContents = file_get_contents($imageUrl);
-                        if ($imageContents !== false) {
+                        $response = Http::timeout(10)->connectTimeout(5)->get($imageUrl);
+                        if ($response->successful()) {
+                            $imageContents = $response->body();
                             $extension = pathinfo(parse_url($imageUrl, PHP_URL_PATH), PATHINFO_EXTENSION);
                             $allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
                             if (!in_array(strtolower($extension), $allowedExts)) {
@@ -1772,18 +1780,13 @@ public function store(Request $request)
                     $allBrandLabels, 'brand_labels_selections', 'brand_label_id', $postId, $userId
                 );
 
+                DB::commit();
                 $created++;
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Bulk product upload row {$rowNum} failed: " . $e->getMessage());
+                $errors[] = "Row {$rowNum}: " . $e->getMessage();
             }
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error("Bulk product upload error: " . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'An error occurred during import. No products were created.',
-                'errors' => [$e->getMessage()],
-            ], 500);
         }
 
         return response()->json([
