@@ -181,7 +181,10 @@ private function buildBaseQuery($user_id)
         $query->selectRaw('0 as is_bookmarked');
     }
 
-    return $query->where('products.deleted', '!=', 1);
+    return $query->where(function ($q) {
+        $q->where('products.deleted', '!=', 1)
+          ->orWhereNull('products.deleted');
+    });
 }
 
 /**
@@ -581,7 +584,10 @@ public function compare(Request $request)
         ->leftJoin('countries as cou', 'cou.id', '=', 'cos.country_id')
         ->leftJoin('tags_selections as ts', 'ts.post_id', '=', 'p.id')
         ->where('p.id', '!=', $current_post_id) // Exclude the current post
-        ->where('p.deleted', '!=', 1)
+        ->where(function ($q) {
+            $q->where('p.deleted', '!=', 1)
+              ->orWhereNull('p.deleted');
+        })
         ->where(function ($query) use ($category_ids, $brand_label_ids, $continent_ids, $country_ids, $tag_ids) {
             if ($category_ids !== 'NULL') $query->orWhereIn('cs.category_id', explode(',', $category_ids));
             if ($brand_label_ids !== 'NULL') $query->orWhereIn('bls.brand_label_id', explode(',', $brand_label_ids));
