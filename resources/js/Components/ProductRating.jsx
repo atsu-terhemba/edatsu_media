@@ -24,16 +24,15 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
     const fetchRatings = async () => {
         try {
             const response = await axios.get(`/product/${productId}/ratings`);
-            
+
             if (response.data.success) {
                 const fetchedRatings = response.data.ratings || [];
                 let fetchedDistribution = response.data.distribution || {};
-                
-                // If distribution is empty or not properly formatted, calculate it from ratings
+
                 if (!fetchedDistribution || Object.keys(fetchedDistribution).length === 0) {
                     fetchedDistribution = calculateDistribution(fetchedRatings);
                 }
-                
+
                 setRatings(fetchedRatings);
                 setAverageRating(Number(response.data.average_rating) || 0);
                 setTotalRatings(Number(response.data.total_ratings) || fetchedRatings.length);
@@ -47,51 +46,48 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
     const calculateDistribution = (ratingsArray) => {
         const dist = {};
         const total = ratingsArray.length;
-        
-        // Initialize all star counts
+
         [5, 4, 3, 2, 1].forEach(star => {
             dist[star] = { count: 0, percentage: 0 };
         });
-        
-        // Count ratings for each star level
+
         ratingsArray.forEach(rating => {
             const stars = Math.round(Number(rating.rating));
             if (stars >= 1 && stars <= 5) {
                 dist[stars].count += 1;
             }
         });
-        
-        // Calculate percentages
+
         Object.keys(dist).forEach(star => {
             if (total > 0) {
                 dist[star].percentage = Math.round((dist[star].count / total) * 100);
             }
         });
-        
+
         return dist;
     };
 
+    const swalOptions = (opts = {}) => ({
+        confirmButtonColor: '#000',
+        showClass: { popup: 'animate__animated animate__zoomIn animate__faster' },
+        hideClass: { popup: 'animate__animated animate__zoomOut animate__faster' },
+        customClass: {
+            popup: 'swal-modern-popup',
+            title: 'swal-modern-title',
+            content: 'swal-modern-content',
+            confirmButton: 'swal-modern-confirm',
+        },
+        ...opts,
+    });
+
     const handleStarClick = (star) => {
         if (!isAuthenticated) {
-            Swal.fire({
+            Swal.fire(swalOptions({
                 title: 'Login Required',
                 text: 'Please login to rate this product',
                 icon: 'warning',
                 confirmButtonText: 'Okay',
-                confirmButtonColor: '#0078d4',
-                showClass: {
-                    popup: 'animate__animated animate__zoomIn animate__faster'
-                },
-                hideClass: {
-                    popup: 'animate__animated animate__zoomOut animate__faster'
-                },
-                customClass: {
-                    popup: 'swal-modern-popup',
-                    title: 'swal-modern-title',
-                    content: 'swal-modern-content',
-                    confirmButton: 'swal-modern-confirm'
-                }
-            });
+            }));
             return;
         }
         setUserRating(star);
@@ -100,48 +96,22 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
 
     const handleRatingSubmit = async () => {
         if (!isAuthenticated) {
-            Swal.fire({
+            Swal.fire(swalOptions({
                 title: 'Login Required',
                 text: 'Please login to rate this product',
                 icon: 'warning',
                 confirmButtonText: 'Okay',
-                confirmButtonColor: '#0078d4',
-                showClass: {
-                    popup: 'animate__animated animate__zoomIn animate__faster'
-                },
-                hideClass: {
-                    popup: 'animate__animated animate__zoomOut animate__faster'
-                },
-                customClass: {
-                    popup: 'swal-modern-popup',
-                    title: 'swal-modern-title',
-                    content: 'swal-modern-content',
-                    confirmButton: 'swal-modern-confirm'
-                }
-            });
+            }));
             return;
         }
 
         if (userRating === 0) {
-            Swal.fire({
+            Swal.fire(swalOptions({
                 title: 'Rating Required',
                 text: 'Please select a star rating',
                 icon: 'warning',
                 confirmButtonText: 'Okay',
-                confirmButtonColor: '#0078d4',
-                showClass: {
-                    popup: 'animate__animated animate__zoomIn animate__faster'
-                },
-                hideClass: {
-                    popup: 'animate__animated animate__zoomOut animate__faster'
-                },
-                customClass: {
-                    popup: 'swal-modern-popup',
-                    title: 'swal-modern-title',
-                    content: 'swal-modern-content',
-                    confirmButton: 'swal-modern-confirm'
-                }
-            });
+            }));
             return;
         }
 
@@ -153,31 +123,17 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
             });
 
             if (response.data.success) {
-                Swal.fire({
-                    title: 'Success!',
+                Swal.fire(swalOptions({
+                    title: 'Thanks for your review',
                     text: response.data.message,
                     icon: 'success',
-                    confirmButtonText: 'Great!',
-                    confirmButtonColor: '#0078d4',
+                    confirmButtonText: 'Done',
                     timer: 2000,
-                    showClass: {
-                        popup: 'animate__animated animate__zoomIn animate__faster'
-                    },
-                    hideClass: {
-                        popup: 'animate__animated animate__zoomOut animate__faster'
-                    },
-                    customClass: {
-                        popup: 'swal-modern-popup',
-                        title: 'swal-modern-title',
-                        content: 'swal-modern-content',
-                        confirmButton: 'swal-modern-confirm'
-                    }
-                });
+                }));
                 setUserRating(0);
                 setUserComment('');
                 await fetchRatings();
-                
-                // Scroll to reviews section to show the new review
+
                 setTimeout(() => {
                     const reviewsSection = document.querySelector('.recent-reviews-preview');
                     if (reviewsSection) {
@@ -186,55 +142,56 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
                 }, 500);
             }
         } catch (error) {
-            Swal.fire({
-                title: 'Error',
+            Swal.fire(swalOptions({
+                title: 'Something went wrong',
                 text: error.response?.data?.message || 'An error occurred while submitting rating',
                 icon: 'error',
                 confirmButtonText: 'Okay',
-                confirmButtonColor: '#d13438',
-                showClass: {
-                    popup: 'animate__animated animate__zoomIn animate__faster'
-                },
-                hideClass: {
-                    popup: 'animate__animated animate__zoomOut animate__faster'
-                },
-                customClass: {
-                    popup: 'swal-modern-popup',
-                    title: 'swal-modern-title',
-                    content: 'swal-modern-content',
-                    confirmButton: 'swal-modern-confirm'
-                }
-            });
+                confirmButtonColor: '#000',
+            }));
         } finally {
             setIsLoading(false);
         }
     };
 
-    const renderStars = (rating, interactive = false) => {
+    const ratingLabel = (n) => {
+        if (n === 1) return 'Poor';
+        if (n === 2) return 'Fair';
+        if (n === 3) return 'Good';
+        if (n === 4) return 'Very Good';
+        if (n === 5) return 'Excellent';
+        return '';
+    };
+
+    const renderStars = (rating, interactive = false, size = null) => {
         const displayRating = interactive ? (hoverRating || userRating) : rating;
-        
+        const fontSize = size || (interactive ? '36px' : '16px');
+
         return (
-            <div className="d-flex gap-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                    <span
-                        key={star}
-                        className={`material-symbols-outlined ${interactive ? 'rating-star-interactive' : 'rating-star'}`}
-                        style={{
-                            fontSize: interactive ? '32px' : '16px',
-                            color: star <= displayRating ? '#fbbf24' : '#d1d5db',
-                            fontVariationSettings: star <= displayRating
-                                ? '"FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24'
-                                : '"FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24',
-                            cursor: interactive ? 'pointer' : 'default',
-                            transition: 'all 0.15s ease'
-                        }}
-                        onClick={interactive ? () => handleStarClick(star) : undefined}
-                        onMouseEnter={interactive ? () => setHoverRating(star) : undefined}
-                        onMouseLeave={interactive ? () => setHoverRating(0) : undefined}
-                    >
-                        star
-                    </span>
-                ))}
+            <div className="d-flex gap-1 align-items-center">
+                {[1, 2, 3, 4, 5].map((star) => {
+                    const isFilled = star <= displayRating;
+                    return (
+                        <span
+                            key={star}
+                            className={`material-symbols-outlined ${interactive ? 'rating-star-interactive' : ''}`}
+                            style={{
+                                fontSize,
+                                color: isFilled ? '#f97316' : '#e5e5e5',
+                                fontVariationSettings: isFilled
+                                    ? '"FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24'
+                                    : '"FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24',
+                                cursor: interactive ? 'pointer' : 'default',
+                                transition: 'transform 0.15s ease, color 0.15s ease',
+                            }}
+                            onClick={interactive ? () => handleStarClick(star) : undefined}
+                            onMouseEnter={interactive ? () => setHoverRating(star) : undefined}
+                            onMouseLeave={interactive ? () => setHoverRating(0) : undefined}
+                        >
+                            star
+                        </span>
+                    );
+                })}
             </div>
         );
     };
@@ -245,25 +202,52 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
                 {[5, 4, 3, 2, 1].map((stars) => {
                     const count = distribution[stars]?.count || 0;
                     const percentage = distribution[stars]?.percentage || 0;
-                    
+
                     return (
-                        <div key={stars} className="d-flex align-items-center mb-2">
-                            <span className="me-2" style={{ minWidth: '60px', fontSize: '14px' }}>
-                                {stars} {stars === 1 ? 'star' : 'stars'}
+                        <div key={stars} className="d-flex align-items-center" style={{ marginBottom: '10px' }}>
+                            <span style={{
+                                minWidth: '32px',
+                                fontSize: '13px',
+                                fontWeight: 500,
+                                color: '#000',
+                            }}>
+                                {stars}
                             </span>
-                            <div className="flex-grow-1 me-3">
-                                <div className="progress" style={{ height: '8px', backgroundColor: '#e5e7eb' }}>
+                            <span
+                                className="material-symbols-outlined"
+                                style={{
+                                    fontSize: '14px',
+                                    color: '#f97316',
+                                    fontVariationSettings: '"FILL" 1',
+                                    marginRight: '10px',
+                                }}
+                            >
+                                star
+                            </span>
+                            <div className="flex-grow-1" style={{ marginRight: '12px' }}>
+                                <div style={{
+                                    height: '6px',
+                                    background: '#f5f5f7',
+                                    borderRadius: '9999px',
+                                    overflow: 'hidden',
+                                }}>
                                     <div
-                                        className="progress-bar"
-                                        style={{ 
+                                        style={{
+                                            height: '100%',
                                             width: `${percentage}%`,
-                                            backgroundColor: '#fbbf24',
-                                            transition: 'width 0.3s ease'
+                                            background: '#f97316',
+                                            borderRadius: '9999px',
+                                            transition: 'width 0.3s ease',
                                         }}
                                     />
                                 </div>
                             </div>
-                            <span className="text-muted" style={{ minWidth: '35px', fontSize: '14px' }}>
+                            <span style={{
+                                minWidth: '32px',
+                                fontSize: '12px',
+                                color: '#86868b',
+                                textAlign: 'right',
+                            }}>
                                 {count}
                             </span>
                         </div>
@@ -273,150 +257,262 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
         );
     };
 
+    const Eyebrow = ({ children }) => (
+        <div style={{ marginBottom: '16px' }}>
+            <div style={{
+                fontSize: '11px',
+                fontWeight: 600,
+                color: '#86868b',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                marginBottom: '6px',
+            }}>
+                {children}
+            </div>
+            <div style={{ width: '28px', height: '2px', background: '#f97316', borderRadius: '2px' }} />
+        </div>
+    );
+
     return (
         <div className="product-rating-container">
-            {!showRatingForm && (
-                <>
-                    {/* Overall Rating Summary - E-commerce Style */}
-                    <div className="mb-4" style={{padding: 0, background: 'none', border: 'none', borderRadius: 0}}>
-                        <div className="row">
-                            {/* Left: Average Rating */}
-                            <div className="col-md-4 text-center" style={{borderRight: '1px solid #e5e7eb'}}>
-                                <div className="mb-2">
-                                    <span className="display-4 fw-bold">{Number(averageRating).toFixed(1)}</span>
-                                    <span className="text-muted fs-5">/5</span>
-                                </div>
-                                <div className="mb-2">
-                                    {renderStars(Math.round(averageRating))}
-                                </div>
-                                <p className="text-muted mb-0">
-                                    Based on {totalRatings} {totalRatings === 1 ? 'review' : 'reviews'}
-                                </p>
+            {totalRatings > 0 && (
+                <div style={{
+                    marginBottom: '24px',
+                    background: '#f5f5f7',
+                    borderRadius: '16px',
+                    overflow: 'hidden',
+                }}>
+                    <div className="row g-0 align-items-center">
+                        <div className="col-md-4 text-center" style={{ padding: '20px 24px', borderRight: '1px solid #e5e5e5' }}>
+                            <div style={{ marginBottom: '8px' }}>
+                                <span style={{ fontSize: '44px', fontWeight: 600, color: '#000', letterSpacing: '-0.02em' }}>
+                                    {Number(averageRating).toFixed(1)}
+                                </span>
+                                <span style={{ fontSize: '16px', color: '#86868b', marginLeft: '2px' }}>/5</span>
                             </div>
+                            <div className="d-flex justify-content-center" style={{ marginBottom: '8px' }}>
+                                {renderStars(Math.round(averageRating))}
+                            </div>
+                            <p style={{ fontSize: '12px', color: '#86868b', margin: 0 }}>
+                                {totalRatings} {totalRatings === 1 ? 'review' : 'reviews'}
+                            </p>
+                        </div>
 
-                            {/* Right: Rating Distribution */}
-                            <div className="col-md-8">
-                                <h6 className="mb-3 fw-bold">Rating Breakdown</h6>
-                                {totalRatings > 0 ? (
-                                    renderRatingDistribution()
-                                ) : (
-                                    <p className="text-muted text-center py-3">No ratings yet</p>
-                                )}
-                            </div>
+                        <div className="col-md-8" style={{ padding: '20px 24px' }}>
+                            <Eyebrow>Breakdown</Eyebrow>
+                            {totalRatings > 0 ? (
+                                renderRatingDistribution()
+                            ) : (
+                                <p style={{ fontSize: '13px', color: '#86868b', margin: 0 }}>No ratings yet</p>
+                            )}
                         </div>
                     </div>
-                </>
+                </div>
             )}
 
-            {/* Add Your Rating Section */}
             {showRatingForm && (
                 <div className="add-rating-section">
-                    <div className="mb-3">
-                        <div className="d-flex justify-content-center mb-3">
+                    <div style={{ padding: '8px 0' }}>
+                        <div className="d-flex justify-content-center" style={{ marginBottom: '12px' }}>
                             {renderStars(userRating, true)}
                         </div>
-                        {userRating > 0 && (
-                            <p className="text-muted text-center mt-3 mb-0" style={{ fontSize: '1rem', fontWeight: '500' }}>
-                                {userRating === 1 && 'Poor'}
-                                {userRating === 2 && 'Fair'}
-                                {userRating === 3 && 'Good'}
-                                {userRating === 4 && 'Very Good'}
-                                {userRating === 5 && 'Excellent'}
-                            </p>
-                        )}
+                        <p style={{
+                            fontSize: '13px',
+                            color: '#86868b',
+                            textAlign: 'center',
+                            margin: 0,
+                            minHeight: '20px',
+                        }}>
+                            {userRating > 0 ? ratingLabel(userRating) : 'Tap a star to rate this tool'}
+                        </p>
                     </div>
                 </div>
             )}
 
             {/* Comment Modal */}
-            <Modal show={showCommentModal} onHide={() => setShowCommentModal(false)} centered>
-                <Modal.Header closeButton className="border-0">
-                    <Modal.Title className="fw-bold">Add Your Review</Modal.Title>
-                </Modal.Header>
-                <Modal.Body className="px-4">
-                    <div className="text-center mb-3">
-                        <div className="mb-2">
-                            {renderStars(userRating)}
+            <Modal
+                show={showCommentModal}
+                onHide={() => setShowCommentModal(false)}
+                centered
+                dialogClassName="edatsu-rating-modal"
+            >
+                <Modal.Body style={{ padding: '32px' }}>
+                    <div className="d-flex align-items-start justify-content-between" style={{ marginBottom: '20px' }}>
+                        <div>
+                            <Eyebrow>Your Review</Eyebrow>
+                            <h3 style={{ fontSize: '20px', fontWeight: 600, color: '#000', margin: 0, letterSpacing: '-0.01em' }}>
+                                Share your experience
+                            </h3>
                         </div>
-                        <p className="text-muted mb-0">
-                            {userRating === 1 && 'Poor'}
-                            {userRating === 2 && 'Fair'}
-                            {userRating === 3 && 'Good'}
-                            {userRating === 4 && 'Very Good'}
-                            {userRating === 5 && 'Excellent'}
+                        <button
+                            type="button"
+                            onClick={() => setShowCommentModal(false)}
+                            aria-label="Close"
+                            style={{
+                                border: 'none',
+                                background: '#f5f5f7',
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                flexShrink: 0,
+                            }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#000' }}>close</span>
+                        </button>
+                    </div>
+
+                    <div style={{
+                        background: '#f5f5f7',
+                        borderRadius: '16px',
+                        padding: '24px',
+                        textAlign: 'center',
+                        marginBottom: '20px',
+                    }}>
+                        <div className="d-flex justify-content-center" style={{ marginBottom: '10px' }}>
+                            {renderStars(userRating, false, '28px')}
+                        </div>
+                        <p style={{ fontSize: '13px', fontWeight: 500, color: '#000', margin: 0 }}>
+                            {ratingLabel(userRating) || 'Select a rating'}
                         </p>
                     </div>
-                    <div className="mb-3">
-                        <label className="form-label fw-semibold">Your Review (Optional)</label>
+
+                    <div style={{ marginBottom: '20px' }}>
+                        <label style={{
+                            display: 'block',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: '#000',
+                            marginBottom: '8px',
+                            letterSpacing: '0.02em',
+                        }}>
+                            Your review <span style={{ color: '#86868b', fontWeight: 400 }}>(optional)</span>
+                        </label>
                         <textarea
-                            className="form-control"
                             rows="4"
                             value={userComment}
                             onChange={(e) => setUserComment(e.target.value)}
-                            placeholder="Share your experience with this tool..."
+                            placeholder="What did you like? What could be better?"
                             maxLength={1000}
+                            style={{
+                                width: '100%',
+                                border: '1px solid #e5e5e5',
+                                borderRadius: '12px',
+                                padding: '12px 14px',
+                                fontSize: '14px',
+                                color: '#000',
+                                resize: 'vertical',
+                                outline: 'none',
+                                transition: 'border-color 0.15s ease',
+                                fontFamily: 'inherit',
+                            }}
+                            onFocus={(e) => (e.currentTarget.style.borderColor = '#000')}
+                            onBlur={(e) => (e.currentTarget.style.borderColor = '#e5e5e5')}
                         />
-                        <small className="text-muted">{userComment.length}/1000</small>
+                        <div style={{ textAlign: 'right', fontSize: '11px', color: '#86868b', marginTop: '6px' }}>
+                            {userComment.length}/1000
+                        </div>
                     </div>
+
                     <div className="d-flex gap-2">
                         <button
-                            className="btn btn-secondary flex-fill"
                             onClick={() => {
                                 setShowCommentModal(false);
                                 setUserRating(0);
                                 setUserComment('');
                             }}
+                            style={{
+                                flex: 1,
+                                padding: '12px 20px',
+                                borderRadius: '9999px',
+                                border: '1px solid #e5e5e5',
+                                background: '#fff',
+                                color: '#000',
+                                fontSize: '14px',
+                                fontWeight: 500,
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = '#f5f5f7')}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = '#fff')}
                         >
                             Cancel
                         </button>
                         <button
-                            className="action-button btn-primary-modern flex-fill"
                             onClick={() => {
                                 setShowCommentModal(false);
                                 handleRatingSubmit();
                             }}
                             disabled={isLoading}
+                            style={{
+                                flex: 1,
+                                padding: '12px 20px',
+                                borderRadius: '9999px',
+                                border: 'none',
+                                background: '#000',
+                                color: '#fff',
+                                fontSize: '14px',
+                                fontWeight: 500,
+                                cursor: isLoading ? 'not-allowed' : 'pointer',
+                                opacity: isLoading ? 0.6 : 1,
+                                transition: 'all 0.15s ease',
+                            }}
+                            onMouseEnter={(e) => !isLoading && (e.currentTarget.style.background = '#333')}
+                            onMouseLeave={(e) => !isLoading && (e.currentTarget.style.background = '#000')}
                         >
-                            {isLoading ? 'Submitting...' : 'Submit Review'}
+                            {isLoading ? 'Submitting…' : 'Submit review'}
                         </button>
                     </div>
                 </Modal.Body>
             </Modal>
 
-            {/* All Reviews Section */}
-            {!showRatingForm && ratings && ratings.length > 0 && (
-                <div className="all-reviews-section mt-5">
+            {/* All Reviews (inline) */}
+            {ratings && ratings.length > 0 && (
+                <div className="all-reviews-section recent-reviews-preview" style={{ marginTop: '32px' }}>
+                    <Eyebrow>Reviews ({ratings.length})</Eyebrow>
 
-                <h5 className="fw-bold mb-4 d-flex align-items-center">
-                All Reviews ({ratings.length})
-                </h5>
-                    
                     {ratings.map((rating) => (
-                        <div key={rating.id} className="review-item mb-4 pb-4 border-bottom last-child-no-border">
-                            <div className="d-flex align-items-start justify-content-between mb-2">
-                                <div className="flex-grow-1">
-                                    <div className="d-flex align-items-center mb-2">
-                                        <div className="avatar-circle me-2" style={{ width: '40px', height: '40px', fontSize: '16px' }}>
-                                            {(rating.user?.name || 'A')[0].toUpperCase()}
-                                        </div>
-                                        <div className="flex-grow-1">
-                                            <h6 className="mb-1 fw-semibold">{rating.user?.name || 'Anonymous'}</h6>
-                                            <div className="d-flex align-items-center gap-2">
-                                                <div className="d-flex align-items-center">
-                                                    {renderStars(rating.rating)}
-                                                </div>
-                                                <small className="text-muted">
-                                                    {new Date(rating.created_at).toLocaleDateString('en-US', { 
-                                                        year: 'numeric', 
-                                                        month: 'short', 
-                                                        day: 'numeric' 
-                                                    })}
-                                                </small>
-                                            </div>
-                                        </div>
+                        <div
+                            key={rating.id}
+                            className="review-item"
+                            style={{
+                                padding: '20px 0',
+                                borderBottom: '1px solid #f0f0f0',
+                            }}
+                        >
+                            <div className="d-flex align-items-start gap-3">
+                                <div
+                                    className="edatsu-avatar"
+                                    aria-hidden="true"
+                                >
+                                    {(rating.user?.name || 'A')[0].toUpperCase()}
+                                </div>
+                                <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                                    <div className="d-flex align-items-center justify-content-between flex-wrap gap-2" style={{ marginBottom: '4px' }}>
+                                        <h6 style={{ fontSize: '14px', fontWeight: 600, color: '#000', margin: 0 }}>
+                                            {rating.user?.name || 'Anonymous'}
+                                        </h6>
+                                        <span style={{ fontSize: '12px', color: '#86868b' }}>
+                                            {new Date(rating.created_at).toLocaleDateString('en-US', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric'
+                                            })}
+                                        </span>
+                                    </div>
+                                    <div style={{ marginBottom: '8px' }}>
+                                        {renderStars(rating.rating)}
                                     </div>
                                     {rating.comment && (
-                                        <p className="mb-0 text-secondary" style={{ fontSize: '0.95rem', lineHeight: '1.5' }}>
+                                        <p style={{
+                                            fontSize: '13px',
+                                            color: '#424245',
+                                            lineHeight: 1.6,
+                                            margin: 0,
+                                        }}>
                                             {rating.comment}
                                         </p>
                                     )}
@@ -428,25 +524,62 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
             )}
 
             {/* All Reviews Modal */}
-            <Modal show={showAllReviewsModal} onHide={() => setShowAllReviewsModal(false)} size="lg" centered>
-                <Modal.Header closeButton className="border-0">
-                    <Modal.Title className="fw-bold">
-                        Customer Reviews ({totalRatings})
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body className="px-4" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-                    {/* Rating Summary in Modal */}
-                    <div className="mb-4 pb-4 border-bottom">
-                        <div className="row align-items-center">
+            <Modal
+                show={showAllReviewsModal}
+                onHide={() => setShowAllReviewsModal(false)}
+                size="lg"
+                centered
+                dialogClassName="edatsu-rating-modal"
+            >
+                <Modal.Body style={{ padding: '32px', maxHeight: '80vh', overflowY: 'auto' }}>
+                    <div className="d-flex align-items-start justify-content-between" style={{ marginBottom: '24px' }}>
+                        <div>
+                            <Eyebrow>Customer Reviews</Eyebrow>
+                            <h3 style={{ fontSize: '20px', fontWeight: 600, color: '#000', margin: 0, letterSpacing: '-0.01em' }}>
+                                {totalRatings} {totalRatings === 1 ? 'review' : 'reviews'}
+                            </h3>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setShowAllReviewsModal(false)}
+                            aria-label="Close"
+                            style={{
+                                border: 'none',
+                                background: '#f5f5f7',
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                flexShrink: 0,
+                            }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#000' }}>close</span>
+                        </button>
+                    </div>
+
+                    <div style={{
+                        background: '#f5f5f7',
+                        borderRadius: '16px',
+                        padding: '24px',
+                        marginBottom: '24px',
+                    }}>
+                        <div className="row align-items-center g-3">
                             <div className="col-md-4 text-center">
-                                <div className="mb-2">
-                                    <span className="display-5 fw-bold">{Number(averageRating).toFixed(1)}</span>
-                                    <span className="text-muted fs-6">/5</span>
+                                <div style={{ marginBottom: '6px' }}>
+                                    <span style={{ fontSize: '40px', fontWeight: 600, color: '#000', letterSpacing: '-0.02em' }}>
+                                        {Number(averageRating).toFixed(1)}
+                                    </span>
+                                    <span style={{ fontSize: '14px', color: '#86868b', marginLeft: '2px' }}>/5</span>
                                 </div>
-                                <div className="mb-2">
+                                <div className="d-flex justify-content-center" style={{ marginBottom: '6px' }}>
                                     {renderStars(Math.round(averageRating))}
                                 </div>
-                                <p className="text-muted small mb-0">{totalRatings} total reviews</p>
+                                <p style={{ fontSize: '12px', color: '#86868b', margin: 0 }}>
+                                    {totalRatings} total
+                                </p>
                             </div>
                             <div className="col-md-8">
                                 {renderRatingDistribution()}
@@ -454,90 +587,106 @@ const ProductRating = ({ productId, isAuthenticated, initialRating = 0, initialC
                         </div>
                     </div>
 
-                    {/* All Reviews List */}
                     {ratings && ratings.length > 0 ? (
                         <div className="reviews-list">
                             {ratings.map((rating) => (
-                                <div key={rating.id} className="review-item mb-4 pb-4 border-bottom">
-                                    <div className="d-flex align-items-start justify-content-between mb-2">
-                                        <div>
-                                            <div className="d-flex align-items-center mb-2">
-                                                <div className="avatar-circle me-2">
-                                                    {(rating.user?.name || 'A')[0].toUpperCase()}
-                                                </div>
-                                                <div>
-                                                    <h6 className="mb-0 fw-semibold">{rating.user?.name || 'Anonymous'}</h6>
-                                                    <small className="text-muted">
-                                                        {new Date(rating.created_at).toLocaleDateString('en-US', { 
-                                                            year: 'numeric', 
-                                                            month: 'long', 
-                                                            day: 'numeric' 
-                                                        })}
-                                                    </small>
-                                                </div>
-                                            </div>
+                                <div
+                                    key={rating.id}
+                                    style={{
+                                        padding: '20px 0',
+                                        borderBottom: '1px solid #f0f0f0',
+                                    }}
+                                >
+                                    <div className="d-flex align-items-start gap-3">
+                                        <div className="edatsu-avatar" aria-hidden="true">
+                                            {(rating.user?.name || 'A')[0].toUpperCase()}
                                         </div>
-                                        <div>
-                                            {renderStars(rating.rating)}
+                                        <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                                            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2" style={{ marginBottom: '4px' }}>
+                                                <h6 style={{ fontSize: '14px', fontWeight: 600, color: '#000', margin: 0 }}>
+                                                    {rating.user?.name || 'Anonymous'}
+                                                </h6>
+                                                <span style={{ fontSize: '12px', color: '#86868b' }}>
+                                                    {new Date(rating.created_at).toLocaleDateString('en-US', {
+                                                        year: 'numeric',
+                                                        month: 'long',
+                                                        day: 'numeric'
+                                                    })}
+                                                </span>
+                                            </div>
+                                            <div style={{ marginBottom: '8px' }}>
+                                                {renderStars(rating.rating)}
+                                            </div>
+                                            {rating.comment && (
+                                                <p style={{
+                                                    fontSize: '13px',
+                                                    color: '#424245',
+                                                    lineHeight: 1.6,
+                                                    margin: 0,
+                                                }}>
+                                                    {rating.comment}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
-                                    {rating.comment && (
-                                        <p className="mb-0 text-secondary" style={{ lineHeight: '1.6' }}>
-                                            {rating.comment}
-                                        </p>
-                                    )}
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-5">
-                            <span className="material-symbols-outlined text-muted mb-3" style={{fontSize: '48px'}}>
+                        <div style={{ textAlign: 'center', padding: '48px 24px' }}>
+                            <span
+                                className="material-symbols-outlined"
+                                style={{ fontSize: '48px', color: '#e5e5e5', marginBottom: '12px' }}
+                            >
                                 rate_review
                             </span>
-                            <p className="text-muted">No reviews yet</p>
+                            <p style={{ fontSize: '13px', color: '#86868b', margin: 0 }}>No reviews yet</p>
                         </div>
                     )}
                 </Modal.Body>
             </Modal>
 
             <style>{`
-                .rating-star-interactive:hover {
-                    transform: scale(1.1);
-                }
-                
                 .product-rating-container {
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 }
 
-                .avatar-circle {
+                .rating-star-interactive:hover {
+                    transform: scale(1.12);
+                }
+
+                .edatsu-rating-modal .modal-content {
+                    border: none;
+                    border-radius: 20px;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+                    overflow: hidden;
+                }
+
+                .edatsu-avatar {
                     width: 40px;
                     height: 40px;
                     border-radius: 50%;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
+                    background: #f5f5f7;
+                    color: #000;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-weight: 700;
-                    font-size: 16px;
+                    font-weight: 600;
+                    font-size: 14px;
+                    flex-shrink: 0;
                 }
 
-                .review-item:last-child {
+                .review-item:last-child,
+                .reviews-list > div:last-child {
                     border-bottom: none !important;
-                    padding-bottom: 0 !important;
-                    margin-bottom: 0 !important;
                 }
 
-                .rating-overview {
-                    background: none;
-                }
-                
                 .recent-reviews-preview {
-                    animation: fadeIn 0.5s ease-in;
+                    animation: fadeIn 0.4s ease-in;
                 }
-                
+
                 @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(10px); }
+                    from { opacity: 0; transform: translateY(8px); }
                     to { opacity: 1; transform: translateY(0); }
                 }
             `}</style>

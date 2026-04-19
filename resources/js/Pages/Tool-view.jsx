@@ -18,7 +18,6 @@ const ReadTool = ({tool_data, similarPosts}) => {
 
     const baseUrl = `${window.location.protocol}//${window.location.host}`;
     const [fullURL, setFullUrl] = useState();
-    const [showRating, setShowRating] = useState(false);
     const {props} = usePage();
 
     useEffect(()=>{
@@ -393,43 +392,42 @@ const ReadTool = ({tool_data, similarPosts}) => {
                                 padding: '32px',
                                 marginBottom: '24px',
                             }}>
-                                <div className="d-flex align-items-center justify-content-between mb-3">
-                                    <h2 style={{
-                                        fontSize: '12px',
+                                <div style={{ marginBottom: '20px' }}>
+                                    <div style={{
+                                        fontSize: '11px',
                                         fontWeight: 600,
                                         color: '#86868b',
-                                        letterSpacing: '0.1em',
+                                        letterSpacing: '0.12em',
                                         textTransform: 'uppercase',
-                                        marginBottom: 0,
+                                        marginBottom: '6px',
                                     }}>
-                                        Rating
-                                    </h2>
-                                    <button
-                                        onClick={() => setShowRating(!showRating)}
-                                        style={{
-                                            padding: '6px 16px',
-                                            borderRadius: '9999px',
-                                            border: '1px solid #e5e5e5',
-                                            background: showRating ? '#000' : 'transparent',
-                                            color: showRating ? '#fff' : '#000',
-                                            fontSize: '12px',
-                                            fontWeight: 500,
-                                            cursor: 'pointer',
-                                            transition: 'all 0.15s ease',
-                                        }}
-                                    >
-                                        {showRating ? 'Hide' : 'Rate this'}
-                                    </button>
+                                        Reviews & Ratings
+                                    </div>
+                                    <div style={{ width: '28px', height: '2px', background: '#f97316', borderRadius: '2px', marginBottom: '12px' }} />
+                                    <h3 style={{
+                                        fontSize: '18px',
+                                        fontWeight: 600,
+                                        color: '#000',
+                                        margin: 0,
+                                        letterSpacing: '-0.01em',
+                                    }}>
+                                        What others think
+                                    </h3>
+                                    <p style={{
+                                        fontSize: '13px',
+                                        color: '#86868b',
+                                        margin: '4px 0 0',
+                                    }}>
+                                        See reviews from the community, or tap a star below to leave your own.
+                                    </p>
                                 </div>
-                                {showRating && (
-                                    <ProductRating
-                                        productId={tool_data?.id}
-                                        isAuthenticated={props?.auth?.user ? true : false}
-                                        initialRating={tool_data?.average_rating || 0}
-                                        initialCount={tool_data?.total_ratings || 0}
-                                        showRatingForm={true}
-                                    />
-                                )}
+                                <ProductRating
+                                    productId={tool_data?.id}
+                                    isAuthenticated={props?.auth?.user ? true : false}
+                                    initialRating={tool_data?.average_rating || 0}
+                                    initialCount={tool_data?.total_ratings || 0}
+                                    showRatingForm={true}
+                                />
                             </div>
 
                             {/* Recommended */}
