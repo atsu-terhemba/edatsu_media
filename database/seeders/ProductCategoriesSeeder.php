@@ -15,55 +15,62 @@ class ProductCategoriesSeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            'Project Management Tools',
-            'Workflow Automation Tools',
-            'Time Tracking & Productivity Tools',
-            'Document Management Systems',
-            'Knowledge Base & Documentation Tools',
-            'Remote Work & Virtual Office Platforms',
-            'CRM Systems',
-            'Marketing Automation Platforms',
-            'Sales Enablement Tools',
-            'Customer Support & Helpdesk Systems',
-            'Customer Feedback & Survey Platforms',
-            'Affiliate & Partner Management Tools',
-            'Accounting & Invoicing Software',
-            'Finance & Budgeting Tools',
-            'Payment Processing & Fintech Tools',
-            'E-commerce & POS Systems',
-            'HR Management Systems',
-            'Learning Management Systems',
-            'Payroll & Compensation Management Tools',
-            'Recruitment & Applicant Tracking Systems',
-            'Cybersecurity & Access Control',
-            'Cloud Backup & Storage Solutions',
-            'IT Management & Monitoring Tools',
-            'API Management & Integration Platforms',
-            'Data Analytics & Business Intelligence',
-            'Business Reporting & Insights Tools',
-            'AI-Powered Assistants & Chatbots',
-            'Legal & Compliance Software',
-            'Procurement & Vendor Management Systems',
-            'Event Management & Booking Software'
+            'Writing & Copywriting',
+            'Image Generation',
+            'Video Creation',
+            'Audio & Voice',
+            'SEO & Content Optimization',
+            'Social Media Management',
+            'Email Marketing',
+            'Sales & CRM',
+            'Customer Support',
+            'Meeting & Transcription',
+            'Project Management',
+            'Knowledge Management',
+            'HR & Recruitment',
+            'Finance & Accounting',
+            'Data & Analytics',
+            'Developer Tools',
+            'Automation & Workflow',
+            'Design & UI',
+            'Security & Compliance',
+            'Legal AI',
+            'Healthcare AI',
+            'Education AI',
+            '3D & Gaming',
+            'Research',
         ];
+
+        $keepSlugs = [];
 
         foreach ($categories as $categoryName) {
             $slug = Str::slug($categoryName);
-            
-            // Check if category already exists to avoid duplicates
-            $existingCategory = ProductCategory::where('slug', $slug)->first();
-            
-            if (!$existingCategory) {
+            $keepSlugs[] = $slug;
+
+            $existing = ProductCategory::withTrashed()->where('slug', $slug)->first();
+
+            if ($existing) {
+                if ($existing->trashed()) {
+                    $existing->restore();
+                }
+                $existing->name = $categoryName;
+                $existing->description = "Tools and software for {$categoryName}";
+                $existing->save();
+            } else {
                 ProductCategory::create([
                     'name' => $categoryName,
                     'slug' => $slug,
                     'description' => "Tools and software for {$categoryName}",
-                    'created_at' => now(),
-                    'updated_at' => now(),
                 ]);
             }
         }
 
-        $this->command->info('Product categories seeded successfully!');
+        // Soft-delete any category no longer in the list
+        $retired = ProductCategory::whereNotIn('slug', $keepSlugs)->get();
+        foreach ($retired as $cat) {
+            $cat->delete();
+        }
+
+        $this->command->info('Product categories updated: ' . count($categories) . ' active, ' . $retired->count() . ' retired.');
     }
 }
