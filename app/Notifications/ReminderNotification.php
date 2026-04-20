@@ -2,18 +2,14 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Carbon\Carbon;
 use App\Channels\CustomDatabaseChannel;
 
-class ReminderNotification extends Notification implements ShouldQueue
+class ReminderNotification extends Notification
 {
-    use Queueable;
-
     protected $reminderType;
     protected $opportunityTitle;
     protected $reminderDate;

@@ -138,7 +138,7 @@ Route::get('/admin-register', [RegisteredUserController::class, 'create_admin'])
 Route::get('/sign-up', [RegisteredUserController::class, 'create_user'])->name('user-register');
 Route::post('/sign-up', [RegisteredUserController::class, 'store_user'])->name('sign-up');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified.writes'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [Dashboard::class, 'accessControl'])->name('dashboard');
     
@@ -154,6 +154,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/messages', [SubscriberController::class, 'messages'])->name('subscriber.messages');
     Route::get('/notification-settings', [SubscriberController::class, 'notificationSettings'])->name('subscriber.notification_settings');
     Route::get('/preferences', [SubscriberController::class, 'preferences'])->name('subscriber.preferences');
+    Route::get('/subscriber-feedback', [SubscriberController::class, 'feedback'])->name('subscriber.feedback');
+    Route::post('/subscriber-feedback', [SubscriberController::class, 'submitFeedback'])->name('subscriber.feedback.submit');
     Route::post('/subscriber/preferences', [SubscriberController::class, 'updatePreferences'])->name('subscriber.update_preferences');
     Route::post('/subscriber/update-profile', [SubscriberController::class, 'updateProfile'])->name('subscriber.update-profile');
     

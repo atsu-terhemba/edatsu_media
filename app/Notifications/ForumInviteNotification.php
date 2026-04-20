@@ -3,15 +3,11 @@
 namespace App\Notifications;
 
 use App\Models\ForumThread;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class ForumInviteNotification extends Notification implements ShouldQueue
+class ForumInviteNotification extends Notification
 {
-    use Queueable;
-
     public function __construct(
         protected ForumThread $thread,
         protected array $matchedCategoryNames = []

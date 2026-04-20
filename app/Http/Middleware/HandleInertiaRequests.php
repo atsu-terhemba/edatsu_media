@@ -47,6 +47,10 @@ class HandleInertiaRequests extends Middleware
             ],
             'csrf_token' => csrf_token(),
             'vapidPublicKey' => config('webpush.vapid.public_key'),
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
         ];
     }
 }

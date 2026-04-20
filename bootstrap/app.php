@@ -22,14 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\TrackUserActivity::class,
         ]);
         //...
-        // Register role middleware as an alias for use in routes
         $middleware->alias([
             'role' => \App\Http\Middleware\Role::class,
-        ]);
-        
-        // Register role middleware as an alias for use in routes
-        $middleware->alias([
-            'role' => \App\Http\Middleware\Role::class,
+            'verified.writes' => \App\Http\Middleware\EnsureVerifiedForWrites::class,
         ]);
         //...
     })

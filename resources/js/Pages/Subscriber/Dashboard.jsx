@@ -7,6 +7,7 @@ import axios from 'axios';
 import Footer from '@/Components/Footer';
 import DashboardSkeleton from '@/Components/DashboardSkeleton';
 import PWAInstallBanner from '@/Components/PWAInstallBanner';
+import EmailVerificationOverlay from '@/Components/EmailVerificationOverlay';
 
 // Eyebrow + orange bar pattern
 function SectionEyebrow({ text }) {
@@ -162,6 +163,7 @@ export default function Dashboard() {
                         </Row>
                     </Container>
                 </Container>
+                <EmailVerificationOverlay />
             </AuthenticatedLayout>
         );
     }
@@ -216,6 +218,7 @@ export default function Dashboard() {
                         </Row>
                     </Container>
                 </Container>
+                <EmailVerificationOverlay />
             </AuthenticatedLayout>
         );
     }
@@ -621,6 +624,7 @@ export default function Dashboard() {
                 </Container>
             </Container>
             <Footer />
+            <EmailVerificationOverlay />
         </AuthenticatedLayout>
     );
 }

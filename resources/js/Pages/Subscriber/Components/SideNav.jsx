@@ -12,6 +12,7 @@ export default function SubscriberSideNav() {
         { href: route('subscriber.notifications'), icon: 'notifications', label: 'Notifications' },
         { href: route('subscriber.preferences'), icon: 'tune', label: 'Preferences' },
         { href: route('subscriber.billing'), icon: 'credit_card', label: 'Billing' },
+        { href: route('subscriber.feedback'), icon: 'feedback', label: 'Feedback' },
         { href: route('profile.edit'), icon: 'settings', label: 'Settings' },
     ];
 

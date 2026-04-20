@@ -324,6 +324,44 @@ class SubscriberController extends Controller
         return Inertia::render('Subscriber/NotificationSettings');
     }
 
+    function feedback(){
+        return Inertia::render('Subscriber/Feedback');
+    }
+
+    function submitFeedback(Request $request){
+        $validated = $request->validate([
+            'category' => 'required|string|in:bug,feature,general,other',
+            'subject'  => 'required|string|max:150',
+            'message'  => 'required|string|min:10|max:5000',
+        ]);
+
+        $user = Auth::user();
+        $recipient = config('mail.feedback_to') ?: config('mail.from.address');
+
+        $labels = [
+            'bug'     => 'Bug report',
+            'feature' => 'Feature request',
+            'general' => 'General feedback',
+            'other'   => 'Other',
+        ];
+
+        \Illuminate\Support\Facades\Mail::html(
+            '<h2 style="margin:0 0 12px;font-family:Arial,sans-serif;">New subscriber feedback</h2>'
+            . '<p style="margin:0 0 4px;"><strong>Type:</strong> ' . e($labels[$validated['category']]) . '</p>'
+            . '<p style="margin:0 0 4px;"><strong>From:</strong> ' . e($user->name) . ' &lt;' . e($user->email) . '&gt;</p>'
+            . '<p style="margin:0 0 12px;"><strong>Subject:</strong> ' . e($validated['subject']) . '</p>'
+            . '<hr style="border:none;border-top:1px solid #eee;margin:16px 0;" />'
+            . '<div style="font-family:Arial,sans-serif;white-space:pre-wrap;">' . e($validated['message']) . '</div>',
+            function ($msg) use ($recipient, $user, $validated) {
+                $msg->to($recipient)
+                    ->replyTo($user->email, $user->name)
+                    ->subject('[Feedback] ' . $validated['subject']);
+            }
+        );
+
+        return back()->with('success', 'Thanks — your feedback has been sent.');
+    }
+
     function preferences(){
         $user_id = Auth::user()->id;
         
