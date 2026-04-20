@@ -24,7 +24,8 @@ import { showProUpgrade } from '@/utils/proUpgrade';
 
 const DisplayToolshed = React.lazy(() => import('@/Components/Toolshed'));
 
-const COMPARE_STORAGE_KEY = 'edatsu:compareTools';
+const LEGACY_COMPARE_STORAGE_KEY = 'edatsu:compareTools';
+const compareStorageKey = (userId) => `edatsu:compareTools:${userId ? `u${userId}` : 'guest'}`;
 const COMPARE_TIP_DISMISSED_KEY = 'edatsu:compareTipDismissed';
 
 const Toolshed = () => {
@@ -43,33 +44,44 @@ const Toolshed = () => {
     // Compare selection state (Pro feature: free=2, pro=5)
     const isPro = Boolean(props?.auth?.isPro);
     const compareMax = isPro ? 5 : 2;
+    const authUserId = props?.auth?.user?.id ?? null;
+    const storageKey = useMemo(() => compareStorageKey(authUserId), [authUserId]);
     const [compareTools, setCompareTools] = useState([]);
 
     useEffect(() => {
         try {
-            const raw = localStorage.getItem(COMPARE_STORAGE_KEY);
-            if (!raw) return;
+            // Retire the shared legacy key that leaked selections across accounts
+            localStorage.removeItem(LEGACY_COMPARE_STORAGE_KEY);
+
+            const raw = localStorage.getItem(storageKey);
+            if (!raw) {
+                setCompareTools([]);
+                return;
+            }
             const parsed = JSON.parse(raw);
-            if (!Array.isArray(parsed)) return;
-            // Backwards-compat: if legacy numeric-id array, reset it
+            if (!Array.isArray(parsed)) {
+                setCompareTools([]);
+                return;
+            }
             if (parsed.length && typeof parsed[0] !== 'object') {
-                localStorage.removeItem(COMPARE_STORAGE_KEY);
+                localStorage.removeItem(storageKey);
+                setCompareTools([]);
                 return;
             }
             setCompareTools(parsed.filter((t) => t && t.id));
         } catch (e) {
-            // ignore
+            setCompareTools([]);
         }
-    }, []);
+    }, [storageKey]);
 
     const persistCompare = useCallback((next) => {
         setCompareTools(next);
         try {
-            localStorage.setItem(COMPARE_STORAGE_KEY, JSON.stringify(next));
+            localStorage.setItem(storageKey, JSON.stringify(next));
         } catch (e) {
             // ignore
         }
-    }, []);
+    }, [storageKey]);
 
     const toggleCompare = useCallback((tool) => {
         if (!tool || !tool.id) return;
