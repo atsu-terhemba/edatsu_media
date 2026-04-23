@@ -14,10 +14,8 @@ php artisan cache:clear 2>/dev/null || true
 php artisan route:clear 2>/dev/null || true
 php artisan view:clear 2>/dev/null || true
 
-# Migrations are NOT run automatically on boot.
-# Schema is imported from phpMyAdmin dump and partially built outside migrations.
-# Run manually after deploy/import: railway run php artisan migrate --force
-# php artisan migrate --force 2>&1 || echo "WARNING: Migration failed — check DB connection"
+# Run migrations (non-fatal — DB may not be ready)
+php artisan migrate --force 2>&1 || echo "WARNING: Migration failed — check DB connection"
 
 # Rebuild caches for production
 php artisan config:cache 2>/dev/null || true
