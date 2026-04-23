@@ -32,8 +32,8 @@ export default function SubscriberSideNav() {
         textDecoration: 'none',
         fontSize: '14px',
         fontWeight: 500,
-        color: active ? '#fff' : 'rgba(255,255,255,0.65)',
-        background: active ? 'rgba(249,115,22,0.12)' : 'transparent',
+        color: active ? '#1d1d1f' : '#6e6e73',
+        background: active ? 'rgba(249,115,22,0.10)' : 'transparent',
         border: active ? '1px solid rgba(249,115,22,0.25)' : '1px solid transparent',
         position: 'relative',
         transition: 'all 0.18s ease',
@@ -43,7 +43,7 @@ export default function SubscriberSideNav() {
         width: '34px',
         height: '34px',
         borderRadius: '10px',
-        background: active ? '#f97316' : 'rgba(255,255,255,0.06)',
+        background: active ? '#f97316' : 'rgba(0,0,0,0.05)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -59,15 +59,15 @@ export default function SubscriberSideNav() {
                 gap: '2px',
                 padding: '14px',
                 borderRadius: '18px',
-                background: '#1c1c1e',
-                border: '1px solid rgba(255,255,255,0.06)',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+                background: '#f5f5f7',
+                border: '1px solid rgba(0,0,0,0.06)',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
                 position: 'sticky',
                 top: '80px',
             }}
         >
             <div style={{
-                fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.35)',
+                fontSize: 11, fontWeight: 600, color: '#86868b',
                 textTransform: 'uppercase', letterSpacing: '0.08em',
                 padding: '8px 12px 10px',
             }}>
@@ -81,15 +81,15 @@ export default function SubscriberSideNav() {
                         key={item.label}
                         href={item.href}
                         style={itemStyle(active)}
-                        onMouseEnter={(e) => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#fff'; }}}
-                        onMouseLeave={(e) => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; }}}
+                        onMouseEnter={(e) => { if (!active) { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = '#1d1d1f'; }}}
+                        onMouseLeave={(e) => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6e6e73'; }}}
                     >
                         <span style={iconWrapStyle(active)}>
                             <span
                                 className="material-symbols-outlined"
                                 style={{
                                     fontSize: '18px',
-                                    color: active ? '#fff' : 'rgba(255,255,255,0.55)',
+                                    color: active ? '#fff' : '#6e6e73',
                                     fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
                                 }}
                             >
@@ -109,7 +109,7 @@ export default function SubscriberSideNav() {
                 );
             })}
 
-            <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '10px 4px' }} />
+            <div style={{ height: '1px', background: 'rgba(0,0,0,0.08)', margin: '10px 4px' }} />
 
             <Link
                 href={route('logout')}

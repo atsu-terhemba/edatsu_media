@@ -193,6 +193,7 @@ export default function Feedback() {
                                         value={data.subject}
                                         onChange={(e) => setData('subject', e.target.value)}
                                         maxLength={150}
+                                        spellCheck={false}
                                         placeholder="A short headline"
                                         style={{
                                             width: '100%',
@@ -228,6 +229,7 @@ export default function Feedback() {
                                         onChange={(e) => setData('message', e.target.value)}
                                         maxLength={charMax}
                                         rows={8}
+                                        spellCheck={false}
                                         placeholder="Walk us through it. The more detail, the better."
                                         style={{
                                             width: '100%',
