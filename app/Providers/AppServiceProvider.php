@@ -51,8 +51,16 @@ class AppServiceProvider extends ServiceProvider
                     }
                     
                     $ads = AdSetting::active()->get()->keyBy('slot_name');
+
+                    // Pro perk: paying users see no ads inside reading feeds
+                    $user = auth()->user();
+                    $hideFeedAds = $user && $user->isPro();
+                    if ($hideFeedAds) {
+                        $ads = $ads->reject(fn ($ad) => (bool) ($ad->is_feed_ad ?? false));
+                    }
+
                     $slotsArray = [];
-                    
+
                     $r2PublicUrl = rtrim(env('VITE_R2_PUBLIC_URL', ''), '/');
 
                     foreach ($ads as $ad) {
