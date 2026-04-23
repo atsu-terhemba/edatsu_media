@@ -83,6 +83,7 @@ class AdManagementController extends Controller
             'link_url' => 'nullable|string|max:2048',
             'link_target' => 'nullable|string|in:_blank,_self',
             'is_active' => 'boolean',
+            'is_feed_ad' => 'boolean',
             'order' => 'integer'
         ]);
 
@@ -112,6 +113,7 @@ class AdManagementController extends Controller
             'link_url' => 'nullable|string|max:2048',
             'link_target' => 'nullable|string|in:_blank,_self',
             'is_active' => 'boolean',
+            'is_feed_ad' => 'boolean',
             'order' => 'integer'
         ]);
 

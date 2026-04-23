@@ -21,12 +21,14 @@ class AdSetting extends Model
         'link_target',
         'is_active',
         'is_visible',
+        'is_feed_ad',
         'order'
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'is_visible' => 'boolean',
+        'is_feed_ad' => 'boolean',
         'order' => 'integer',
     ];
 

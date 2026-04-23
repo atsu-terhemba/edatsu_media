@@ -58,7 +58,7 @@ export default function AdManagement({ globalSettings, adSettings }) {
     const adForm = useForm({
         slot_name: '', page: 'all', position: 'top', size: 'responsive',
         ad_type: 'adsense', ad_code: '', image_url: '', image_file: null, remove_image: false, link_url: '', link_target: '_blank',
-        is_active: true, order: 0,
+        is_active: true, is_feed_ad: false, order: 0,
     });
 
     const toggleGlobalAds = () => {
@@ -458,6 +458,29 @@ export default function AdManagement({ globalSettings, adSettings }) {
                                             onChange={() => adForm.setData('is_active', !adForm.data.is_active)}
                                             label={adForm.data.is_active ? 'Active' : 'Inactive'} />
                                     </div>
+                                </div>
+
+                                <div style={{
+                                    padding: '16px',
+                                    border: '1px solid #e5e5e7',
+                                    borderRadius: '12px',
+                                    background: '#fafafa',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    gap: '16px',
+                                }}>
+                                    <div>
+                                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#000', marginBottom: '2px' }}>
+                                            In-feed ad
+                                        </div>
+                                        <div style={{ fontSize: '12px', color: '#86868b' }}>
+                                            Pro subscribers won't see this ad in their reading feeds.
+                                        </div>
+                                    </div>
+                                    <Toggle checked={adForm.data.is_feed_ad}
+                                        onChange={() => adForm.setData('is_feed_ad', !adForm.data.is_feed_ad)}
+                                        label={adForm.data.is_feed_ad ? 'Yes' : 'No'} />
                                 </div>
                                 {/* Ad Type Selector */}
                                 <div>
