@@ -25,13 +25,11 @@
             padding: 48px 40px 40px;
             text-align: center;
         }
-        .logo-text {
-            font-size: 28px; font-weight: 700; color: #ffffff;
-            letter-spacing: -0.5px; margin-bottom: 8px;
-        }
-        .logo-accent {
-            display: inline-block; width: 40px; height: 3px;
-            background: #f97316; border-radius: 2px; margin-bottom: 24px;
+        .logo-img {
+            display: block;
+            width: 64px; height: 64px;
+            margin: 0 auto 24px;
+            border-radius: 12px;
         }
         .hero h1 {
             font-size: 26px; font-weight: 600; color: #ffffff;
@@ -112,8 +110,7 @@
     <div class="wrapper">
         <div class="card">
             <div class="hero">
-                <div class="logo-text">Edatsu Media</div>
-                <div class="logo-accent"></div>
+                <img src="{{ url('/img/logo/main.png') }}" alt="Edatsu Media" class="logo-img" width="64" height="64">
                 <h1>@yield('hero_title')</h1>
                 @hasSection('hero_subtitle')
                     <p>@yield('hero_subtitle')</p>
