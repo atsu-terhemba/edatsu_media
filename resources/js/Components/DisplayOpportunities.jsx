@@ -1,8 +1,11 @@
-import React, { useEffect, useCallback, useState } from "react";
+import React, { Fragment, useEffect, useCallback, useState } from "react";
 import { Image } from "react-bootstrap";
 import Swal from 'sweetalert2';
 import { getDaysLeft, bookmark, pageLink } from "@/utils/Index";
 import ShareButton from '@/Components/ShareButton';
+import AdBanner from '@/Components/AdBanner';
+
+const IN_FEED_AD_EVERY = 6;
 
 const DisplayOpportunities = ({ data, isAuthenticated }) => {
   const [loadedImages, setLoadedImages] = useState({});
@@ -228,10 +231,11 @@ const DisplayOpportunities = ({ data, isAuthenticated }) => {
       {data?.map((o, index) => {
         const hasImage = o.cover_img && isValidImage(o.cover_img);
         const imageId = `img-${o.id}-${index}`;
+        const showInFeedAd = (index + 1) % IN_FEED_AD_EVERY === 0 && index !== data.length - 1;
 
         return (
+          <Fragment key={`${o.id}-${index}`}>
           <div
-            key={`${o.id}-${index}`}
             style={{
                 padding: '16px 0',
                 borderBottom: '1px solid #f0f0f0',
@@ -370,6 +374,17 @@ const DisplayOpportunities = ({ data, isAuthenticated }) => {
               </div>
             </div>
           </div>
+          {showInFeedAd && (
+            <div style={{ padding: '16px 0', borderBottom: '1px solid #f0f0f0' }}>
+              <AdBanner
+                slot="opportunities_in_feed"
+                page="opportunities"
+                position="in-feed"
+                size="responsive"
+              />
+            </div>
+          )}
+          </Fragment>
         );
       })}
     </div>
