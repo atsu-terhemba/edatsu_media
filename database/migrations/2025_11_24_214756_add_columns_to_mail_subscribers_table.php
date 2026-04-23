@@ -12,10 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('mail_subscribers', function (Blueprint $table) {
-            $table->string('first_name')->after('id');
-            $table->string('last_name')->after('first_name');
-            $table->string('email')->unique()->after('last_name');
-            $table->timestamps();
+            if (! Schema::hasColumn('mail_subscribers', 'first_name')) {
+                $table->string('first_name')->after('id');
+            }
+            if (! Schema::hasColumn('mail_subscribers', 'last_name')) {
+                $table->string('last_name')->after('first_name');
+            }
+            if (! Schema::hasColumn('mail_subscribers', 'email')) {
+                $table->string('email')->unique()->after('last_name');
+            }
+            if (! Schema::hasColumn('mail_subscribers', 'created_at')) {
+                $table->timestamps();
+            }
         });
     }
 
@@ -24,8 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('mail_subscribers', function (Blueprint $table) {
-            $table->dropColumn(['first_name', 'last_name', 'email', 'created_at', 'updated_at']);
-        });
+        // No-op: the columns are owned by the original create migration now.
     }
 };

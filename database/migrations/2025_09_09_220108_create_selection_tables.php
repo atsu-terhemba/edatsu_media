@@ -35,7 +35,7 @@ return new class extends Migration
                 $table->unsignedBigInteger('user_id');
                 $table->unsignedBigInteger('post_id');
                 $table->unsignedBigInteger('tag_id');
-                $table->string('post_type', 100);
+                $table->integer('post_type')->nullable();
                 $table->timestamps();
                 
                 $table->index(['post_id', 'post_type']);
@@ -71,7 +71,7 @@ return new class extends Migration
                 $table->unsignedBigInteger('user_id');
                 $table->unsignedBigInteger('post_id');
                 $table->unsignedBigInteger('region_id');
-                $table->string('post_type', 100);
+                $table->integer('post_type')->nullable();
                 $table->timestamps();
                 
                 $table->index(['post_id', 'post_type']);

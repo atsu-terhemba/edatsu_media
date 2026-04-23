@@ -6,95 +6,47 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        // Categories table
-        if (!Schema::hasTable('categories')) {
-            Schema::create('categories', function (Blueprint $table) {
-                $table->id();
-                $table->string('name');
-                $table->string('slug', 191)->unique(); // Limit slug length for MySQL key constraint
-                $table->text('description')->nullable();
-                $table->string('cover_img')->nullable();
-                $table->timestamps();
-            });
-        }
+        $taxonomies = ['categories', 'tags', 'regions', 'countries', 'continents', 'brand_labels'];
 
-        // Product Categories table (separate from opportunities categories)
-        if (!Schema::hasTable('product_categories')) {
-            Schema::create('product_categories', function (Blueprint $table) {
+        foreach ($taxonomies as $name) {
+            if (Schema::hasTable($name)) continue;
+
+            Schema::create($name, function (Blueprint $table) {
+                $table->engine = 'MyISAM';
+                $table->charset = 'utf8mb4';
+                $table->collation = 'utf8mb4_unicode_ci';
+
                 $table->id();
-                $table->string('name');
-                $table->string('slug', 191)->unique(); // Limit slug length for MySQL key constraint
-                $table->text('description')->nullable();
-                $table->string('cover_img')->nullable();
+                $table->string('name', 191);
+                $table->text('slug')->nullable();
+                $table->string('description', 191)->nullable();
+                $table->boolean('deleted')->default(false);
                 $table->timestamps();
                 $table->softDeletes();
             });
         }
 
-        // Tags table
-        if (!Schema::hasTable('tags')) {
-            Schema::create('tags', function (Blueprint $table) {
-                $table->id();
-                $table->string('name');
-                $table->string('slug', 191)->unique(); // Limit slug length for MySQL key constraint
-                $table->text('description')->nullable();
-                $table->timestamps();
-            });
-        }
+        if (! Schema::hasTable('product_categories')) {
+            Schema::create('product_categories', function (Blueprint $table) {
+                $table->engine = 'MyISAM';
+                $table->charset = 'utf8mb4';
+                $table->collation = 'utf8mb4_unicode_ci';
 
-        // Regions table
-        if (!Schema::hasTable('regions')) {
-            Schema::create('regions', function (Blueprint $table) {
                 $table->id();
                 $table->string('name');
-                $table->string('slug', 191)->unique(); // Limit slug length for MySQL key constraint
+                $table->string('slug', 191);
                 $table->text('description')->nullable();
+                $table->string('cover_img')->nullable();
                 $table->timestamps();
-            });
-        }
+                $table->softDeletes();
 
-        // Countries table
-        if (!Schema::hasTable('countries')) {
-            Schema::create('countries', function (Blueprint $table) {
-                $table->id();
-                $table->string('name');
-                $table->string('slug', 191)->unique(); // Limit slug length for MySQL key constraint
-                $table->text('description')->nullable();
-                $table->timestamps();
-            });
-        }
-
-        // Continents table
-        if (!Schema::hasTable('continents')) {
-            Schema::create('continents', function (Blueprint $table) {
-                $table->id();
-                $table->string('name');
-                $table->string('slug', 191)->unique(); // Limit slug length for MySQL key constraint
-                $table->text('description')->nullable();
-                $table->timestamps();
-            });
-        }
-
-        // Brand Labels table
-        if (!Schema::hasTable('brand_labels')) {
-            Schema::create('brand_labels', function (Blueprint $table) {
-                $table->id();
-                $table->string('name');
-                $table->string('slug', 191)->unique(); // Limit slug length for MySQL key constraint
-                $table->text('description')->nullable();
-                $table->timestamps();
+                $table->index('slug');
             });
         }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('brand_labels');

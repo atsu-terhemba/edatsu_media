@@ -15,8 +15,8 @@ return new class extends Migration
             Schema::create('bookmarks', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('user_id');
-                $table->unsignedBigInteger('post_id');
-                $table->string('post_type', 100); // 'opportunities', 'products', 'tool', 'ts', etc.
+                $table->integer('post_id');
+                $table->string('post_type', 151); // 'opportunities', 'products', 'tool', 'ts', etc.
                 $table->boolean('removed')->default(0);
                 $table->boolean('deleted')->default(0);
                 $table->timestamps();

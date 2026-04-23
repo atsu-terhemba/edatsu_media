@@ -6,50 +6,41 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        if (!Schema::hasTable('opportunities')) {
-            Schema::create('opportunities', function (Blueprint $table) {
-                $table->id();
-                $table->unsignedBigInteger('u_id'); // user_id
-                $table->string('user_role', 100)->nullable();
-                $table->string('title');
-                $table->text('description');
-                $table->text('meta_description')->nullable();
-                $table->text('meta_keywords')->nullable();
-                $table->string('cover_img')->nullable();
-                $table->string('slug', 191)->unique(); // Limit slug length for MySQL key constraint
-                $table->text('embeded_html')->nullable();
-                $table->bigInteger('views')->default(0);
-                $table->integer('comments')->default(0);
-                $table->decimal('ratings', 3, 2)->default(0);
-                $table->date('deadline')->nullable();
-                $table->string('apply_link')->nullable();
-                $table->string('source_url')->nullable();
-                $table->boolean('deleted')->default(0);
-                $table->string('post_type', 100)->default('opportunities'); // Limit length for index
-                $table->softDeletes();
-                $table->timestamps();
-                
-                // Indexes
-                $table->index('u_id');
-                $table->index('deleted');
-                $table->index('post_type');
-                $table->index('slug');
-                $table->index('deadline');
-                
-                // Foreign key
-                $table->foreign('u_id')->references('id')->on('users')->onDelete('cascade');
-            });
-        }
+        if (Schema::hasTable('opportunities')) return;
+
+        Schema::create('opportunities', function (Blueprint $table) {
+            $table->engine = 'MyISAM';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+
+            $table->id();
+            $table->unsignedBigInteger('u_id');
+            $table->string('user_role', 191);
+            $table->string('cover_img', 191)->nullable();
+            $table->string('title', 191);
+            $table->string('slug', 151)->nullable();
+            $table->text('description')->nullable();
+            $table->string('deadline', 191)->nullable();
+            $table->text('source_url');
+            $table->string('direct_link', 191)->nullable();
+            $table->text('category')->nullable();
+            $table->string('region', 191)->nullable();
+            $table->string('country', 191)->nullable();
+            $table->string('continent', 191)->nullable();
+            $table->text('meta_description')->nullable();
+            $table->text('meta_keywords')->nullable();
+            $table->string('post_type', 151)->nullable();
+            $table->integer('views')->default(0);
+            $table->enum('status', ['draft', 'published', 'archived'])->default('published');
+            $table->tinyInteger('deleted')->default(0);
+            $table->timestamps();
+
+            $table->index('u_id', 'opportunity_u_id_foreign');
+        });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('opportunities');

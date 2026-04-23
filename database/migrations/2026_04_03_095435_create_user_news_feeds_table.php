@@ -15,14 +15,14 @@ return new class extends Migration
 
         Schema::create('user_news_feeds', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('feed_url', 500);
-            $table->string('site_url', 500);
-            $table->string('feed_title')->nullable();
-            $table->string('feed_favicon', 500)->nullable();
+            $table->unsignedBigInteger('user_id');
+            $table->string('feed_url', 255);
+            $table->string('site_url', 255);
+            $table->string('feed_title', 255)->nullable();
+            $table->string('feed_favicon', 255)->nullable();
             $table->timestamps();
 
-            $table->unique(['user_id', 'feed_url'], 'user_feed_unique');
+            $table->index('user_id', 'user_news_feeds_user_id_foreign');
         });
     }
 

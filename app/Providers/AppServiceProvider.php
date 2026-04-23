@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
@@ -25,6 +26,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Required for MySQL configurations with the legacy 1000-byte index limit
+        // (e.g. MyISAM with utf8mb4 — 255 chars × 4 bytes exceeds the cap).
+        Schema::defaultStringLength(191);
+
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }

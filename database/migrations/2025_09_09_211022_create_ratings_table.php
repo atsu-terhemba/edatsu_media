@@ -15,9 +15,9 @@ return new class extends Migration
             Schema::create('ratings', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('user_id');
-                $table->string('rateable_type', 100); // Limit length for index
+                $table->string('rateable_type', 191);
                 $table->unsignedBigInteger('rateable_id');
-                $table->integer('rating')->comment('Rating from 1 to 5');
+                $table->unsignedTinyInteger('rating')->comment('Rating from 1 to 5');
                 $table->text('comment')->nullable();
                 $table->timestamps();
                 

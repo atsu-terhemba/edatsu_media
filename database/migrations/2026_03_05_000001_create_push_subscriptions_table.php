@@ -11,8 +11,8 @@ return new class extends Migration
         if (Schema::hasTable('push_subscriptions')) return;
         Schema::create('push_subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('endpoint', 500)->unique();
+            $table->unsignedBigInteger('user_id');
+            $table->text('endpoint');
             $table->string('p256dh_key')->nullable();
             $table->string('auth_token')->nullable();
             $table->string('content_encoding')->nullable();

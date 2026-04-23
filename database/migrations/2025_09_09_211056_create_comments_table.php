@@ -6,37 +6,30 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        if (!Schema::hasTable('comments')) {
-            Schema::create('comments', function (Blueprint $table) {
-                $table->id();
-                $table->unsignedBigInteger('user_id');
-                $table->string('commentable_type', 100); // Limit length for index
-                $table->unsignedBigInteger('commentable_id');
-                $table->unsignedBigInteger('parent_id')->nullable(); // For threaded comments
-                $table->text('comment');
-                $table->boolean('is_approved')->default(true);
-                $table->timestamps();
-                
-                // Indexes for performance
-                $table->index(['commentable_type', 'commentable_id']);
-                $table->index('user_id');
-                $table->index('parent_id');
-                
-                // Foreign key constraints
-                $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-                $table->foreign('parent_id')->references('id')->on('comments')->onDelete('cascade');
-            });
-        }
+        if (Schema::hasTable('comments')) return;
+
+        Schema::create('comments', function (Blueprint $table) {
+            $table->engine = 'MyISAM';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+
+            $table->id();
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->unsignedBigInteger('commentable_id');
+            $table->string('commentable_type', 191)->nullable();
+            $table->text('comment');
+            $table->boolean('is_approved')->default(true);
+            $table->timestamps();
+            $table->softDeletes();
+
+            $table->index('user_id', 'opp_comments_user_id_foreign');
+            $table->index(['commentable_id', 'commentable_type'], 'opp_comments_commentable_id_commentable_type_index');
+            $table->index(['commentable_type', 'commentable_id'], 'idx_comments_commentable');
+        });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('comments');

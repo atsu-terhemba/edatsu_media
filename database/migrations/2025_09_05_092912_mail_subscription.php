@@ -13,10 +13,14 @@ return new class extends Migration
     {
         if (!Schema::hasTable('mail_subscribers')) {
             Schema::create('mail_subscribers', function (Blueprint $table) {
-                $table->id();
-                $table->string('first_name');
-                $table->string('last_name');
-                $table->string('email', 191)->unique(); // Limit email length for MySQL key constraint
+                $table->engine = 'InnoDB';
+                $table->charset = 'utf8mb4';
+                $table->collation = 'utf8mb4_unicode_ci';
+
+                $table->integer('id')->autoIncrement()->primary();
+                $table->string('first_name', 255);
+                $table->string('last_name', 255);
+                $table->string('email', 255)->unique();
                 $table->timestamps();
             });
         }
