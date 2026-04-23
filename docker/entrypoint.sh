@@ -48,4 +48,9 @@ done &
 
 echo "==> Deployment tasks complete. Starting server..."
 
+# Disable conflicting MPM modules to prevent "More than one MPM loaded" error
+a2dismod mpm_event 2>/dev/null || true
+a2dismod mpm_worker 2>/dev/null || true
+a2enmod mpm_prefork 2>/dev/null || true
+
 exec "$@"
