@@ -9,6 +9,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('pro_gating_settings')) {
+            return;
+        }
+
         Schema::create('pro_gating_settings', function (Blueprint $table) {
             $table->id();
             $table->boolean('enabled')->default(false);
