@@ -131,6 +131,8 @@ Route::get('/podcast', [App::class, 'initPodcastPage'])->name('podcast');
 Route::post('/ratings', [RatingController::class, 'store'])->name('rating.store');
 // Flutterwave webhook (no CSRF)
 Route::post('/webhook/flutterwave', [SubscriptionController::class, 'handleWebhook'])->name('subscription.webhook');
+// NOWPayments IPN (no CSRF)
+Route::post('/webhook/nowpayments', [SubscriptionController::class, 'handleNowPaymentsWebhook'])->name('subscription.nowpayments_webhook');
 Route::post('/comment/{id}/reply', [CommentController::class, 'reply'])->name('comment.reply');
 
 // User registration

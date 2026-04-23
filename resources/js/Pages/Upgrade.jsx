@@ -92,11 +92,12 @@ const Upgrade = () => {
                 return;
             }
 
+            const provider = paymentMethod === 'crypto' ? 'nowpayments' : 'flutterwave';
             const { data } = await axios.post('/subscription/initiate', {
                 plan_id: selectedPlan.id,
                 billing_period: billingPeriod,
                 currency,
-                payment_provider: 'flutterwave',
+                payment_provider: provider,
                 payment_method: paymentMethod,
             });
 
@@ -145,6 +146,13 @@ const Upgrade = () => {
             icon: 'account_balance',
             description: 'Pay with a bank transfer',
             currencies: ['NGN'],
+        },
+        {
+            id: 'crypto',
+            name: 'USDT (Stablecoin)',
+            icon: 'currency_bitcoin',
+            description: 'Pay with USDT on TRC-20, ERC-20 or other supported chains',
+            currencies: ['USD'],
         },
     ];
 
@@ -266,7 +274,11 @@ const Upgrade = () => {
                             onClick={() => {
                                 const next = currency === 'NGN' ? 'USD' : 'NGN';
                                 setCurrency(next);
-                                if (next === 'USD') setPaymentMethod('card');
+                                // If the currently-selected method isn't valid for the new
+                                // currency (e.g. banktransfer→USD or crypto→NGN), fall back to card.
+                                const stillValid = allPaymentMethods
+                                    .find(m => m.id === paymentMethod)?.currencies.includes(next);
+                                if (!stillValid) setPaymentMethod('card');
                             }}
                             style={{
                                 padding: '8px 16px',

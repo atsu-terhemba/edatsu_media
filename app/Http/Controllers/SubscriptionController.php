@@ -14,15 +14,18 @@ use App\Models\SubscriptionPlan;
 use App\Models\Subscription;
 use App\Models\Transaction;
 use App\Services\FlutterwaveService;
+use App\Services\NowPaymentsService;
 use Carbon\Carbon;
 
 class SubscriptionController extends Controller
 {
     protected FlutterwaveService $flutterwave;
+    protected NowPaymentsService $nowPayments;
 
-    public function __construct(FlutterwaveService $flutterwave)
+    public function __construct(FlutterwaveService $flutterwave, NowPaymentsService $nowPayments)
     {
         $this->flutterwave = $flutterwave;
+        $this->nowPayments = $nowPayments;
     }
 
     // Show the subscription/pricing page
@@ -147,9 +150,18 @@ class SubscriptionController extends Controller
             'plan_id' => 'required|string',
             'billing_period' => 'required|in:monthly,yearly',
             'currency' => 'required|in:NGN,USD',
-            'payment_provider' => 'required|in:flutterwave',
-            'payment_method' => 'nullable|in:card,banktransfer',
+            'payment_provider' => 'required|in:flutterwave,nowpayments',
+            'payment_method' => 'nullable|in:card,banktransfer,crypto',
         ]);
+
+        // Stablecoin payments are USD-priced only; reject mismatched currency early
+        // so the user gets a clear error instead of an opaque provider failure.
+        if ($request->payment_provider === 'nowpayments' && $request->currency !== 'USD') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Stablecoin payments are only available in USD. Switch the currency to USD and try again.',
+            ], 422);
+        }
 
         $user = Auth::user();
 
@@ -201,7 +213,7 @@ class SubscriptionController extends Controller
             $transaction = Transaction::create([
                 'user_id' => $user->id,
                 'reference' => $txRef,
-                'payment_provider' => 'flutterwave',
+                'payment_provider' => $request->payment_provider,
                 'amount' => $amount,
                 'currency' => $request->currency,
                 'status' => 'pending',
@@ -216,33 +228,52 @@ class SubscriptionController extends Controller
                 'currency' => $request->currency,
                 'amount' => $amount,
                 'status' => 'pending',
-                'payment_provider' => 'flutterwave',
+                'payment_provider' => $request->payment_provider,
             ]);
 
             $transaction->update(['subscription_id' => $subscription->id]);
 
-            $result = $this->flutterwave->initializePayment([
-                'tx_ref' => $txRef,
-                'amount' => $amount,
-                'currency' => $request->currency,
-                'redirect_url' => route('subscription.callback'),
-                'email' => $user->email,
-                'name' => $user->name,
-                'description' => "Edatsu Media #U{$user->id}",
-                'payment_options' => $request->payment_method ?? 'card,banktransfer',
-                'meta' => [
-                    'user_id' => $user->id,
-                    'plan_id' => $plan->id,
-                    'subscription_id' => $subscription->id,
-                    'billing_period' => $request->billing_period,
-                ],
-            ]);
-
-            if ($result['success']) {
-                return response()->json([
-                    'success' => true,
-                    'payment_url' => $result['payment_url'],
+            if ($request->payment_provider === 'nowpayments') {
+                $result = $this->nowPayments->createInvoice([
+                    'order_id' => $txRef,
+                    'amount' => $amount,
+                    'currency' => $request->currency,
+                    'description' => "Edatsu Media {$plan->name} ({$request->billing_period})",
+                    'ipn_callback_url' => route('subscription.nowpayments_webhook'),
+                    'success_url' => route('subscription.callback') . '?provider=nowpayments&order_id=' . $txRef,
+                    'cancel_url' => route('subscription') . '?cancelled=1',
                 ]);
+
+                if ($result['success'] && !empty($result['invoice_url'])) {
+                    return response()->json([
+                        'success' => true,
+                        'payment_url' => $result['invoice_url'],
+                    ]);
+                }
+            } else {
+                $result = $this->flutterwave->initializePayment([
+                    'tx_ref' => $txRef,
+                    'amount' => $amount,
+                    'currency' => $request->currency,
+                    'redirect_url' => route('subscription.callback'),
+                    'email' => $user->email,
+                    'name' => $user->name,
+                    'description' => "Edatsu Media #U{$user->id}",
+                    'payment_options' => $request->payment_method ?? 'card,banktransfer',
+                    'meta' => [
+                        'user_id' => $user->id,
+                        'plan_id' => $plan->id,
+                        'subscription_id' => $subscription->id,
+                        'billing_period' => $request->billing_period,
+                    ],
+                ]);
+
+                if ($result['success']) {
+                    return response()->json([
+                        'success' => true,
+                        'payment_url' => $result['payment_url'],
+                    ]);
+                }
             }
 
             $transaction->update(['status' => 'failed']);
@@ -505,6 +536,75 @@ class SubscriptionController extends Controller
                 }
             }
         }
+
+        return response()->json(['status' => 'success'], 200);
+    }
+
+    /**
+     * NOWPayments IPN handler. Verifies the HMAC-SHA512 signature, then on a
+     * confirmed/finished payment we re-fetch the payment from the API as the
+     * source of truth (never trust the webhook body alone) before activating.
+     */
+    public function handleNowPaymentsWebhook(Request $request)
+    {
+        $signature = $request->header('x-nowpayments-sig');
+        $rawBody = $request->getContent();
+
+        if (!$this->nowPayments->verifyIpnSignature($rawBody, $signature)) {
+            Log::warning('Invalid NOWPayments IPN signature');
+            return response()->json(['status' => 'error'], 401);
+        }
+
+        $payload = json_decode($rawBody, true) ?: [];
+        $orderId = $payload['order_id'] ?? null;
+        $paymentId = $payload['payment_id'] ?? null;
+        $status = strtolower((string) ($payload['payment_status'] ?? ''));
+
+        if (!$orderId || !$paymentId) {
+            return response()->json(['status' => 'ignored'], 200);
+        }
+
+        // Activate only on terminal success states.
+        if (!in_array($status, ['confirmed', 'finished'], true)) {
+            return response()->json(['status' => 'noop'], 200);
+        }
+
+        $transaction = Transaction::where('reference', $orderId)
+            ->where('status', 'pending')
+            ->first();
+
+        if (!$transaction) {
+            return response()->json(['status' => 'unknown_or_handled'], 200);
+        }
+
+        $lookup = $this->nowPayments->getPayment((string) $paymentId);
+        if (!$lookup['success']) {
+            Log::warning('NOWPayments IPN re-verify failed', [
+                'order_id' => $orderId,
+                'payment_id' => $paymentId,
+            ]);
+            return response()->json(['status' => 'reverify_failed'], 500);
+        }
+
+        $verified = $lookup['data'];
+        $verifiedStatus = strtolower((string) ($verified['payment_status'] ?? ''));
+        if (!in_array($verifiedStatus, ['confirmed', 'finished'], true)) {
+            return response()->json(['status' => 'not_yet_final'], 200);
+        }
+
+        // Defence-in-depth: amount must match what we created the invoice with.
+        $expected = (float) $transaction->amount;
+        $actual = (float) ($verified['price_amount'] ?? 0);
+        if (abs($expected - $actual) > 0.01) {
+            Log::error('NOWPayments amount mismatch', [
+                'order_id' => $orderId,
+                'expected' => $expected,
+                'actual' => $actual,
+            ]);
+            return response()->json(['status' => 'amount_mismatch'], 400);
+        }
+
+        $this->activateSubscription($transaction, $verified);
 
         return response()->json(['status' => 'success'], 200);
     }
