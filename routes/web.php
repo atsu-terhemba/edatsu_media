@@ -241,6 +241,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // Pro gating
     Route::get('/admin-pro-gating', [\App\Http\Controllers\Admin\ProGatingController::class, 'index'])->name('admin.pro_gating');
     Route::post('/admin-pro-gating', [\App\Http\Controllers\Admin\ProGatingController::class, 'update'])->name('admin.pro_gating.update');
+
+    // Subscriptions & payments overview
+    Route::get('/admin-subscriptions', [\App\Http\Controllers\Admin\SubscriptionsController::class, 'index'])->name('admin.subscriptions');
     
     // Product management
     Route::get('/post-product', [ProductController::class, 'show'])->name('admin.products');

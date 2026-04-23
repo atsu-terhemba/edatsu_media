@@ -707,10 +707,36 @@ const Upgrade = () => {
                                 </div>
                             ))}
 
+                            {/* Crypto minimum guardrail */}
+                            {paymentMethod === 'crypto' && billingPeriod === 'monthly' && (
+                                <div style={{
+                                    marginTop: '16px',
+                                    padding: '12px 16px',
+                                    background: '#fff7ed',
+                                    border: '1px solid #fed7aa',
+                                    borderRadius: '12px',
+                                    fontSize: '13px',
+                                    color: '#9a3412',
+                                    display: 'flex',
+                                    gap: '10px',
+                                    alignItems: 'flex-start',
+                                }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '18px', flexShrink: 0 }}>info</span>
+                                    <span>
+                                        Crypto payments require a minimum of $10. Switch to the
+                                        <strong> yearly plan</strong> to pay with USDT, or pick another payment method.
+                                    </span>
+                                </div>
+                            )}
+
                             {/* Pay Button */}
+                            {(() => {
+                                const cryptoBlocked = paymentMethod === 'crypto' && billingPeriod === 'monthly';
+                                const disabled = !paymentMethod || isProcessing || cryptoBlocked;
+                                return (
                             <button
                                 onClick={handlePayment}
-                                disabled={!paymentMethod || isProcessing}
+                                disabled={disabled}
                                 style={{
                                     display: 'inline-flex',
                                     alignItems: 'center',
@@ -724,10 +750,10 @@ const Upgrade = () => {
                                     border: 'none',
                                     background: '#000',
                                     color: '#fff',
-                                    cursor: (!paymentMethod || isProcessing) ? 'not-allowed' : 'pointer',
+                                    cursor: disabled ? 'not-allowed' : 'pointer',
                                     transition: 'all 0.15s ease',
                                     marginTop: '24px',
-                                    opacity: (!paymentMethod || isProcessing) ? 0.4 : 1,
+                                    opacity: disabled ? 0.4 : 1,
                                 }}
                             >
                                 {isProcessing ? (
@@ -739,6 +765,8 @@ const Upgrade = () => {
                                     <>Pay {formatPrice(selectedPlan.price[billingPeriod][currency])}</>
                                 )}
                             </button>
+                                );
+                            })()}
                             <div className="d-flex align-items-center justify-content-center gap-1" style={{
                                 fontSize: '12px',
                                 color: '#86868b',

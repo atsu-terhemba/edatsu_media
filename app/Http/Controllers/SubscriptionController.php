@@ -203,6 +203,17 @@ class SubscriptionController extends Controller
                 ], 400);
             }
 
+            // NOWPayments has per-chain network-fee minimums (lowest is TRC-20 USDT
+            // around $5–10). Charging less than 10 USD risks the invoice being
+            // rejected at the chain selection step with an unhelpful error, so we
+            // gate it here and ask the user to pick the yearly plan instead.
+            if ($request->payment_provider === 'nowpayments' && (float) $amount < 10) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Stablecoin payments require a minimum of $10. Switch to the yearly plan to pay with USDT.',
+                ], 422);
+            }
+
             // Cancel any prior pending subscriptions/transactions for this user so we
             // never have more than one in-flight payment. This also protects the
             // webhook path, which activates the first matching `status=pending` row.
