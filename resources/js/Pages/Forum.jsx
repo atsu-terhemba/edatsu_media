@@ -106,10 +106,10 @@ const Forum = () => {
             : threads;
 
     const tabs = [
-        { id: 'all', label: 'All discussions', count: threads.length },
+        { id: 'all', label: 'All discussions', shortLabel: 'All', count: threads.length },
         ...(isAuthenticated ? [
-            { id: 'mine', label: 'My discussions', count: myThreadCount },
-            { id: 'others', label: 'Others', count: threads.length - myThreadCount },
+            { id: 'mine', label: 'My discussions', shortLabel: 'Mine', count: myThreadCount },
+            { id: 'others', label: 'Others', shortLabel: 'Others', count: threads.length - myThreadCount },
         ] : []),
     ];
 
@@ -136,6 +136,74 @@ const Forum = () => {
         <GuestLayout>
             <Metadata title="Forum" description="Community discussions from articles you read" />
 
+            <style>{`
+                .forum-tabs {
+                    display: flex;
+                    gap: 4px;
+                    margin-bottom: 20px;
+                    padding: 4px;
+                    background: #fff;
+                    border: 1px solid #f0f0f0;
+                    border-radius: 9999px;
+                    width: fit-content;
+                    max-width: 100%;
+                }
+                .forum-tab {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                    padding: 7px 16px;
+                    border-radius: 9999px;
+                    font-size: 13px;
+                    font-weight: 500;
+                    background: transparent;
+                    color: #86868b;
+                    border: none;
+                    cursor: pointer;
+                    transition: all 0.15s ease;
+                    font-family: 'Poppins', sans-serif;
+                    white-space: nowrap;
+                    min-width: 0;
+                }
+                .forum-tab.is-active {
+                    background: #000;
+                    color: #fff;
+                }
+                .forum-tab-label-short { display: none; }
+                .forum-tab-count {
+                    font-size: 11px;
+                    font-weight: 600;
+                    padding: 1px 8px;
+                    border-radius: 9999px;
+                    background: #f5f5f7;
+                    color: #86868b;
+                }
+                .forum-tab.is-active .forum-tab-count {
+                    background: rgba(255,255,255,0.18);
+                    color: #fff;
+                }
+                @media (max-width: 575.98px) {
+                    .forum-tabs {
+                        width: 100%;
+                        padding: 3px;
+                        gap: 2px;
+                    }
+                    .forum-tab {
+                        flex: 1 1 0;
+                        padding: 9px 8px;
+                        font-size: 12px;
+                        gap: 5px;
+                    }
+                    .forum-tab-label-long { display: none; }
+                    .forum-tab-label-short { display: inline; }
+                    .forum-tab-count {
+                        font-size: 10px;
+                        padding: 1px 6px;
+                    }
+                }
+            `}</style>
+
             <section style={{ background: '#f5f5f7', minHeight: '90vh', padding: '96px 0 120px' }}>
                 <Container>
                     <Row className="justify-content-center">
@@ -154,40 +222,18 @@ const Forum = () => {
                             </div>
 
                             {isAuthenticated && (
-                                <div style={{
-                                    display: 'flex', gap: '6px', flexWrap: 'wrap',
-                                    marginBottom: '20px', padding: '4px',
-                                    background: '#fff', border: '1px solid #f0f0f0',
-                                    borderRadius: '9999px', width: 'fit-content', maxWidth: '100%',
-                                    overflowX: 'auto',
-                                }}>
+                                <div className="forum-tabs">
                                     {tabs.map((tab) => {
                                         const isActive = activeTab === tab.id;
                                         return (
                                             <button
                                                 key={tab.id}
                                                 onClick={() => setActiveTab(tab.id)}
-                                                style={{
-                                                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                                                    padding: '7px 16px', borderRadius: '9999px',
-                                                    fontSize: '13px', fontWeight: 500,
-                                                    background: isActive ? '#000' : 'transparent',
-                                                    color: isActive ? '#fff' : '#86868b',
-                                                    border: 'none', cursor: 'pointer',
-                                                    transition: 'all 0.15s ease',
-                                                    fontFamily: "'Poppins', sans-serif",
-                                                    whiteSpace: 'nowrap',
-                                                }}
+                                                className={`forum-tab${isActive ? ' is-active' : ''}`}
                                             >
-                                                {tab.label}
-                                                <span style={{
-                                                    fontSize: '11px', fontWeight: 600,
-                                                    padding: '1px 8px', borderRadius: '9999px',
-                                                    background: isActive ? 'rgba(255,255,255,0.18)' : '#f5f5f7',
-                                                    color: isActive ? '#fff' : '#86868b',
-                                                }}>
-                                                    {tab.count}
-                                                </span>
+                                                <span className="forum-tab-label-long">{tab.label}</span>
+                                                <span className="forum-tab-label-short">{tab.shortLabel}</span>
+                                                <span className="forum-tab-count">{tab.count}</span>
                                             </button>
                                         );
                                     })}

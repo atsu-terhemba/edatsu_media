@@ -121,6 +121,20 @@ Route::get('/legacy-feeds', [FeedsController::class, 'displayFeeds'])->name('fin
 Route::get('/forum', [ForumController::class, 'index'])->name('forum');
 Route::get('/forum/{id}', [ForumController::class, 'show'])->name('forum.show')->where('id', '[0-9]+');
 Route::get('/api/forum/categories', [ForumController::class, 'categories']);
+
+// Weekly-digest one-click unsubscribe. Signed URL so the link in the email
+// can't be guessed or replayed after expiry. Flips the UserPreference flag
+// for that user and renders a plain confirmation page. No auth required —
+// the signature is the auth.
+Route::get('/newsletter/weekly-digest/unsubscribe/{user}', function (int $user) {
+    $pref = \App\Models\UserPreference::where('user_id', $user)->first();
+    if ($pref) {
+        $pref->update(['weekly_digest_optin' => false]);
+    }
+    return response()->view('newsletter.weekly-digest-unsubscribed', [
+        'appUrl' => config('app.url'),
+    ]);
+})->middleware('signed')->name('newsletter.weekly_digest.unsubscribe');
 Route::get('/news-feed', [RssFeedController::class, 'index'])->name('daily.feeds');
 
 // Additional pages

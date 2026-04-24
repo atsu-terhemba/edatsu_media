@@ -118,6 +118,7 @@ export default function Preferences({ userPreferences, categories, countries, re
         forum_notifications: userPreferences?.forum_notifications ?? true,
         forum_categories: userPreferences?.forum_categories?.map(id =>
             categoryOptions.find(opt => opt.value === id)).filter(Boolean) || [],
+        weekly_digest_optin: userPreferences?.weekly_digest_optin ?? true,
     });
 
     const [loading, setLoading] = useState(false);
@@ -149,6 +150,7 @@ export default function Preferences({ userPreferences, categories, countries, re
             product_notifications: formData.product_notifications,
             forum_notifications: formData.forum_notifications,
             forum_categories: formData.forum_categories.map(opt => opt.value),
+            weekly_digest_optin: formData.weekly_digest_optin,
         };
 
         try {
@@ -211,6 +213,13 @@ export default function Preferences({ userPreferences, categories, countries, re
             icon: 'forum',
             title: 'Forum Notifications',
             description: 'Get notified when someone replies to discussions you participate in',
+        },
+        {
+            id: 'weekly_digest_optin',
+            field: 'weekly_digest_optin',
+            icon: 'newspaper',
+            title: 'Weekly Opportunity Digest',
+            description: 'Saturday morning email with up to 4 opportunities matched to your categories, countries, regions, and brands',
         },
     ];
 

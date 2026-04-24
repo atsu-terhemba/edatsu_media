@@ -401,6 +401,7 @@ class SubscriberController extends Controller
             'product_notifications' => 'boolean',
             'forum_notifications' => 'boolean',
             'forum_categories' => 'nullable|array',
+            'weekly_digest_optin' => 'boolean',
         ]);
 
         UserPreference::updateOrCreate(

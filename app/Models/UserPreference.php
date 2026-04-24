@@ -23,6 +23,8 @@ class UserPreference extends Model
         'product_notifications',
         'forum_notifications',
         'forum_categories',
+        'weekly_digest_optin',
+        'weekly_digest_last_sent_at',
     ];
 
     protected $casts = [
@@ -38,6 +40,8 @@ class UserPreference extends Model
         'product_notifications' => 'boolean',
         'forum_notifications' => 'boolean',
         'forum_categories' => 'array',
+        'weekly_digest_optin' => 'boolean',
+        'weekly_digest_last_sent_at' => 'datetime',
     ];
 
     // Relationship with User

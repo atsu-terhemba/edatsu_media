@@ -271,6 +271,78 @@ This will output a public/private key pair. Add them to your `.env` file.
 
 ---
 
+## Weekly Opportunity Digest
+
+The Saturday-morning digest (`newsletters:send-weekly-digest`) reuses the cron + queue worker + mail driver you already set up above — no new infrastructure, but a few things must be true for any mail to leave the box.
+
+### What fires when
+
+Both entries live in `routes/console.php`:
+
+| Cron | Local time (Africa/Lagos) | What happens |
+|------|---------------------------|--------------|
+| `newsletters:send-weekly-digest --dry-run` | Saturday 07:50 | Logs `sent=X, skipped_no_prefs=Y, skipped_no_matches=Z` to `storage/logs/digest-dryrun.log`. No mail queued. |
+| `newsletters:send-weekly-digest` | Saturday 08:00 | Queues one `WeeklyOpportunityDigest` mailable per matched user. |
+
+The command is idempotent: `weekly_digest_last_sent_at` on `user_preferences` blocks a re-send within 5 days, so a scheduler overlap or manual trigger in the same window is a no-op.
+
+### Required for delivery
+
+- **Cron job** — same `* * * * * php artisan schedule:run` line above. Without it, neither entry fires.
+- **Queue worker** — the mailable is `ShouldQueue`; without a worker, jobs pile up in the `jobs` table and no email leaves. Supervisor config above already covers this.
+- **Mail driver** — `MAIL_MAILER` must be a real provider. On `log` the digest "sends" silently to `storage/logs/laravel.log`.
+- **Queue backend** — `QUEUE_CONNECTION=database` (default) needs the `jobs` table migrated. `sync` works but blocks the scheduler for SMTP latency on every user.
+
+### Ad slot (optional)
+
+The email has a single ad block in the footer rendered from `ad_settings` when a matching row exists:
+
+```sql
+INSERT INTO ad_settings (slot_name, page, position, size, ad_type, image_url, link_url, link_target, is_active, is_visible, is_feed_ad, `order`, created_at, updated_at)
+VALUES ('newsletter_footer', 'newsletter', 'footer', '600x150', 'image', 'https://...', 'https://...', '_blank', 1, 1, 0, 0, NOW(), NOW());
+```
+
+`page='all'` also matches. If no row is found, the ad slot is simply omitted — the email still ships.
+
+### Opt-out paths
+
+- One-click: signed-URL link at the bottom of the email (`/newsletter/weekly-digest/unsubscribe/{user}`). No auth required — the signature is the auth.
+- Settings: the "Weekly Opportunity Digest" toggle on `/preferences` writes `weekly_digest_optin` directly.
+
+Both flip the same flag, so a user who opts out via either never gets the digest again unless they re-enable it on `/preferences`.
+
+### Log rotation
+
+`storage/logs/digest-dryrun.log` grows ~1 line/week (empty weeks skip it). If you ever tail it and it's huge, that's a sign the command is failing mid-run — check `storage/logs/laravel.log` for the stacktrace. Add to logrotate if you care:
+
+```
+/path-to-your-project/storage/logs/digest-dryrun.log {
+    monthly
+    rotate 6
+    missingok
+    notifempty
+    compress
+}
+```
+
+### Verify end-to-end
+
+```bash
+# Fake the send for yourself to see the real email
+cd /path-to-your-project
+php artisan newsletters:send-weekly-digest --user=<your-user-id>
+
+# Inspect what would happen in the real batch, no mail queued
+php artisan newsletters:send-weekly-digest --dry-run
+
+# Worker log will show the queued job being picked up
+tail -f storage/logs/worker.log
+```
+
+If `--user=<id>` reports "sent=1" but no email arrives, the queue worker isn't running or the mail driver is still `log`.
+
+---
+
 ## Quick Checklist
 
 - [ ] Cron job added: `* * * * * cd /path && php artisan schedule:run >> /dev/null 2>&1`
@@ -279,6 +351,8 @@ This will output a public/private key pair. Add them to your `.env` file.
 - [ ] `MAIL_FROM_ADDRESS` and `MAIL_FROM_NAME` configured
 - [ ] `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` set in `.env`
 - [ ] Queue worker restarted after each deployment (`php artisan queue:restart`)
+- [ ] Weekly digest dry-run confirmed once: `php artisan newsletters:send-weekly-digest --dry-run`
+- [ ] (Optional) `ad_settings` row with `page='newsletter'` for the footer ad slot
 
 ---
 

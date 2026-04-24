@@ -11,6 +11,7 @@ use App\Models\Notification;
 use App\Models\User;
 use App\Models\UserPreference;
 use App\Notifications\ForumInviteNotification;
+use App\Services\WebPushService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -525,6 +526,24 @@ class ForumController extends Controller
                     Log::warning("Forum invite mail failed for user {$recipient->id}: " . $e->getMessage());
                 }
             }
+
+            // Forum push is free for everyone (not gated behind Pro). Send after
+            // email so a push failure doesn't short-circuit email delivery.
+            $pushService = app(WebPushService::class);
+            foreach ($matchedUserIds as $uid) {
+                try {
+                    $pushService->sendToUser($uid, [
+                        'title' => $title,
+                        'body' => $preview,
+                        'icon' => '/img/logo.png',
+                        'badge' => '/img/logo.png',
+                        'url' => $url,
+                        'tag' => 'forum-thread-' . $thread->id,
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::warning("Forum invite push failed for user {$uid}: " . $e->getMessage());
+                }
+            }
         } catch (\Throwable $e) {
             Log::error('Forum notification error: ' . $e->getMessage());
         }
@@ -608,6 +627,24 @@ class ForumController extends Controller
                         'post_id' => $post->id,
                     ],
                 ]);
+            }
+
+            // Forum push is free for everyone (not gated behind Pro).
+            $pushService = app(WebPushService::class);
+            $pushTitle = "{$replierName} replied";
+            foreach ($recipients as $uid) {
+                try {
+                    $pushService->sendToUser($uid, [
+                        'title' => $pushTitle,
+                        'body' => $preview,
+                        'icon' => '/img/logo.png',
+                        'badge' => '/img/logo.png',
+                        'url' => $url,
+                        'tag' => 'forum-reply-' . $thread->id,
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::warning("Forum reply push failed for user {$uid}: " . $e->getMessage());
+                }
             }
         } catch (\Throwable $e) {
             Log::error('Forum reply notification error: ' . $e->getMessage());
