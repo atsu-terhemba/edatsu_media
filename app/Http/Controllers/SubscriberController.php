@@ -956,14 +956,14 @@ class SubscriberController extends Controller
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $user = Auth::user();
-            if (!FeatureGate::proOnly($user, 'web_push')) {
-                return FeatureGate::denied(
-                    'web_push',
-                    'Web push notifications are a Pro feature. Upgrade to Pro to get real-time alerts.'
-                );
-            }
-            $userId = $user->id;
+            // Subscribe is permissive on purpose — a single browser endpoint can
+            // receive multiple push types over its lifetime (forum push is free
+            // for everyone, bookmark-reminder push is Pro-only). Gating happens
+            // at send time in each notifier (see ProcessBookmarkReminders for
+            // the FeatureGate::proOnly('web_push') check). Blocking here would
+            // also prevent Free users from ever receiving forum push, even
+            // though they're entitled to it.
+            $userId = Auth::user()->id;
 
             PushSubscription::updateOrCreate(
                 ['endpoint' => $request->endpoint, 'user_id' => $userId],
