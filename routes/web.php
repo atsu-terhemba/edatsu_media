@@ -208,6 +208,8 @@ Route::middleware(['auth', 'verified.writes'])->group(function () {
     Route::get('/api/notifications', [SubscriberController::class, 'getNotifications']);
     Route::put('/api/notifications/mark-all-read', [SubscriberController::class, 'markAllNotificationsAsRead']);
     Route::put('/api/notifications/{id}/read', [SubscriberController::class, 'markNotificationAsRead']);
+    Route::delete('/api/notifications/clear', [SubscriberController::class, 'clearNotifications']);
+    Route::delete('/api/notifications/{id}', [SubscriberController::class, 'deleteNotification']);
 
     // Push notification subscription
     Route::post('/api/push/subscribe', [SubscriberController::class, 'subscribePush']);

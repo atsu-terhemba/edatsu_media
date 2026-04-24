@@ -4,6 +4,7 @@ import { Head } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import SubscriberSideNav from './Components/SideNav';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 import NotificationsSkeleton from '@/Components/NotificationsSkeleton';
 
 export default function Notifications() {
@@ -42,6 +43,60 @@ export default function Notifications() {
             fetchNotifications();
         } catch (error) {
             console.error('Error marking all notifications as read:', error);
+        }
+    };
+
+    const deleteNotification = async (notificationId) => {
+        // Optimistic update — feels instant; reconcile on error.
+        const prev = notifications;
+        setNotifications((list) => list.filter((n) => n.id !== notificationId));
+        try {
+            await axios.delete(`/api/notifications/${notificationId}`);
+        } catch (error) {
+            console.error('Error deleting notification:', error);
+            setNotifications(prev);
+        }
+    };
+
+    const clearAll = async () => {
+        const scopeLabel = filter === 'unread' ? 'unread'
+            : filter === 'read' ? 'read'
+            : 'all';
+        const count = filter === 'unread'
+            ? notifications.filter((n) => !n.is_read).length
+            : filter === 'read'
+            ? notifications.filter((n) => n.is_read).length
+            : notifications.length;
+
+        if (count === 0) return;
+
+        const result = await Swal.fire({
+            title: `Clear ${scopeLabel} notifications?`,
+            text: `This will permanently remove ${count} notification${count === 1 ? '' : 's'}. This can't be undone.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#86868b',
+            confirmButtonText: 'Clear',
+            cancelButtonText: 'Keep them',
+            customClass: { popup: 'swal2-popup' },
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            await axios.delete('/api/notifications/clear', {
+                params: { filter },
+            });
+            fetchNotifications();
+        } catch (error) {
+            console.error('Error clearing notifications:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Could not clear',
+                text: 'Please try again.',
+                confirmButtonColor: '#000',
+            });
         }
     };
 
@@ -99,7 +154,7 @@ export default function Notifications() {
                         <Col md={9} xs={12}>
                             {/* Header */}
                             <div style={{ marginBottom: '28px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
                                     {unreadCount > 0 && (
                                         <button
                                             onClick={markAllAsRead}
@@ -122,6 +177,32 @@ export default function Notifications() {
                                         >
                                             <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>done_all</span>
                                             Mark all read
+                                        </button>
+                                    )}
+                                    {notifications.length > 0 && (
+                                        <button
+                                            onClick={clearAll}
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                padding: '8px 16px',
+                                                border: '1px solid #fecaca',
+                                                borderRadius: '9999px',
+                                                background: '#fff',
+                                                fontSize: '13px',
+                                                fontWeight: 500,
+                                                color: '#dc2626',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.15s ease',
+                                            }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.background = '#fef2f2'; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete_sweep</span>
+                                            {filter === 'unread' ? 'Clear unread'
+                                                : filter === 'read' ? 'Clear read'
+                                                : 'Clear all'}
                                         </button>
                                     )}
                                 </div>
@@ -325,6 +406,29 @@ export default function Notifications() {
                                                                 Mark read
                                                             </button>
                                                         )}
+
+                                                        <button
+                                                            onClick={() => deleteNotification(notification.id)}
+                                                            aria-label="Delete notification"
+                                                            style={{
+                                                                fontSize: '12px',
+                                                                fontWeight: 500,
+                                                                color: '#b0b0b5',
+                                                                background: 'none',
+                                                                border: 'none',
+                                                                cursor: 'pointer',
+                                                                padding: 0,
+                                                                marginLeft: 'auto',
+                                                                display: 'inline-flex',
+                                                                alignItems: 'center',
+                                                                gap: '3px',
+                                                                transition: 'color 0.15s ease',
+                                                            }}
+                                                            onMouseEnter={(e) => { e.currentTarget.style.color = '#dc2626'; }}
+                                                            onMouseLeave={(e) => { e.currentTarget.style.color = '#b0b0b5'; }}
+                                                        >
+                                                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>close</span>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>

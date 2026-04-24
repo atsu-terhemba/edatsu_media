@@ -677,7 +677,7 @@ class SubscriberController extends Controller
          */
         public function markAllNotificationsAsRead(Request $request) {
             $user_id = Auth::user()->id;
-            
+
             Notification::where('user_id', $user_id)
                 ->where('is_read', false)
                 ->update([
@@ -686,6 +686,50 @@ class SubscriberController extends Controller
                 ]);
 
             return response()->json(['status' => 'success']);
+        }
+
+        /**
+         * Delete a single notification. Hard delete — notifications are
+         * transient surfaces; users expect "dismiss" to actually remove.
+         */
+        public function deleteNotification(Request $request, $id) {
+            $user_id = Auth::user()->id;
+
+            $deleted = Notification::where('id', $id)
+                ->where('user_id', $user_id)
+                ->delete();
+
+            if ($deleted) {
+                return response()->json(['status' => 'success']);
+            }
+
+            return response()->json(['status' => 'error'], 404);
+        }
+
+        /**
+         * Delete notifications matching the active filter (all / unread / read).
+         * Scoped to the auth user only. Respecting the filter lets the
+         * "Read" tab act as a cleanup surface without nuking unread items.
+         */
+        public function clearNotifications(Request $request) {
+            $user_id = Auth::user()->id;
+            $filter = $request->get('filter', 'all');
+
+            $query = Notification::where('user_id', $user_id);
+
+            if ($filter === 'unread') {
+                $query->where('is_read', false);
+            } elseif ($filter === 'read') {
+                $query->where('is_read', true);
+            }
+
+            $count = $query->count();
+            $query->delete();
+
+            return response()->json([
+                'status' => 'success',
+                'deleted' => $count,
+            ]);
         }
 
         /**
