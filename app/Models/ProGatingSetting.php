@@ -33,8 +33,8 @@ class ProGatingSetting extends Model
     {
         return static::firstOrCreate(['id' => 1], [
             'enabled' => false,
-            'bookmarks_max' => 10,
-            'saved_articles_max' => 20,
+            'bookmarks_max' => 5,
+            'saved_articles_max' => 5,
             'reminders_max' => 3,
             'custom_feeds_max' => 5,
             'bulk_export_pro_only' => true,

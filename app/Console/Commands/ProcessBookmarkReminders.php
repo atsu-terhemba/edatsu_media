@@ -5,6 +5,8 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Bookmark;
 use App\Models\Notification;
+use App\Models\User;
+use App\Services\FeatureGate;
 use App\Services\WebPushService;
 use Carbon\Carbon;
 
@@ -58,19 +60,26 @@ class ProcessBookmarkReminders extends Command
                         ]
                     ]);
 
-                    // Send push notification
-                    try {
-                        $pushService = app(WebPushService::class);
-                        $pushService->sendToUser($bookmark->user_id, [
-                            'title' => 'Bookmark Reminder',
-                            'body' => "Don't forget about: {$itemTitle}",
-                            'icon' => '/img/logo.png',
-                            'badge' => '/img/logo.png',
-                            'url' => $actionUrl,
-                            'tag' => 'reminder-' . $bookmark->id,
-                        ]);
-                    } catch (\Exception $e) {
-                        $this->warn("Push notification failed for bookmark {$bookmark->id}: " . $e->getMessage());
+                    // Bookmark-reminder push is Pro-gated (web_push_pro_only).
+                    // Forum push is wired separately and stays free. In-app
+                    // notification above still fires for Free users so they
+                    // see the reminder inside the app — they just don't get
+                    // a push to the device.
+                    $user = User::find($bookmark->user_id);
+                    if (FeatureGate::proOnly($user, 'web_push')) {
+                        try {
+                            $pushService = app(WebPushService::class);
+                            $pushService->sendToUser($bookmark->user_id, [
+                                'title' => 'Bookmark Reminder',
+                                'body' => "Don't forget about: {$itemTitle}",
+                                'icon' => '/img/logo.png',
+                                'badge' => '/img/logo.png',
+                                'url' => $actionUrl,
+                                'tag' => 'reminder-' . $bookmark->id,
+                            ]);
+                        } catch (\Exception $e) {
+                            $this->warn("Push notification failed for bookmark {$bookmark->id}: " . $e->getMessage());
+                        }
                     }
 
                     $bookmark->markReminderSent();

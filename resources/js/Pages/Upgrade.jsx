@@ -156,7 +156,16 @@ const Upgrade = () => {
         },
     ];
 
-    const paymentMethods = allPaymentMethods.filter(m => m.currencies.includes(currency));
+    // Always show all payment methods — otherwise USDT is invisible to users
+    // landing on the default NGN currency and they never discover it. If they
+    // pick a method whose currency doesn't match the current toggle, we flip
+    // the currency for them.
+    const selectPaymentMethod = (method) => {
+        if (!method.currencies.includes(currency)) {
+            setCurrency(method.currencies[0]);
+        }
+        setPaymentMethod(method.id);
+    };
 
     return (
         <AuthenticatedLayout>
@@ -210,7 +219,7 @@ const Upgrade = () => {
                         maxWidth: '420px',
                         margin: '0 auto 32px',
                     }}>
-                        Supercharge your opportunity hunting with smart reminders, AI, and unlimited saves.
+                        Supercharge your opportunity hunting with unlimited saves, smart reminders, and an ad-free feed.
                     </p>
 
                     {/* Toggles */}
@@ -676,7 +685,9 @@ const Upgrade = () => {
                                 Payment Method
                             </div>
 
-                            {paymentMethods.map((method) => (
+                            {allPaymentMethods.map((method) => {
+                                const currencyMismatch = !method.currencies.includes(currency);
+                                return (
                                 <div
                                     key={method.id}
                                     className="d-flex align-items-center"
@@ -690,14 +701,35 @@ const Upgrade = () => {
                                         marginBottom: '8px',
                                         background: paymentMethod === method.id ? '#fafafa' : '#fff',
                                     }}
-                                    onClick={() => setPaymentMethod(method.id)}
+                                    onClick={() => selectPaymentMethod(method)}
                                 >
                                     <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#374151' }}>
                                         {method.icon}
                                     </span>
-                                    <div className="flex-grow-1">
-                                        <div style={{ fontSize: '14px', fontWeight: 500, color: '#000' }}>{method.name}</div>
-                                        <div style={{ fontSize: '12px', color: '#86868b' }}>{method.description}</div>
+                                    <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                                        <div className="d-flex align-items-center" style={{ gap: '8px', flexWrap: 'wrap' }}>
+                                            <span style={{ fontSize: '14px', fontWeight: 500, color: '#000' }}>{method.name}</span>
+                                            <span style={{
+                                                fontSize: '10px',
+                                                fontWeight: 600,
+                                                letterSpacing: '0.04em',
+                                                textTransform: 'uppercase',
+                                                color: currencyMismatch ? '#86868b' : '#16a34a',
+                                                background: currencyMismatch ? '#f5f5f7' : 'rgba(22,163,74,0.1)',
+                                                padding: '2px 8px',
+                                                borderRadius: '9999px',
+                                            }}>
+                                                {method.currencies.join(' / ')}
+                                            </span>
+                                        </div>
+                                        <div style={{ fontSize: '12px', color: '#86868b' }}>
+                                            {method.description}
+                                            {currencyMismatch && (
+                                                <span style={{ color: '#c2410c' }}>
+                                                    {` · Switches to ${method.currencies[0]}`}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                     {paymentMethod === method.id && (
                                         <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#16a34a' }}>
@@ -705,7 +737,8 @@ const Upgrade = () => {
                                         </span>
                                     )}
                                 </div>
-                            ))}
+                                );
+                            })}
 
                             {/* Crypto minimum guardrail */}
                             {paymentMethod === 'crypto' && billingPeriod === 'monthly' && (
@@ -856,7 +889,18 @@ const Upgrade = () => {
                                 borderRadius: '12px',
                                 marginBottom: '16px',
                             }}>
-                                <span className="spinner-border spinner-border-sm" style={{ color: '#f97316' }} />
+                                <span
+                                    className="material-symbols-outlined"
+                                    style={{
+                                        fontSize: '20px',
+                                        color: '#f97316',
+                                        animation: 'spin 1.2s linear infinite',
+                                        display: 'inline-block',
+                                        lineHeight: 1,
+                                    }}
+                                >
+                                    progress_activity
+                                </span>
                                 <div style={{ fontSize: '13px', color: '#7c2d12', lineHeight: 1.4 }}>
                                     Waiting for payment… Your Pro plan activates automatically once the transfer is received.
                                 </div>

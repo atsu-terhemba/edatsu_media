@@ -84,19 +84,19 @@ const Subscription = () => {
     };
 
     const proFeatures = [
-        { icon: 'all_inclusive', title: 'Unlimited Saves', desc: 'Save as many opportunities and tools as you want. No limits, no restrictions.' },
-        { icon: 'notifications_active', title: 'Smart Reminders', desc: 'Push notifications and email alerts for deadlines. Never miss an application window.' },
-        { icon: 'calendar_month', title: 'Calendar Sync', desc: 'Automatically sync deadlines to your Google Calendar. All your dates in one place.' },
-        { icon: 'smart_toy', title: 'AI Assistant', desc: 'AI-powered recommendations tailored to your profile, goals, and interests.' },
-        { icon: 'block', title: 'Ad-Free', desc: 'Browse and research opportunities without any distractions whatsoever.' },
-        { icon: 'download', title: 'Export Data', desc: 'Download your saved opportunities as PDF or CSV. Share with your team.' },
+        { icon: 'all_inclusive', title: 'Unlimited Saves', desc: 'Save as many opportunities, tools, and articles as you want. No caps.' },
+        { icon: 'notifications_active', title: 'Deadline Push Alerts', desc: 'Get push and email alerts before your bookmarked opportunities expire.' },
+        { icon: 'rss_feed', title: 'Unlimited Feeds', desc: 'Follow as many custom RSS sources as you need — no 5-feed ceiling.' },
+        { icon: 'compare_arrows', title: 'Compare 5 Tools', desc: 'Stack up to five tools side-by-side instead of just two.' },
+        { icon: 'block', title: 'Ad-Free Reading', desc: 'Browse opportunities, tools, and feeds with no in-feed ads.' },
+        { icon: 'download', title: 'Bulk Export', desc: 'Download your saved opportunities and articles as PDF or CSV.' },
     ];
 
     const faqs = [
-        { q: 'How do smart reminders work?', a: 'When you save an opportunity with a deadline, you can set custom reminders. We\'ll send you push notifications and email alerts before the deadline so you never miss an application window.' },
-        { q: 'How does Google Calendar sync work?', a: 'Connect your Google Calendar once, and we\'ll automatically add opportunity deadlines as calendar events alongside your other commitments.' },
-        { q: 'What can the AI Assistant do?', a: 'Your personalized AI assistant learns your preferences and goals to recommend the most relevant opportunities. Ask it questions like "Find grants for tech startups in Africa" and get instant, tailored results.' },
-        { q: 'Can I cancel my subscription anytime?', a: 'Absolutely! Cancel anytime with no questions asked. You\'ll keep Pro access until the end of your billing period.' },
+        { q: 'Do I get push notifications on the Free plan?', a: 'Yes — everyone gets push alerts for forum activity (new discussions that match your interests, replies to threads you\'re in). Push alerts for bookmark deadline reminders are a Pro feature.' },
+        { q: 'What quotas are lifted on Pro?', a: 'Free is capped at 5 bookmarked opportunities/tools, 5 saved articles, 3 active reminders, and 5 custom RSS feeds. Pro removes all of those caps.' },
+        { q: 'What do I get beyond the higher limits?', a: 'Push alerts for bookmark deadlines, bulk export of saved items (PDF / CSV), an ad-free reading feed, and the ability to compare up to 5 tools side-by-side instead of 2.' },
+        { q: 'Can I cancel my subscription anytime?', a: 'Absolutely. Cancel anytime with no questions asked — you\'ll keep Pro access until the end of your billing period.' },
     ];
 
     const [openFaq, setOpenFaq] = useState(null);
