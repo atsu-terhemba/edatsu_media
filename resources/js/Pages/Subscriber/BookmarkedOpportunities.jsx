@@ -92,11 +92,29 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
         }
     };
 
+    // datetime-local input values are naive wall-clock strings (no timezone).
+    // We treat them as the user's local time and convert to/from UTC at the
+    // network boundary so the DB always holds UTC — otherwise APP_TIMEZONE=UTC
+    // on the server makes Carbon interpret "23:36" as UTC, firing the reminder
+    // an hour late for a Lagos user.
+    const utcStringToLocalInputValue = (utc) => {
+        if (!utc) return '';
+        const d = new Date(utc);
+        if (Number.isNaN(d.getTime())) return '';
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+
+    const localInputValueToUtcIso = (local) => {
+        if (!local) return null;
+        const d = new Date(local);
+        if (Number.isNaN(d.getTime())) return null;
+        return d.toISOString();
+    };
+
     const openReminderModal = (bookmark) => {
         setSelectedBookmark(bookmark);
-        setReminderDate(bookmark.reminder_date
-            ? new Date(bookmark.reminder_date).toISOString().slice(0, 16)
-            : '');
+        setReminderDate(utcStringToLocalInputValue(bookmark.reminder_date));
         setShowReminderModal(true);
         setOpenMenuId(null);
     };
@@ -106,18 +124,19 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
             Toast.fire({ icon: "warning", title: "Please select a reminder date" });
             return;
         }
+        const utcReminder = localInputValueToUtcIso(reminderDate);
         try {
             const endpoint = selectedBookmark.reminder_date ? '/update-bookmark-reminder' : '/set-bookmark-reminder';
             const response = await axios.post(endpoint, {
                 bookmark_id: selectedBookmark.id,
-                reminder_date: reminderDate
+                reminder_date: utcReminder
             });
             if (response.data.status === 'success') {
                 setOpportunities(prev => ({
                     ...prev,
                     data: prev.data.map(b =>
                         b.id === selectedBookmark.id
-                            ? { ...b, reminder_date: reminderDate, reminder_sent: false }
+                            ? { ...b, reminder_date: utcReminder, reminder_sent: false }
                             : b
                     )
                 }));
