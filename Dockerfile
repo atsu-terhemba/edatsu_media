@@ -39,6 +39,14 @@ COPY . .
 RUN composer dump-autoload --optimize \
     && composer run-script post-autoload-dump
 
+# Vite inlines import.meta.env.VITE_* at build time, so these must be
+# available before `npm run build`. Railway passes matching service vars
+# as build args when they're declared as ARG here. Missing this is what
+# caused cover images to 404 after redeploys — the built JS had empty
+# baseUrl strings and resolved image src to same-origin /uploads/opp/*.
+ARG VITE_R2_PUBLIC_URL
+ENV VITE_R2_PUBLIC_URL=$VITE_R2_PUBLIC_URL
+
 # Build frontend assets
 RUN npm run build && rm -rf node_modules
 
