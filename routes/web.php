@@ -263,6 +263,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin-subscriptions/{id}/activate', [\App\Http\Controllers\Admin\SubscriptionsController::class, 'activatePending'])
         ->where('id', '[0-9]+')
         ->name('admin.subscriptions.activate');
+    Route::get('/admin-subscriptions/users/search', [\App\Http\Controllers\Admin\SubscriptionsController::class, 'searchUsers'])
+        ->name('admin.subscriptions.user_search');
+    Route::post('/admin-subscriptions/manual-create', [\App\Http\Controllers\Admin\SubscriptionsController::class, 'createManual'])
+        ->name('admin.subscriptions.manual_create');
     
     // Product management
     Route::get('/post-product', [ProductController::class, 'show'])->name('admin.products');
