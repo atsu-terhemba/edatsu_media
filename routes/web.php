@@ -260,6 +260,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     // Subscriptions & payments overview
     Route::get('/admin-subscriptions', [\App\Http\Controllers\Admin\SubscriptionsController::class, 'index'])->name('admin.subscriptions');
+    Route::post('/admin-subscriptions/{id}/activate', [\App\Http\Controllers\Admin\SubscriptionsController::class, 'activatePending'])
+        ->where('id', '[0-9]+')
+        ->name('admin.subscriptions.activate');
     
     // Product management
     Route::get('/post-product', [ProductController::class, 'show'])->name('admin.products');

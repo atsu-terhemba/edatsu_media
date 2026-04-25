@@ -3,6 +3,8 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Container, Row, Col } from 'react-bootstrap';
 import AdminSideNav from './Components/SideNav';
 import { useState } from 'react';
+import axios from 'axios';
+import Swal from 'sweetalert2';
 
 const TABS = [
     { id: 'transactions', label: 'Payments' },
@@ -254,11 +256,66 @@ function TransactionsTable({ transactions }) {
 
 function SubscriptionsTable({ subscriptions }) {
     if (!subscriptions?.data?.length) return <Empty label="No subscriptions" />;
+
+    const activatePending = async (s) => {
+        // Two-step prompt: first confirm the user/amount, then capture the
+        // mandatory note. Splitting it makes accidental activations harder
+        // and gives ops a clear "why" stamp on the audit row.
+        const confirm = await Swal.fire({
+            title: 'Activate this subscription?',
+            html: `
+                <div style="text-align:left;font-size:13px;line-height:1.6;">
+                    <div><strong>${s.user?.name ?? '—'}</strong> &middot; ${s.user?.email ?? ''}</div>
+                    <div>${s.plan?.name ?? '—'} &middot; ${s.billing_period} &middot; ${fmtMoney(s.amount, s.currency)}</div>
+                    <div style="margin-top:8px;color:#86868b;">
+                        Use this when payment landed but the webhook didn't fire.
+                        It marks the linked transaction as successful and records you as the activator.
+                    </div>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Continue',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#16a34a',
+        });
+        if (!confirm.isConfirmed) return;
+
+        const note = await Swal.fire({
+            title: 'Why are you activating this manually?',
+            input: 'textarea',
+            inputLabel: 'Required — at least 6 chars. Cite proof of payment (bank ref, USDT tx hash, screenshot link).',
+            inputPlaceholder: 'e.g. GTBank credit alert ref TRF/240425/9001 received 14:32 WAT',
+            inputValidator: (v) => (!v || v.trim().length < 6) && 'Please write a short reason (min 6 chars).',
+            showCancelButton: true,
+            confirmButtonText: 'Activate',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#16a34a',
+        });
+        if (!note.isConfirmed) return;
+
+        try {
+            const { data } = await axios.post(`/admin-subscriptions/${s.id}/activate`, {
+                note: note.value.trim(),
+            });
+            await Swal.fire({
+                icon: 'success',
+                title: 'Activated',
+                text: data.message,
+                confirmButtonColor: '#000',
+            });
+            router.reload({ only: ['subscriptions', 'transactions', 'stats', 'proUsers'] });
+        } catch (err) {
+            const msg = err?.response?.data?.message || 'Activation failed. Please try again.';
+            Swal.fire({ icon: 'error', title: 'Could not activate', text: msg, confirmButtonColor: '#000' });
+        }
+    };
+
     return (
         <>
             <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px' }}>
-                    <TableHead cols={['User', 'Plan', 'Period', 'Amount', 'Status', 'Period ends', 'Provider']} />
+                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '980px' }}>
+                    <TableHead cols={['User', 'Plan', 'Period', 'Amount', 'Status', 'Period ends', 'Provider', 'Action']} />
                     <tbody>
                         {subscriptions.data.map(s => (
                             <tr key={s.id}>
@@ -272,6 +329,30 @@ function SubscriptionsTable({ subscriptions }) {
                                 <td style={cellStyle}><StatusPill status={s.status} /></td>
                                 <td style={cellStyle}>{fmtDate(s.ends_at)}</td>
                                 <td style={cellStyle}>{s.provider ?? '—'}</td>
+                                <td style={cellStyle}>
+                                    {s.status === 'pending' ? (
+                                        <button
+                                            onClick={() => activatePending(s)}
+                                            style={{
+                                                padding: '5px 12px',
+                                                borderRadius: '9999px',
+                                                border: '1px solid #16a34a',
+                                                background: '#fff',
+                                                color: '#16a34a',
+                                                fontSize: '12px',
+                                                fontWeight: 600,
+                                                cursor: 'pointer',
+                                                whiteSpace: 'nowrap',
+                                            }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.background = '#dcfce7'; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}
+                                        >
+                                            Activate
+                                        </button>
+                                    ) : (
+                                        <span style={{ color: '#b0b0b5', fontSize: '12px' }}>—</span>
+                                    )}
+                                </td>
                             </tr>
                         ))}
                     </tbody>

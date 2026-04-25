@@ -22,6 +22,8 @@ class Subscription extends Model
         'payment_provider',
         'provider_subscription_id',
         'auto_renew',
+        'activated_by_admin_id',
+        'admin_activation_note',
     ];
 
     protected $casts = [
