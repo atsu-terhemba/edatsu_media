@@ -29,20 +29,26 @@ php artisan storage:link 2>/dev/null || true
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
 
 # Start the queue worker in the background (processes push notifications, emails, etc.)
-# Restarts automatically if it exits (e.g. after --max-time or memory limit)
+# Restarts automatically if it exits (e.g. after --max-time or memory limit).
+# Runs as www-data so cache/log files it creates are writable by Apache.
 echo "==> Starting queue worker..."
-(while true; do
-    php artisan queue:work database --sleep=3 --tries=3 --max-time=3600 --quiet 2>&1
-    echo "[$(date)] Queue worker restarted" >> /var/www/html/storage/logs/queue.log
-    sleep 1
-done) &
+su -s /bin/bash www-data -c '
+    while true; do
+        php artisan queue:work database --sleep=3 --tries=3 --max-time=3600 --quiet 2>&1
+        echo "[$(date)] Queue worker restarted" >> /var/www/html/storage/logs/queue.log
+        sleep 1
+    done
+' &
 
-# Start the scheduler in the background (runs bookmarks:process-reminders every minute)
+# Start the scheduler in the background (runs bookmarks:process-reminders every minute).
+# Runs as www-data so cache/log files it creates are writable by Apache.
 echo "==> Starting scheduler..."
-while true; do
-    php artisan schedule:run --no-interaction >> /var/www/html/storage/logs/scheduler.log 2>&1
-    sleep 60
-done &
+su -s /bin/bash www-data -c '
+    while true; do
+        php artisan schedule:run --no-interaction >> /var/www/html/storage/logs/scheduler.log 2>&1
+        sleep 60
+    done
+' &
 
 echo "==> Deployment tasks complete. Starting server..."
 
