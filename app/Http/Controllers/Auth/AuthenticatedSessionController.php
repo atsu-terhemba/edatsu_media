@@ -116,6 +116,14 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // Tighten the "active now" counter: stamp the user offline immediately
+        // on explicit logout so /all-users doesn't carry them as online for up
+        // to 5 minutes until the cleanup scheduler ticks. Tab-close still
+        // relies on the scheduler.
+        if ($user = Auth::guard('web')->user()) {
+            $user->forceFill(['is_online' => false])->save();
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
