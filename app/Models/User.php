@@ -37,6 +37,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'last_ip_address',
         'user_agent',
         'is_online',
+        'onboarded_at',
         'two_factor_secret',
         'two_factor_confirmed_at',
         'two_factor_recovery_codes',
@@ -65,6 +66,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at' => 'datetime',
         'last_seen_at' => 'datetime',
         'is_online' => 'boolean',
+        'onboarded_at' => 'datetime',
         'two_factor_confirmed_at' => 'datetime',
     ];
 

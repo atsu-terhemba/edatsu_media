@@ -8,10 +8,10 @@ export default function SubscriberSideNav() {
         { href: route('subscriber.bookmarked_opportunities'), icon: 'event', label: 'Opportunities' },
         { href: route('subscriber.bookmarked_tools'), icon: 'handyman', label: 'Tools' },
         { href: route('subscriber.saved_articles'), icon: 'article', label: 'Saved Articles' },
-        { href: route('subscriber.my_feeds'), icon: 'rss_feed', label: 'My Feeds' },
+        { href: route('subscriber.my_feeds'), icon: 'rss_feed', label: 'My Feeds', tourTarget: 'feeds' },
         { href: route('subscriber.notifications'), icon: 'notifications', label: 'Notifications' },
-        { href: route('subscriber.preferences'), icon: 'tune', label: 'Preferences' },
-        { href: route('subscriber.billing'), icon: 'credit_card', label: 'Billing' },
+        { href: route('subscriber.preferences'), icon: 'tune', label: 'Preferences', tourTarget: 'preferences' },
+        { href: route('subscriber.billing'), icon: 'credit_card', label: 'Billing', tourTarget: 'upgrade' },
         { href: route('subscriber.feedback'), icon: 'feedback', label: 'Feedback' },
         { href: route('profile.edit'), icon: 'settings', label: 'Settings' },
     ];
@@ -80,6 +80,7 @@ export default function SubscriberSideNav() {
                     <Link
                         key={item.label}
                         href={item.href}
+                        data-tour-target={item.tourTarget}
                         style={itemStyle(active)}
                         onMouseEnter={(e) => { if (!active) { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = '#1d1d1f'; }}}
                         onMouseLeave={(e) => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6e6e73'; }}}

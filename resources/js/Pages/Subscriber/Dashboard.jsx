@@ -8,6 +8,7 @@ import Footer from '@/Components/Footer';
 import DashboardSkeleton from '@/Components/DashboardSkeleton';
 import PWAInstallBanner from '@/Components/PWAInstallBanner';
 import EmailVerificationOverlay from '@/Components/EmailVerificationOverlay';
+import useSubscriberOnboarding from '@/hooks/useSubscriberOnboarding';
 
 // Eyebrow + orange bar pattern
 function SectionEyebrow({ text }) {
@@ -108,12 +109,16 @@ function StatCard({ label, value, icon, badge }) {
 }
 
 export default function Dashboard() {
-    const { currentPlan, activeSubscription } = usePage().props;
+    const { currentPlan, activeSubscription, auth } = usePage().props;
     const [subscriberData, setSubscriberData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [refreshHovered, setRefreshHovered] = useState(false);
     const isPro = currentPlan === 'Pro';
+
+    // Fires the intro tour once for new subscribers (auth.user.onboarded_at
+    // null). Stamps the timestamp on complete/skip so it never reappears.
+    useSubscriberOnboarding(auth?.user);
 
     useEffect(() => {
         fetchSubscriberDetails();

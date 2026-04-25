@@ -211,6 +211,11 @@ Route::middleware(['auth', 'verified.writes'])->group(function () {
     Route::delete('/api/notifications/clear', [SubscriberController::class, 'clearNotifications']);
     Route::delete('/api/notifications/{id}', [SubscriberController::class, 'deleteNotification']);
 
+    // Mark the subscriber intro tour as complete. Idempotent — sets a
+    // timestamp the first time and is a no-op afterwards. Frontend only
+    // calls this once when the tour finishes or is skipped.
+    Route::post('/api/onboarding/complete', [SubscriberController::class, 'completeOnboarding']);
+
     // Push notification subscription
     Route::post('/api/push/subscribe', [SubscriberController::class, 'subscribePush']);
     Route::post('/api/push/unsubscribe', [SubscriberController::class, 'unsubscribePush']);

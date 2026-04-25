@@ -711,6 +711,20 @@ class SubscriberController extends Controller
          * Scoped to the auth user only. Respecting the filter lets the
          * "Read" tab act as a cleanup surface without nuking unread items.
          */
+        /**
+         * Stamp onboarded_at = now for the auth user. Frontend fires this
+         * once when the intro tour finishes or is skipped; we no-op on
+         * subsequent calls so a refresh in the middle of the tour can't
+         * accidentally re-onboard.
+         */
+        public function completeOnboarding(Request $request) {
+            $user = Auth::user();
+            if ($user && !$user->onboarded_at) {
+                $user->forceFill(['onboarded_at' => now()])->save();
+            }
+            return response()->json(['status' => 'success']);
+        }
+
         public function clearNotifications(Request $request) {
             $user_id = Auth::user()->id;
             $filter = $request->get('filter', 'all');

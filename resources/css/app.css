@@ -70,3 +70,70 @@
 #user-dropdown .dropdown-item:hover {
   text-decoration: none;
 }
+
+/* intro.js — subscriber onboarding tour overrides.
+   Default theme is too saccharine; pull it inline with the app's
+   black/white/orange palette and Apple-ish rounding. */
+.edatsu-tour-tooltip {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  border-radius: 14px !important;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18) !important;
+  min-width: 280px;
+  max-width: 360px;
+}
+.edatsu-tour-tooltip .introjs-tooltiptext {
+  padding: 18px 18px 10px !important;
+  color: #1d1d1f;
+  line-height: 1.5;
+}
+.edatsu-tour-tooltip .introjs-progress {
+  background: #f5f5f7 !important;
+  height: 3px !important;
+  margin: 0 18px !important;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.edatsu-tour-tooltip .introjs-progressbar {
+  background: #f97316 !important;
+}
+.edatsu-tour-tooltip .introjs-tooltipbuttons {
+  border-top: 1px solid #f0f0f0 !important;
+  padding: 10px 14px !important;
+}
+.edatsu-tour-tooltip .introjs-button {
+  font-family: inherit !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 9999px !important;
+  border: 1px solid #e5e5e7 !important;
+  background: #fff !important;
+  color: #000 !important;
+  padding: 7px 16px !important;
+  text-shadow: none !important;
+}
+.edatsu-tour-tooltip .introjs-button:hover {
+  background: #f5f5f7 !important;
+  border-color: #d1d1d6 !important;
+}
+.edatsu-tour-tooltip .introjs-nextbutton,
+.edatsu-tour-tooltip .introjs-donebutton {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #000 !important;
+}
+.edatsu-tour-tooltip .introjs-nextbutton:hover,
+.edatsu-tour-tooltip .introjs-donebutton:hover {
+  background: #1f2937 !important;
+  border-color: #1f2937 !important;
+}
+.edatsu-tour-tooltip .introjs-skipbutton {
+  color: #86868b !important;
+  border-color: transparent !important;
+  background: transparent !important;
+}
+.edatsu-tour-highlight {
+  border-radius: 12px !important;
+  box-shadow:
+    rgba(249, 115, 22, 0.45) 0 0 0 4px,
+    rgba(33, 33, 33, 0.5) 0 0 0 5000px !important;
+}
