@@ -8,6 +8,7 @@ import { usePage, Link } from '@inertiajs/react';
 import FixedMobileNav from '@/Components/FixedMobileNav';
 import HomeBanner from '@/Components/HomeBanner';
 import SuccessSection from '@/Components/SuccessSection';
+import FeedsSection from '@/Components/FeedsSection';
 
 import TrendingToolsSection from '@/Components/TrendingToolsSection';
 import LatestOpportunitiesSection from '@/Components/LatestOpportunitiesSection';
@@ -78,7 +79,9 @@ const Home = () => {
             <HomeBanner />
 
             <SuccessSection />
-            
+
+            <FeedsSection />
+
             {/**
              * 
             <TrendingToolsSection tools={trendingTools} isLoading={isLoading} />
