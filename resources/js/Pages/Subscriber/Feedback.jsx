@@ -8,13 +8,7 @@ import EmailVerificationOverlay from '@/Components/EmailVerificationOverlay';
 
 function SectionEyebrow({ text }) {
     return (
-        <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{
-                width: '24px',
-                height: '2px',
-                background: '#f97316',
-                display: 'inline-block',
-            }} />
+        <div style={{ marginBottom: '10px' }}>
             <span style={{
                 fontSize: '11px',
                 fontWeight: 500,
