@@ -26,7 +26,7 @@ export default function FeedsSection() {
     return (
         <section style={{ padding: '96px 0', background: '#fff' }}>
             <Container>
-                <Row className="align-items-center g-5">
+                <Row className="align-items-center g-4 g-lg-5">
                     <Col xs={12} lg={6}>
                         <div
                             style={{
