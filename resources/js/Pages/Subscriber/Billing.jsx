@@ -21,7 +21,7 @@ function SectionEyebrow({ text }) {
 }
 
 export default function Billing() {
-    const { activeSubscription, transactions, subscriptionHistory, currentPlan, auth } = usePage().props;
+    const { activeSubscription, transactions, currentPlan, auth } = usePage().props;
     const [cancelling, setCancelling] = useState(false);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
@@ -503,62 +503,6 @@ export default function Billing() {
                                         </div>
                                     )}
                                 </div>
-
-                                {/* Subscription History */}
-                                {subscriptionHistory && subscriptionHistory.length > 0 && (
-                                    <div className="billing-card" style={{
-                                        background: '#fff',
-                                        border: '1px solid #e5e5e7',
-                                        overflow: 'hidden',
-                                        marginBottom: '24px',
-                                    }}>
-                                        <div className="billing-section-head">
-                                            <div className="billing-section-eyebrow">Plan Timeline</div>
-                                            <div className="billing-section-title">Subscription history</div>
-                                        </div>
-                                        <div>
-                                            {subscriptionHistory.map((sub, index) => (
-                                                <div key={sub.id} className="billing-txn-row">
-                                                    <div className="billing-txn-main">
-                                                        <div style={{
-                                                            width: '38px', height: '38px', borderRadius: '10px',
-                                                            background: sub.status === 'active' ? 'rgba(22,163,74,0.08)' : '#f5f5f7',
-                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                            flexShrink: 0,
-                                                        }}>
-                                                            <span className="material-symbols-outlined" style={{
-                                                                fontSize: '18px',
-                                                                color: sub.status === 'active' ? '#16a34a' : '#86868b',
-                                                            }}>
-                                                                workspace_premium
-                                                            </span>
-                                                        </div>
-                                                        <div style={{ minWidth: 0, flex: 1 }}>
-                                                            <div style={{ fontSize: '14px', fontWeight: 500, color: '#000' }}>
-                                                                {sub.plan?.name || 'Plan'}
-                                                                <span style={{ color: '#86868b', fontWeight: 400, marginLeft: '6px' }}>
-                                                                    · {sub.billing_period === 'yearly' ? 'Yearly' : 'Monthly'}
-                                                                </span>
-                                                            </div>
-                                                            <div style={{ fontSize: '12px', color: '#86868b' }}>
-                                                                {formatDate(sub.starts_at)} → {formatDate(sub.ends_at)}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="billing-txn-right">
-                                                        {statusBadge(sub.status)}
-                                                        <div style={{
-                                                            fontSize: '14px', fontWeight: 600, color: '#000',
-                                                            textAlign: 'right', minWidth: '80px',
-                                                        }}>
-                                                            {formatCurrency(sub.amount, sub.currency)}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
 
                                 {/* Billing Help */}
                                 <div className="billing-help">

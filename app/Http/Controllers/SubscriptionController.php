@@ -636,15 +636,9 @@ class SubscriptionController extends Controller
             ->latest()
             ->paginate(10);
 
-        $subscriptionHistory = $user->subscriptions()
-            ->with('plan')
-            ->latest()
-            ->get();
-
         return Inertia::render('Subscriber/Billing', [
             'activeSubscription' => $activeSubscription,
             'transactions' => $transactions,
-            'subscriptionHistory' => $subscriptionHistory,
             'currentPlan' => $activeSubscription ? $activeSubscription->plan->name : 'Free',
         ]);
     }
