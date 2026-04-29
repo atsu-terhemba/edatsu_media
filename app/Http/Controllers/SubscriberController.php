@@ -23,6 +23,7 @@ use Inertia\Inertia;
 use Carbon\Carbon;
 use App\Notifications\ReminderNotification;
 use App\Models\SavedFeedArticle;
+use App\Models\Feedback;
 use App\Models\UserNewsFeed;
 use App\Models\PushSubscription;
 use App\Services\FeatureGate;
@@ -344,6 +345,14 @@ class SubscriberController extends Controller
             'general' => 'General feedback',
             'other'   => 'Other',
         ];
+
+        Feedback::create([
+            'user_id'  => $user->id,
+            'category' => $validated['category'],
+            'subject'  => $validated['subject'],
+            'message'  => $validated['message'],
+            'status'   => 'new',
+        ]);
 
         \Illuminate\Support\Facades\Mail::html(
             '<h2 style="margin:0 0 12px;font-family:Arial,sans-serif;">New subscriber feedback</h2>'

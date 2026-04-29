@@ -7,6 +7,8 @@ import axios from 'axios';
 import Footer from '@/Components/Footer';
 import DashboardSkeleton from '@/Components/DashboardSkeleton';
 import PWAInstallBanner from '@/Components/PWAInstallBanner';
+import PushNotificationBanner from '@/Components/PushNotificationBanner';
+import FeedbackPrompt from '@/Components/FeedbackPrompt';
 import EmailVerificationOverlay from '@/Components/EmailVerificationOverlay';
 
 // Eyebrow + orange bar pattern
@@ -303,6 +305,9 @@ export default function Dashboard() {
 
                             {/* PWA Install Banner */}
                             <PWAInstallBanner />
+
+                            {/* Push Notification Prompt */}
+                            <PushNotificationBanner />
 
                             {/* Subscription Plan Card */}
                             <div style={{
@@ -624,6 +629,7 @@ export default function Dashboard() {
                 </Container>
             </Container>
             <Footer />
+            <FeedbackPrompt />
             <EmailVerificationOverlay />
         </AuthenticatedLayout>
     );

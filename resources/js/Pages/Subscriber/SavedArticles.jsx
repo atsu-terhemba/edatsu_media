@@ -8,6 +8,7 @@ import Swal from 'sweetalert2';
 import BookmarksSkeleton from '@/Components/BookmarksSkeleton';
 import Footer from '@/Components/Footer';
 import ArticleReaderModal from '@/Components/ArticleReaderModal';
+import PreferencesBanner from '@/Components/PreferencesBanner';
 
 export default function SavedArticles({ articles: initialArticles }) {
     const [articles, setArticles] = useState(initialArticles || { data: [], total: 0 });
@@ -114,6 +115,8 @@ export default function SavedArticles({ articles: initialArticles }) {
                         </Col>
 
                         <Col md={9} xs={12}>
+                            <PreferencesBanner section="forum" />
+
                             {/* Header */}
                             <div style={{ paddingBottom: '24px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>

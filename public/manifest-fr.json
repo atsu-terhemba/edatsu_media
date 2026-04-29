@@ -4,7 +4,7 @@
     "description": "Découvrez les opportunités de financement, les événements de réseautage et les logiciels de croissance pour les entrepreneurs",
     "start_url": "/",
     "display": "standalone",
-    "background_color": "#000000",
+    "background_color": "#ffffff",
     "theme_color": "#000000",
     "scope": "/",
     "id": "/",

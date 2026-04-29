@@ -70,17 +70,18 @@ class Dashboard extends Controller
                 );
             }elseif(Auth::user()->role == 'subscriber'){
                 /**
-                 * subscriber account details 
+                 * subscriber account details
                  */
 
-        $user_id = Auth::user()->id;
-        
+        $user = Auth::user();
+        $user_id = $user->id;
+
         // Get total bookmarked tools/products
         $totalBookmarkedTools = Bookmark::where('user_id', $user_id)
             ->where('post_type', 'tool')
             ->where('removed', 0)
             ->count();
-        
+
         // Get upcoming opportunities from bookmarks (opportunities with deadline in future)
         $upcomingOpportunities = Bookmark::join('opportunities', 'bookmarks.post_id', '=', 'opportunities.id')
             ->where('bookmarks.user_id', $user_id)
@@ -96,13 +97,17 @@ class Dashboard extends Controller
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
-        
+
+        $activeSubscription = $user->activeSubscription()->with('plan')->first();
+
         return Inertia::render('Subscriber/Dashboard', [
             'dashboardStats' => [
                 'totalBookmarkedTools' => $totalBookmarkedTools,
                 'upcomingOpportunities' => $upcomingOpportunities,
                 'recentBookmarks' => $recentBookmarks
-            ]
+            ],
+            'currentPlan' => $activeSubscription ? $activeSubscription->plan->name : 'Free',
+            'activeSubscription' => $activeSubscription,
         ]);
 
               

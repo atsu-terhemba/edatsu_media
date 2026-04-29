@@ -7,6 +7,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import BookmarksSkeleton from '@/Components/BookmarksSkeleton';
 import Footer from '@/Components/Footer';
+import PreferencesBanner from '@/Components/PreferencesBanner';
 import { downloadWithGate } from '@/utils/proUpgrade';
 
 export default function BookmarkedOpportunities({ opportunities: initialOpportunities }) {
@@ -284,6 +285,8 @@ export default function BookmarkedOpportunities({ opportunities: initialOpportun
 
                         {/* Main Content */}
                         <Col md={9} xs={12}>
+                            <PreferencesBanner section="opportunities" />
+
                             {/* Header */}
                             <div style={{ paddingBottom: '24px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>

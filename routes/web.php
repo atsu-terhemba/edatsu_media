@@ -260,6 +260,12 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin-pro-gating', [\App\Http\Controllers\Admin\ProGatingController::class, 'index'])->name('admin.pro_gating');
     Route::post('/admin-pro-gating', [\App\Http\Controllers\Admin\ProGatingController::class, 'update'])->name('admin.pro_gating.update');
 
+    // Feedback inbox
+    Route::get('/admin-feedback', [\App\Http\Controllers\Admin\FeedbackController::class, 'index'])->name('admin.feedback');
+    Route::post('/admin-feedback/{id}/status', [\App\Http\Controllers\Admin\FeedbackController::class, 'updateStatus'])
+        ->where('id', '[0-9]+')
+        ->name('admin.feedback.status');
+
     // Subscriptions & payments overview
     Route::get('/admin-subscriptions', [\App\Http\Controllers\Admin\SubscriptionsController::class, 'index'])->name('admin.subscriptions');
     Route::post('/admin-subscriptions/{id}/activate', [\App\Http\Controllers\Admin\SubscriptionsController::class, 'activatePending'])

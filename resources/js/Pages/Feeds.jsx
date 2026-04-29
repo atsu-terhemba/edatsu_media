@@ -70,7 +70,7 @@ const FeedCardSkeleton = () => (
     </div>
 );
 /* ── Feed Card ── */
-const FeedCard = ({ feed, feedId, onRemove, isAuthenticated, savedArticleLinks, onToggleSaveArticle, onDiscussArticle, onReadArticle }) => {
+const FeedCard = ({ feed, feedId, onRemove, onHide, isAuthenticated, savedArticleLinks, onToggleSaveArticle, onDiscussArticle, onReadArticle }) => {
     const [expanded, setExpanded] = useState(false);
     const [seen, setSeen] = useState(false);
     const isLoading = feed.articles === null;
@@ -98,22 +98,31 @@ const FeedCard = ({ feed, feedId, onRemove, isAuthenticated, savedArticleLinks, 
                 padding: '24px',
                 marginBottom: '16px',
                 transition: 'box-shadow 0.15s ease',
+                overflow: 'hidden',
+                minWidth: 0,
             }}
             onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.06)'}
             onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
         >
             {/* Header */}
-            <div className="d-flex align-items-center justify-content-between mb-3">
-                <div className="d-flex align-items-center gap-2">
+            <div className="d-flex align-items-center justify-content-between mb-3" style={{ gap: '12px' }}>
+                <div className="d-flex align-items-center gap-2" style={{ flex: 1, minWidth: 0 }}>
                     <img
                         src={feed.favicon}
                         alt=""
                         width={20}
                         height={20}
-                        style={{ borderRadius: '4px' }}
+                        style={{ borderRadius: '4px', flexShrink: 0 }}
                         onError={(e) => { e.target.style.display = 'none'; }}
                     />
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#000' }}>
+                    <span style={{
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        color: '#000',
+                        minWidth: 0,
+                        overflowWrap: 'anywhere',
+                        wordBreak: 'break-word',
+                    }}>
                         {feed.title}
                     </span>
                     {newCount > 0 && (
@@ -191,14 +200,22 @@ const FeedCard = ({ feed, feedId, onRemove, isAuthenticated, savedArticleLinks, 
                                     onClick={() => onReadArticle?.(article, feed)}
                                     style={{
                                         flex: 1,
+                                        minWidth: 0,
                                         cursor: 'pointer',
                                         transition: 'opacity 0.15s ease',
                                     }}
                                     onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
                                     onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                                 >
-                                    <div style={{ fontSize: '14px', fontWeight: 500, color: '#000', lineHeight: 1.4, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                        {article.title}
+                                    <div style={{
+                                        fontSize: '14px', fontWeight: 500, color: '#000',
+                                        lineHeight: 1.4, marginBottom: '4px',
+                                        display: 'flex', alignItems: 'center', gap: '6px',
+                                        overflowWrap: 'anywhere', wordBreak: 'break-word',
+                                    }}>
+                                        <span style={{ minWidth: 0, overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
+                                            {article.title}
+                                        </span>
                                         {isNew && (
                                             <span style={{
                                                 width: '7px', height: '7px', borderRadius: '50%',
@@ -207,7 +224,11 @@ const FeedCard = ({ feed, feedId, onRemove, isAuthenticated, savedArticleLinks, 
                                         )}
                                     </div>
                                     {article.description && (
-                                        <div style={{ fontSize: '13px', color: '#86868b', lineHeight: 1.5, marginBottom: '4px' }}>
+                                        <div style={{
+                                            fontSize: '13px', color: '#86868b',
+                                            lineHeight: 1.5, marginBottom: '4px',
+                                            overflowWrap: 'anywhere', wordBreak: 'break-word',
+                                        }}>
                                             {article.description}
                                         </div>
                                     )}
@@ -306,6 +327,51 @@ const FeedCard = ({ feed, feedId, onRemove, isAuthenticated, savedArticleLinks, 
                     No articles found
                 </p>
             ) : null}
+
+            {/* Hide feed shortcut */}
+            {!isLoading && onHide && (
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    marginTop: '14px',
+                    paddingTop: '12px',
+                    borderTop: '1px solid #f5f5f7',
+                }}>
+                    <button
+                        onClick={() => onHide(feed)}
+                        title="Hide this feed"
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '7px 14px',
+                            borderRadius: '9999px',
+                            border: '1px solid #e5e5e5',
+                            background: '#fff',
+                            color: '#86868b',
+                            fontSize: '12px',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#f5f5f7';
+                            e.currentTarget.style.color = '#000';
+                            e.currentTarget.style.borderColor = '#d1d1d6';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#fff';
+                            e.currentTarget.style.color = '#86868b';
+                            e.currentTarget.style.borderColor = '#e5e5e5';
+                        }}
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>
+                            visibility_off
+                        </span>
+                        Hide feed
+                    </button>
+                </div>
+            )}
         </div>
     );
 };
@@ -1446,6 +1512,7 @@ const News = () => {
                                                     feedId={getFeedId(feed.feed_url)}
                                                     feed={feed}
                                                     onRemove={handleRemoveFeed}
+                                                    onHide={toggleUserFeedVisibility}
                                                     isAuthenticated={isAuthenticated}
                                                     savedArticleLinks={savedArticleLinks}
                                                     onToggleSaveArticle={handleToggleSaveArticle}
@@ -1551,6 +1618,7 @@ const News = () => {
                                             key={`default-${activeRegion}-${feed.feed_url || index}`}
                                             feedId={getFeedId(feed.feed_url)}
                                             feed={feed}
+                                            onHide={toggleDefaultFeedVisibility}
                                             isAuthenticated={isAuthenticated}
                                             savedArticleLinks={savedArticleLinks}
                                             onToggleSaveArticle={handleToggleSaveArticle}

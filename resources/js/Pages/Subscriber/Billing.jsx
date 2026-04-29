@@ -1,8 +1,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Container, Row, Col } from 'react-bootstrap';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState, useMemo } from 'react';
 import SubscriberSideNav from './Components/SideNav';
+import DefaultPagination from '@/Components/DefaultPagination';
 
 function SectionEyebrow({ text }) {
     return (
@@ -24,6 +25,17 @@ export default function Billing() {
     const { activeSubscription, transactions, currentPlan, auth } = usePage().props;
     const [cancelling, setCancelling] = useState(false);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+    const [paginating, setPaginating] = useState(false);
+
+    const handlePaginate = (url) => {
+        setPaginating(true);
+        router.get(url, {}, {
+            preserveScroll: true,
+            preserveState: true,
+            only: ['transactions'],
+            onFinish: () => setPaginating(false),
+        });
+    };
 
     const handleCancelSubscription = async () => {
         setCancelling(true);
@@ -454,31 +466,12 @@ export default function Billing() {
                                                 <div style={{
                                                     padding: '16px 28px',
                                                     borderTop: '1px solid #f0f0f0',
-                                                    display: 'flex',
-                                                    justifyContent: 'center',
-                                                    gap: '6px',
-                                                    flexWrap: 'wrap',
                                                 }}>
-                                                    {transactions.links && transactions.links.map((link, i) => {
-                                                        if (!link.url) return null;
-                                                        return (
-                                                            <Link
-                                                                key={i}
-                                                                href={link.url}
-                                                                style={{
-                                                                    padding: '6px 14px',
-                                                                    borderRadius: '8px',
-                                                                    fontSize: '13px',
-                                                                    fontWeight: 500,
-                                                                    textDecoration: 'none',
-                                                                    background: link.active ? '#000' : '#f5f5f7',
-                                                                    color: link.active ? '#fff' : '#6b7280',
-                                                                    border: 'none',
-                                                                }}
-                                                                dangerouslySetInnerHTML={{ __html: link.label }}
-                                                            />
-                                                        );
-                                                    })}
+                                                    <DefaultPagination
+                                                        pagination={transactions.links}
+                                                        triggerPagination={handlePaginate}
+                                                        isLoading={paginating}
+                                                    />
                                                 </div>
                                             )}
                                         </div>

@@ -26,6 +26,7 @@ export default function AdminSideNav() {
         { href: route('admin.dashboard'), icon: 'dashboard', label: 'Dashboard' },
         { href: route('admin.users'), icon: 'group', label: 'Users' },
         { href: route('admin.subscriptions'), icon: 'payments', label: 'Subscriptions' },
+        { href: route('admin.feedback'), icon: 'rate_review', label: 'Feedback' },
         { href: route('admin.ads'), icon: 'ads_click', label: 'Ads' },
         { href: route('admin.pro_gating'), icon: 'workspace_premium', label: 'Pro Gating' },
     ];

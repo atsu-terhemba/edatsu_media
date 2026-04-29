@@ -18,6 +18,7 @@ import ScrollToTop from '@/Components/ScrollToTop';
 import { showToolsSubscriptionModal } from '@/Components/SubscriptionModal';
 import ToolshedSkeleton from '@/Components/ToolshedSkeleton';
 import AdBanner from '@/Components/AdBanner';
+import PreferencesBanner from '@/Components/PreferencesBanner';
 import CompareBar from '@/Components/CompareBar';
 import Swal from 'sweetalert2';
 import { showProUpgrade } from '@/utils/proUpgrade';
@@ -311,6 +312,9 @@ const Toolshed = () => {
             {/* Main Content */}
             <section style={{ paddingBottom: '96px', background: '#f5f5f7' }}>
                 <Container>
+                    <div style={{ paddingBottom: '8px' }}>
+                        <PreferencesBanner section="toolshed" />
+                    </div>
                     <Row className="g-4">
                         {/* Sidebar */}
                         <Col xs={12} md={4} lg={3} className={isMobileSearchVisible ? '' : 'd-none d-md-block'}>

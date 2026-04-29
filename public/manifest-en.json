@@ -4,7 +4,7 @@
     "description": "Discover funding opportunities, networking events, and growth-driven software tailored for entrepreneurs",
     "start_url": "/",
     "display": "standalone",
-    "background_color": "#000000",
+    "background_color": "#ffffff",
     "theme_color": "#000000",
     "scope": "/",
     "id": "/",
