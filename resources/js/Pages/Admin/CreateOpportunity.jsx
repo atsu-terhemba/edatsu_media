@@ -105,6 +105,7 @@ export default function CreateOpportunity({ edits, categories, brand_label, coun
         title: edits?.title || '',
         description: edits?.description || '',
         deadline: edits?.deadline ? edits.deadline.split('T')[0] : '',
+        deadline_unspecified: !!(edits?.id && !edits?.deadline),
         source_url: edits?.source_url || '',
         direct_link: edits?.direct_link || '',
         meta_keywords: edits?.meta_keywords || '',
@@ -116,6 +117,7 @@ export default function CreateOpportunity({ edits, categories, brand_label, coun
         continents: [],
         signature: '',
         save_as_draft: edits?.status === 'draft' ? true : false,
+        notify_users: false,
     });
 
     useEffect(() => {
@@ -459,17 +461,47 @@ export default function CreateOpportunity({ edits, categories, brand_label, coun
                                                     <div style={{ marginBottom: '24px' }}>
                                                         <label style={labelStyle}>Deadline</label>
                                                         <span style={{ ...hintStyle, marginTop: 0, marginBottom: '8px' }}>
-                                                            Add a deadline for this opportunity
+                                                            Add a deadline, or mark as unspecified if none
                                                         </span>
                                                         <input
                                                             type="date"
                                                             name="deadline"
                                                             value={formData.deadline}
                                                             onChange={handleChange}
-                                                            style={inputStyle}
+                                                            disabled={formData.deadline_unspecified}
+                                                            style={{
+                                                                ...inputStyle,
+                                                                background: formData.deadline_unspecified ? '#f5f5f7' : '#fff',
+                                                                color: formData.deadline_unspecified ? '#b0b0b5' : '#000',
+                                                                cursor: formData.deadline_unspecified ? 'not-allowed' : 'auto',
+                                                            }}
                                                             onFocus={focusHandler}
                                                             onBlur={blurHandler}
                                                         />
+                                                        <label style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '8px',
+                                                            marginTop: '10px',
+                                                            fontSize: '13px',
+                                                            color: '#1d1d1f',
+                                                            cursor: 'pointer',
+                                                        }}>
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={formData.deadline_unspecified}
+                                                                onChange={(e) => setFormData((prev) => ({
+                                                                    ...prev,
+                                                                    deadline_unspecified: e.target.checked,
+                                                                    deadline: e.target.checked ? '' : prev.deadline,
+                                                                }))}
+                                                                style={{ width: '16px', height: '16px', accentColor: '#000', cursor: 'pointer' }}
+                                                            />
+                                                            <span>Deadline unspecified</span>
+                                                            <span style={{ fontSize: '12px', color: '#86868b' }}>
+                                                                (the public page will display "Unspecified")
+                                                            </span>
+                                                        </label>
                                                     </div>
 
                                                     {/* Source URL */}
@@ -597,6 +629,40 @@ export default function CreateOpportunity({ edits, categories, brand_label, coun
                                                     (will not be published immediately)
                                                 </span>
                                             </label>
+
+                                            {/* Notify on update — edit mode only */}
+                                            {isEditing && (
+                                                <label style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '10px',
+                                                    fontSize: '14px',
+                                                    color: '#1d1d1f',
+                                                    cursor: 'pointer',
+                                                    marginTop: '12px',
+                                                    padding: '12px 16px',
+                                                    borderRadius: '12px',
+                                                    border: '1px solid #e5e5e7',
+                                                    background: formData.notify_users ? '#fff7ed' : '#fff',
+                                                    transition: 'all 0.15s ease',
+                                                }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={formData.notify_users}
+                                                        onChange={(e) => setFormData({ ...formData, notify_users: e.target.checked })}
+                                                        style={{
+                                                            width: '18px',
+                                                            height: '18px',
+                                                            accentColor: '#f97316',
+                                                            cursor: 'pointer',
+                                                        }}
+                                                    />
+                                                    <span>Notify subscribers of this update</span>
+                                                    <span style={{ fontSize: '12px', color: '#86868b' }}>
+                                                        (sends a match alert to users whose preferences fit)
+                                                    </span>
+                                                </label>
+                                            )}
 
                                             {/* Submit Button */}
                                             <button

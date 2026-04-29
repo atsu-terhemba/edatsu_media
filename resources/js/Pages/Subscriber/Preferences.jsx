@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Container, Row, Col } from 'react-bootstrap';
 import { Head } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SubscriberSideNav from './Components/SideNav';
 import Select from 'react-select';
 import axios from 'axios';
@@ -90,11 +90,10 @@ function ToggleSwitch({ checked, onChange, id }) {
     );
 }
 
-export default function Preferences({ userPreferences, categories, countries, regions, brands, tags }) {
+export default function Preferences({ userPreferences, categories, countries, regions, tags }) {
     const categoryOptions = categories.map(item => ({ value: item.id, label: item.name }));
     const countryOptions = countries.map(item => ({ value: item.id, label: item.name }));
     const regionOptions = regions.map(item => ({ value: item.id, label: item.name }));
-    const brandOptions = brands.map(item => ({ value: item.id, label: item.name }));
     const tagOptions = tags.map(item => ({ value: item.id, label: item.name }));
 
     const [formData, setFormData] = useState({
@@ -104,14 +103,10 @@ export default function Preferences({ userPreferences, categories, countries, re
             countryOptions.find(opt => opt.value === id)) || [],
         opportunity_regions: userPreferences?.opportunity_regions?.map(id =>
             regionOptions.find(opt => opt.value === id)) || [],
-        opportunity_brands: userPreferences?.opportunity_brands?.map(id =>
-            brandOptions.find(opt => opt.value === id)) || [],
         product_categories: userPreferences?.product_categories?.map(id =>
             categoryOptions.find(opt => opt.value === id)) || [],
         product_tags: userPreferences?.product_tags?.map(id =>
             tagOptions.find(opt => opt.value === id)) || [],
-        product_brands: userPreferences?.product_brands?.map(id =>
-            brandOptions.find(opt => opt.value === id)) || [],
         email_notifications: userPreferences?.email_notifications || false,
         opportunity_notifications: userPreferences?.opportunity_notifications || true,
         product_notifications: userPreferences?.product_notifications || true,
@@ -124,6 +119,18 @@ export default function Preferences({ userPreferences, categories, countries, re
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [messageType, setMessageType] = useState('');
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const hash = window.location.hash?.slice(1);
+        if (!hash) return;
+        // Defer until form is painted
+        const t = setTimeout(() => {
+            const el = document.getElementById(hash);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+        return () => clearTimeout(t);
+    }, []);
 
     const handleSelectChange = (selectedOptions, field) => {
         setFormData(prev => ({ ...prev, [field]: selectedOptions || [] }));
@@ -141,10 +148,8 @@ export default function Preferences({ userPreferences, categories, countries, re
             opportunity_categories: formData.opportunity_categories.map(opt => opt.value),
             opportunity_countries: formData.opportunity_countries.map(opt => opt.value),
             opportunity_regions: formData.opportunity_regions.map(opt => opt.value),
-            opportunity_brands: formData.opportunity_brands.map(opt => opt.value),
             product_categories: formData.product_categories.map(opt => opt.value),
             product_tags: formData.product_tags.map(opt => opt.value),
-            product_brands: formData.product_brands.map(opt => opt.value),
             email_notifications: formData.email_notifications,
             opportunity_notifications: formData.opportunity_notifications,
             product_notifications: formData.product_notifications,
@@ -219,7 +224,7 @@ export default function Preferences({ userPreferences, categories, countries, re
             field: 'weekly_digest_optin',
             icon: 'newspaper',
             title: 'Weekly Opportunity Digest',
-            description: 'Saturday morning email with up to 4 opportunities matched to your categories, countries, regions, and brands',
+            description: 'Saturday morning email with up to 4 opportunities matched to your categories, countries, and regions',
         },
     ];
 
@@ -273,12 +278,13 @@ export default function Preferences({ userPreferences, categories, countries, re
 
                             <form onSubmit={handleSubmit}>
                                 {/* Opportunity Preferences */}
-                                <div style={{
+                                <div id="opportunities" style={{
                                     background: '#fff',
                                     border: '1px solid #f0f0f0',
                                     borderRadius: '16px',
                                     padding: '28px',
                                     marginBottom: '12px',
+                                    scrollMarginTop: '80px',
                                 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
                                         <span style={{
@@ -334,27 +340,17 @@ export default function Preferences({ userPreferences, categories, countries, re
                                                 placeholder="Select regions..."
                                             />
                                         </Col>
-                                        <Col md={6}>
-                                            <label style={labelStyle}>Brands</label>
-                                            <Select
-                                                isMulti
-                                                value={formData.opportunity_brands}
-                                                options={brandOptions}
-                                                onChange={(selected) => handleSelectChange(selected, 'opportunity_brands')}
-                                                styles={selectStyles}
-                                                placeholder="Select brands..."
-                                            />
-                                        </Col>
                                     </Row>
                                 </div>
 
                                 {/* Product Preferences */}
-                                <div style={{
+                                <div id="toolshed" style={{
                                     background: '#fff',
                                     border: '1px solid #f0f0f0',
                                     borderRadius: '16px',
                                     padding: '28px',
                                     marginBottom: '12px',
+                                    scrollMarginTop: '80px',
                                 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
                                         <span style={{
@@ -399,27 +395,17 @@ export default function Preferences({ userPreferences, categories, countries, re
                                                 placeholder="Select tags..."
                                             />
                                         </Col>
-                                        <Col md={6}>
-                                            <label style={labelStyle}>Brands</label>
-                                            <Select
-                                                isMulti
-                                                value={formData.product_brands}
-                                                options={brandOptions}
-                                                onChange={(selected) => handleSelectChange(selected, 'product_brands')}
-                                                styles={selectStyles}
-                                                placeholder="Select brands..."
-                                            />
-                                        </Col>
                                     </Row>
                                 </div>
 
                                 {/* Forum Preferences */}
-                                <div style={{
+                                <div id="forum" style={{
                                     background: '#fff',
                                     border: '1px solid #f0f0f0',
                                     borderRadius: '16px',
                                     padding: '28px',
                                     marginBottom: '12px',
+                                    scrollMarginTop: '80px',
                                 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
                                         <span style={{

@@ -284,25 +284,23 @@ const ReadOpportunity = ({opp_posts, similarPosts, total_comments}) => {
                             borderBottom: '1px solid #f0f0f0',
                         }}
                     >
-                        {/* Deadline pill */}
-                        {opp_posts.deadline && (
-                            <span
-                                style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                    padding: '4px 12px',
-                                    borderRadius: '9999px',
-                                    background: getDaysLeftText(opp_posts.deadline).includes('Expired') ? '#000' : '#f5f5f7',
-                                    color: getDaysLeftText(opp_posts.deadline).includes('Expired') ? '#fff' : '#000',
-                                    fontSize: '12px',
-                                    fontWeight: 500,
-                                }}
-                            >
-                                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>schedule</span>
-                                {getDaysLeft(opp_posts.deadline)}
-                            </span>
-                        )}
+                        {/* Deadline pill — always shown; null deadline renders as "Unspecified" */}
+                        <span
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '4px 12px',
+                                borderRadius: '9999px',
+                                background: getDaysLeftText(opp_posts.deadline).includes('Expired') ? '#000' : '#f5f5f7',
+                                color: getDaysLeftText(opp_posts.deadline).includes('Expired') ? '#fff' : '#000',
+                                fontSize: '12px',
+                                fontWeight: 500,
+                            }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>schedule</span>
+                            {getDaysLeft(opp_posts.deadline)}
+                        </span>
 
                         {/* Share + Comments */}
                         <div className="d-flex align-items-center gap-3">

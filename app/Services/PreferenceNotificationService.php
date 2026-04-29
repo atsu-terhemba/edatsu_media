@@ -12,11 +12,19 @@ use Illuminate\Support\Facades\Log;
 class PreferenceNotificationService
 {
     /**
-     * Send notifications for a new opportunity to matching users
+     * Send notifications for a new or updated opportunity to matching users.
+     * $isUpdate = true rephrases the notification so subscribers don't think
+     * an old opportunity is being re-announced as new.
      */
-    public function notifyOpportunityMatch($opportunity, $opportunityCategories, $opportunityCountries, $opportunityRegions, $opportunityBrands)
+    public function notifyOpportunityMatch($opportunity, $opportunityCategories, $opportunityCountries, $opportunityRegions, $opportunityBrands, $isUpdate = false)
     {
         try {
+            $title   = $isUpdate ? 'Opportunity Updated' : 'New Opportunity Match!';
+            $message = $isUpdate
+                ? "An opportunity you may be interested in was updated: '{$opportunity->title}'."
+                : "A new opportunity '{$opportunity->title}' matches your preferences!";
+            $type = $isUpdate ? 'opportunity_update' : 'opportunity_match';
+
             // Get users who have opportunity notifications enabled
             $usersWithPreferences = UserPreference::where('opportunity_notifications', true)
                 ->with('user')
@@ -27,12 +35,12 @@ class PreferenceNotificationService
                     // Create in-app notification
                     $this->createNotification(
                         $userPreference->user_id,
-                        'New Opportunity Match!',
-                        "A new opportunity '{$opportunity->title}' matches your preferences!",
+                        $title,
+                        $message,
                         'info',
                         "/op/{$opportunity->id}/{$opportunity->slug}",
                         [
-                            'type' => 'opportunity_match',
+                            'type' => $type,
                             'opportunity_id' => $opportunity->id,
                             'opportunity_title' => $opportunity->title
                         ]
@@ -42,15 +50,15 @@ class PreferenceNotificationService
                     if ($userPreference->email_notifications) {
                         $this->sendEmailNotification(
                             $userPreference->user,
-                            'New Opportunity Match!',
-                            "A new opportunity '{$opportunity->title}' matches your preferences!",
+                            $title,
+                            $message,
                             "/op/{$opportunity->id}/{$opportunity->slug}"
                         );
                     }
                 }
             }
 
-            Log::info("Opportunity notifications sent for: {$opportunity->title}");
+            Log::info("Opportunity " . ($isUpdate ? 'update' : 'match') . " notifications sent for: {$opportunity->title}");
         } catch (\Exception $e) {
             Log::error("Error sending opportunity notifications: " . $e->getMessage());
         }

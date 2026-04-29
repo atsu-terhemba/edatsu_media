@@ -517,6 +517,38 @@ ul.menu-list li:last-child {
   /* text-align: justify !important; */
 }
 
+/* Neutralize inline color/font/background that pasted content (Word, Docs, web)
+   carries into Quill output rendered via dangerouslySetInnerHTML. The container
+   sets the canonical color and font; everything inside inherits. */
+.article-content,
+.article-content *:not(a):not(code):not(pre):not(kbd):not(mark) {
+  color: inherit !important;
+  background-color: transparent !important;
+  font-family: inherit !important;
+}
+.article-content a {
+  background-color: transparent !important;
+  font-family: inherit !important;
+}
+.article-content p,
+.article-content li,
+.article-content span,
+.article-content div,
+.article-content td,
+.article-content th {
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+.article-content h1,
+.article-content h2,
+.article-content h3,
+.article-content h4,
+.article-content h5,
+.article-content h6 {
+  font-family: inherit !important;
+  color: inherit !important;
+}
+
 .banner {
     background-image: url('/public/img/defaults/banner_6.jpg');
 }

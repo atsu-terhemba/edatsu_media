@@ -389,12 +389,10 @@ export default function AllOppty() {
                                                             }}>
                                                                 {opp.title}
                                                             </span>
-                                                            {opp.deadline && (
-                                                                <span style={{ fontSize: '12px', color: '#b0b0b5', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                                                                    <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>schedule</span>
-                                                                    Deadline: {formatDate(opp.deadline)}
-                                                                </span>
-                                                            )}
+                                                            <span style={{ fontSize: '12px', color: '#b0b0b5', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                                                                <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>schedule</span>
+                                                                Deadline: {opp.deadline ? formatDate(opp.deadline) : 'Unspecified'}
+                                                            </span>
                                                         </div>
 
                                                         {/* Status */}

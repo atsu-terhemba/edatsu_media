@@ -663,7 +663,11 @@ function store(Request $request)
     // Store the data in the database
     $op->title = $request->title;
     $op->description = $request->description;
-    $op->deadline = $request->deadline;
+    // Treat empty/blank deadline as unspecified (null in DB).
+    $deadlineUnspecified = filter_var($request->input('deadline_unspecified'), FILTER_VALIDATE_BOOLEAN);
+    $op->deadline = ($deadlineUnspecified || trim((string) $request->deadline) === '')
+        ? null
+        : $request->deadline;
     $op->source_url = $request->source_url;
     $op->direct_link = $request->direct_link;
     $op->meta_description = $request->meta_description;
@@ -734,19 +738,20 @@ function store(Request $request)
         $manageRelationalData($table, $data[0], $data[1]);
     }
 
-    // Send notifications for new opportunities (not for updates)
-    if (!$isEditing) {
+    // Send notifications: always for new opportunities; on update only when admin opts in.
+    $notifyOnUpdate = filter_var($request->input('notify_users'), FILTER_VALIDATE_BOOLEAN);
+    if (!$isEditing || ($isEditing && $notifyOnUpdate)) {
         try {
             $notificationService = new PreferenceNotificationService();
-            
+
             // Extract IDs from the saved data
             $categoryIds = $notificationService->extractIds(null, 'category_selections', 'category_id', $postId);
             $countryIds = $notificationService->extractIds(null, 'country_selections', 'country_id', $postId);
             $regionIds = $notificationService->extractIds(null, 'region_selections', 'region_id', $postId);
             $brandIds = $notificationService->extractIds(null, 'brand_labels_selections', 'brand_label_id', $postId);
-            
+
             // Send notifications to users with matching preferences
-            $notificationService->notifyOpportunityMatch($op, $categoryIds, $countryIds, $regionIds, $brandIds);
+            $notificationService->notifyOpportunityMatch($op, $categoryIds, $countryIds, $regionIds, $brandIds, $isEditing);
         } catch (\Exception $e) {
             // Log error but don't break the opportunity creation flow
             \Log::error("Error sending opportunity notifications: " . $e->getMessage());
