@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'webhook/flutterwave',
             'webhook/nowpayments',
+            'webhook/girostack',
         ]);
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,

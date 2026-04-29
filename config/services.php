@@ -61,4 +61,11 @@ return [
         'base_url' => env('NOWPAYMENTS_BASE_URL', 'https://api.nowpayments.io/v1'),
     ],
 
+    'girostack' => [
+        'base_url' => env('GIRO_BASE_URL', 'https://gw.prod.girostack.com/v1'),
+        'secret_key' => env('GIRO_SECRET_KEY'),
+        'destination_account' => env('GIRO_DESTINATION_ACCOUNT'),
+        'account_name' => env('GIRO_ACCOUNT_NAME', 'Edatsu Media'),
+    ],
+
 ];

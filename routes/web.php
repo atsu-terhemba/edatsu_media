@@ -147,6 +147,8 @@ Route::post('/ratings', [RatingController::class, 'store'])->name('rating.store'
 Route::post('/webhook/flutterwave', [SubscriptionController::class, 'handleWebhook'])->name('subscription.webhook');
 // NOWPayments IPN (no CSRF)
 Route::post('/webhook/nowpayments', [SubscriptionController::class, 'handleNowPaymentsWebhook'])->name('subscription.nowpayments_webhook');
+// Girostack webhook (no CSRF) — fires on credit/debit events for our virtual accounts
+Route::post('/webhook/girostack', [SubscriptionController::class, 'handleGirostackWebhook'])->name('subscription.girostack_webhook');
 Route::post('/comment/{id}/reply', [CommentController::class, 'reply'])->name('comment.reply');
 
 // User registration

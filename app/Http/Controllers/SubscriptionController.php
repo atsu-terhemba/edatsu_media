@@ -14,6 +14,7 @@ use App\Models\SubscriptionPlan;
 use App\Models\Subscription;
 use App\Models\Transaction;
 use App\Services\FlutterwaveService;
+use App\Services\GirostackService;
 use App\Services\NowPaymentsService;
 use Carbon\Carbon;
 
@@ -21,11 +22,13 @@ class SubscriptionController extends Controller
 {
     protected FlutterwaveService $flutterwave;
     protected NowPaymentsService $nowPayments;
+    protected GirostackService $girostack;
 
-    public function __construct(FlutterwaveService $flutterwave, NowPaymentsService $nowPayments)
+    public function __construct(FlutterwaveService $flutterwave, NowPaymentsService $nowPayments, GirostackService $girostack)
     {
         $this->flutterwave = $flutterwave;
         $this->nowPayments = $nowPayments;
+        $this->girostack = $girostack;
     }
 
     // Show the subscription/pricing page
@@ -353,7 +356,7 @@ class SubscriptionController extends Controller
             $transaction = Transaction::create([
                 'user_id' => $user->id,
                 'reference' => $txRef,
-                'payment_provider' => 'flutterwave',
+                'payment_provider' => 'girostack',
                 'payment_method' => 'banktransfer',
                 'amount' => $amount,
                 'currency' => $request->currency,
@@ -369,31 +372,34 @@ class SubscriptionController extends Controller
                 'currency' => $request->currency,
                 'amount' => $amount,
                 'status' => 'pending',
-                'payment_provider' => 'flutterwave',
+                'payment_provider' => 'girostack',
             ]);
 
             $transaction->update(['subscription_id' => $subscription->id]);
 
-            // Narration is capped short by banks — lead with brand + user ID so
-            // any payment can be traced to an account even if the webhook fails.
-            $narration = "Edatsu Media #U{$user->id}";
-
-            $result = $this->flutterwave->chargeBankTransfer([
-                'tx_ref' => $txRef,
+            $result = $this->girostack->createCollectionAccount([
                 'amount' => $amount,
-                'currency' => $request->currency,
-                'email' => $user->email,
-                'name' => $user->name,
-                'narration' => $narration,
-                'meta' => [
-                    'user_id' => $user->id,
-                    'plan_id' => $plan->id,
-                    'subscription_id' => $subscription->id,
-                    'billing_period' => $request->billing_period,
-                ],
+                'expire_in' => 1800,
+                'account_name' => $user->name ?: config('services.girostack.account_name'),
             ]);
 
             if ($result['success']) {
+                // Persist the giro `account` (internal ID) — every credit event
+                // for this collection account echoes it, so it's our match key.
+                // Other identifiers are kept in provider_response as a fallback.
+                $transaction->update([
+                    'provider_reference' => $result['account'] ?? $result['public_id'] ?? $result['reference'],
+                    'provider_response' => [
+                        'account' => $result['account'],
+                        'account_number' => $result['account_number'],
+                        'bank_name' => $result['bank_name'],
+                        'reference' => $result['reference'],
+                        'public_id' => $result['public_id'],
+                        'expires_at' => $result['expires_at'],
+                        'created' => $result['raw'] ?? null,
+                    ],
+                ]);
+
                 return response()->json([
                     'success' => true,
                     'tx_ref' => $txRef,
@@ -616,6 +622,97 @@ class SubscriptionController extends Controller
         }
 
         $this->activateSubscription($transaction, $verified);
+
+        return response()->json(['status' => 'success'], 200);
+    }
+
+    /**
+     * Girostack webhook handler.
+     *
+     * Verifies HMAC-SHA512 over the raw body using the giro secret key, then on
+     * `giro.account.credit` matches the credited collection account back to a
+     * pending bank-transfer transaction and activates the subscription.
+     *
+     * Payload envelope (per real sample): `{event, data: {event, status,
+     * account, amount, actualAmount, fee, reference, ...}}`. The inner
+     * `account` is the stable internal ID we stashed on provider_reference at
+     * create time — it's the only identifier echoed on every event for a given
+     * collection account.
+     *
+     * Amount unit: Girostack stores amounts with the last 2 digits as the
+     * decimal portion (10000 = ₦100). We compare `actualAmount` (gross paid by
+     * the user) — not `amount` (net after Giro's fee) — against
+     * transaction->amount * 100.
+     */
+    public function handleGirostackWebhook(Request $request)
+    {
+        $rawBody = $request->getContent();
+        $signature = $request->header('x-giro-signature');
+
+        if (!$this->girostack->verifyWebhookSignature($rawBody, $signature)) {
+            Log::warning('Invalid Girostack webhook signature');
+            return response()->json(['status' => 'error'], 401);
+        }
+
+        $payload = json_decode($rawBody, true) ?: [];
+        $event = $payload['event'] ?? null;
+        $data = $payload['data'] ?? [];
+
+        // Only credit events activate subscriptions. Debit / debit.failed are
+        // outbound/payout events and not relevant to incoming subscription pay.
+        if ($event !== 'giro.account.credit') {
+            return response()->json(['status' => 'noop'], 200);
+        }
+
+        $accountId = $data['account'] ?? null;
+        $giroReference = $data['reference'] ?? null;
+        // amount = net we receive after fees; actualAmount = what user actually
+        // paid. Validate against actualAmount so a legit payment isn't rejected
+        // for the fee delta.
+        $actualMinor = (int) ($data['actualAmount'] ?? 0);
+        $netMinor = (int) ($data['amount'] ?? 0);
+
+        if (!$accountId) {
+            Log::warning('Girostack credit missing `account` field', ['payload' => $data]);
+            return response()->json(['status' => 'malformed'], 400);
+        }
+
+        $transaction = Transaction::where('payment_provider', 'girostack')
+            ->where('status', 'pending')
+            ->where('provider_reference', $accountId)
+            ->first();
+
+        if (!$transaction) {
+            // Already-handled credits land here on retry; that's fine, ack 200.
+            Log::info('Girostack credit not matched to pending transaction (likely already processed)', [
+                'account' => $accountId,
+                'reference' => $giroReference,
+            ]);
+            return response()->json(['status' => 'unknown_or_handled'], 200);
+        }
+
+        // transaction->amount is in major units (NGN). actualMinor is in minor
+        // units (kobo). Convert and compare with sub-kobo tolerance.
+        $expectedMinor = (int) round((float) $transaction->amount * 100);
+        if (abs($expectedMinor - $actualMinor) > 1) {
+            Log::error('Girostack amount mismatch', [
+                'transaction_reference' => $transaction->reference,
+                'expected_minor' => $expectedMinor,
+                'actual_minor' => $actualMinor,
+                'net_minor' => $netMinor,
+            ]);
+            return response()->json(['status' => 'amount_mismatch'], 400);
+        }
+
+        $this->activateSubscription($transaction, [
+            'id' => $giroReference ?? $accountId,
+            'payment_type' => 'banktransfer',
+            // Convert back to major units for downstream storage / display.
+            'amount' => $actualMinor / 100,
+            'currency' => 'NGN',
+            'status' => 'successful',
+            'raw' => $data,
+        ]);
 
         return response()->json(['status' => 'success'], 200);
     }
