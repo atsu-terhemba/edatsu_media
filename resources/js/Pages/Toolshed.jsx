@@ -312,7 +312,7 @@ const Toolshed = () => {
             {/* Main Content */}
             <section style={{ paddingBottom: '96px', background: '#f5f5f7' }}>
                 <Container>
-                    <div style={{ paddingBottom: '8px' }}>
+                    <div style={{ paddingTop: '32px', paddingBottom: '8px' }}>
                         <PreferencesBanner section="toolshed" />
                     </div>
                     <Row className="g-4">
