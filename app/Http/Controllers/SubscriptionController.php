@@ -34,6 +34,10 @@ class SubscriptionController extends Controller
     // Show the subscription/pricing page
     public function show()
     {
+        if (Auth::check()) {
+            return redirect()->route('subscription');
+        }
+
         return Inertia::render('Subscription', [
             'plans' => $this->buildPlansPayload(),
         ]);

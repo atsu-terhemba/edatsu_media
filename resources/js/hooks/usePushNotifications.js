@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
 function urlBase64ToUint8Array(base64String) {
@@ -12,9 +12,23 @@ function urlBase64ToUint8Array(base64String) {
     return outputArray;
 }
 
+// `navigator.serviceWorker.ready` hangs indefinitely if the SW failed to
+// install (e.g. a precached asset 404s). Race it against a timeout so the
+// subscribe flow can fail loudly instead of leaving the UI stuck.
+function readyWithTimeout(ms) {
+    return Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise((_, reject) => setTimeout(
+            () => reject(new Error('Service worker did not become ready in time')),
+            ms,
+        )),
+    ]);
+}
+
 export default function usePushNotifications(vapidPublicKey) {
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [permission, setPermission] = useState('default');
+    const registrationRef = useRef(null);
 
     useEffect(() => {
         if (!('serviceWorker' in navigator) || !('PushManager' in window) || !vapidPublicKey) {
@@ -24,9 +38,12 @@ export default function usePushNotifications(vapidPublicKey) {
         setPermission(Notification.permission);
 
         navigator.serviceWorker.register('/sw.js').then((registration) => {
-            registration.pushManager.getSubscription().then((sub) => {
-                setIsSubscribed(!!sub);
-            });
+            registrationRef.current = registration;
+            return registration.pushManager.getSubscription();
+        }).then((sub) => {
+            setIsSubscribed(!!sub);
+        }).catch((err) => {
+            console.error('Service worker registration failed:', err);
         });
     }, [vapidPublicKey]);
 
@@ -38,7 +55,8 @@ export default function usePushNotifications(vapidPublicKey) {
             setPermission(perm);
             if (perm !== 'granted') return false;
 
-            const registration = await navigator.serviceWorker.ready;
+            const registration = registrationRef.current
+                ?? await readyWithTimeout(10000);
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
@@ -66,7 +84,8 @@ export default function usePushNotifications(vapidPublicKey) {
 
     const unsubscribe = async () => {
         try {
-            const registration = await navigator.serviceWorker.ready;
+            const registration = registrationRef.current
+                ?? await readyWithTimeout(10000);
             const subscription = await registration.pushManager.getSubscription();
             if (subscription) {
                 const sub = subscription.toJSON();

@@ -9,10 +9,15 @@ var PRECACHE_URLS = [
 ];
 
 // Install: precache critical assets
+// Use individual cache.add() calls wrapped in allSettled so a single missing
+// asset can't reject the whole install — if it does, the SW never activates
+// and `navigator.serviceWorker.ready` hangs forever for any caller awaiting it.
 self.addEventListener('install', function (event) {
     event.waitUntil(
         caches.open(CACHE_NAME).then(function (cache) {
-            return cache.addAll(PRECACHE_URLS);
+            return Promise.allSettled(
+                PRECACHE_URLS.map(function (url) { return cache.add(url); })
+            );
         }).then(function () {
             return self.skipWaiting();
         })

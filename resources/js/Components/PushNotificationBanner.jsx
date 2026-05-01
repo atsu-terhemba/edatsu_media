@@ -28,12 +28,15 @@ export default function PushNotificationBanner() {
 
     const handleEnable = async () => {
         setBusy(true);
-        const ok = await subscribe();
-        setBusy(false);
-        if (ok) {
-            handleDismiss(false);
-        } else if (Notification.permission === 'denied') {
-            handleDismiss(true);
+        try {
+            const ok = await subscribe();
+            if (ok) {
+                handleDismiss(false);
+            } else if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
+                handleDismiss(true);
+            }
+        } finally {
+            setBusy(false);
         }
     };
 
