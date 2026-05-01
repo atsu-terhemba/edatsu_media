@@ -21,7 +21,7 @@ return new class extends Migration
 
         Schema::table('user_preferences', function (Blueprint $table) {
             if (!Schema::hasColumn('user_preferences', 'weekly_digest_optin')) {
-                $table->boolean('weekly_digest_optin')->default(true)->after('forum_categories');
+                $table->boolean('weekly_digest_optin')->default(true);
             }
             if (!Schema::hasColumn('user_preferences', 'weekly_digest_last_sent_at')) {
                 $table->timestamp('weekly_digest_last_sent_at')->nullable()->after('weekly_digest_optin');
