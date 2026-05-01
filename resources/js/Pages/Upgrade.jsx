@@ -68,11 +68,14 @@ const Upgrade = () => {
         setIsProcessing(true);
 
         try {
-            if (paymentMethod === 'banktransfer') {
+            const isBankTransfer = paymentMethod === 'banktransfer' || paymentMethod === 'banktransfer_opay';
+            if (isBankTransfer) {
+                const bankProvider = paymentMethod === 'banktransfer_opay' ? 'opay' : 'girostack';
                 const { data } = await axios.post('/subscription/initiate-transfer', {
                     plan_id: selectedPlan.id,
                     billing_period: billingPeriod,
                     currency,
+                    bank_provider: bankProvider,
                 });
 
                 if (data?.success) {
@@ -82,6 +85,7 @@ const Upgrade = () => {
                         bank_name: data.bank_name,
                         amount: data.amount,
                         expires_at: data.expires_at,
+                        bank_provider: data.bank_provider || bankProvider,
                     });
                     setIsProcessing(false);
                     return;
@@ -146,6 +150,15 @@ const Upgrade = () => {
             icon: 'account_balance',
             description: 'Pay with a bank transfer',
             currencies: ['NGN'],
+            bankProvider: 'girostack',
+        },
+        {
+            id: 'banktransfer_opay',
+            name: 'Bank Transfer (Opay)',
+            icon: 'account_balance_wallet',
+            description: 'Use this if the default bank transfer is unreachable',
+            currencies: ['NGN'],
+            bankProvider: 'opay',
         },
         {
             id: 'crypto',
@@ -744,21 +757,68 @@ const Upgrade = () => {
                             {paymentMethod === 'crypto' && billingPeriod === 'monthly' && (
                                 <div style={{
                                     marginTop: '16px',
-                                    padding: '12px 16px',
+                                    padding: '14px 16px',
                                     background: '#fff7ed',
                                     border: '1px solid #fed7aa',
                                     borderRadius: '12px',
                                     fontSize: '13px',
                                     color: '#9a3412',
-                                    display: 'flex',
-                                    gap: '10px',
-                                    alignItems: 'flex-start',
                                 }}>
-                                    <span className="material-symbols-outlined" style={{ fontSize: '18px', flexShrink: 0 }}>info</span>
-                                    <span>
-                                        Crypto payments require a minimum of $10. Switch to the
-                                        <strong> yearly plan</strong> to pay with USDT, or pick another payment method.
-                                    </span>
+                                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '18px', flexShrink: 0 }}>info</span>
+                                        <span>
+                                            Crypto payments require a minimum of $10. Switch to the
+                                            <strong> yearly plan</strong> to pay with USDT, or pick another method below.
+                                        </span>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap', paddingLeft: '28px' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setBillingPeriod('yearly')}
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                padding: '8px 16px',
+                                                borderRadius: '9999px',
+                                                fontSize: '12px',
+                                                fontWeight: 500,
+                                                background: '#9a3412',
+                                                color: '#fff',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                transition: 'background 0.15s ease',
+                                            }}
+                                            onMouseEnter={(e) => e.currentTarget.style.background = '#7c2d12'}
+                                            onMouseLeave={(e) => e.currentTarget.style.background = '#9a3412'}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>calendar_month</span>
+                                            Switch to yearly
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => selectPaymentMethod(allPaymentMethods.find(m => m.id === 'card'))}
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                padding: '8px 16px',
+                                                borderRadius: '9999px',
+                                                fontSize: '12px',
+                                                fontWeight: 500,
+                                                background: '#fff',
+                                                color: '#9a3412',
+                                                border: '1px solid #fed7aa',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.15s ease',
+                                            }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.background = '#fff7ed'; e.currentTarget.style.borderColor = '#fdba74'; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#fed7aa'; }}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>credit_card</span>
+                                            Use card instead
+                                        </button>
+                                    </div>
                                 </div>
                             )}
 

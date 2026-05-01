@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'webhook/flutterwave',
             'webhook/nowpayments',
             'webhook/girostack',
+            'webhook/opay',
         ]);
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,

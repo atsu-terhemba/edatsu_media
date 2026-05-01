@@ -16,6 +16,7 @@ use App\Models\Transaction;
 use App\Services\FlutterwaveService;
 use App\Services\GirostackService;
 use App\Services\NowPaymentsService;
+use App\Services\OpayService;
 use Carbon\Carbon;
 
 class SubscriptionController extends Controller
@@ -23,12 +24,18 @@ class SubscriptionController extends Controller
     protected FlutterwaveService $flutterwave;
     protected NowPaymentsService $nowPayments;
     protected GirostackService $girostack;
+    protected OpayService $opay;
 
-    public function __construct(FlutterwaveService $flutterwave, NowPaymentsService $nowPayments, GirostackService $girostack)
-    {
+    public function __construct(
+        FlutterwaveService $flutterwave,
+        NowPaymentsService $nowPayments,
+        GirostackService $girostack,
+        OpayService $opay,
+    ) {
         $this->flutterwave = $flutterwave;
         $this->nowPayments = $nowPayments;
         $this->girostack = $girostack;
+        $this->opay = $opay;
     }
 
     // Show the subscription/pricing page
@@ -317,7 +324,20 @@ class SubscriptionController extends Controller
             'plan_id' => 'required|string',
             'billing_period' => 'required|in:monthly,yearly',
             'currency' => 'required|in:NGN',
+            'bank_provider' => 'sometimes|in:girostack,opay',
         ]);
+
+        // Default to girostack so existing clients (and the Subscription page)
+        // keep working without sending the new field.
+        $bankProvider = $request->input('bank_provider', 'girostack');
+
+        // If the caller asked for Opay but creds aren't installed yet, fall
+        // back to Girostack rather than 500-ing. Once OPAY_* env is set this
+        // branch becomes inert.
+        if ($bankProvider === 'opay' && !$this->opay->isConfigured()) {
+            Log::warning('Opay requested but service not configured; falling back to Girostack');
+            $bankProvider = 'girostack';
+        }
 
         $user = Auth::user();
 
@@ -360,7 +380,7 @@ class SubscriptionController extends Controller
             $transaction = Transaction::create([
                 'user_id' => $user->id,
                 'reference' => $txRef,
-                'payment_provider' => 'girostack',
+                'payment_provider' => $bankProvider,
                 'payment_method' => 'banktransfer',
                 'amount' => $amount,
                 'currency' => $request->currency,
@@ -376,15 +396,23 @@ class SubscriptionController extends Controller
                 'currency' => $request->currency,
                 'amount' => $amount,
                 'status' => 'pending',
-                'payment_provider' => 'girostack',
+                'payment_provider' => $bankProvider,
             ]);
 
             $transaction->update(['subscription_id' => $subscription->id]);
 
-            $result = $this->girostack->createCollectionAccount([
+            $accountConfigName = $bankProvider === 'opay'
+                ? config('services.opay.merchant_name')
+                : config('services.girostack.account_name');
+
+            $service = $bankProvider === 'opay' ? $this->opay : $this->girostack;
+
+            $result = $service->createCollectionAccount([
                 'amount' => $amount,
                 'expire_in' => 1800,
-                'account_name' => $user->name ?: config('services.girostack.account_name'),
+                'account_name' => $user->name ?: $accountConfigName,
+                'reference' => $txRef,
+                'description' => "{$plan->name} plan - {$request->billing_period} ({$request->currency})",
             ]);
 
             if ($result['success']) {
@@ -411,6 +439,7 @@ class SubscriptionController extends Controller
                     'bank_name' => $result['bank_name'],
                     'amount' => $result['amount'],
                     'expires_at' => $result['expires_at'],
+                    'bank_provider' => $bankProvider,
                 ]);
             }
 
@@ -442,9 +471,17 @@ class SubscriptionController extends Controller
             return;
         }
 
+        // Null out provider_reference so a recycled Girostack/Opay account id
+        // on the next attempt doesn't collide with this abandoned row's index.
+        // The reference is only useful while status='pending' (webhook lookup);
+        // once failed, the column is dead weight.
         Transaction::whereIn('subscription_id', $pendingSubs)
             ->where('status', 'pending')
-            ->update(['status' => 'failed', 'updated_at' => now()]);
+            ->update([
+                'status' => 'failed',
+                'provider_reference' => null,
+                'updated_at' => now(),
+            ]);
 
         Subscription::whereIn('id', $pendingSubs)
             ->where('status', 'pending')
@@ -712,6 +749,102 @@ class SubscriptionController extends Controller
             'id' => $giroReference ?? $accountId,
             'payment_type' => 'banktransfer',
             // Convert back to major units for downstream storage / display.
+            'amount' => $actualMinor / 100,
+            'currency' => 'NGN',
+            'status' => 'successful',
+            'raw' => $data,
+        ]);
+
+        return response()->json(['status' => 'success'], 200);
+    }
+
+    /**
+     * Opay webhook handler — fallback bank-transfer provider.
+     *
+     * Mirrors handleGirostackWebhook: verify signature, match the credit event
+     * back to a pending Opay transaction by orderNo, sanity-check the amount,
+     * activate the subscription. Field names and event identifiers below are
+     * scaffolded against Opay's documented Cashier callback shape and MUST
+     * be reconciled with the actual webhook test from the merchant dashboard
+     * before going live (mark TODO blocks).
+     */
+    public function handleOpayWebhook(Request $request)
+    {
+        $rawBody = $request->getContent();
+
+        // TODO(opay-creds): confirm header name. Common candidates:
+        //   - 'Authorization'  (some Opay products send sig=... here)
+        //   - 'Signature'
+        //   - 'x-opay-signature'
+        $signature = $request->header('Authorization')
+            ?? $request->header('Signature')
+            ?? $request->header('x-opay-signature');
+
+        if (!$this->opay->verifyWebhookSignature($rawBody, $signature)) {
+            Log::warning('Invalid Opay webhook signature');
+            return response()->json(['status' => 'error'], 401);
+        }
+
+        $payload = json_decode($rawBody, true) ?: [];
+
+        // Opay envelopes vary by product. Cashier callbacks use:
+        //   { payload: { status, amount, currency, country, reference,
+        //                country, transactionId, instrumentType, ... },
+        //     sha512: '...' }
+        // — but the dashboard's "test webhook" is the source of truth.
+        $data = $payload['payload'] ?? $payload['data'] ?? $payload;
+
+        $status = strtoupper((string) ($data['status'] ?? ''));
+        if (!in_array($status, ['SUCCESS', 'PAID', 'COMPLETED', 'SUCCESSFUL'], true)) {
+            // Pending / initial / failure events — nothing to activate.
+            return response()->json(['status' => 'noop'], 200);
+        }
+
+        // orderNo (Opay's stable ID) was stored as provider_reference at
+        // create time. `reference` is our internal txRef and is also valid.
+        $orderNo = $data['orderNo']
+            ?? $data['transactionId']
+            ?? $data['reference']
+            ?? null;
+
+        if (!$orderNo) {
+            Log::warning('Opay credit missing identifier', ['payload' => $data]);
+            return response()->json(['status' => 'malformed'], 400);
+        }
+
+        $transaction = Transaction::where('payment_provider', 'opay')
+            ->where('status', 'pending')
+            ->where(function ($q) use ($orderNo) {
+                $q->where('provider_reference', $orderNo)
+                    ->orWhere('reference', $orderNo);
+            })
+            ->first();
+
+        if (!$transaction) {
+            Log::info('Opay credit not matched to pending transaction (likely already processed)', [
+                'orderNo' => $orderNo,
+            ]);
+            return response()->json(['status' => 'unknown_or_handled'], 200);
+        }
+
+        // Opay amount is minor units (kobo) — same convention as Girostack.
+        // Sub-amount field is sometimes nested as amount.total.
+        $actualMinor = (int) ($data['amount']['total']
+            ?? $data['amount']
+            ?? 0);
+        $expectedMinor = (int) round((float) $transaction->amount * 100);
+        if (abs($expectedMinor - $actualMinor) > 1) {
+            Log::error('Opay amount mismatch', [
+                'transaction_reference' => $transaction->reference,
+                'expected_minor' => $expectedMinor,
+                'actual_minor' => $actualMinor,
+            ]);
+            return response()->json(['status' => 'amount_mismatch'], 400);
+        }
+
+        $this->activateSubscription($transaction, [
+            'id' => $orderNo,
+            'payment_type' => 'banktransfer',
             'amount' => $actualMinor / 100,
             'currency' => 'NGN',
             'status' => 'successful',

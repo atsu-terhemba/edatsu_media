@@ -68,4 +68,12 @@ return [
         'account_name' => env('GIRO_ACCOUNT_NAME', 'Edatsu Media'),
     ],
 
+    'opay' => [
+        'base_url' => env('OPAY_BASE_URL', 'https://liveapi.opaycheckout.com'),
+        'merchant_id' => env('OPAY_MERCHANT_ID'),
+        'public_key' => env('OPAY_PUBLIC_KEY'),
+        'private_key' => env('OPAY_PRIVATE_KEY'),
+        'merchant_name' => env('OPAY_MERCHANT_NAME', 'Edatsu Media'),
+    ],
+
 ];
