@@ -28,8 +28,16 @@ export default function PushNotificationBanner() {
 
     const handleEnable = async () => {
         setBusy(true);
+        // Hard outer timeout: even if subscribe() never resolves (hung SW,
+        // unresponsive push service, browser quirk on requestPermission), the
+        // button must release after 30s so the user is never stuck.
+        const timeoutPromise = new Promise((resolve) => setTimeout(() => {
+            console.warn('Push subscribe timed out after 30s');
+            resolve(false);
+        }, 30000));
+
         try {
-            const ok = await subscribe();
+            const ok = await Promise.race([subscribe(), timeoutPromise]);
             if (ok) {
                 handleDismiss(false);
             } else if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {

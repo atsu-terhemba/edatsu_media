@@ -12,17 +12,21 @@ function urlBase64ToUint8Array(base64String) {
     return outputArray;
 }
 
+function withTimeout(promise, ms, label) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(
+            () => reject(new Error((label || 'operation') + ' timed out after ' + ms + 'ms')),
+            ms,
+        )),
+    ]);
+}
+
 // `navigator.serviceWorker.ready` hangs indefinitely if the SW failed to
 // install (e.g. a precached asset 404s). Race it against a timeout so the
 // subscribe flow can fail loudly instead of leaving the UI stuck.
 function readyWithTimeout(ms) {
-    return Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise((_, reject) => setTimeout(
-            () => reject(new Error('Service worker did not become ready in time')),
-            ms,
-        )),
-    ]);
+    return withTimeout(navigator.serviceWorker.ready, ms, 'serviceWorker.ready');
 }
 
 export default function usePushNotifications(vapidPublicKey) {
@@ -51,16 +55,24 @@ export default function usePushNotifications(vapidPublicKey) {
         if (!vapidPublicKey) return false;
 
         try {
-            const perm = await Notification.requestPermission();
+            const perm = await withTimeout(
+                Notification.requestPermission(),
+                15000,
+                'Notification.requestPermission',
+            );
             setPermission(perm);
             if (perm !== 'granted') return false;
 
             const registration = registrationRef.current
                 ?? await readyWithTimeout(10000);
-            const subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-            });
+            const subscription = await withTimeout(
+                registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+                }),
+                15000,
+                'pushManager.subscribe',
+            );
 
             const sub = subscription.toJSON();
             await axios.post('/api/push/subscribe', {
@@ -72,7 +84,7 @@ export default function usePushNotifications(vapidPublicKey) {
                 content_encoding: PushManager.supportedContentEncodings
                     ? PushManager.supportedContentEncodings[0]
                     : 'aesgcm',
-            });
+            }, { timeout: 15000 });
 
             setIsSubscribed(true);
             return true;
