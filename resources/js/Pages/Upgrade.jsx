@@ -156,9 +156,10 @@ const Upgrade = () => {
             id: 'banktransfer_opay',
             name: 'Bank Transfer (Opay)',
             icon: 'account_balance_wallet',
-            description: 'Use this if the default bank transfer is unreachable',
+            description: 'Temporarily unavailable',
             currencies: ['NGN'],
             bankProvider: 'opay',
+            disabled: true,
         },
         {
             id: 'crypto',
@@ -700,6 +701,7 @@ const Upgrade = () => {
 
                             {allPaymentMethods.map((method) => {
                                 const currencyMismatch = !method.currencies.includes(currency);
+                                const isDisabled = method.disabled;
                                 return (
                                 <div
                                     key={method.id}
@@ -709,12 +711,13 @@ const Upgrade = () => {
                                         padding: '14px 16px',
                                         border: `1px solid ${paymentMethod === method.id ? '#000' : '#e5e7eb'}`,
                                         borderRadius: '12px',
-                                        cursor: 'pointer',
+                                        cursor: isDisabled ? 'not-allowed' : 'pointer',
                                         transition: 'all 0.15s ease',
                                         marginBottom: '8px',
-                                        background: paymentMethod === method.id ? '#fafafa' : '#fff',
+                                        background: isDisabled ? '#f5f5f7' : paymentMethod === method.id ? '#fafafa' : '#fff',
+                                        opacity: isDisabled ? 0.5 : 1,
                                     }}
-                                    onClick={() => selectPaymentMethod(method)}
+                                    onClick={() => !isDisabled && selectPaymentMethod(method)}
                                 >
                                     <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#374151' }}>
                                         {method.icon}
@@ -722,22 +725,24 @@ const Upgrade = () => {
                                     <div className="flex-grow-1" style={{ minWidth: 0 }}>
                                         <div className="d-flex align-items-center" style={{ gap: '8px', flexWrap: 'wrap' }}>
                                             <span style={{ fontSize: '14px', fontWeight: 500, color: '#000' }}>{method.name}</span>
-                                            <span style={{
-                                                fontSize: '10px',
-                                                fontWeight: 600,
-                                                letterSpacing: '0.04em',
-                                                textTransform: 'uppercase',
-                                                color: currencyMismatch ? '#86868b' : '#16a34a',
-                                                background: currencyMismatch ? '#f5f5f7' : 'rgba(22,163,74,0.1)',
-                                                padding: '2px 8px',
-                                                borderRadius: '9999px',
-                                            }}>
-                                                {method.currencies.join(' / ')}
-                                            </span>
+                                            {!isDisabled && (
+                                                <span style={{
+                                                    fontSize: '10px',
+                                                    fontWeight: 600,
+                                                    letterSpacing: '0.04em',
+                                                    textTransform: 'uppercase',
+                                                    color: currencyMismatch ? '#86868b' : '#16a34a',
+                                                    background: currencyMismatch ? '#f5f5f7' : 'rgba(22,163,74,0.1)',
+                                                    padding: '2px 8px',
+                                                    borderRadius: '9999px',
+                                                }}>
+                                                    {method.currencies.join(' / ')}
+                                                </span>
+                                            )}
                                         </div>
                                         <div style={{ fontSize: '12px', color: '#86868b' }}>
                                             {method.description}
-                                            {currencyMismatch && (
+                                            {!isDisabled && currencyMismatch && (
                                                 <span style={{ color: '#c2410c' }}>
                                                     {` · Switches to ${method.currencies[0]}`}
                                                 </span>
