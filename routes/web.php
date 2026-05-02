@@ -148,6 +148,7 @@ Route::post('/webhook/flutterwave', [SubscriptionController::class, 'handleWebho
 // NOWPayments IPN (no CSRF)
 Route::post('/webhook/nowpayments', [SubscriptionController::class, 'handleNowPaymentsWebhook'])->name('subscription.nowpayments_webhook');
 // Girostack webhook (no CSRF) — fires on credit/debit events for our virtual accounts
+Route::get('/webhook/girostack', fn() => response()->json(['status' => 'ok']))->name('subscription.girostack_webhook_verify');
 Route::post('/webhook/girostack', [SubscriptionController::class, 'handleGirostackWebhook'])->name('subscription.girostack_webhook');
 // Opay webhook (no CSRF) — fallback bank-transfer provider
 Route::post('/webhook/opay', [SubscriptionController::class, 'handleOpayWebhook'])->name('subscription.opay_webhook');
