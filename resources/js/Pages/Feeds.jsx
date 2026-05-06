@@ -694,7 +694,10 @@ const News = () => {
     const [discussModal, setDiscussModal] = useState({ open: false, article: null, feed: null });
     const [readerArticle, setReaderArticle] = useState(null);
     const [readerFeed, setReaderFeed] = useState(null);
-    const [activeTab, setActiveTab] = useState(feeds.length > 0 ? 'your' : 'trending');
+    const [activeTab, setActiveTab] = useState(feeds.length > 0 ? 'your' : 'hot');
+    const [hotArticles, setHotArticles] = useState([]);
+    const [hotLoading, setHotLoading] = useState(false);
+    const [hotWindow, setHotWindow] = useState('7d');
 
     // Default feeds state — mutable so we can populate articles
     const [defaultFeeds, setDefaultFeeds] = useState(defaultFeedsByRegion);
@@ -718,6 +721,31 @@ const News = () => {
             return null;
         }
     }, []);
+
+    // Fire-and-forget engagement tracking
+    const trackArticleEngagement = useCallback((article, feed, eventType) => {
+        if (!article?.link) return;
+        axios.post('/api/news-feeds/track-engagement', {
+            article_link: article.link,
+            article_title: article.title || '(untitled)',
+            article_description: article.description || '',
+            article_date: article.published_at || '',
+            feed_title: feed?.title || '',
+            feed_favicon: feed?.favicon || '',
+            feed_url: feed?.feed_url || '',
+            event_type: eventType,
+        }).catch(() => {});
+    }, []);
+
+    // Fetch hot articles when Hot tab activates or window changes
+    useEffect(() => {
+        if (activeTab !== 'hot') return;
+        setHotLoading(true);
+        axios.get('/api/news-feeds/hot', { params: { window: hotWindow } })
+            .then((res) => setHotArticles(res.data.articles || []))
+            .catch(() => setHotArticles([]))
+            .finally(() => setHotLoading(false));
+    }, [activeTab, hotWindow]);
 
     // Fetch articles for saved feeds on mount
     useEffect(() => {
@@ -1409,8 +1437,7 @@ const News = () => {
                             {isLoading && feeds.length === 0 && <FeedCardSkeleton />}
 
                             {/* Feed Tabs */}
-                            {(feeds.length > 0 || availableRegions.length > 0) && (
-                                <div style={{
+                            <div style={{
                                     display: 'inline-flex',
                                     background: '#e8e8ed',
                                     borderRadius: '9999px',
@@ -1419,6 +1446,7 @@ const News = () => {
                                 }}>
                                     {[
                                         { key: 'your', label: 'Your Feeds', count: feeds.length },
+                                        { key: 'hot', label: 'Hot' },
                                         { key: 'trending', label: 'Trending' },
                                     ].map((tab) => {
                                         const isActive = activeTab === tab.key;
@@ -1463,7 +1491,6 @@ const News = () => {
                                         );
                                     })}
                                 </div>
-                            )}
 
                             {/* Your Feeds Tab */}
                             {activeTab === 'your' && (
@@ -1517,7 +1544,7 @@ const News = () => {
                                                     savedArticleLinks={savedArticleLinks}
                                                     onToggleSaveArticle={handleToggleSaveArticle}
                                                     onDiscussArticle={handleDiscussArticle}
-                                                    onReadArticle={(article, feed) => { setReaderArticle(article); setReaderFeed(feed); }}
+                                                    onReadArticle={(article, feed) => { setReaderArticle(article); setReaderFeed(feed); trackArticleEngagement(article, feed, 'read'); }}
                                                 />
                                             ))}
 
@@ -1553,6 +1580,184 @@ const News = () => {
                                             <p style={{ fontSize: '14px', color: '#86868b', margin: 0 }}>
                                                 No feeds yet — paste a URL above to add your first feed
                                             </p>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                            {/* Hot Tab */}
+                            {activeTab === 'hot' && (
+                                <>
+                                    {/* Window selector */}
+                                    <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                                        {[
+                                            { key: '24h', label: 'Today' },
+                                            { key: '7d', label: 'This week' },
+                                            { key: '30d', label: 'This month' },
+                                        ].map((w) => {
+                                            const active = hotWindow === w.key;
+                                            return (
+                                                <button
+                                                    key={w.key}
+                                                    onClick={() => setHotWindow(w.key)}
+                                                    style={{
+                                                        padding: '6px 14px',
+                                                        borderRadius: '9999px',
+                                                        border: active ? '1px solid #000' : '1px solid #e5e5e7',
+                                                        background: active ? '#000' : '#fff',
+                                                        color: active ? '#fff' : '#6e6e73',
+                                                        fontSize: '12px',
+                                                        fontWeight: 500,
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.15s ease',
+                                                    }}
+                                                >
+                                                    {w.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {hotLoading && hotArticles.length === 0 && <FeedCardSkeleton />}
+
+                                    {!hotLoading && hotArticles.length === 0 && (
+                                        <div style={{
+                                            backgroundColor: '#fff',
+                                            borderRadius: '16px',
+                                            border: '1px solid #f0f0f0',
+                                            padding: '48px 24px',
+                                            textAlign: 'center',
+                                        }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '40px', color: '#d1d1d6', marginBottom: '12px', display: 'block' }}>
+                                                local_fire_department
+                                            </span>
+                                            <p style={{ fontSize: '14px', color: '#86868b', margin: 0 }}>
+                                                No hot articles yet — open a few articles to start surfacing what people are reading
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {hotArticles.length > 0 && (
+                                        <div style={{
+                                            backgroundColor: '#fff',
+                                            borderRadius: '16px',
+                                            border: '1px solid #f0f0f0',
+                                            padding: '8px 20px',
+                                        }}>
+                                            {hotArticles.map((article, i) => {
+                                                const isSaved = savedArticleLinks.includes(article.link);
+                                                const totalEngagement = (article.engagement?.reads || 0) + (article.engagement?.clicks || 0) + (article.engagement?.saves || 0);
+                                                const feed = {
+                                                    title: article.feed_title,
+                                                    favicon: article.feed_favicon,
+                                                    feed_url: article.feed_url,
+                                                };
+                                                return (
+                                                    <div
+                                                        key={article.link || i}
+                                                        style={{
+                                                            padding: '14px 0',
+                                                            borderTop: i > 0 ? '1px solid #f5f5f7' : 'none',
+                                                            display: 'flex',
+                                                            gap: '12px',
+                                                            alignItems: 'flex-start',
+                                                        }}
+                                                    >
+                                                        <span style={{
+                                                            fontSize: '13px',
+                                                            fontWeight: 600,
+                                                            color: '#b0b0b5',
+                                                            minWidth: '20px',
+                                                            paddingTop: '2px',
+                                                        }}>
+                                                            {i + 1}
+                                                        </span>
+                                                        <div
+                                                            onClick={() => {
+                                                                setReaderArticle(article);
+                                                                setReaderFeed(feed);
+                                                                trackArticleEngagement(article, feed, 'read');
+                                                            }}
+                                                            style={{
+                                                                flex: 1,
+                                                                minWidth: 0,
+                                                                cursor: 'pointer',
+                                                                transition: 'opacity 0.15s ease',
+                                                            }}
+                                                            onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                                                        >
+                                                            <div style={{
+                                                                fontSize: '14px', fontWeight: 500, color: '#000',
+                                                                lineHeight: 1.4, marginBottom: '4px',
+                                                                overflowWrap: 'anywhere', wordBreak: 'break-word',
+                                                            }}>
+                                                                {article.title}
+                                                            </div>
+                                                            {article.description && (
+                                                                <div style={{
+                                                                    fontSize: '13px', color: '#86868b',
+                                                                    lineHeight: 1.5, marginBottom: '6px',
+                                                                    overflowWrap: 'anywhere', wordBreak: 'break-word',
+                                                                    display: '-webkit-box',
+                                                                    WebkitLineClamp: 2,
+                                                                    WebkitBoxOrient: 'vertical',
+                                                                    overflow: 'hidden',
+                                                                }}>
+                                                                    {article.description}
+                                                                </div>
+                                                            )}
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', color: '#b0b0b5' }}>
+                                                                {article.feed_favicon && (
+                                                                    <img src={article.feed_favicon} alt="" style={{ width: '14px', height: '14px', borderRadius: '3px' }} />
+                                                                )}
+                                                                {article.feed_title && <span>{article.feed_title}</span>}
+                                                                {totalEngagement > 0 && (
+                                                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                                                                        <span className="material-symbols-outlined" style={{ fontSize: '13px', color: '#f97316' }}>local_fire_department</span>
+                                                                        {totalEngagement}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleToggleSaveArticle(article, feed)}
+                                                            title={isSaved ? 'Remove from saved' : 'Save for later'}
+                                                            style={{
+                                                                background: 'transparent', border: 'none', cursor: 'pointer',
+                                                                padding: '4px', borderRadius: '8px',
+                                                                display: 'flex', alignItems: 'center', flexShrink: 0,
+                                                            }}
+                                                            onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f7'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                                        >
+                                                            <span
+                                                                className="material-symbols-outlined"
+                                                                style={{
+                                                                    fontSize: '20px',
+                                                                    color: isSaved ? '#f97316' : '#b0b0b5',
+                                                                    fontVariationSettings: isSaved ? "'FILL' 1" : "'FILL' 0",
+                                                                }}
+                                                            >
+                                                                bookmark
+                                                            </span>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDiscussArticle(article, feed)}
+                                                            title="Start a discussion"
+                                                            style={{
+                                                                background: 'transparent', border: 'none', cursor: 'pointer',
+                                                                padding: '4px', borderRadius: '8px',
+                                                                display: 'flex', alignItems: 'center', flexShrink: 0,
+                                                            }}
+                                                            onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f7'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                                        >
+                                                            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#b0b0b5' }}>chat_bubble</span>
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     )}
                                 </>

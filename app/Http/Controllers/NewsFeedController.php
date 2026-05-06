@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ArticleEngagement;
 use App\Models\SavedFeedArticle;
 use App\Models\UserNewsFeed;
 use App\Services\FeatureGate;
@@ -11,6 +12,7 @@ use fivefilters\Readability\Readability;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -323,6 +325,20 @@ class NewsFeedController extends Controller
             ]
         );
 
+        if (!$alreadySaved) {
+            ArticleEngagement::create([
+                'article_link_hash' => hash('sha256', $request->article_link),
+                'article_link' => $request->article_link,
+                'article_title' => $request->article_title,
+                'article_description' => $request->article_description,
+                'article_date' => $request->article_date,
+                'feed_title' => $request->feed_title,
+                'feed_favicon' => $request->feed_favicon,
+                'event_type' => ArticleEngagement::EVENT_SAVE,
+                'user_id' => Auth::id(),
+            ]);
+        }
+
         return response()->json($article, 201);
     }
 
@@ -467,6 +483,111 @@ class NewsFeedController extends Controller
         Cache::put($cacheKey, $payload, now()->addHour());
 
         return response()->json($payload);
+    }
+
+    /**
+     * Log an engagement event (read/click/save) for an article.
+     * Anonymous-friendly — guests can fire events; user_id is nullable.
+     */
+    public function trackEngagement(Request $request)
+    {
+        $request->validate([
+            'article_link' => 'required|string|max:500',
+            'article_title' => 'required|string|max:255',
+            'article_description' => 'nullable|string',
+            'article_date' => 'nullable|string|max:255',
+            'feed_title' => 'nullable|string|max:255',
+            'feed_favicon' => 'nullable|string|max:500',
+            'feed_url' => 'nullable|string|max:500',
+            'event_type' => 'required|in:read,click,save',
+        ]);
+
+        ArticleEngagement::create([
+            'article_link_hash' => hash('sha256', $request->article_link),
+            'article_link' => $request->article_link,
+            'article_title' => $request->article_title,
+            'article_description' => $request->article_description,
+            'article_date' => $request->article_date,
+            'feed_title' => $request->feed_title,
+            'feed_favicon' => $request->feed_favicon,
+            'feed_url' => $request->feed_url,
+            'event_type' => $request->event_type,
+            'user_id' => Auth::id(),
+        ]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Return the top "Hot" articles in the requested time window, ranked by
+     * weighted engagement with mild time decay (Reddit/HN-style).
+     *
+     *   weights: read=1, click=2, save=5
+     *   score   = SUM(weight)
+     *   decayed = score / POW(hours_since_first_engagement + 2, 1.5)
+     */
+    public function hot(Request $request)
+    {
+        $window = $request->query('window', '7d');
+        $hours = match ($window) {
+            '24h' => 24,
+            '30d' => 24 * 30,
+            default => 24 * 7,
+        };
+        $limit = min((int) $request->query('limit', 30), 60);
+
+        $cacheKey = "feeds:hot:{$window}:{$limit}";
+
+        $articles = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($hours, $limit) {
+            $since = now()->subHours($hours);
+
+            $weightSql = "SUM(CASE
+                WHEN event_type = 'save' THEN 5
+                WHEN event_type = 'click' THEN 2
+                WHEN event_type = 'read' THEN 1
+                ELSE 0
+            END)";
+
+            $rows = ArticleEngagement::query()
+                ->selectRaw("article_link_hash,
+                    MAX(article_link) AS article_link,
+                    MAX(article_title) AS article_title,
+                    MAX(article_description) AS article_description,
+                    MAX(article_date) AS article_date,
+                    MAX(feed_title) AS feed_title,
+                    MAX(feed_favicon) AS feed_favicon,
+                    MAX(feed_url) AS feed_url,
+                    {$weightSql} AS raw_score,
+                    {$weightSql} / POW(TIMESTAMPDIFF(HOUR, MIN(created_at), NOW()) + 2, 1.5) AS hot_score,
+                    SUM(CASE WHEN event_type = 'read' THEN 1 ELSE 0 END) AS read_count,
+                    SUM(CASE WHEN event_type = 'click' THEN 1 ELSE 0 END) AS click_count,
+                    SUM(CASE WHEN event_type = 'save' THEN 1 ELSE 0 END) AS save_count")
+                ->where('created_at', '>=', $since)
+                ->groupBy('article_link_hash')
+                ->orderByDesc('hot_score')
+                ->limit($limit)
+                ->get();
+
+            return $rows->map(fn ($r) => [
+                'link' => $r->article_link,
+                'title' => $r->article_title,
+                'description' => $r->article_description,
+                'published_at' => $r->article_date,
+                'feed_title' => $r->feed_title,
+                'feed_favicon' => $r->feed_favicon,
+                'feed_url' => $r->feed_url,
+                'engagement' => [
+                    'reads' => (int) $r->read_count,
+                    'clicks' => (int) $r->click_count,
+                    'saves' => (int) $r->save_count,
+                ],
+            ])->values()->all();
+        });
+
+        return response()->json([
+            'window' => $window,
+            'articles' => $articles,
+        ]);
     }
 
     /**

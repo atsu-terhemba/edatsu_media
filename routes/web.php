@@ -113,6 +113,8 @@ Route::post('/api/news-feeds/preview', [NewsFeedController::class, 'preview'])->
 Route::post('/api/news-feeds/fetch-articles', [NewsFeedController::class, 'fetchArticles'])->middleware('throttle:60,1');
 Route::get('/api/news-feeds/check-frameable', [NewsFeedController::class, 'checkFrameable'])->middleware('throttle:120,1');
 Route::get('/api/news-feeds/extract-article', [NewsFeedController::class, 'extractArticle'])->middleware('throttle:30,1');
+Route::post('/api/news-feeds/track-engagement', [NewsFeedController::class, 'trackEngagement'])->middleware('throttle:120,1');
+Route::get('/api/news-feeds/hot', [NewsFeedController::class, 'hot'])->middleware('throttle:60,1');
 Route::get('/news/{id}', [NewsFeedController::class, 'show'])->name('read.news');
 Route::get('/events', [Event::class, 'index'])->name('events');
 Route::get('/legacy-feeds', [FeedsController::class, 'displayFeeds'])->name('find.feeds');
