@@ -179,7 +179,8 @@ function UserDropdown({ auth, isPro }) {
 }
 
 export default function Header({auth}){
-    const { vapidPublicKey, isPro } = usePage().props;
+    const { vapidPublicKey, auth: authShared } = usePage().props;
+    const isPro = !!authShared?.isPro;
     const { isSubscribed, permission, subscribe } = usePushNotifications(vapidPublicKey);
     const { notificationCount } = useUnreadNotifications(auth);
 
