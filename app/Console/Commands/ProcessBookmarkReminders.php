@@ -3,12 +3,14 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use App\Mail\BookmarkReminderDue;
 use App\Models\Bookmark;
 use App\Models\Notification;
 use App\Models\User;
 use App\Services\FeatureGate;
 use App\Services\WebPushService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
 
 class ProcessBookmarkReminders extends Command
 {
@@ -60,12 +62,26 @@ class ProcessBookmarkReminders extends Command
                         ]
                     ]);
 
+                    $user = User::find($bookmark->user_id);
+
+                    // Email reminder — sent to all users (free + pro) alongside
+                    // the in-app notification. Queued so a bad SMTP day doesn't
+                    // block the rest of the reminders in the loop.
+                    if ($user && $user->email) {
+                        try {
+                            Mail::to($user->email, $user->name)->queue(
+                                new BookmarkReminderDue($user, $itemTitle, $itemType, $actionUrl)
+                            );
+                        } catch (\Exception $e) {
+                            $this->warn("Email notification failed for bookmark {$bookmark->id}: " . $e->getMessage());
+                        }
+                    }
+
                     // Bookmark-reminder push is Pro-gated (web_push_pro_only).
                     // Forum push is wired separately and stays free. In-app
                     // notification above still fires for Free users so they
                     // see the reminder inside the app — they just don't get
                     // a push to the device.
-                    $user = User::find($bookmark->user_id);
                     if (FeatureGate::proOnly($user, 'web_push')) {
                         try {
                             $pushService = app(WebPushService::class);
