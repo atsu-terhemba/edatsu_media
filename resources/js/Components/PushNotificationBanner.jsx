@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { usePage } from '@inertiajs/react';
 import usePushNotifications from '@/hooks/usePushNotifications';
+import { Toast } from '@/utils/Index';
 
 const STORAGE_KEY = 'push-banner-dismissed-at';
 const SNOOZE_DAYS = 7;
@@ -39,9 +40,32 @@ export default function PushNotificationBanner() {
         try {
             const ok = await Promise.race([subscribe(), timeoutPromise]);
             if (ok) {
+                Toast.fire({ icon: 'success', title: 'Notifications enabled' });
                 handleDismiss(false);
-            } else if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
+                return;
+            }
+
+            // subscribe() returned false. Tell the user what happened so the
+            // button click doesn't feel like a no-op.
+            const perm = typeof Notification !== 'undefined' ? Notification.permission : 'default';
+            if (perm === 'denied') {
+                Toast.fire({
+                    icon: 'error',
+                    title: 'Notifications blocked',
+                    text: 'Open browser settings and allow notifications for this site.',
+                });
                 handleDismiss(true);
+            } else if (perm === 'default') {
+                // Chrome's "quieter notifications" UI can dismiss the prompt
+                // silently; on iOS Safari the prompt only fires inside an
+                // installed PWA. Either way, no permission was granted.
+                Toast.fire({
+                    icon: 'info',
+                    title: 'Permission not granted',
+                    text: 'If no prompt appeared, enable notifications for this site in your browser settings.',
+                });
+            } else {
+                Toast.fire({ icon: 'error', title: 'Could not enable notifications. Please try again.' });
             }
         } finally {
             setBusy(false);
