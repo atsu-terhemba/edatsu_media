@@ -11,7 +11,7 @@ import usePushNotifications from '@/hooks/usePushNotifications';
 import useUnreadNotifications from '@/hooks/useUnreadNotifications';
 
 
-function UserDropdown({ auth }) {
+function UserDropdown({ auth, isPro }) {
     const [show, setShow] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -68,6 +68,23 @@ function UserDropdown({ auth }) {
                 <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>
                     {truncateText(auth?.name, 10)}
                 </span>
+                {isPro && (
+                    <span
+                        title="Pro member"
+                        style={{
+                            fontSize: '9px',
+                            fontWeight: 700,
+                            letterSpacing: '0.04em',
+                            padding: '2px 6px',
+                            borderRadius: '9999px',
+                            background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                            color: '#fff',
+                            textTransform: 'uppercase',
+                        }}
+                    >
+                        Pro
+                    </span>
+                )}
                 <span className="material-symbols-outlined" style={{
                     fontSize: '16px',
                     color: 'rgba(255,255,255,0.4)',
@@ -162,7 +179,7 @@ function UserDropdown({ auth }) {
 }
 
 export default function Header({auth}){
-    const { vapidPublicKey } = usePage().props;
+    const { vapidPublicKey, isPro } = usePage().props;
     const { isSubscribed, permission, subscribe } = usePushNotifications(vapidPublicKey);
     const { notificationCount } = useUnreadNotifications(auth);
 
@@ -290,27 +307,58 @@ return(
             </Nav.Item>
             <Nav.Item>
                 {auth?.id ? (
-                    <Link
-                        href={route('subscription')}
-                        className={`nav-link me-3 d-flex align-items-center gap-1 ${ActiveLink('/upgrade-plan')}`}
-                        style={navLinkStyle}
-                        onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
-                        onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)'}
-                    >
-                        Upgrade
-                        <span
-                            style={{
-                                fontSize: '10px',
-                                padding: '2px 7px',
-                                borderRadius: '9999px',
-                                background: '#f97316',
-                                color: '#fff',
-                                fontWeight: 500,
-                            }}
+                    isPro ? (
+                        <Link
+                            href={route('subscription')}
+                            className={`nav-link me-3 d-flex align-items-center gap-1 ${ActiveLink('/upgrade-plan')}`}
+                            style={{ ...navLinkStyle, color: '#fff' }}
+                            title="Manage your Pro plan"
                         >
-                            PRO
-                        </span>
-                    </Link>
+                            <span
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                    letterSpacing: '0.04em',
+                                    padding: '4px 10px',
+                                    borderRadius: '9999px',
+                                    background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                                    color: '#fff',
+                                    textTransform: 'uppercase',
+                                    boxShadow: '0 2px 8px rgba(249, 115, 22, 0.35)',
+                                }}
+                            >
+                                <span className="material-symbols-outlined" style={{ fontSize: '13px', fontVariationSettings: "'FILL' 1" }}>
+                                    workspace_premium
+                                </span>
+                                Pro
+                            </span>
+                        </Link>
+                    ) : (
+                        <Link
+                            href={route('subscription')}
+                            className={`nav-link me-3 d-flex align-items-center gap-1 ${ActiveLink('/upgrade-plan')}`}
+                            style={navLinkStyle}
+                            onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)'}
+                        >
+                            Upgrade
+                            <span
+                                style={{
+                                    fontSize: '10px',
+                                    padding: '2px 7px',
+                                    borderRadius: '9999px',
+                                    background: '#f97316',
+                                    color: '#fff',
+                                    fontWeight: 500,
+                                }}
+                            >
+                                PRO
+                            </span>
+                        </Link>
+                    )
                 ) : (
                     <Link
                         href={route('pricing')}
@@ -345,7 +393,7 @@ return(
                     )}
 
                     <Nav.Item className="d-flex align-items-center">
-                        <UserDropdown auth={auth} />
+                        <UserDropdown auth={auth} isPro={isPro} />
                     </Nav.Item>
                 </>
                 :
