@@ -10,10 +10,28 @@ use App\Models\Category;
 use App\Models\Region;
 use App\Models\Continent;
 use App\Models\Country;
+use App\Support\CsvExporter;
 use Inertia\Inertia;
 
 class CategoryController extends Controller
 {
+    public function export()
+    {
+        return CsvExporter::stream(
+            Category::query()->orderBy('id'),
+            ['ID', 'Name', 'Slug', 'Description', 'Created At', 'Updated At'],
+            fn ($c) => [
+                $c->id,
+                $c->name,
+                $c->slug,
+                strip_tags((string) $c->description),
+                $c->created_at,
+                $c->updated_at,
+            ],
+            'categories-' . now()->format('Y-m-d-His') . '.csv'
+        );
+    }
+
 
     //edit category
     public function editCategory(Request $request, $id){

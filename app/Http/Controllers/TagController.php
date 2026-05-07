@@ -7,11 +7,29 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use App\Models\Tag;
+use App\Support\CsvExporter;
 use Inertia\Inertia;
 
 
 class TagController extends Controller
 {
+    public function export()
+    {
+        return CsvExporter::stream(
+            Tag::query()->orderBy('id'),
+            ['ID', 'Name', 'Slug', 'Description', 'Created At', 'Updated At'],
+            fn ($t) => [
+                $t->id,
+                $t->name,
+                $t->slug,
+                strip_tags((string) $t->description),
+                $t->created_at,
+                $t->updated_at,
+            ],
+            'tags-' . now()->format('Y-m-d-His') . '.csv'
+        );
+    }
+
 
     //edit category
     public function editTag(Request $request, $id){

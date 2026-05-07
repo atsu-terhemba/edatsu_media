@@ -319,6 +319,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin-store-category', [CategoryController::class, 'store']);
     Route::get('/admin-edit-category/{id}', [CategoryController::class, 'editCategory']);
     Route::post('/admin-delete-category', [CategoryController::class, 'deleteCategory']);
+    Route::get('/admin-export-categories', [CategoryController::class, 'export'])->name('admin.export_categories');
     
     // Product Category management
     Route::get('/product-categories', [ProductCategoryController::class, 'ProductCategory'])->name('admin.product_categories');
@@ -352,6 +353,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     
     // Brand Label management
     Route::get('/brand-labels', [BrandLabelController::class, 'brandLabels'])->name('admin.brand-labels');
+    Route::get('/admin-export-brand-labels', [BrandLabelController::class, 'export'])->name('admin.export_brand_labels');
     Route::get('/label', [BrandLabelController::class, 'show'])->name('admin.label');
     Route::post('/admin-store-label', [BrandLabelController::class, 'store']);
     Route::post('/admin-edit-label/{id}', [BrandLabelController::class, 'editLabel']);
@@ -359,6 +361,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     
     // Tag management
     Route::get('/tags', [TagController::class, 'tags'])->name('admin.tag');
+    Route::get('/admin-export-tags', [TagController::class, 'export'])->name('admin.export_tags');
     Route::post('/admin-store-tag', [TagController::class, 'store']);
     Route::get('/admin-edit-tag/{id}', [TagController::class, 'editTag']);
     Route::post('/admin-delete-tag', [TagController::class, 'deleteTag']);

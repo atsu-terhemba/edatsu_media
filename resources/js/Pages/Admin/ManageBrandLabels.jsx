@@ -491,28 +491,54 @@ export default function ManageBrandLabels({ labels, edit }) {
                                 eyebrow="Toolshed"
                                 title="Brand Labels"
                                 action={
-                                    <button
-                                        onClick={() => { resetForm(); setShowModal(true); }}
-                                        style={{
-                                            padding: '10px 24px',
-                                            borderRadius: '9999px',
-                                            border: 'none',
-                                            backgroundColor: '#000',
-                                            color: '#fff',
-                                            fontSize: '14px',
-                                            fontWeight: 500,
-                                            cursor: 'pointer',
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                            transition: 'background-color 150ms ease',
-                                        }}
-                                        onMouseEnter={e => e.currentTarget.style.backgroundColor = '#333'}
-                                        onMouseLeave={e => e.currentTarget.style.backgroundColor = '#000'}
-                                    >
-                                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
-                                        Add Label
-                                    </button>
+                                    <div style={{ display: 'inline-flex', gap: '8px' }}>
+                                        <a
+                                            href={route('admin.export_brand_labels')}
+                                            title="Download as CSV (opens in Excel)"
+                                            style={{
+                                                padding: '10px 20px',
+                                                borderRadius: '9999px',
+                                                border: '1px solid #e5e5e7',
+                                                backgroundColor: '#fff',
+                                                color: '#000',
+                                                fontSize: '14px',
+                                                fontWeight: 500,
+                                                cursor: 'pointer',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                textDecoration: 'none',
+                                                transition: 'background-color 150ms ease',
+                                            }}
+                                            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f5f5f7'}
+                                            onMouseLeave={e => e.currentTarget.style.backgroundColor = '#fff'}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>download</span>
+                                            Export
+                                        </a>
+                                        <button
+                                            onClick={() => { resetForm(); setShowModal(true); }}
+                                            style={{
+                                                padding: '10px 24px',
+                                                borderRadius: '9999px',
+                                                border: 'none',
+                                                backgroundColor: '#000',
+                                                color: '#fff',
+                                                fontSize: '14px',
+                                                fontWeight: 500,
+                                                cursor: 'pointer',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                transition: 'background-color 150ms ease',
+                                            }}
+                                            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#333'}
+                                            onMouseLeave={e => e.currentTarget.style.backgroundColor = '#000'}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
+                                            Add Label
+                                        </button>
+                                    </div>
                                 }
                             />
 

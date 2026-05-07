@@ -7,12 +7,30 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use App\Models\BrandLabel;
+use App\Support\CsvExporter;
 use Inertia\Inertia;
 
 
 
 class BrandLabelController extends Controller
 {
+    public function export()
+    {
+        return CsvExporter::stream(
+            BrandLabel::query()->orderBy('id'),
+            ['ID', 'Name', 'Slug', 'Description', 'Created At', 'Updated At'],
+            fn ($l) => [
+                $l->id,
+                $l->name,
+                $l->slug,
+                strip_tags((string) $l->description),
+                $l->created_at,
+                $l->updated_at,
+            ],
+            'brand-labels-' . now()->format('Y-m-d-His') . '.csv'
+        );
+    }
+
 
     //edit category
     public function editLabel(Request $request, $id){

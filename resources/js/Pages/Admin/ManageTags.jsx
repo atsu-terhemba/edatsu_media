@@ -161,10 +161,16 @@ export default function ManageTags({ tags, edit }) {
                     <Col md={9}>
                         <div style={{ padding: '8px 0' }}>
                             <SectionHeader eyebrow="General" title="Tags" action={
-                                <button onClick={() => { resetForm(); setShowModal(true); }} style={{ padding: '10px 24px', borderRadius: '9999px', border: 'none', backgroundColor: '#000', color: '#fff', fontSize: '14px', fontWeight: 500, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', transition: 'background-color 150ms ease' }}
-                                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#333'} onMouseLeave={e => e.currentTarget.style.backgroundColor = '#000'}>
-                                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>Add Tag
-                                </button>
+                                <div style={{ display: 'inline-flex', gap: '8px' }}>
+                                    <a href={route('admin.export_tags')} title="Download as CSV (opens in Excel)" style={{ padding: '10px 20px', borderRadius: '9999px', border: '1px solid #e5e5e7', backgroundColor: '#fff', color: '#000', fontSize: '14px', fontWeight: 500, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none', transition: 'background-color 150ms ease' }}
+                                        onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f5f5f7'} onMouseLeave={e => e.currentTarget.style.backgroundColor = '#fff'}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>download</span>Export
+                                    </a>
+                                    <button onClick={() => { resetForm(); setShowModal(true); }} style={{ padding: '10px 24px', borderRadius: '9999px', border: 'none', backgroundColor: '#000', color: '#fff', fontSize: '14px', fontWeight: 500, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', transition: 'background-color 150ms ease' }}
+                                        onMouseEnter={e => e.currentTarget.style.backgroundColor = '#333'} onMouseLeave={e => e.currentTarget.style.backgroundColor = '#000'}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>Add Tag
+                                    </button>
+                                </div>
                             } />
                             {alert.show && (
                                 <div style={{ padding: '14px 20px', borderRadius: '12px', backgroundColor: alert.type === 'success' ? '#f0fdf4' : '#fef2f2', border: `1px solid ${alert.type === 'success' ? '#bbf7d0' : '#fecaca'}`, color: alert.type === 'success' ? '#166534' : '#991b1b', fontSize: '14px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
