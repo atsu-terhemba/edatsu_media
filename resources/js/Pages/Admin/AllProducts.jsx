@@ -522,8 +522,10 @@ export default function AllProducts({ products, statistics, categories, filters 
                                     )}
                                 </div>
 
-                                {/* Danger zone */}
-                                <div style={{
+                                {/* Danger zone — disabled. The one-shot DB wipe ran successfully on
+                                    2026-05-07 ahead of the CSV re-import. Flip to `true` to expose
+                                    the Wipe all products control again if you ever need to re-run it. */}
+                                {false && <div style={{
                                     marginTop: '32px', padding: '24px',
                                     background: '#fff', border: '1px solid #fecaca',
                                     borderRadius: '16px',
@@ -556,7 +558,7 @@ export default function AllProducts({ products, statistics, categories, filters 
                                             Wipe all products
                                         </button>
                                     </div>
-                                </div>
+                                </div>}
                             </Col>
                         </Row>
                     </Container>
