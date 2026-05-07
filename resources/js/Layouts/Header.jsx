@@ -317,17 +317,14 @@ return(
                         >
                             <span
                                 style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    fontSize: '11px',
-                                    fontWeight: 600,
+                                    fontSize: '9px',
+                                    fontWeight: 700,
                                     letterSpacing: '0.04em',
-                                    padding: '4px 10px',
+                                    padding: '2px 6px',
                                     borderRadius: '9999px',
                                     background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
                                     color: '#fff',
                                     textTransform: 'uppercase',
-                                    boxShadow: '0 2px 8px rgba(249, 115, 22, 0.35)',
                                 }}
                             >
                                 Pro
