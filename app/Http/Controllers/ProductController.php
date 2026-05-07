@@ -1264,11 +1264,6 @@ public function store(Request $request)
             }
 
             DB::table('products')->delete();
-            try {
-                DB::statement('ALTER TABLE products AUTO_INCREMENT = 1');
-            } catch (\Throwable $e) {
-                // Non-fatal — auto_increment reset is nice-to-have, not required
-            }
 
             DB::commit();
         } catch (\Throwable $e) {
@@ -1281,6 +1276,14 @@ public function store(Request $request)
                 'status' => 'error',
                 'message' => 'Wipe failed: ' . $e->getMessage(),
             ], 500);
+        }
+
+        // DDL — must run outside the transaction (ALTER TABLE implicitly
+        // commits in MySQL, which would break DB::commit() above).
+        try {
+            DB::statement('ALTER TABLE products AUTO_INCREMENT = 1');
+        } catch (\Throwable $e) {
+            // Non-fatal — auto_increment reset is nice-to-have, not required
         }
 
         Log::warning('Products database wiped', [
