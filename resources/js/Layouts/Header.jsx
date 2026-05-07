@@ -319,7 +319,6 @@ return(
                                 style={{
                                     display: 'inline-flex',
                                     alignItems: 'center',
-                                    gap: '4px',
                                     fontSize: '11px',
                                     fontWeight: 600,
                                     letterSpacing: '0.04em',
@@ -331,9 +330,6 @@ return(
                                     boxShadow: '0 2px 8px rgba(249, 115, 22, 0.35)',
                                 }}
                             >
-                                <span className="material-symbols-outlined" style={{ fontSize: '13px', fontVariationSettings: "'FILL' 1" }}>
-                                    workspace_premium
-                                </span>
                                 Pro
                             </span>
                         </Link>
