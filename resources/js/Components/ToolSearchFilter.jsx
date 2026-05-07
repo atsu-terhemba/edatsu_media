@@ -87,13 +87,6 @@ const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_dat
         setStateFromData(tags, setTagOptions);
     }, []);
 
-    const dateOptions = [
-        { value: 'one_day', label: '24 hours Ago' },
-        { value: 'one_week', label: '1 Week Ago' },
-        { value: 'two_weeks', label: '2 Weeks Ago' },
-        { value: 'one_month', label: '1 Month Ago' }
-    ];
-
     const toggleFilterPanel = () => {
         setIsFilterVisible(!isFilterVisible);
     };
@@ -124,7 +117,6 @@ const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_dat
             continents: [],
             countries: [],
             brands: [],
-            datePosted: '',
             month: '',
             year: '',
             program_status: '',
@@ -360,19 +352,6 @@ const ToolshedFilter = ({isloading, search_keyword, setSearchKeyword, filter_dat
                             menuPortalTarget={portalTarget}
                             menuPosition="fixed"
                             onChange={(e) => updateSelection(e, 'tags')}
-                        />
-                    </div>
-
-                    <div className="mb-3">
-                        <Select
-                            value={filter_data?.datePosted}
-                            placeholder="Date Posted"
-                            name="datePosted"
-                            options={dateOptions}
-                            styles={selectStyles}
-                            menuPortalTarget={portalTarget}
-                            menuPosition="fixed"
-                            onChange={(e) => updateSelection(e, 'datePosted')}
                         />
                     </div>
 

@@ -149,7 +149,6 @@ const Toolshed = () => {
         continents: [],
         countries: [],
         brands:[],
-        datePosted:'',
         month: '',
         year: '',
         program_status:'',
