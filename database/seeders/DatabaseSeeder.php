@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             SubscriptionPlanSeeder::class,
             RegionsSeeder::class,
             TagsSeeder::class,
+            ProductCategoriesSeeder::class,
         ]);
     }
 }

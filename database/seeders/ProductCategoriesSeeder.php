@@ -15,30 +15,101 @@ class ProductCategoriesSeeder extends Seeder
     public function run(): void
     {
         $categories = [
+            // Sales
+            'Sales Engagement & Outreach',
+            'Conversation Intelligence',
+            'Revenue Operations & Forecasting',
+            'CRM',
+            'Sales Intelligence & Prospecting',
+            'Customer Success',
+
+            // Marketing
+            'Email & SMS Marketing',
+            'Social Media Management',
+            'SEO & Content Optimization',
+            'Ad Creative & Optimization',
+            'Web Personalization & CRO',
+            'Brand & Social Listening',
+            'Newsletter & Content Distribution',
+
+            // Customer Service
+            'Helpdesk & Ticketing',
+            'AI Customer Service Agents',
+            'Contact Center & Voice AI',
+            'Knowledge Base & Self-Service',
+
+            // Creative & Content
             'Writing & Copywriting',
             'Image Generation',
-            'Video Creation',
-            'Audio & Voice',
-            'SEO & Content Optimization',
-            'Social Media Management',
-            'Email Marketing',
-            'Sales & CRM',
-            'Customer Support',
-            'Meeting & Transcription',
-            'Project Management',
-            'Knowledge Management',
-            'HR & Recruitment',
-            'Finance & Accounting',
-            'Data & Analytics',
-            'Developer Tools',
-            'Automation & Workflow',
-            'Design & UI',
-            'Security & Compliance',
-            'Legal AI',
-            'Healthcare AI',
-            'Education AI',
-            '3D & Gaming',
-            'Research',
+            'Video Generation & Editing',
+            'Audio / Voice / Music',
+            'Speech-to-Text & Transcription',
+            'Design (UI / Graphics / 3D)',
+            'Presentations',
+            'AI Avatars & Spokesperson Video',
+
+            // Productivity & Collaboration
+            'Note-Taking & Knowledge Management',
+            'Meeting Assistants',
+            'Scheduling & Calendar',
+            'Task & Project Management',
+            'Whiteboards & Diagramming',
+            'Email Clients',
+            'Workflow Automation',
+            'Docs & Workspaces',
+
+            // Engineering
+            'Code Generation & Pair Programming',
+            'AI Code Editors / IDEs',
+            'Code Review & Quality',
+            'Documentation',
+            'Engineering Intelligence',
+            'Autonomous Coding Agents',
+
+            // Data & Analytics
+            'Business Intelligence',
+            'Product Analytics',
+            'Digital Experience Analytics',
+            'Customer Data Platforms',
+            'Data Pipelines & ETL',
+            'Data Observability',
+            'MLOps & Experiment Tracking',
+
+            // AI Infrastructure
+            'Foundation Model APIs',
+            'AI Agent Builders',
+            'LLM Frameworks',
+            'Vector Databases',
+            'AI Search & Research',
+            'General-Purpose AI Assistants',
+
+            // Security & Compliance
+            'Cybersecurity',
+            'Cloud Security',
+            'Compliance Automation (GRC)',
+
+            // Legal
+            'Legal Research & Drafting',
+            'Contract Lifecycle Management',
+
+            // Finance
+            'Accounting & Spend Management',
+            'FP&A / Financial Planning',
+
+            // HR
+            'HRIS / Workforce Management',
+            'Recruiting & ATS',
+            'Performance & Engagement',
+            'Workforce Analytics',
+            'Employee Helpdesk (HR/IT)',
+
+            // Verticals
+            'Healthcare',
+            'Education',
+            'Ecommerce',
+            'Logistics & Supply Chain',
+            'Real Estate',
+            'Document Processing (IDP)',
         ];
 
         $keepSlugs = [];
