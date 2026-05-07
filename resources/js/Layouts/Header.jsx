@@ -77,7 +77,7 @@ function UserDropdown({ auth, isPro }) {
                             letterSpacing: '0.04em',
                             padding: '2px 6px',
                             borderRadius: '9999px',
-                            background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                            background: '#f97316',
                             color: '#fff',
                             textTransform: 'uppercase',
                         }}
@@ -333,7 +333,7 @@ return(
                                     letterSpacing: '0.04em',
                                     padding: '2px 6px',
                                     borderRadius: '9999px',
-                                    background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                                    background: '#f97316',
                                     color: '#fff',
                                     textTransform: 'uppercase',
                                 }}
