@@ -8,6 +8,20 @@ import './i18n';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot, hydrateRoot } from 'react-dom/client';
+import * as Sentry from '@sentry/react';
+
+// Sentry — only initializes when VITE_SENTRY_DSN is set at build time, so
+// dev/SSR builds without the env var stay quiet.
+if (!import.meta.env.SSR && import.meta.env.VITE_SENTRY_DSN) {
+    Sentry.init({
+        dsn: import.meta.env.VITE_SENTRY_DSN,
+        environment: import.meta.env.VITE_SENTRY_ENVIRONMENT || import.meta.env.MODE,
+        release: import.meta.env.VITE_SENTRY_RELEASE,
+        tracesSampleRate: parseFloat(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE || '0.1'),
+        replaysSessionSampleRate: 0,
+        replaysOnErrorSampleRate: parseFloat(import.meta.env.VITE_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE || '0'),
+    });
+}
 
 const appName = import.meta.env.VITE_APP_NAME || 'edatsu media';
 

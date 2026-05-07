@@ -28,6 +28,7 @@
         "@fortawesome/free-brands-svg-icons": "^6.7.2",
         "@fortawesome/react-fontawesome": "^0.2.2",
         "@lexical/react": "^0.30.0",
+        "@sentry/react": "^10.51.0",
         "bootstrap": "^5.3.3",
         "browser-image-compression": "^2.0.2",
         "i18next": "^25.8.14",

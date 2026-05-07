@@ -31,6 +31,7 @@
         "pragmarx/google2fa-laravel": "^3.0",
         "predis/predis": "^2.3",
         "resend/resend-php": "*",
+        "sentry/sentry-laravel": "^4.25",
         "tightenco/ziggy": "^2.5"
     },
     "require-dev": {

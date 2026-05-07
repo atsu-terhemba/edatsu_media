@@ -32,6 +32,8 @@ return Application::configure(basePath: dirname(__DIR__))
         //...
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        \Sentry\Laravel\Integration::handles($exceptions);
+
         $exceptions->render(function (TokenMismatchException $e, $request) {
             if ($request->expectsJson() || $request->header('X-Inertia')) {
                 return response()->json([
