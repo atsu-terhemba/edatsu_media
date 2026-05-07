@@ -184,9 +184,20 @@ export default function Header({auth}){
     const { isSubscribed, permission, subscribe } = usePushNotifications(vapidPublicKey);
     const { notificationCount } = useUnreadNotifications(auth);
 
-    // Auto-prompt for push notifications once (if not yet subscribed)
+    // Auto-prompt or auto-resubscribe for push notifications.
+    // - permission === 'default': prompt once per session (sessionStorage gate)
+    // - permission === 'granted' but no active subscription: silently re-subscribe
+    //   so devices whose FCM endpoint expired or whose SW got cleared rejoin
+    //   without the user having to do anything.
     useEffect(() => {
-        if (auth?.id && vapidPublicKey && !isSubscribed && permission === 'default') {
+        if (!auth?.id || !vapidPublicKey || isSubscribed) return;
+
+        if (permission === 'granted') {
+            const timer = setTimeout(() => subscribe(), 1000);
+            return () => clearTimeout(timer);
+        }
+
+        if (permission === 'default') {
             const prompted = sessionStorage.getItem('push_prompted');
             if (!prompted) {
                 sessionStorage.setItem('push_prompted', '1');
