@@ -158,20 +158,45 @@ export default function AllProducts({ products, statistics, categories, filters 
                                             Manage all toolshed products
                                         </p>
                                     </div>
-                                    <Link
-                                        href={route('admin.products')}
-                                        style={{
-                                            display: 'inline-flex', alignItems: 'center', gap: '6px',
-                                            padding: '8px 18px', borderRadius: '9999px', border: 'none',
-                                            background: '#000', fontSize: '13px', fontWeight: 500,
-                                            color: '#fff', textDecoration: 'none', transition: 'all 0.15s ease',
-                                        }}
-                                        onMouseEnter={(e) => e.currentTarget.style.background = '#333'}
-                                        onMouseLeave={(e) => e.currentTarget.style.background = '#000'}
-                                    >
-                                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
-                                        New Product
-                                    </Link>
+                                    <div style={{ display: 'inline-flex', gap: '8px' }}>
+                                        <a
+                                            href={(() => {
+                                                const params = new URLSearchParams();
+                                                if (searchTerm) params.set('search', searchTerm);
+                                                if (statusFilter) params.set('status', statusFilter);
+                                                if (categoryFilter) params.set('category', categoryFilter);
+                                                const qs = params.toString();
+                                                return route('admin.export_products') + (qs ? `?${qs}` : '');
+                                            })()}
+                                            title="Download as CSV (opens in Excel)"
+                                            style={{
+                                                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                                padding: '8px 18px', borderRadius: '9999px',
+                                                border: '1px solid #e5e5e7', background: '#fff',
+                                                fontSize: '13px', fontWeight: 500, color: '#000',
+                                                textDecoration: 'none', transition: 'all 0.15s ease',
+                                            }}
+                                            onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f7'}
+                                            onMouseLeave={(e) => e.currentTarget.style.background = '#fff'}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>download</span>
+                                            Export
+                                        </a>
+                                        <Link
+                                            href={route('admin.products')}
+                                            style={{
+                                                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                                padding: '8px 18px', borderRadius: '9999px', border: 'none',
+                                                background: '#000', fontSize: '13px', fontWeight: 500,
+                                                color: '#fff', textDecoration: 'none', transition: 'all 0.15s ease',
+                                            }}
+                                            onMouseEnter={(e) => e.currentTarget.style.background = '#333'}
+                                            onMouseLeave={(e) => e.currentTarget.style.background = '#000'}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
+                                            New Product
+                                        </Link>
+                                    </div>
                                 </div>
 
                                 {/* Stat Cards */}

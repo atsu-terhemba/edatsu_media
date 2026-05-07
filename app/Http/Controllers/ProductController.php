@@ -1114,8 +1114,111 @@ public function store(Request $request)
         
         $products = $productsQuery->orderBy('products.created_at', 'desc')
                                  ->paginate($perPage);
-        
+
         return response()->json($products);
+    }
+
+    /**
+     * Export the (filtered) products list as CSV. Excel and Google Sheets
+     * open this directly. Streamed so a large catalog doesn't blow memory.
+     */
+    public function exportProducts(Request $request)
+    {
+        $search = $request->get('search');
+        $category = $request->get('category');
+        $status = $request->get('status');
+
+        $query = DB::table('products')
+            ->leftJoin('category_selections', function ($join) {
+                $join->on('category_selections.post_id', '=', 'products.id')
+                     ->where('category_selections.post_type', '=', 'products');
+            })
+            ->leftJoin('product_categories', 'product_categories.id', '=', 'category_selections.category_id')
+            ->leftJoin('users', 'users.id', '=', 'products.u_id')
+            ->select([
+                'products.id',
+                'products.product_name',
+                'products.product_description',
+                'products.source_url',
+                'products.direct_link',
+                'products.slug',
+                'products.views',
+                'products.deleted',
+                'products.created_at',
+                'products.updated_at',
+                'products.deleted_at',
+                'users.name as user_name',
+                'users.email as user_email',
+                DB::raw('GROUP_CONCAT(DISTINCT product_categories.name) as categories'),
+            ])
+            ->groupBy([
+                'products.id', 'products.product_name', 'products.product_description',
+                'products.source_url', 'products.direct_link', 'products.slug',
+                'products.views', 'products.deleted', 'products.created_at',
+                'products.updated_at', 'products.deleted_at', 'users.name', 'users.email',
+            ]);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('products.product_name', 'LIKE', "%{$search}%")
+                  ->orWhere('products.product_description', 'LIKE', "%{$search}%")
+                  ->orWhere('users.name', 'LIKE', "%{$search}%");
+            });
+        }
+        if ($category) {
+            $query->whereIn('product_categories.id', explode(',', $category));
+        }
+        if ($status === 'active') {
+            $query->where('products.deleted', '!=', 1)->whereNull('products.deleted_at');
+        } elseif ($status === 'deleted') {
+            $query->where(function ($q) {
+                $q->where('products.deleted', '=', 1)->orWhereNotNull('products.deleted_at');
+            });
+        }
+
+        $query->orderBy('products.created_at', 'desc');
+
+        $filename = 'products-' . now()->format('Y-m-d-His') . '.csv';
+
+        $headers = [
+            'ID', 'Product Name', 'Description', 'Categories',
+            'Source URL', 'Direct Link', 'Slug', 'Views',
+            'Status', 'Owner Name', 'Owner Email',
+            'Created At', 'Updated At', 'Deleted At',
+        ];
+
+        return response()->streamDownload(function () use ($query, $headers) {
+            $out = fopen('php://output', 'w');
+            // BOM so Excel recognizes UTF-8 (proper rendering of non-ASCII)
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, $headers);
+
+            $query->orderBy('products.id')->chunk(500, function ($rows) use ($out) {
+                foreach ($rows as $r) {
+                    $deleted = ($r->deleted == 1 || !empty($r->deleted_at));
+                    fputcsv($out, [
+                        $r->id,
+                        $r->product_name,
+                        strip_tags((string) $r->product_description),
+                        $r->categories,
+                        $r->source_url,
+                        $r->direct_link,
+                        $r->slug,
+                        (int) $r->views,
+                        $deleted ? 'Deleted' : 'Active',
+                        $r->user_name,
+                        $r->user_email,
+                        $r->created_at,
+                        $r->updated_at,
+                        $r->deleted_at,
+                    ]);
+                }
+            });
+
+            fclose($out);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
 
     /**

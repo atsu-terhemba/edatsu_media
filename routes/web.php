@@ -286,6 +286,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin-post-product', [ProductController::class, 'show'])->name('admin.post_product');
     Route::get('/all-products', [ProductController::class, 'showProducts'])->name('admin.all_products');
     Route::get('/fetch-all-products', [ProductController::class, 'fetchAllProducts']);
+    Route::get('/admin-export-products', [ProductController::class, 'exportProducts'])->name('admin.export_products');
     Route::get('/admin-edit-product/{id}', [ProductController::class, 'edit'])->name('admin.edit_product');
     Route::post('/admin-store-product', [ProductController::class, 'store']);
     Route::post('/admin-update-product/{id}', [ProductController::class, 'update']);
