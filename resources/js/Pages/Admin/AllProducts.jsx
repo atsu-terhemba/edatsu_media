@@ -65,6 +65,25 @@ export default function AllProducts({ products, statistics, categories, filters 
     const [currentPage, setCurrentPage] = useState(1);
     const [perPage, setPerPage] = useState(12);
     const paginationContainerRef = useRef(null);
+    const [wipeModalOpen, setWipeModalOpen] = useState(false);
+    const [wipeConfirm, setWipeConfirm] = useState('');
+    const [wiping, setWiping] = useState(false);
+
+    const handleWipeAll = async () => {
+        if (wipeConfirm !== 'DELETE') return;
+        setWiping(true);
+        try {
+            const res = await axios.post(route('admin.wipe_all_products'), { confirm: 'DELETE' });
+            Toast.fire({ icon: 'success', title: res.data.message });
+            setWipeModalOpen(false);
+            setWipeConfirm('');
+            window.location.reload();
+        } catch (err) {
+            Toast.fire({ icon: 'error', title: err.response?.data?.message || 'Wipe failed' });
+        } finally {
+            setWiping(false);
+        }
+    };
 
     useEffect(() => {
         axios.get('/fetch-all-products')
@@ -502,10 +521,122 @@ export default function AllProducts({ products, statistics, categories, filters 
                                         </div>
                                     )}
                                 </div>
+
+                                {/* Danger zone */}
+                                <div style={{
+                                    marginTop: '32px', padding: '24px',
+                                    background: '#fff', border: '1px solid #fecaca',
+                                    borderRadius: '16px',
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                                        <div style={{ flex: 1, minWidth: '240px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                                                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#dc2626' }}>warning</span>
+                                                <h3 style={{ fontSize: '15px', fontWeight: 600, color: '#dc2626', margin: 0 }}>Danger zone</h3>
+                                            </div>
+                                            <p style={{ fontSize: '13px', color: '#6e6e73', margin: 0, lineHeight: 1.5 }}>
+                                                Permanently delete <strong>all products</strong> and their category, brand, country, tag, and region selections.
+                                                Used for one-shot resets before re-importing from CSV. Make sure you've exported first — this can't be undone.
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => setWipeModalOpen(true)}
+                                            style={{
+                                                padding: '10px 20px', borderRadius: '9999px',
+                                                border: '1px solid #dc2626', background: '#fff',
+                                                color: '#dc2626', fontSize: '13px', fontWeight: 500,
+                                                cursor: 'pointer', display: 'inline-flex',
+                                                alignItems: 'center', gap: '6px',
+                                                transition: 'all 0.15s ease', flexShrink: 0,
+                                            }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.background = '#dc2626'; e.currentTarget.style.color = '#fff'; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#dc2626'; }}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete_forever</span>
+                                            Wipe all products
+                                        </button>
+                                    </div>
+                                </div>
                             </Col>
                         </Row>
                     </Container>
                 </Container>
+
+                {/* Wipe confirmation modal */}
+                {wipeModalOpen && (
+                    <div
+                        onClick={() => !wiping && setWipeModalOpen(false)}
+                        style={{
+                            position: 'fixed', inset: 0,
+                            background: 'rgba(0,0,0,0.5)', zIndex: 2000,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            padding: '16px',
+                        }}
+                    >
+                        <div
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                                background: '#fff', borderRadius: '16px',
+                                padding: '28px', width: '100%', maxWidth: '440px',
+                                boxShadow: '0 24px 60px rgba(0,0,0,0.3)',
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#dc2626' }}>warning</span>
+                                <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#000', margin: 0 }}>Wipe all products?</h3>
+                            </div>
+                            <p style={{ fontSize: '14px', color: '#6e6e73', lineHeight: 1.5, marginBottom: '8px' }}>
+                                This will permanently delete <strong>{statistics.total_products}</strong> products and every related category/brand/country/tag/region selection. There is no undo.
+                            </p>
+                            <p style={{ fontSize: '13px', color: '#86868b', marginBottom: '16px' }}>
+                                Type <code style={{ background: '#f5f5f7', padding: '1px 6px', borderRadius: '4px', fontWeight: 600, color: '#000' }}>DELETE</code> to confirm.
+                            </p>
+                            <input
+                                autoFocus
+                                value={wipeConfirm}
+                                onChange={(e) => setWipeConfirm(e.target.value)}
+                                disabled={wiping}
+                                placeholder="DELETE"
+                                style={{
+                                    width: '100%', padding: '10px 14px', borderRadius: '12px',
+                                    border: '1px solid #e5e5e7', fontSize: '14px',
+                                    background: '#fff', color: '#000', outline: 'none',
+                                    marginBottom: '20px',
+                                }}
+                                onFocus={(e) => e.currentTarget.style.borderColor = '#000'}
+                                onBlur={(e) => e.currentTarget.style.borderColor = '#e5e5e7'}
+                            />
+                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                <button
+                                    onClick={() => { setWipeModalOpen(false); setWipeConfirm(''); }}
+                                    disabled={wiping}
+                                    style={{
+                                        padding: '10px 20px', borderRadius: '9999px',
+                                        border: '1px solid #e5e5e7', background: '#fff',
+                                        color: '#000', fontSize: '13px', fontWeight: 500,
+                                        cursor: wiping ? 'not-allowed' : 'pointer',
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleWipeAll}
+                                    disabled={wipeConfirm !== 'DELETE' || wiping}
+                                    style={{
+                                        padding: '10px 20px', borderRadius: '9999px',
+                                        border: 'none',
+                                        background: (wipeConfirm === 'DELETE' && !wiping) ? '#dc2626' : '#fecaca',
+                                        color: '#fff', fontSize: '13px', fontWeight: 500,
+                                        cursor: (wipeConfirm === 'DELETE' && !wiping) ? 'pointer' : 'not-allowed',
+                                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                    }}
+                                >
+                                    {wiping ? 'Wiping…' : 'Wipe all products'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <style>{`
                     @keyframes spin {

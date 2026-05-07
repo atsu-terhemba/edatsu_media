@@ -1222,6 +1222,81 @@ public function store(Request $request)
     }
 
     /**
+     * Wipe ALL products + their selection rows. Destructive, one-shot.
+     * The admin must POST {"confirm": "DELETE"} to proceed.
+     *
+     * Touches:
+     *  - products (hard delete + auto_increment reset)
+     *  - category_selections, brand_labels_selections, country_selections,
+     *    tags_selections, region_selections (rows where post_type='products')
+     *  - product_pricings, product_functionalities (rows by product_id)
+     */
+    public function wipeAllProducts(Request $request)
+    {
+        $request->validate([
+            'confirm' => 'required|string|in:DELETE',
+        ]);
+
+        $counts = [];
+
+        DB::beginTransaction();
+        try {
+            $counts['products'] = DB::table('products')->count();
+
+            $selectionTables = [
+                'category_selections',
+                'brand_labels_selections',
+                'country_selections',
+                'tags_selections',
+                'region_selections',
+            ];
+
+            foreach ($selectionTables as $t) {
+                if (DB::getSchemaBuilder()->hasTable($t)) {
+                    $counts[$t] = DB::table($t)->where('post_type', 'products')->delete();
+                }
+            }
+
+            foreach (['product_pricings', 'product_functionalities'] as $t) {
+                if (DB::getSchemaBuilder()->hasTable($t)) {
+                    $counts[$t] = DB::table($t)->delete();
+                }
+            }
+
+            DB::table('products')->delete();
+            try {
+                DB::statement('ALTER TABLE products AUTO_INCREMENT = 1');
+            } catch (\Throwable $e) {
+                // Non-fatal — auto_increment reset is nice-to-have, not required
+            }
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('wipeAllProducts failed', [
+                'admin_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Wipe failed: ' . $e->getMessage(),
+            ], 500);
+        }
+
+        Log::warning('Products database wiped', [
+            'admin_id' => Auth::id(),
+            'admin_email' => Auth::user()?->email,
+            'counts' => $counts,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Wiped {$counts['products']} products and related selection rows.",
+            'counts' => $counts,
+        ]);
+    }
+
+    /**
      * Show the product edit form
      *
      * @param int $id
