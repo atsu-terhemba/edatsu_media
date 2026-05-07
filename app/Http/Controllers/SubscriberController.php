@@ -15,6 +15,7 @@ use App\Models\Notification;
 use App\Models\Message;
 use App\Models\UserPreference;
 use App\Models\Category;
+use App\Models\ProductCategory;
 use App\Models\Country;
 use App\Models\Region;
 use App\Models\BrandLabel;
@@ -377,16 +378,20 @@ class SubscriberController extends Controller
         // Get user preferences or create empty ones
         $userPreferences = UserPreference::where('user_id', $user_id)->first();
         
-        // Get all available options
+        // Opportunity Category list and Toolshed ProductCategory list are
+        // separate models. Pass both so the Toolshed section of /preferences
+        // matches what users see on /toolshed instead of opportunity tags.
         $categories = Category::orderBy('name')->get();
+        $productCategories = ProductCategory::orderBy('name')->get();
         $countries = Country::orderBy('name')->get();
         $regions = Region::orderBy('name')->get();
         $brands = BrandLabel::orderBy('name')->get();
         $tags = Tag::orderBy('name')->get();
-        
+
         return Inertia::render('Subscriber/Preferences', [
             'userPreferences' => $userPreferences,
             'categories' => $categories,
+            'productCategories' => $productCategories,
             'countries' => $countries,
             'regions' => $regions,
             'brands' => $brands,

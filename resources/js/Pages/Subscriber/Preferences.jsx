@@ -90,8 +90,9 @@ function ToggleSwitch({ checked, onChange, id }) {
     );
 }
 
-export default function Preferences({ userPreferences, categories, countries, regions, tags }) {
+export default function Preferences({ userPreferences, categories, productCategories = [], countries, regions, tags }) {
     const categoryOptions = categories.map(item => ({ value: item.id, label: item.name }));
+    const productCategoryOptions = productCategories.map(item => ({ value: item.id, label: item.name }));
     const countryOptions = countries.map(item => ({ value: item.id, label: item.name }));
     const regionOptions = regions.map(item => ({ value: item.id, label: item.name }));
     const tagOptions = tags.map(item => ({ value: item.id, label: item.name }));
@@ -104,7 +105,7 @@ export default function Preferences({ userPreferences, categories, countries, re
         opportunity_regions: userPreferences?.opportunity_regions?.map(id =>
             regionOptions.find(opt => opt.value === id)) || [],
         product_categories: userPreferences?.product_categories?.map(id =>
-            categoryOptions.find(opt => opt.value === id)) || [],
+            productCategoryOptions.find(opt => opt.value === id)).filter(Boolean) || [],
         product_tags: userPreferences?.product_tags?.map(id =>
             tagOptions.find(opt => opt.value === id)) || [],
         email_notifications: userPreferences?.email_notifications || false,
@@ -378,7 +379,7 @@ export default function Preferences({ userPreferences, categories, countries, re
                                             <Select
                                                 isMulti
                                                 value={formData.product_categories}
-                                                options={categoryOptions}
+                                                options={productCategoryOptions}
                                                 onChange={(selected) => handleSelectChange(selected, 'product_categories')}
                                                 styles={selectStyles}
                                                 placeholder="Select categories..."
