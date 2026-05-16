@@ -264,10 +264,10 @@ return(
     </Link>
 </div>
 
-{/* Mobile-only Pro upsell banner — shown to non-Pro users until dismissed */}
+{/* Pro upsell banner — shown to non-Pro users until dismissed */}
 {showProBanner && !isPro && (
     <div
-        className="d-lg-none"
+        className="pro-upsell-banner"
         role="region"
         aria-label="Upgrade for Pro benefits"
         style={{
@@ -343,6 +343,9 @@ return(
             @keyframes proBannerSlideDown {
                 from { transform: translateY(-100%); opacity: 0; }
                 to   { transform: translateY(0); opacity: 1; }
+            }
+            @media (min-width: 992px) {
+                .pro-upsell-banner { top: 56px !important; padding-left: 24px !important; padding-right: 24px !important; }
             }
         `}</style>
     </div>
