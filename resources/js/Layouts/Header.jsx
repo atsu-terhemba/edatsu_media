@@ -276,10 +276,7 @@ return(
             left: 0,
             right: 0,
             zIndex: 49,
-            padding: '10px 12px 10px 14px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
+            padding: '10px 0',
             background: 'linear-gradient(90deg, #b91c1c 0%, #dc2626 50%, #ef4444 100%)',
             borderBottom: '1px solid rgba(0,0,0,0.15)',
             boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)',
@@ -287,6 +284,7 @@ return(
             animation: 'proBannerSlideDown 0.35s ease-out',
         }}
     >
+      <Container style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <div style={{ flex: 1, minWidth: 0, lineHeight: 1.3 }}>
             <div style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '-0.01em' }}>
                 Unlock Pro perks
@@ -339,13 +337,14 @@ return(
         >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
         </button>
+      </Container>
         <style>{`
             @keyframes proBannerSlideDown {
                 from { transform: translateY(-100%); opacity: 0; }
                 to   { transform: translateY(0); opacity: 1; }
             }
             @media (min-width: 992px) {
-                .pro-upsell-banner { top: 56px !important; padding-left: 24px !important; padding-right: 24px !important; }
+                .pro-upsell-banner { top: 56px !important; }
             }
         `}</style>
     </div>
