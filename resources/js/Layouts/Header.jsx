@@ -186,11 +186,18 @@ export default function Header({auth}){
 
     const [showProBanner, setShowProBanner] = useState(false);
     useEffect(() => {
-        if (auth?.id) return;
+        if (isPro) return;
         if (typeof window === 'undefined') return;
         if (sessionStorage.getItem('pro_banner_dismissed') === '1') return;
         setShowProBanner(true);
-    }, [auth?.id]);
+    }, [isPro]);
+
+    const isGuest = !auth?.id;
+    const proBannerHref = isGuest ? '/login' : route('subscription');
+    const proBannerSubtext = isGuest
+        ? 'Log in to access the full Pro experience'
+        : 'Upgrade to unlock the full Pro experience';
+    const proBannerCtaLabel = isGuest ? 'Login' : 'Upgrade';
 
     const dismissProBanner = () => {
         setShowProBanner(false);
@@ -257,12 +264,12 @@ return(
     </Link>
 </div>
 
-{/* Mobile-only Pro upsell banner — shown to guests until dismissed */}
-{showProBanner && !auth?.id && (
+{/* Mobile-only Pro upsell banner — shown to non-Pro users until dismissed */}
+{showProBanner && !isPro && (
     <div
         className="d-lg-none"
         role="region"
-        aria-label="Login for Pro benefits"
+        aria-label="Upgrade for Pro benefits"
         style={{
             position: 'fixed',
             top: '48px',
@@ -285,7 +292,7 @@ return(
                 Unlock Pro perks
             </div>
             <Link
-                href="/login"
+                href={proBannerHref}
                 style={{
                     fontSize: '11.5px',
                     color: 'rgba(255,255,255,0.92)',
@@ -293,11 +300,11 @@ return(
                     fontWeight: 400,
                 }}
             >
-                Log in to access the full Pro experience &rsaquo;
+                {proBannerSubtext} &rsaquo;
             </Link>
         </div>
         <Link
-            href="/login"
+            href={proBannerHref}
             style={{
                 fontSize: '12px',
                 fontWeight: 600,
@@ -309,7 +316,7 @@ return(
                 flexShrink: 0,
             }}
         >
-            Login
+            {proBannerCtaLabel}
         </Link>
         <button
             type="button"
