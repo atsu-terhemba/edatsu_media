@@ -9,10 +9,29 @@ const ArticleReaderModal = ({ article, onClose, isSaved, onToggleSave, isAuthent
     const [iframeLoaded, setIframeLoaded] = useState(false);
     const [showTooltip, setShowTooltip] = useState(false);
     const [showDiscussPrompt, setShowDiscussPrompt] = useState(false);
+    const [extractAttempt, setExtractAttempt] = useState(0);
     const loadedRef = useRef(false);
 
+    // Hold latest callbacks in refs so the data-fetching effect below can stay
+    // keyed only to the article URL. Without this, parent re-renders that pass
+    // new inline-arrow callbacks (onClose, onToggleSave, onDiscuss) would
+    // re-run the effect and abort the in-flight extract-article fetch,
+    // leaving the reader stuck on the loading spinner until a full refresh.
+    const onCloseRef = useRef(onClose);
+    const onToggleSaveRef = useRef(onToggleSave);
+    const onDiscussRef = useRef(onDiscuss);
     useEffect(() => {
-        if (!article) return;
+        onCloseRef.current = onClose;
+        onToggleSaveRef.current = onToggleSave;
+        onDiscussRef.current = onDiscuss;
+    });
+
+    const articleLink = article?.link || null;
+    const hasToggleSave = !!onToggleSave;
+    const hasDiscuss = !!onDiscuss;
+
+    useEffect(() => {
+        if (!articleLink) return;
         loadedRef.current = false;
         setView('reader');
         setReaderLoading(true);
@@ -22,16 +41,17 @@ const ArticleReaderModal = ({ article, onClose, isSaved, onToggleSave, isAuthent
         setIframeLoaded(false);
         setShowDiscussPrompt(false);
         document.body.style.overflow = 'hidden';
-        const handleEsc = (e) => { if (e.key === 'Escape') onClose(); };
+        const handleEsc = (e) => { if (e.key === 'Escape') onCloseRef.current?.(); };
         window.addEventListener('keydown', handleEsc);
 
         const extractCtrl = new AbortController();
-        fetch(`/api/news-feeds/extract-article?url=${encodeURIComponent(article.link)}`, {
+        fetch(`/api/news-feeds/extract-article?url=${encodeURIComponent(articleLink)}`, {
             signal: extractCtrl.signal,
             headers: { Accept: 'application/json' },
         })
             .then((r) => r.json())
             .then((data) => {
+                if (extractCtrl.signal.aborted) return;
                 if (data?.success && data.content) {
                     setReaderData(data);
                 } else {
@@ -41,10 +61,12 @@ const ArticleReaderModal = ({ article, onClose, isSaved, onToggleSave, isAuthent
             .catch((err) => {
                 if (err.name !== 'AbortError') setReaderError('network');
             })
-            .finally(() => setReaderLoading(false));
+            .finally(() => {
+                if (!extractCtrl.signal.aborted) setReaderLoading(false);
+            });
 
         let tooltipTimer;
-        if (onToggleSave) {
+        if (hasToggleSave) {
             const dismissed = localStorage.getItem('edatsu_reader_tooltip_dismissed');
             if (!dismissed) {
                 setShowTooltip(true);
@@ -53,7 +75,7 @@ const ArticleReaderModal = ({ article, onClose, isSaved, onToggleSave, isAuthent
         }
 
         let discussTimer;
-        if (onDiscuss) {
+        if (hasDiscuss) {
             discussTimer = setTimeout(() => setShowDiscussPrompt(true), 15000);
         }
 
@@ -64,7 +86,9 @@ const ArticleReaderModal = ({ article, onClose, isSaved, onToggleSave, isAuthent
             if (tooltipTimer) clearTimeout(tooltipTimer);
             if (discussTimer) clearTimeout(discussTimer);
         };
-    }, [article, onClose, onToggleSave, onDiscuss]);
+    }, [articleLink, hasToggleSave, hasDiscuss, extractAttempt]);
+
+    const retryExtract = () => setExtractAttempt((n) => n + 1);
 
     // Lazy-check framing only when user switches to Original view
     useEffect(() => {
@@ -402,7 +426,22 @@ const ArticleReaderModal = ({ article, onClose, isSaved, onToggleSave, isAuthent
                                     <p style={{ fontSize: '13px', color: '#86868b', margin: '0 0 20px', lineHeight: 1.5, maxWidth: '360px' }}>
                                         We couldn't extract a clean article from this page. Try the original view or open it in a new tab.
                                     </p>
-                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                        {(readerError === 'network' || readerError === 'unreachable' || readerError === 'bad_status') && (
+                                            <button
+                                                onClick={retryExtract}
+                                                style={{
+                                                    padding: '10px 20px', borderRadius: '9999px',
+                                                    background: '#f97316', color: '#fff', border: 'none',
+                                                    fontSize: '13px', fontWeight: 500, cursor: 'pointer',
+                                                    fontFamily: "'Poppins', sans-serif",
+                                                    display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                                }}
+                                            >
+                                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>refresh</span>
+                                                Try again
+                                            </button>
+                                        )}
                                         <button
                                             onClick={() => setView('original')}
                                             style={{

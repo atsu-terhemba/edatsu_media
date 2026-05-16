@@ -184,6 +184,19 @@ export default function Header({auth}){
     const { isSubscribed, permission, subscribe } = usePushNotifications(vapidPublicKey);
     const { notificationCount } = useUnreadNotifications(auth);
 
+    const [showProBanner, setShowProBanner] = useState(false);
+    useEffect(() => {
+        if (auth?.id) return;
+        if (typeof window === 'undefined') return;
+        if (sessionStorage.getItem('pro_banner_dismissed') === '1') return;
+        setShowProBanner(true);
+    }, [auth?.id]);
+
+    const dismissProBanner = () => {
+        setShowProBanner(false);
+        try { sessionStorage.setItem('pro_banner_dismissed', '1'); } catch (e) {}
+    };
+
     // Auto-prompt or auto-resubscribe for push notifications.
     // - permission === 'default': prompt once per session (sessionStorage gate)
     // - permission === 'granted' but no active subscription: silently re-subscribe
@@ -243,6 +256,90 @@ return(
         </span>
     </Link>
 </div>
+
+{/* Mobile-only Pro upsell banner — shown to guests until dismissed */}
+{showProBanner && !auth?.id && (
+    <div
+        className="d-lg-none"
+        role="region"
+        aria-label="Login for Pro benefits"
+        style={{
+            position: 'fixed',
+            top: '48px',
+            left: 0,
+            right: 0,
+            zIndex: 49,
+            padding: '10px 12px 10px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            background: 'linear-gradient(90deg, #b91c1c 0%, #dc2626 50%, #ef4444 100%)',
+            borderBottom: '1px solid rgba(0,0,0,0.15)',
+            boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)',
+            color: '#fff',
+            animation: 'proBannerSlideDown 0.35s ease-out',
+        }}
+    >
+        <div style={{ flex: 1, minWidth: 0, lineHeight: 1.3 }}>
+            <div style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '-0.01em' }}>
+                Unlock Pro perks
+            </div>
+            <Link
+                href="/login"
+                style={{
+                    fontSize: '11.5px',
+                    color: 'rgba(255,255,255,0.92)',
+                    textDecoration: 'none',
+                    fontWeight: 400,
+                }}
+            >
+                Log in to access the full Pro experience &rsaquo;
+            </Link>
+        </div>
+        <Link
+            href="/login"
+            style={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#b91c1c',
+                background: '#fff',
+                padding: '6px 12px',
+                borderRadius: '9999px',
+                textDecoration: 'none',
+                flexShrink: 0,
+            }}
+        >
+            Login
+        </Link>
+        <button
+            type="button"
+            onClick={dismissProBanner}
+            aria-label="Dismiss"
+            style={{
+                background: 'rgba(255,255,255,0.15)',
+                border: 'none',
+                color: '#fff',
+                width: '28px',
+                height: '28px',
+                borderRadius: '9999px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                flexShrink: 0,
+                padding: 0,
+            }}
+        >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+        </button>
+        <style>{`
+            @keyframes proBannerSlideDown {
+                from { transform: translateY(-100%); opacity: 0; }
+                to   { transform: translateY(0); opacity: 1; }
+            }
+        `}</style>
+    </div>
+)}
 
 {/* Desktop-only header - hidden on mobile */}
 <Navbar
