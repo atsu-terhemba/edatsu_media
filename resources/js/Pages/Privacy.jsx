@@ -183,6 +183,7 @@ export default function Privacy() {
                                 fontWeight: 600,
                                 letterSpacing: '-0.02em',
                                 lineHeight: 1.05,
+                                color: '#d1d1d6',
                                 marginTop: '16px',
                                 marginBottom: '20px',
                             }}
