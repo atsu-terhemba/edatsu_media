@@ -287,7 +287,7 @@ return(
       <Container style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <div style={{ flex: 1, minWidth: 0, lineHeight: 1.3 }}>
             <div style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '-0.01em' }}>
-                Unlock Pro perks
+                Unlock Pro Features
             </div>
             <Link
                 href={proBannerHref}
