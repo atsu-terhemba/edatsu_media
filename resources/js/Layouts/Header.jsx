@@ -204,6 +204,18 @@ export default function Header({auth}){
         try { sessionStorage.setItem('pro_banner_dismissed', '1'); } catch (e) {}
     };
 
+    const [showCookieBanner, setShowCookieBanner] = useState(false);
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (localStorage.getItem('edatsu_cookie_consent') === '1') return;
+        const t = setTimeout(() => setShowCookieBanner(true), 600);
+        return () => clearTimeout(t);
+    }, []);
+    const acceptCookies = () => {
+        setShowCookieBanner(false);
+        try { localStorage.setItem('edatsu_cookie_consent', '1'); } catch (e) {}
+    };
+
     // Auto-prompt or auto-resubscribe for push notifications.
     // - permission === 'default': prompt once per session (sessionStorage gate)
     // - permission === 'granted' but no active subscription: silently re-subscribe
@@ -285,6 +297,25 @@ return(
         }}
     >
       <Container style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <span
+            aria-hidden="true"
+            style={{
+                flexShrink: 0,
+                width: '34px',
+                height: '34px',
+                borderRadius: '9999px',
+                background: 'rgba(255,255,255,0.15)',
+                border: '1px solid rgba(255,255,255,0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 0 4px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.18)',
+            }}
+        >
+            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#fff', fontVariationSettings: "'FILL' 1, 'wght' 500" }}>
+                lock_open
+            </span>
+        </span>
         <div style={{ flex: 1, minWidth: 0, lineHeight: 1.3 }}>
             <div style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '-0.01em' }}>
                 Unlock Pro Features
@@ -556,6 +587,96 @@ return(
     </div>
 </Container>
 </Navbar>
+
+{/* Cookie + data policy notice — bottom of screen, dismissed via localStorage */}
+{showCookieBanner && (
+    <div
+        role="region"
+        aria-label="Cookie and data policy notice"
+        style={{
+            position: 'fixed',
+            left: '16px',
+            right: '16px',
+            bottom: '16px',
+            maxWidth: '520px',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            zIndex: 1001,
+            background: 'rgba(20,20,22,0.92)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            color: '#fff',
+            borderRadius: '16px',
+            border: '1px solid rgba(255,255,255,0.08)',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.02)',
+            padding: '14px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            animation: 'cookieBannerSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
+    >
+        <span
+            aria-hidden="true"
+            style={{
+                flexShrink: 0,
+                width: '36px',
+                height: '36px',
+                borderRadius: '9999px',
+                background: 'rgba(249,115,22,0.18)',
+                border: '1px solid rgba(249,115,22,0.35)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#f97316', fontVariationSettings: "'FILL' 1" }}>
+                cookie
+            </span>
+        </span>
+        <div style={{ flex: 1, minWidth: 0, lineHeight: 1.35 }}>
+            <div style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '-0.01em', marginBottom: '2px' }}>
+                We use cookies
+            </div>
+            <div style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.7)' }}>
+                To improve your experience. See our{' '}
+                <Link
+                    href={route('privacy')}
+                    style={{ color: '#f97316', textDecoration: 'none', fontWeight: 500, borderBottom: '1px solid rgba(249,115,22,0.4)' }}
+                >
+                    Privacy &amp; Data Policy
+                </Link>
+                .
+            </div>
+        </div>
+        <button
+            type="button"
+            onClick={acceptCookies}
+            style={{
+                flexShrink: 0,
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#000',
+                background: '#fff',
+                padding: '8px 16px',
+                borderRadius: '9999px',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'transform 0.15s ease',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.04)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        >
+            Got it
+        </button>
+        <style>{`
+            @keyframes cookieBannerSlideUp {
+                from { transform: translateY(150%); opacity: 0; }
+                to   { transform: translateY(0); opacity: 1; }
+            }
+        `}</style>
+    </div>
+)}
 </Fragment>
     )
 }
