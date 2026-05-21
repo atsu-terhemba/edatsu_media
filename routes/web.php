@@ -271,6 +271,13 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->where('id', '[0-9]+')
         ->name('admin.feedback.status');
 
+    // Mailing list subscribers
+    Route::get('/admin-mail-subscribers', [\App\Http\Controllers\Admin\MailSubscribersController::class, 'index'])->name('admin.mail_subscribers');
+    Route::get('/admin-mail-subscribers/export', [\App\Http\Controllers\Admin\MailSubscribersController::class, 'export'])->name('admin.mail_subscribers.export');
+    Route::delete('/admin-mail-subscribers/{id}', [\App\Http\Controllers\Admin\MailSubscribersController::class, 'destroy'])
+        ->where('id', '[0-9]+')
+        ->name('admin.mail_subscribers.destroy');
+
     // Subscriptions & payments overview
     Route::get('/admin-subscriptions', [\App\Http\Controllers\Admin\SubscriptionsController::class, 'index'])->name('admin.subscriptions');
     Route::post('/admin-subscriptions/{id}/activate', [\App\Http\Controllers\Admin\SubscriptionsController::class, 'activatePending'])
