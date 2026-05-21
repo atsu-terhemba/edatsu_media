@@ -202,16 +202,15 @@ function searchOpportunities(Request $request)
  */
 private function buildBaseQuery($user_id)
 {
-    return Oppty::query()
+    $query = Oppty::query()
         ->select([
-            'opportunities.id', 
-            'opportunities.title', 
+            'opportunities.id',
+            'opportunities.title',
             'opportunities.deadline',
             'opportunities.slug',
             'opportunities.description',
             'opportunities.cover_img',
             \DB::raw('GROUP_CONCAT(DISTINCT continents.name SEPARATOR ", ") as continent_name'),
-            \DB::raw('CASE WHEN bookmarks.id IS NOT NULL AND bookmarks.removed != 1 THEN 1 ELSE 0 END as is_bookmarked')
         ])
         ->where(function ($q) {
             $q->where('opportunities.deleted', '!=', 1)->orWhereNull('opportunities.deleted');
@@ -220,22 +219,29 @@ private function buildBaseQuery($user_id)
         ->where('opportunities.deadline', '>', Carbon::today())
         ->leftJoin('continent_selections', 'continent_selections.post_id', '=', 'opportunities.id')
         ->leftJoin('continents', 'continents.id', '=', 'continent_selections.continent_id')
-        ->leftJoin('bookmarks', function ($join) use ($user_id) {
-            $join->on('bookmarks.post_id', '=', 'opportunities.id')
-                ->where('bookmarks.post_type', '=', 'opp')
-                ->where('bookmarks.user_id', '=', $user_id);
-        })
         ->groupBy([
-            'opportunities.id', 
-            'opportunities.title', 
+            'opportunities.id',
+            'opportunities.title',
             'opportunities.deadline',
             'opportunities.slug',
             'opportunities.description',
             'opportunities.cover_img',
-            'bookmarks.id',
-            'bookmarks.removed',
-            \DB::raw('CASE WHEN bookmarks.id IS NOT NULL AND bookmarks.removed != 1 THEN 1 ELSE 0 END')
         ]);
+
+    if ($user_id) {
+        $query->selectSub(function ($q) use ($user_id) {
+            $q->from('bookmarks')
+              ->whereColumn('bookmarks.post_id', 'opportunities.id')
+              ->where('bookmarks.post_type', 'opp')
+              ->where('bookmarks.user_id', $user_id)
+              ->where('bookmarks.removed', '!=', 1)
+              ->selectRaw('CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END');
+        }, 'is_bookmarked');
+    } else {
+        $query->selectRaw('0 as is_bookmarked');
+    }
+
+    return $query;
 }
 
 /**
