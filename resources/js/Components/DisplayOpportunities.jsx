@@ -9,6 +9,11 @@ const IN_FEED_AD_EVERY = 6;
 
 const DisplayOpportunities = ({ data, isAuthenticated }) => {
   const [loadedImages, setLoadedImages] = useState({});
+  const [items, setItems] = useState(data || []);
+
+  useEffect(() => {
+    setItems(data || []);
+  }, [data]);
 
   const fallbackImageUrl = "/img/logo/main_2.png";
 
@@ -87,13 +92,35 @@ const DisplayOpportunities = ({ data, isAuthenticated }) => {
     });
   };
 
-  const handleBookmark = (e) => {
+  const handleBookmark = async (e) => {
     if (!isAuthenticated) {
       e.preventDefault();
       showAuthModal();
       return;
     }
-    bookmark(e.currentTarget);
+    const btn = e.currentTarget;
+    const id = Number(btn.dataset.id);
+
+    let previous;
+    setItems(prev => {
+      previous = prev;
+      return prev.map(it =>
+        it.id === id ? { ...it, is_bookmarked: it.is_bookmarked === 1 ? 0 : 1 } : it
+      );
+    });
+
+    const result = await bookmark(btn);
+
+    if (!result || !result.ok) {
+      // Revert optimistic toggle on failure / no-op
+      setItems(previous);
+      return;
+    }
+    // Reconcile to the server's authoritative state
+    const desired = result.action === 'added' ? 1 : 0;
+    setItems(prev => prev.map(it =>
+      it.id === id ? { ...it, is_bookmarked: desired } : it
+    ));
   };
 
   const handleImageError = (e) => {
@@ -202,7 +229,7 @@ const DisplayOpportunities = ({ data, isAuthenticated }) => {
     };
   }, []);
 
-  if (!data || data.length === 0) {
+  if (!items || items.length === 0) {
     return (
       <div id="results-container">
         <div
@@ -228,10 +255,10 @@ const DisplayOpportunities = ({ data, isAuthenticated }) => {
 
   return (
     <div id="results-container">
-      {data?.map((o, index) => {
+      {items?.map((o, index) => {
         const hasImage = o.cover_img && isValidImage(o.cover_img);
         const imageId = `img-${o.id}-${index}`;
-        const showInFeedAd = (index + 1) % IN_FEED_AD_EVERY === 0 && index !== data.length - 1;
+        const showInFeedAd = (index + 1) % IN_FEED_AD_EVERY === 0 && index !== items.length - 1;
 
         return (
           <Fragment key={`${o.id}-${index}`}>

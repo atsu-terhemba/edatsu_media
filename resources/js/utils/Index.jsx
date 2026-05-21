@@ -372,33 +372,36 @@ export const swalConfig = {
     let id      = obj.dataset.id;
     let type    = obj.dataset.type;
     let url     = obj.dataset.url;
-    
-    axios.post('/bookmark',  {
+
+    return axios.post('/bookmark',  {
       id: id,
       type: type,
       url: url
     })
     .then((d)=>{
-        if(d?.data?.status == 'success'){
-            Toast.fire({
-            icon: "success",
-            title: d?.data?.message
-            }); 
-        }else if(d?.data?.status == 'warning'){
-            Toast.fire({
-            icon: "warning",
-            title: d?.data?.message
-            }); 
-        }else{
-            Toast.fire({
-            icon: "error",
-            title:  d?.data?.message
-            }); 
+        const status = d?.data?.status;
+        const message = d?.data?.message || '';
+
+        let action = null;
+        if (status === 'success' && /^bookmarked/i.test(message)) {
+            action = 'added';
+        } else if (status === 'warning' && /removed/i.test(message)) {
+            action = 'removed';
         }
+
+        if(status == 'success'){
+            Toast.fire({ icon: "success", title: message });
+        }else if(status == 'warning'){
+            Toast.fire({ icon: "warning", title: message });
+        }else{
+            Toast.fire({ icon: "error", title: message });
+        }
+
+        return { ok: action !== null, action, message };
     })
     .catch((error)=> {
         // Quota/Pro gate — upgrade modal already shown by global interceptor, skip toast
-        if (isQuotaError(error)) return;
+        if (isQuotaError(error)) return { ok: false, action: null, quota: true };
 
         // Handle authentication error - check multiple conditions
         if (error.response?.status === 401 ||
@@ -415,6 +418,7 @@ export const swalConfig = {
                 title: "Failed to bookmark. Please try again."
             });
         }
+        return { ok: false, action: null };
     });
 }
 
