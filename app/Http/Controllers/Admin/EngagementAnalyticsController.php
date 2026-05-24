@@ -96,6 +96,8 @@ class EngagementAnalyticsController extends Controller
             }
         }
 
+        // `reads` is a reserved word in MySQL 8 — backtick-quoted aliases keep
+        // the parser happy. Same for the article-level aggregation below.
         $topFeeds = ArticleEngagement::query()
             ->where('created_at', '>=', $start)
             ->whereNotNull('feed_title')
@@ -103,7 +105,7 @@ class EngagementAnalyticsController extends Controller
             ->selectRaw("feed_title,
                 MAX(feed_favicon) AS feed_favicon,
                 COUNT(*) AS events,
-                SUM(CASE WHEN event_type='read'  THEN 1 ELSE 0 END) AS reads,
+                SUM(CASE WHEN event_type='read'  THEN 1 ELSE 0 END) AS `reads`,
                 SUM(CASE WHEN event_type='click' THEN 1 ELSE 0 END) AS clicks,
                 SUM(CASE WHEN event_type='save'  THEN 1 ELSE 0 END) AS saves")
             ->groupBy('feed_title')
@@ -120,7 +122,7 @@ class EngagementAnalyticsController extends Controller
                 MAX(feed_favicon) AS feed_favicon,
                 COUNT(*) AS events,
                 SUM(CASE WHEN event_type='save' THEN 5 WHEN event_type='click' THEN 2 ELSE 1 END) AS score,
-                SUM(CASE WHEN event_type='read'  THEN 1 ELSE 0 END) AS reads,
+                SUM(CASE WHEN event_type='read'  THEN 1 ELSE 0 END) AS `reads`,
                 SUM(CASE WHEN event_type='click' THEN 1 ELSE 0 END) AS clicks,
                 SUM(CASE WHEN event_type='save'  THEN 1 ELSE 0 END) AS saves")
             ->groupBy('article_link_hash')
