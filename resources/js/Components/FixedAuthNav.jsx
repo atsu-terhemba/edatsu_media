@@ -62,7 +62,11 @@ const FixedAuthNav = () => {
       title: 'Admin',
       items: [
         { label: 'Dashboard', icon: 'dashboard', path: '/admin-dashboard' },
+        { label: 'Engagement', icon: 'analytics', path: '/admin-engagement' },
         { label: 'Users', icon: 'group', path: '/all-users' },
+        { label: 'Subscriptions', icon: 'payments', path: '/admin-subscriptions' },
+        { label: 'Mailing List', icon: 'mail', path: '/admin-mail-subscribers' },
+        { label: 'Feedback', icon: 'rate_review', path: '/admin-feedback' },
         { label: 'Ads', icon: 'ads_click', path: '/admin/ads' },
         { label: 'Pro Gating', icon: 'workspace_premium', path: '/admin-pro-gating' },
       ],

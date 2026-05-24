@@ -25,15 +25,23 @@ class NewsFeedController extends Controller
 
     protected const DEFAULT_FEEDS = [
         'Global' => [
+            // Finance
             'https://feeds.bbci.co.uk/news/business/rss.xml',
-            'https://www.forbes.com/innovation/feed/',
-            'https://techcrunch.com/feed/',
-            'https://www.wired.com/feed/rss',
-            'https://www.reuters.com/rssFeed/technologyNews',
             'https://www.cnbc.com/id/100003114/device/rss/rss.html',
             'https://feeds.bloomberg.com/markets/news.rss',
             'https://finance.yahoo.com/news/rssindex',
             'https://www.ft.com/?format=rss',
+            'https://www.economist.com/finance-and-economics/rss.xml',
+            'https://www.investing.com/rss/news.rss',
+            // Tech
+            'https://www.forbes.com/innovation/feed/',
+            'https://techcrunch.com/feed/',
+            'https://www.wired.com/feed/rss',
+            'https://www.reuters.com/rssFeed/technologyNews',
+            'https://www.engadget.com/rss.xml',
+            'https://www.technologyreview.com/feed/',
+            'https://news.ycombinator.com/rss',
+            // Crypto
             'https://www.coindesk.com/arc/outboundfeeds/rss/',
             'https://cointelegraph.com/rss',
         ],
@@ -48,14 +56,20 @@ class NewsFeedController extends Controller
             'https://businessday.ng/feed/',
         ],
         'North America' => [
+            // Tech
             'https://www.theverge.com/rss/index.xml',
             'https://feeds.arstechnica.com/arstechnica/index',
+            'https://venturebeat.com/feed/',
+            'https://mashable.com/feeds/rss/all',
             'https://www.inc.com/rss',
             'https://entrepreneur.com/latest.rss',
+            // Finance
             'https://www.marketwatch.com/rss/topstories',
             'https://www.wsj.com/xml/rss/3_7085.xml',
             'https://www.investopedia.com/feedbuilder/feed/getfeed?feedName=rss_headline',
             'https://seekingalpha.com/market_currents.xml',
+            'https://www.businessinsider.com/rss',
+            // Crypto
             'https://www.theblock.co/rss.xml',
             'https://decrypt.co/feed',
         ],
