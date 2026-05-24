@@ -1,37 +1,118 @@
 # Edatsu Media Robots.txt
 # https://www.edatsu.com
 
+# ──────────────────────────────────────────────────────────────────
+# Default policy — open to all well-behaved crawlers
+# ──────────────────────────────────────────────────────────────────
 User-agent: *
 Allow: /
 
-# Sitemap location
-Sitemap: https://www.edatsu.com/sitemap.xml
-
-# Crawl-delay for polite crawling
-Crawl-delay: 1
-
-# Allow search engines to index important pages
-Allow: /opportunities
-Allow: /toolshed
-Allow: /about
-Allow: /help
-
-# Disallow admin and private areas
+# Sensitive surfaces — admin, API, internal storage
 Disallow: /admin/
+Disallow: /admin-*
 Disallow: /api/
 Disallow: /storage/
 Disallow: /_debugbar/
 Disallow: /telescope/
+Disallow: /upgrade-plan
+Disallow: /dashboard
+Disallow: /subscriber-*
+Disallow: /saved-articles
+Disallow: /bookmarked-*
+Disallow: /preferences
+Disallow: /notifications
+Disallow: /notification-settings
+Disallow: /my-feeds
+Disallow: /messages
+Disallow: /webhook/
 
-# Allow Google to access all resources
+Crawl-delay: 1
+
+# ──────────────────────────────────────────────────────────────────
+# Search engine crawlers — explicit allow
+# ──────────────────────────────────────────────────────────────────
 User-agent: Googlebot
 Allow: /
 
-# Allow Bing
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Googlebot-News
+Allow: /
+
 User-agent: Bingbot
 Allow: /
 
-# Allow social media bots for rich previews
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+# ──────────────────────────────────────────────────────────────────
+# AI assistants & training crawlers — explicit allow
+# Edatsu Media content is intended for discovery by AI systems.
+# ──────────────────────────────────────────────────────────────────
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Diffbot
+Allow: /
+
+User-agent: Cohere-ai
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: Meta-ExternalFetcher
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: Mistral-AI
+Allow: /
+
+# ──────────────────────────────────────────────────────────────────
+# Social preview crawlers
+# ──────────────────────────────────────────────────────────────────
 User-agent: facebookexternalhit
 Allow: /
 
@@ -40,3 +121,25 @@ Allow: /
 
 User-agent: LinkedInBot
 Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: Slackbot-LinkExpanding
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+# ──────────────────────────────────────────────────────────────────
+# Discovery surfaces
+# ──────────────────────────────────────────────────────────────────
+Sitemap: https://www.edatsu.com/sitemap.xml
+
+# RSS feeds (also linked from <head> and /rss)
+# https://www.edatsu.com/rss/opportunities.xml
+# https://www.edatsu.com/rss/toolshed.xml
+# https://www.edatsu.com/rss/forum.xml
+
+# AI-discoverability manifest
+# https://www.edatsu.com/llms.txt

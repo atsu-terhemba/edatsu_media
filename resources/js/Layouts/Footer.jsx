@@ -115,17 +115,17 @@ export default function Footer() {
                             {/* Links Columns */}
                             <Col xs={12} md={8}>
                                 <Row>
-                                    {/* Products */}
+                                    {/* Discover */}
                                     <Col xs={6} sm={4}>
-                                        <h6 style={sectionTitleStyle}>Products</h6>
+                                        <h6 style={sectionTitleStyle}>Discover</h6>
                                         <ul className="list-unstyled m-0">
                                             {[
                                                 { label: 'Opportunities', href: '/opportunities' },
                                                 { label: 'Toolshed', href: '/toolshed' },
-                                                { label: 'Subscription', href: '/subscription' },
+                                                { label: 'News & Feeds', href: '/feeds' },
+                                                { label: 'Forum', href: '/forum' },
+                                                { label: 'Events', href: '/events' },
                                                 { label: 'Advertise', href: '/advertise' },
-                                                { label: 'Subscribe', href: '/subscribe' },
-                                                { label: 'Sponsorship', href: '/sponsorship' },
                                             ].map((link, i) => (
                                                 <li key={i} style={{ marginBottom: '12px' }}>
                                                     <Link
@@ -147,50 +147,43 @@ export default function Footer() {
                                         <ul className="list-unstyled m-0">
                                             {[
                                                 { label: 'About', href: '/about-us' },
+                                                { label: 'Subscription', href: '/subscription' },
+                                                { label: 'Sponsorship', href: '/sponsorship' },
                                                 { label: 'Terms of Use', href: '/terms' },
                                                 { label: 'Privacy Policy', href: '/privacy-policy' },
+                                            ].map((link, i) => (
+                                                <li key={i} style={{ marginBottom: '12px' }}>
+                                                    <Link
+                                                        href={link.href}
+                                                        style={footerLinkStyle}
+                                                        onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
+                                                    >
+                                                        {link.label}
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </Col>
+
+                                    {/* Resources */}
+                                    <Col xs={6} sm={4} className="mt-4 mt-sm-0">
+                                        <h6 style={sectionTitleStyle}>Resources</h6>
+                                        <ul className="list-unstyled m-0">
+                                            {[
+                                                { label: 'Help Center', href: '/help' },
+                                                { label: 'Contact Us', href: 'mailto:info@edatsu.com', external: true },
+                                                { label: 'RSS Feeds', href: '/rss' },
                                                 { label: 'Sitemap', href: '/sitemap.xml', external: true },
+                                                { label: 'AI Manifest', href: '/llms.txt', external: true },
+                                                { label: 'Feedback', href: '/feedback' },
                                             ].map((link, i) => (
                                                 <li key={i} style={{ marginBottom: '12px' }}>
                                                     {link.external ? (
                                                         <a
                                                             href={link.href}
                                                             target="_blank"
-                                                            style={footerLinkStyle}
-                                                            onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
-                                                            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
-                                                        >
-                                                            {link.label}
-                                                        </a>
-                                                    ) : (
-                                                        <Link
-                                                            href={link.href}
-                                                            style={footerLinkStyle}
-                                                            onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
-                                                            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
-                                                        >
-                                                            {link.label}
-                                                        </Link>
-                                                    )}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </Col>
-
-                                    {/* Support */}
-                                    <Col xs={6} sm={4} className="mt-4 mt-sm-0">
-                                        <h6 style={sectionTitleStyle}>Support</h6>
-                                        <ul className="list-unstyled m-0">
-                                            {[
-                                                { label: 'Help Center', href: '/help' },
-                                                { label: 'Contact Us', href: 'mailto:info@edatsu.com', external: true },
-                                                { label: 'Live Chat', href: '#', external: true },
-                                                { label: 'Commentary Policy', href: '/terms' },
-                                            ].map((link, i) => (
-                                                <li key={i} style={{ marginBottom: '12px' }}>
-                                                    {link.external ? (
-                                                        <a
-                                                            href={link.href}
+                                                            rel="noopener noreferrer"
                                                             style={footerLinkStyle}
                                                             onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
                                                             onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}

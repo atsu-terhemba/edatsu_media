@@ -56,6 +56,43 @@ Route::get('/csrf-token', function () {
 // Sitemap
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
+// Public RSS feeds — syndication surface for readers, AI crawlers and aggregators
+Route::get('/rss', [\App\Http\Controllers\PublicRssController::class, 'index'])->name('rss.index');
+Route::get('/rss/opportunities.xml', [\App\Http\Controllers\PublicRssController::class, 'opportunities'])->name('rss.opportunities');
+Route::get('/rss/toolshed.xml', [\App\Http\Controllers\PublicRssController::class, 'toolshed'])->name('rss.toolshed');
+Route::get('/rss/forum.xml', [\App\Http\Controllers\PublicRssController::class, 'forum'])->name('rss.forum');
+
+// llms.txt — emerging AI-discoverability manifest pointing at the structured surfaces above
+Route::get('/llms.txt', function () {
+    $base = rtrim(config('app.url'), '/');
+    $body = <<<TXT
+# Edatsu Media
+
+> A discovery platform for entrepreneurs — opportunities (grants, accelerators, competitions, funding rounds), software tools, news feeds, and community discussion.
+
+## Primary content
+- [Opportunities listing]({$base}/opportunities): All active funding and program opportunities
+- [Toolshed]({$base}/toolshed): Software and services curated for founders
+- [News & RSS feeds]({$base}/feeds): Curated news from sources entrepreneurs follow
+- [Community forum]({$base}/forum): Discussions tied to articles and topics
+
+## Syndication
+- [Opportunities RSS]({$base}/rss/opportunities.xml): RSS 2.0, refreshed every 30 minutes
+- [Toolshed RSS]({$base}/rss/toolshed.xml): RSS 2.0, refreshed every 30 minutes
+- [Forum RSS]({$base}/rss/forum.xml): RSS 2.0, refreshed every 30 minutes
+- [Sitemap]({$base}/sitemap.xml): Full URL inventory
+
+## Reference
+- [About]({$base}/about-us)
+- [Privacy policy]({$base}/privacy-policy)
+- [Terms of use]({$base}/terms)
+
+## License
+Content is owned by its authors. Citations and brief quotations welcome.
+TXT;
+    return response($body, 200)->header('Content-Type', 'text/plain; charset=UTF-8');
+})->name('llms');
+
 // Home route
 Route::get('/', [App::class, 'initHomePage'])->name('home');
 

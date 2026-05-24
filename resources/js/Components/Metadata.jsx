@@ -102,6 +102,11 @@ const Metadata = ({
         <meta name="apple-mobile-web-app-title" content="Edatsu Media" />
         <meta name="application-name" content="Edatsu Media" />
 
+      {/* RSS feeds autodiscovery — readers + AI crawlers find these from any page */}
+        <link rel="alternate" type="application/rss+xml" title="Edatsu Media — Opportunities" href="https://www.edatsu.com/rss/opportunities.xml" />
+        <link rel="alternate" type="application/rss+xml" title="Edatsu Media — Toolshed" href="https://www.edatsu.com/rss/toolshed.xml" />
+        <link rel="alternate" type="application/rss+xml" title="Edatsu Media — Forum" href="https://www.edatsu.com/rss/forum.xml" />
+
       {/* JSON-LD Structured Data */}
         <script type="application/ld+json">
           {JSON.stringify(structuredData)}
