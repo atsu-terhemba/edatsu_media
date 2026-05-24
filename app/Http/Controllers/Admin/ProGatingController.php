@@ -24,6 +24,7 @@ class ProGatingController extends Controller
             'saved_articles_max' => 'required|integer|min:0|max:10000',
             'reminders_max' => 'required|integer|min:0|max:10000',
             'custom_feeds_max' => 'required|integer|min:0|max:10000',
+            'public_lists_max' => 'required|integer|min:0|max:10000',
             'bulk_export_pro_only' => 'required|boolean',
             'web_push_pro_only' => 'required|boolean',
         ]);

@@ -88,6 +88,7 @@ export default function ProGating({ settings }) {
         saved_articles_max: settings.saved_articles_max,
         reminders_max: settings.reminders_max,
         custom_feeds_max: settings.custom_feeds_max,
+        public_lists_max: settings.public_lists_max ?? 1,
         bulk_export_pro_only: settings.bulk_export_pro_only,
         web_push_pro_only: settings.web_push_pro_only,
     });
@@ -175,6 +176,13 @@ export default function ProGating({ settings }) {
                                         onChange={(v) => setData('custom_feeds_max', v)}
                                         label="Custom RSS feeds"
                                         description="Max user-added RSS feeds."
+                                        disabled={!gated}
+                                    />
+                                    <NumberField
+                                        value={data.public_lists_max}
+                                        onChange={(v) => setData('public_lists_max', v)}
+                                        label="Public reading lists"
+                                        description="Max collections a free user can publish as shareable lists."
                                         disabled={!gated}
                                     />
                                 </div>

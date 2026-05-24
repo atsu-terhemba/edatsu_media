@@ -129,11 +129,47 @@ export default function PublicCollection({ profile, collection, articles }) {
                         </div>
                     )}
 
-                    <div style={{ textAlign: 'center', marginTop: '32px', padding: '16px', borderRadius: '12px', background: '#fff', border: '1px solid #f0f0f0' }}>
-                        <p style={{ fontSize: '13px', color: '#86868b', margin: 0 }}>
-                            Build your own reading lists on{' '}
-                            <Link href="/feeds" style={{ color: '#000', fontWeight: 500, textDecoration: 'none' }}>Edatsu Media</Link>
+                    <div style={{
+                        textAlign: 'center', marginTop: '32px',
+                        padding: '24px 20px', borderRadius: '14px',
+                        background: 'linear-gradient(135deg,#fff7ed 0%,#fff 100%)',
+                        border: '1px solid #fed7aa',
+                    }}>
+                        <span style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '6px',
+                            padding: '3px 10px', borderRadius: '9999px',
+                            background: 'rgba(249,115,22,0.12)',
+                            border: '1px solid rgba(249,115,22,0.25)',
+                            fontSize: '10px', fontWeight: 700,
+                            color: '#9a3412', letterSpacing: '0.08em',
+                            textTransform: 'uppercase',
+                            marginBottom: '12px',
+                        }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>workspace_premium</span>
+                            Made with Edatsu
+                        </span>
+                        <p style={{ fontSize: '15px', fontWeight: 500, color: '#000', margin: '0 0 4px' }}>
+                            Build your own reading lists
                         </p>
+                        <p style={{ fontSize: '13px', color: '#86868b', margin: '0 0 16px' }}>
+                            Save articles, write private notes, highlight passages — share what you're learning.
+                        </p>
+                        <Link
+                            href="/sign-up"
+                            style={{
+                                display: 'inline-block',
+                                padding: '10px 22px',
+                                borderRadius: '9999px',
+                                background: '#000',
+                                color: '#fff',
+                                textDecoration: 'none',
+                                fontSize: '13px',
+                                fontWeight: 600,
+                                fontFamily: "'Poppins', sans-serif",
+                            }}
+                        >
+                            Start free
+                        </Link>
                     </div>
                 </Container>
             </section>

@@ -22,6 +22,10 @@ const FEATURE_COPY = {
         title: 'Upgrade to Pro for unlimited feeds',
         body: (limit) => `Free plan supports ${limit} custom RSS feeds. Upgrade to Pro to follow unlimited sources.`,
     },
+    public_lists: {
+        title: 'Upgrade to Pro to publish more reading lists',
+        body: (limit) => `Free plan lets you publish ${limit} public reading list${limit === 1 ? '' : 's'}. Upgrade to Pro to share unlimited curated collections with the world.`,
+    },
     bulk_export: {
         title: 'Upgrade to Pro to export your bookmarks',
         body: 'Bulk export (CSV / PDF) is a Pro feature. Upgrade to download your saved items in one click.',

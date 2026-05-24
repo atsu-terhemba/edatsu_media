@@ -9,6 +9,7 @@ import FixedMobileNav from '@/Components/FixedMobileNav';
 import HomeBanner from '@/Components/HomeBanner';
 import SuccessSection from '@/Components/SuccessSection';
 import FeedsSection from '@/Components/FeedsSection';
+import ReaderPlatformSection from '@/Components/ReaderPlatformSection';
 
 import TrendingToolsSection from '@/Components/TrendingToolsSection';
 import LatestOpportunitiesSection from '@/Components/LatestOpportunitiesSection';
@@ -81,6 +82,8 @@ const Home = () => {
             <SuccessSection />
 
             <FeedsSection />
+
+            <ReaderPlatformSection />
 
             {/**
              * 

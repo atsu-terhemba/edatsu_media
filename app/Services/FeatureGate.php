@@ -34,6 +34,7 @@ class FeatureGate
             'saved_articles' => (int) $setting->saved_articles_max,
             'reminders' => (int) $setting->reminders_max,
             'custom_feeds' => (int) $setting->custom_feeds_max,
+            'public_lists' => (int) $setting->public_lists_max,
             default => PHP_INT_MAX,
         };
     }

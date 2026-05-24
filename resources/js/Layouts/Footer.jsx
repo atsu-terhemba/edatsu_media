@@ -68,19 +68,20 @@ export default function Footer() {
                                     Helping entrepreneurs discover funding opportunities, grants, accelerators, and essential business tools to launch and scale their ventures globally.
                                 </p>
 
-                                {/* Social Icons */}
-                                <div className="d-flex gap-3">
+                                {/* Social + Syndication */}
+                                <div className="d-flex gap-3 align-items-center">
                                     {[
-                                        { icon: faFacebook, href: 'https://www.facebook.com/edatsu_media' },
-                                        { icon: faInstagram, href: 'https://www.instagram.com/edatsu_media/' },
-                                        { icon: faYoutube, href: 'https://www.youtube.com/channel/UCwIxkgCrdzsL3ApDjVgRLCQ' },
-                                        { icon: faLinkedinIn, href: 'https://www.linkedin.com/company/edatsu-media' },
+                                        { icon: faFacebook, href: 'https://www.facebook.com/edatsu_media', title: 'Facebook' },
+                                        { icon: faInstagram, href: 'https://www.instagram.com/edatsu_media/', title: 'Instagram' },
+                                        { icon: faYoutube, href: 'https://www.youtube.com/channel/UCwIxkgCrdzsL3ApDjVgRLCQ', title: 'YouTube' },
+                                        { icon: faLinkedinIn, href: 'https://www.linkedin.com/company/edatsu-media', title: 'LinkedIn' },
                                     ].map((social, i) => (
                                         <a
                                             key={i}
                                             href={social.href}
                                             target="_blank"
                                             rel="noopener noreferrer"
+                                            title={social.title}
                                             style={{
                                                 width: '32px',
                                                 height: '32px',
@@ -109,6 +110,36 @@ export default function Footer() {
                                             <FontAwesomeIcon icon={social.icon} />
                                         </a>
                                     ))}
+                                    <Link
+                                        href="/rss"
+                                        title="RSS Feeds"
+                                        style={{
+                                            width: '32px',
+                                            height: '32px',
+                                            borderRadius: '50%',
+                                            background: 'rgba(249,115,22,0.12)',
+                                            border: '1px solid rgba(249,115,22,0.25)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            color: '#f97316',
+                                            fontSize: '13px',
+                                            fontWeight: 700,
+                                            transition: 'all 0.15s ease',
+                                            textDecoration: 'none',
+                                            fontFamily: "'Poppins', sans-serif",
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = '#f97316';
+                                            e.currentTarget.style.color = '#fff';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'rgba(249,115,22,0.12)';
+                                            e.currentTarget.style.color = '#f97316';
+                                        }}
+                                    >
+                                        ))
+                                    </Link>
                                 </div>
                             </Col>
 

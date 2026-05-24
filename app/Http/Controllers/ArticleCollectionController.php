@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ArticleCollection;
 use App\Models\ArticleCollectionItem;
 use App\Models\SavedFeedArticle;
+use App\Services\FeatureGate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -79,7 +80,28 @@ class ArticleCollectionController extends Controller
             $collection->color = $data['color'] ?: null;
         }
         if (array_key_exists('is_public', $data)) {
-            $collection->is_public = (bool) $data['is_public'];
+            $newPublic = (bool) $data['is_public'];
+            $wasPublic = (bool) $collection->is_public;
+
+            // Activating publication = consuming a public-list slot. Skip the
+            // check on the reverse direction (unpublishing always allowed) and
+            // on a no-op flip.
+            if ($newPublic && !$wasPublic) {
+                $currentPublicCount = ArticleCollection::where('user_id', Auth::id())
+                    ->where('is_public', true)
+                    ->count();
+                if (!FeatureGate::withinQuota($request->user(), 'public_lists', $currentPublicCount)) {
+                    $limit = FeatureGate::quotaFor('public_lists');
+                    return FeatureGate::denied(
+                        'public_lists',
+                        "Free plan lets you publish {$limit} reading list" . ($limit === 1 ? '' : 's')
+                            . ". Upgrade to Pro to share unlimited public lists.",
+                        $limit
+                    );
+                }
+            }
+
+            $collection->is_public = $newPublic;
             if ($collection->is_public) {
                 // Ensure both user + collection have URL slugs before going public.
                 Auth::user()->ensureProfileSlug();
