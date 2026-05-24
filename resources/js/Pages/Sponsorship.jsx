@@ -469,7 +469,7 @@ export default function Sponsorship() {
                                 info@edatsu.com
                             </a>
                             <a
-                                href="tel:+2349018355951"
+                                href="tel:+2349015121118"
                                 style={{
                                     display: 'inline-flex',
                                     alignItems: 'center',
@@ -488,7 +488,7 @@ export default function Sponsorship() {
                                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                             >
                                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>phone</span>
-                                +234 90183 55951
+                                +234 901 512 1118
                             </a>
                         </div>
                     </Container>
