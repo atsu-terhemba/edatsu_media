@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { estimateReadMinutes, formatReadMinutes } from '@/utils/readTime';
+import { getProgress as getResumeProgress, setProgress as setResumeProgress, clearProgress as clearResumeProgress } from '@/utils/resumeReading';
+import ReactionBar from '@/Components/ReactionBar';
 
-const ArticleReaderModal = ({ article, onClose, isSaved, onToggleSave, isAuthenticated, onDiscuss }) => {
+const ArticleReaderModal = ({
+    article, feed, onClose, isSaved, onToggleSave, isAuthenticated, onDiscuss, reactions, onReact,
+    savedArticleId = null, note: initialNote = '', highlights: initialHighlights = [],
+    onNoteChange, onAddHighlight, onDeleteHighlight,
+}) => {
     const [view, setView] = useState('reader'); // 'reader' | 'original'
     const [readerLoading, setReaderLoading] = useState(true);
     const [readerData, setReaderData] = useState(null);
@@ -11,6 +18,28 @@ const ArticleReaderModal = ({ article, onClose, isSaved, onToggleSave, isAuthent
     const [showDiscussPrompt, setShowDiscussPrompt] = useState(false);
     const [extractAttempt, setExtractAttempt] = useState(0);
     const loadedRef = useRef(false);
+
+    // Notes & highlights — only active when the article is already saved
+    const [note, setNote] = useState(initialNote || '');
+    const [highlights, setHighlights] = useState(initialHighlights || []);
+    const [selectionPrompt, setSelectionPrompt] = useState(null); // { text, x, y }
+    const [savingNote, setSavingNote] = useState(false);
+    const articleBodyRef = useRef(null);
+    const noteDebounceRef = useRef(null);
+    const lastSavedNoteRef = useRef(initialNote || '');
+
+    // Reading-progress (resume where you left off)
+    const scrollContainerRef = useRef(null);
+    const progressDebounceRef = useRef(null);
+    const [resumedFromProgress, setResumedFromProgress] = useState(null); // 0..1 when an auto-resume just happened
+    const restoredRef = useRef(false); // ensure we only auto-scroll once per article load
+
+    // Reset notes/highlights when switching articles
+    useEffect(() => {
+        setNote(initialNote || '');
+        setHighlights(initialHighlights || []);
+        lastSavedNoteRef.current = initialNote || '';
+    }, [savedArticleId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Hold latest callbacks in refs so the data-fetching effect below can stay
     // keyed only to the article URL. Without this, parent re-renders that pass
@@ -29,10 +58,132 @@ const ArticleReaderModal = ({ article, onClose, isSaved, onToggleSave, isAuthent
     const articleLink = article?.link || null;
     const hasToggleSave = !!onToggleSave;
     const hasDiscuss = !!onDiscuss;
+    const notesActive = !!savedArticleId;
+
+    // Debounced note save — fires 800ms after the last keystroke, but only
+    // when the content actually changed since the last sync.
+    useEffect(() => {
+        if (!notesActive) return;
+        if (note === lastSavedNoteRef.current) return;
+        if (noteDebounceRef.current) clearTimeout(noteDebounceRef.current);
+        noteDebounceRef.current = setTimeout(async () => {
+            setSavingNote(true);
+            try {
+                await onNoteChange?.(note);
+                lastSavedNoteRef.current = note;
+            } finally {
+                setSavingNote(false);
+            }
+        }, 800);
+        return () => { if (noteDebounceRef.current) clearTimeout(noteDebounceRef.current); };
+    }, [note, notesActive, onNoteChange]);
+
+    // Detect text selection inside the reader body and offer a "Highlight" pill
+    useEffect(() => {
+        if (!notesActive) return;
+        const checkSelection = () => {
+            const sel = window.getSelection();
+            const text = sel?.toString().trim();
+            if (!text || text.length < 4) { setSelectionPrompt(null); return; }
+            if (!articleBodyRef.current || !articleBodyRef.current.contains(sel.anchorNode)) {
+                setSelectionPrompt(null);
+                return;
+            }
+            const range = sel.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            setSelectionPrompt({
+                text,
+                x: rect.left + rect.width / 2,
+                y: rect.top - 8,
+            });
+        };
+        document.addEventListener('selectionchange', checkSelection);
+        return () => document.removeEventListener('selectionchange', checkSelection);
+    }, [notesActive]);
+
+    const handleHighlightSelection = async () => {
+        if (!selectionPrompt) return;
+        const text = selectionPrompt.text;
+        setSelectionPrompt(null);
+        window.getSelection()?.removeAllRanges();
+        const result = await onAddHighlight?.(text);
+        if (result) {
+            setHighlights((prev) => [result, ...prev]);
+        }
+    };
+
+    // Restore scroll position once the article body has rendered. Uses two
+    // rAF ticks to wait for layout to settle before measuring scrollHeight.
+    useEffect(() => {
+        if (!readerData || !articleLink) return;
+        if (restoredRef.current) return;
+        const r1 = requestAnimationFrame(() => {
+            const r2 = requestAnimationFrame(() => {
+                const el = scrollContainerRef.current;
+                if (!el) { restoredRef.current = true; return; }
+                const saved = getResumeProgress(articleLink);
+                const maxScroll = el.scrollHeight - el.clientHeight;
+                if (saved && maxScroll > 200) {
+                    el.scrollTop = saved * maxScroll;
+                    setResumedFromProgress(saved);
+                }
+                restoredRef.current = true;
+            });
+            return () => cancelAnimationFrame(r2);
+        });
+        return () => cancelAnimationFrame(r1);
+    }, [readerData, articleLink]);
+
+    // Persist scroll progress with a short debounce so we don't hammer
+    // localStorage on every scroll event.
+    const handleReaderScroll = () => {
+        if (!articleLink || !scrollContainerRef.current) return;
+        if (!restoredRef.current) return; // skip during programmatic restore
+        const el = scrollContainerRef.current;
+        const maxScroll = el.scrollHeight - el.clientHeight;
+        if (maxScroll < 200) return;
+        const progress = el.scrollTop / maxScroll;
+        if (progressDebounceRef.current) clearTimeout(progressDebounceRef.current);
+        progressDebounceRef.current = setTimeout(() => {
+            setResumeProgress(articleLink, progress);
+        }, 400);
+    };
+
+    const startOverFromTop = () => {
+        if (!articleLink) return;
+        clearResumeProgress(articleLink);
+        if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
+        setResumedFromProgress(null);
+    };
+
+    // Flush final scroll position when navigating away from an article — the
+    // debounce may not fire if the modal closes quickly.
+    useEffect(() => {
+        const link = articleLink;
+        return () => {
+            if (!link || !scrollContainerRef.current) return;
+            const el = scrollContainerRef.current;
+            const maxScroll = el.scrollHeight - el.clientHeight;
+            if (maxScroll < 200) return;
+            setResumeProgress(link, el.scrollTop / maxScroll);
+        };
+    }, [articleLink]);
+
+    const handleDeleteHighlight = async (id) => {
+        const before = highlights;
+        setHighlights((prev) => prev.filter((h) => h.id !== id));
+        try {
+            await onDeleteHighlight?.(id);
+        } catch {
+            setHighlights(before);
+        }
+    };
 
     useEffect(() => {
         if (!articleLink) return;
         loadedRef.current = false;
+        restoredRef.current = false;
+        setResumedFromProgress(null);
         setView('reader');
         setReaderLoading(true);
         setReaderData(null);
@@ -338,7 +489,60 @@ const ArticleReaderModal = ({ article, onClose, isSaved, onToggleSave, isAuthent
                 {/* Content */}
                 <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
                     {view === 'reader' ? (
-                        <div style={{ height: '100%', overflowY: 'auto', background: '#fff' }}>
+                        <div
+                            ref={scrollContainerRef}
+                            onScroll={handleReaderScroll}
+                            style={{ height: '100%', overflowY: 'auto', background: '#fff', position: 'relative' }}
+                        >
+                            {resumedFromProgress !== null && (
+                                <div style={{
+                                    position: 'sticky',
+                                    top: 0,
+                                    zIndex: 3,
+                                    background: 'rgba(255,247,237,0.95)',
+                                    backdropFilter: 'blur(8px)',
+                                    borderBottom: '1px solid rgba(249,115,22,0.2)',
+                                    padding: '10px 20px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    gap: '10px',
+                                    fontFamily: "'Poppins', sans-serif",
+                                }}>
+                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#9a3412', fontWeight: 500 }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#f97316' }}>history</span>
+                                        Resumed at {Math.round(resumedFromProgress * 100)}%
+                                    </div>
+                                    <div style={{ display: 'inline-flex', gap: '6px' }}>
+                                        <button
+                                            onClick={startOverFromTop}
+                                            style={{
+                                                padding: '5px 12px',
+                                                borderRadius: '9999px',
+                                                border: '1px solid rgba(249,115,22,0.3)',
+                                                background: '#fff',
+                                                color: '#9a3412',
+                                                fontSize: '12px',
+                                                fontWeight: 500,
+                                                cursor: 'pointer',
+                                                fontFamily: "'Poppins', sans-serif",
+                                            }}
+                                        >
+                                            Start over
+                                        </button>
+                                        <button
+                                            onClick={() => setResumedFromProgress(null)}
+                                            title="Dismiss"
+                                            style={{
+                                                background: 'transparent', border: 'none', cursor: 'pointer',
+                                                padding: '2px', display: 'flex', alignItems: 'center', color: '#9a3412',
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                             {readerLoading ? (
                                 <div style={{
                                     display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -369,9 +573,37 @@ const ArticleReaderModal = ({ article, onClose, isSaved, onToggleSave, isAuthent
                                     }}>
                                         {readerData.title || article.title}
                                     </h1>
-                                    {readerData.author && (
-                                        <div style={{ fontSize: '13px', color: '#86868b', marginBottom: '24px', fontFamily: "'Poppins', sans-serif" }}>
-                                            By {readerData.author}
+                                    {(() => {
+                                        const minutes = estimateReadMinutes(readerData.content);
+                                        const hasAuthor = !!readerData.author;
+                                        if (!hasAuthor && !minutes) return null;
+                                        return (
+                                            <div style={{
+                                                display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap',
+                                                fontSize: '13px', color: '#86868b', marginBottom: '16px',
+                                                fontFamily: "'Poppins', sans-serif",
+                                            }}>
+                                                {hasAuthor && <span>By {readerData.author}</span>}
+                                                {hasAuthor && minutes && <span style={{ color: '#d1d1d6' }}>·</span>}
+                                                {minutes && (
+                                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                                        <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>schedule</span>
+                                                        {formatReadMinutes(minutes)}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        );
+                                    })()}
+                                    {onReact && (
+                                        <div style={{ marginBottom: '24px' }}>
+                                            <ReactionBar
+                                                article={article}
+                                                feed={feed}
+                                                reactions={reactions}
+                                                isAuthenticated={isAuthenticated}
+                                                onChange={onReact}
+                                                size="md"
+                                            />
                                         </div>
                                     )}
                                     {readerData.image && (
@@ -383,10 +615,97 @@ const ArticleReaderModal = ({ article, onClose, isSaved, onToggleSave, isAuthent
                                         />
                                     )}
                                     <div
+                                        ref={articleBodyRef}
                                         className="reader-prose"
                                         dir={readerData.direction || 'ltr'}
                                         dangerouslySetInnerHTML={{ __html: readerData.content }}
                                     />
+
+                                    {notesActive && (
+                                        <div style={{ marginTop: '32px', padding: '24px', background: '#fafafa', borderRadius: '14px', border: '1px solid #f0f0f0' }}>
+                                            {/* Notes */}
+                                            <div style={{ marginBottom: '20px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                                                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontFamily: "'Poppins', sans-serif" }}>
+                                                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>edit_note</span>
+                                                        Your note
+                                                    </span>
+                                                    {savingNote && (
+                                                        <span style={{ fontSize: '11px', color: '#86868b', fontFamily: "'Poppins', sans-serif" }}>Saving…</span>
+                                                    )}
+                                                </div>
+                                                <textarea
+                                                    value={note}
+                                                    onChange={(e) => setNote(e.target.value)}
+                                                    placeholder="Write a private note about this article…"
+                                                    maxLength={10000}
+                                                    style={{
+                                                        width: '100%',
+                                                        minHeight: '90px',
+                                                        padding: '12px 14px',
+                                                        border: '1px solid #e5e5e5',
+                                                        borderRadius: '10px',
+                                                        background: '#fff',
+                                                        fontFamily: "'Poppins', sans-serif",
+                                                        fontSize: '13px',
+                                                        color: '#000',
+                                                        outline: 'none',
+                                                        resize: 'vertical',
+                                                        lineHeight: 1.55,
+                                                    }}
+                                                    onFocus={(e) => e.target.style.borderColor = '#000'}
+                                                    onBlur={(e) => e.target.style.borderColor = '#e5e5e5'}
+                                                />
+                                            </div>
+
+                                            {/* Highlights */}
+                                            <div>
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                                                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontFamily: "'Poppins', sans-serif" }}>
+                                                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>format_ink_highlighter</span>
+                                                        Highlights ({highlights.length})
+                                                    </span>
+                                                </div>
+                                                {highlights.length === 0 ? (
+                                                    <p style={{ fontSize: '12px', color: '#86868b', margin: 0, fontFamily: "'Poppins', sans-serif" }}>
+                                                        Select any text in the article above and click the Highlight button to save it here.
+                                                    </p>
+                                                ) : (
+                                                    highlights.map((h) => (
+                                                        <div
+                                                            key={h.id}
+                                                            style={{
+                                                                display: 'flex',
+                                                                gap: '10px',
+                                                                padding: '10px 12px',
+                                                                background: '#fffceb',
+                                                                borderLeft: '3px solid #facc15',
+                                                                borderRadius: '6px',
+                                                                marginBottom: '8px',
+                                                            }}
+                                                        >
+                                                            <div style={{ flex: 1, minWidth: 0, fontSize: '13px', color: '#1d1d1f', lineHeight: 1.55, fontFamily: 'Georgia, serif' }}>
+                                                                "{h.text}"
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleDeleteHighlight(h.id)}
+                                                                title="Remove highlight"
+                                                                style={{
+                                                                    background: 'transparent', border: 'none', cursor: 'pointer',
+                                                                    padding: '2px', display: 'flex', alignItems: 'center', flexShrink: 0,
+                                                                    color: '#86868b',
+                                                                }}
+                                                                onMouseEnter={(e) => e.currentTarget.style.color = '#dc3545'}
+                                                                onMouseLeave={(e) => e.currentTarget.style.color = '#86868b'}
+                                                            >
+                                                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
+                                                            </button>
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                     <div style={{
                                         marginTop: '48px', paddingTop: '24px',
                                         borderTop: '1px solid #f0f0f0', display: 'flex',
@@ -544,6 +863,37 @@ const ArticleReaderModal = ({ article, onClose, isSaved, onToggleSave, isAuthent
                                 </a>
                             </div>
                         </div>
+                    )}
+
+                    {notesActive && selectionPrompt && (
+                        <button
+                            onMouseDown={(e) => { e.preventDefault(); handleHighlightSelection(); }}
+                            style={{
+                                position: 'fixed',
+                                left: `${selectionPrompt.x}px`,
+                                top: `${selectionPrompt.y}px`,
+                                transform: 'translate(-50%, -100%)',
+                                background: '#000',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '9999px',
+                                padding: '6px 14px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                fontFamily: "'Poppins', sans-serif",
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                                zIndex: 10001,
+                            }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#facc15' }}>
+                                format_ink_highlighter
+                            </span>
+                            Highlight
+                        </button>
                     )}
 
                     {showDiscussPrompt && onDiscuss && (

@@ -24,6 +24,7 @@ export default function AdminSideNav() {
 
     const navItems = [
         { href: route('admin.dashboard'), icon: 'dashboard', label: 'Dashboard' },
+        { href: route('admin.engagement'), icon: 'analytics', label: 'Engagement' },
         { href: route('admin.users'), icon: 'group', label: 'Users' },
         { href: route('admin.subscriptions'), icon: 'payments', label: 'Subscriptions' },
         { href: route('admin.mail_subscribers'), icon: 'mail', label: 'Mailing List' },

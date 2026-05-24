@@ -25,6 +25,8 @@ class UserPreference extends Model
         'forum_categories',
         'weekly_digest_optin',
         'weekly_digest_last_sent_at',
+        'reading_digest_optin',
+        'reading_digest_last_sent_at',
     ];
 
     protected $casts = [
@@ -42,6 +44,8 @@ class UserPreference extends Model
         'forum_categories' => 'array',
         'weekly_digest_optin' => 'boolean',
         'weekly_digest_last_sent_at' => 'datetime',
+        'reading_digest_optin' => 'boolean',
+        'reading_digest_last_sent_at' => 'datetime',
     ];
 
     // Relationship with User

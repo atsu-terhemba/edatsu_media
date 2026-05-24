@@ -115,6 +115,15 @@ Route::get('/api/news-feeds/check-frameable', [NewsFeedController::class, 'check
 Route::get('/api/news-feeds/extract-article', [NewsFeedController::class, 'extractArticle'])->middleware('throttle:30,1');
 Route::post('/api/news-feeds/track-engagement', [NewsFeedController::class, 'trackEngagement'])->middleware('throttle:120,1');
 Route::get('/api/news-feeds/hot', [NewsFeedController::class, 'hot'])->middleware('throttle:60,1');
+Route::post('/api/news-feeds/reactions/bulk', [NewsFeedController::class, 'bulkReactions'])->middleware('throttle:120,1');
+
+// Public reader profiles & shared reading lists
+Route::get('/u/{profileSlug}', [\App\Http\Controllers\PublicProfileController::class, 'show'])
+    ->where('profileSlug', '[a-z0-9-]+')
+    ->name('public.profile');
+Route::get('/u/{profileSlug}/{collectionSlug}', [\App\Http\Controllers\PublicProfileController::class, 'showCollection'])
+    ->where(['profileSlug' => '[a-z0-9-]+', 'collectionSlug' => '[a-z0-9-]+'])
+    ->name('public.collection');
 Route::get('/news/{id}', [NewsFeedController::class, 'show'])->name('read.news');
 Route::get('/events', [Event::class, 'index'])->name('events');
 Route::get('/legacy-feeds', [FeedsController::class, 'displayFeeds'])->name('find.feeds');
@@ -137,6 +146,18 @@ Route::get('/newsletter/weekly-digest/unsubscribe/{user}', function (int $user) 
         'appUrl' => config('app.url'),
     ]);
 })->middleware('signed')->name('newsletter.weekly_digest.unsubscribe');
+
+// Reading digest is a separate opt-in so it has a separate unsubscribe URL.
+// The signed-route signature prevents replay / guessing — no auth needed.
+Route::get('/newsletter/reading-digest/unsubscribe/{user}', function (int $user) {
+    $pref = \App\Models\UserPreference::where('user_id', $user)->first();
+    if ($pref) {
+        $pref->update(['reading_digest_optin' => false]);
+    }
+    return response()->view('newsletter.weekly-digest-unsubscribed', [
+        'appUrl' => config('app.url'),
+    ]);
+})->middleware('signed')->name('newsletter.reading_digest.unsubscribe');
 Route::get('/news-feed', [RssFeedController::class, 'index'])->name('daily.feeds');
 
 // Additional pages
@@ -188,6 +209,24 @@ Route::middleware(['auth', 'verified.writes'])->group(function () {
     Route::delete('/api/news-feeds/{id}', [NewsFeedController::class, 'destroy']);
     Route::post('/api/news-feeds/save-article', [NewsFeedController::class, 'saveArticle']);
     Route::post('/api/news-feeds/unsave-article', [NewsFeedController::class, 'unsaveArticle']);
+    Route::post('/api/news-feeds/react', [NewsFeedController::class, 'toggleReaction']);
+
+    // Notes & highlights on saved articles
+    Route::put('/api/saved-articles/{id}/note', [NewsFeedController::class, 'updateArticleNote'])->where('id', '[0-9]+');
+    Route::post('/api/saved-articles/{id}/highlights', [NewsFeedController::class, 'addHighlight'])->where('id', '[0-9]+');
+    Route::delete('/api/article-highlights/{id}', [NewsFeedController::class, 'deleteHighlight'])->where('id', '[0-9]+');
+
+    // Reading streak (derived from article_engagements, event_type='read')
+    Route::get('/api/reading-streak', [NewsFeedController::class, 'readingStreak']);
+
+    // Article collections (Subscriber > Saved articles)
+    Route::get('/api/article-collections', [\App\Http\Controllers\ArticleCollectionController::class, 'index']);
+    Route::post('/api/article-collections', [\App\Http\Controllers\ArticleCollectionController::class, 'store']);
+    Route::patch('/api/article-collections/{id}', [\App\Http\Controllers\ArticleCollectionController::class, 'update'])->where('id', '[0-9]+');
+    Route::delete('/api/article-collections/{id}', [\App\Http\Controllers\ArticleCollectionController::class, 'destroy'])->where('id', '[0-9]+');
+    Route::post('/api/article-collections/{id}/items', [\App\Http\Controllers\ArticleCollectionController::class, 'addItems'])->where('id', '[0-9]+');
+    Route::delete('/api/article-collections/{id}/items/{savedArticleId}', [\App\Http\Controllers\ArticleCollectionController::class, 'removeItem'])
+        ->where(['id' => '[0-9]+', 'savedArticleId' => '[0-9]+']);
 
     // Forum (auth-only writes)
     Route::post('/api/forum/threads', [ForumController::class, 'store']);
@@ -264,6 +303,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // Pro gating
     Route::get('/admin-pro-gating', [\App\Http\Controllers\Admin\ProGatingController::class, 'index'])->name('admin.pro_gating');
     Route::post('/admin-pro-gating', [\App\Http\Controllers\Admin\ProGatingController::class, 'update'])->name('admin.pro_gating.update');
+
+    // Engagement analytics
+    Route::get('/admin-engagement', [\App\Http\Controllers\Admin\EngagementAnalyticsController::class, 'index'])->name('admin.engagement');
 
     // Feedback inbox
     Route::get('/admin-feedback', [\App\Http\Controllers\Admin\FeedbackController::class, 'index'])->name('admin.feedback');

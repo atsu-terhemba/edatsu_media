@@ -22,6 +22,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $fillable = [
         'name',
         'email',
+        'profile_slug',
         'email_verified_at',
         'profile_photo_path',
         'role',
@@ -73,6 +74,33 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendPasswordResetNotification($token): void
     {
         $this->notify(new ResetPasswordNotification($token));
+    }
+
+    /**
+     * Lazily assign a URL-safe profile slug from the user's display name.
+     * Appends a numeric suffix on collision so concurrent first-time publishes
+     * don't deadlock on the unique index.
+     */
+    public function ensureProfileSlug(): string
+    {
+        if ($this->profile_slug) return $this->profile_slug;
+
+        $base = \Illuminate\Support\Str::slug($this->name ?: explode('@', $this->email)[0] ?: 'reader');
+        if ($base === '') $base = 'reader';
+        $base = substr($base, 0, 60);
+
+        $candidate = $base;
+        $i = 2;
+        while (self::where('profile_slug', $candidate)->where('id', '!=', $this->id)->exists()) {
+            $candidate = $base . '-' . $i++;
+            if ($i > 50) {
+                $candidate = $base . '-' . substr(bin2hex(random_bytes(3)), 0, 6);
+                break;
+            }
+        }
+        $this->profile_slug = $candidate;
+        $this->save();
+        return $candidate;
     }
 
     public function sendEmailVerificationNotification(): void

@@ -4,7 +4,8 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Link, usePage } from '@inertiajs/react';
-import React, { useState, useContext, useEffect, useCallback } from 'react';
+import React, { useState, useContext, useEffect, useCallback, useRef } from 'react';
+import ReactionBar from '@/Components/ReactionBar';
 import { AuthContext } from '@/Layouts/GuestLayout';
 import { showOpportunitiesSubscriptionModal } from '@/Components/SubscriptionModal';
 import AdBanner from '@/Components/AdBanner';
@@ -12,8 +13,28 @@ import ArticleReaderModal from '@/Components/ArticleReaderModal';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { isQuotaError } from '@/utils/proUpgrade';
+import { estimateReadMinutes, formatReadMinutes } from '@/utils/readTime';
 import FixedMobileNav from '@/Components/FixedMobileNav';
 import ScrollToTop from '@/Components/ScrollToTop';
+
+/* ── Small read-time badge ── */
+const ReadTimeBadge = ({ article }) => {
+    const minutes = estimateReadMinutes(article?.description || article?.content);
+    if (!minutes) return null;
+    return (
+        <span style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '3px',
+            fontSize: '12px',
+            color: '#b0b0b5',
+            whiteSpace: 'nowrap',
+        }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>schedule</span>
+            {formatReadMinutes(minutes)}
+        </span>
+    );
+};
 
 /* ── Last-seen helpers (localStorage) ── */
 const LAST_SEEN_KEY = 'edatsu_feeds_last_seen';
@@ -70,13 +91,22 @@ const FeedCardSkeleton = () => (
     </div>
 );
 /* ── Feed Card ── */
-const FeedCard = ({ feed, feedId, onRemove, onHide, isAuthenticated, savedArticleLinks, onToggleSaveArticle, onDiscussArticle, onReadArticle }) => {
+const FeedCard = ({ feed, feedId, onRemove, onHide, isAuthenticated, savedArticleLinks, onToggleSaveArticle, onDiscussArticle, onReadArticle, reactionsByLink, onReact, searchQuery = '', markAllVersion = 0, focusedArticleLink = null }) => {
     const [expanded, setExpanded] = useState(false);
     const [seen, setSeen] = useState(false);
     const isLoading = feed.articles === null;
-    const visibleArticles = feed.articles ? (expanded ? feed.articles : feed.articles.slice(0, 5)) : [];
-    const hasMore = feed.articles && feed.articles.length > 5;
+    const q = searchQuery.trim().toLowerCase();
+    const filteredArticles = feed.articles
+        ? (q
+            ? feed.articles.filter((a) => `${a.title || ''} ${a.description || ''}`.toLowerCase().includes(q))
+            : feed.articles)
+        : [];
+    const visibleArticles = expanded ? filteredArticles : filteredArticles.slice(0, 5);
+    const hasMore = filteredArticles.length > 5;
     const newCount = !seen && feed.articles ? countNewArticles(feed.articles, feed.feed_url) : 0;
+
+    // When searching with zero matches in this feed, hide the card entirely
+    if (q && !isLoading && filteredArticles.length === 0) return null;
 
     // Mark feed as seen after articles load, with a short delay so user sees the badge
     useEffect(() => {
@@ -87,6 +117,18 @@ const FeedCard = ({ feed, feedId, onRemove, onHide, isAuthenticated, savedArticl
         }, 3000);
         return () => clearTimeout(timer);
     }, [feed.articles, feed.feed_url]);
+
+    // Force-mark seen when the page-level "Mark all read" is clicked
+    useEffect(() => {
+        if (markAllVersion === 0) return;
+        markFeedSeen(feed.feed_url);
+        setSeen(true);
+    }, [markAllVersion, feed.feed_url]);
+
+    const markThisFeedRead = () => {
+        markFeedSeen(feed.feed_url);
+        setSeen(true);
+    };
 
     return (
         <div
@@ -126,17 +168,27 @@ const FeedCard = ({ feed, feedId, onRemove, onHide, isAuthenticated, savedArticl
                         {feed.title}
                     </span>
                     {newCount > 0 && (
-                        <span style={{
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            color: '#fff',
-                            background: '#f97316',
-                            borderRadius: '9999px',
-                            padding: '2px 8px',
-                            lineHeight: 1.4,
-                        }}>
+                        <button
+                            onClick={markThisFeedRead}
+                            title="Mark these as read"
+                            style={{
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                color: '#fff',
+                                background: '#f97316',
+                                borderRadius: '9999px',
+                                padding: '2px 10px',
+                                lineHeight: 1.4,
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontFamily: "'Poppins', sans-serif",
+                                transition: 'background 0.15s ease',
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = '#ea6c0e'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = '#f97316'}
+                        >
                             {newCount} new
-                        </span>
+                        </button>
                     )}
                 </div>
                 {onRemove && (
@@ -185,15 +237,22 @@ const FeedCard = ({ feed, feedId, onRemove, onHide, isAuthenticated, savedArticl
                             const d = new Date(article.published_at);
                             return !isNaN(d.getTime()) && d > lastSeen;
                         })();
+                        const isFocused = focusedArticleLink === article.link;
                         return (
                             <div
                                 key={i}
+                                data-article-link={article.link}
                                 style={{
-                                    padding: '12px 0',
+                                    padding: '12px',
+                                    margin: '0 -12px',
                                     borderTop: i > 0 ? '1px solid #f5f5f7' : 'none',
                                     display: 'flex',
                                     gap: '12px',
                                     alignItems: 'flex-start',
+                                    background: isFocused ? '#fff7ed' : 'transparent',
+                                    borderLeft: isFocused ? '3px solid #f97316' : '3px solid transparent',
+                                    borderRadius: '8px',
+                                    transition: 'background 0.12s ease, border-color 0.12s ease',
                                 }}
                             >
                                 <div
@@ -232,11 +291,28 @@ const FeedCard = ({ feed, feedId, onRemove, onHide, isAuthenticated, savedArticl
                                             {article.description}
                                         </div>
                                     )}
-                                    {article.published_at && (
-                                        <div style={{ fontSize: '12px', color: '#b0b0b5' }}>
-                                            {article.published_at}
+                                    {(article.published_at || estimateReadMinutes(article.description || article.content)) && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                            {article.published_at && (
+                                                <span style={{ fontSize: '12px', color: '#b0b0b5' }}>
+                                                    {article.published_at}
+                                                </span>
+                                            )}
+                                            {article.published_at && estimateReadMinutes(article.description || article.content) && (
+                                                <span style={{ fontSize: '12px', color: '#d1d1d6' }}>·</span>
+                                            )}
+                                            <ReadTimeBadge article={article} />
                                         </div>
                                     )}
+                                    <div style={{ marginTop: '8px' }} onClick={(e) => e.stopPropagation()}>
+                                        <ReactionBar
+                                            article={article}
+                                            feed={feed}
+                                            reactions={reactionsByLink?.[article.link]}
+                                            isAuthenticated={isAuthenticated}
+                                            onChange={onReact}
+                                        />
+                                    </div>
                                 </div>
                                 <button
                                     onClick={() => onToggleSaveArticle(article, feed)}
@@ -318,7 +394,7 @@ const FeedCard = ({ feed, feedId, onRemove, onHide, isAuthenticated, savedArticl
                         >
                             {expanded
                                 ? 'Show less'
-                                : `Show ${feed.articles.length - 5} more articles`}
+                                : `Show ${filteredArticles.length - 5} more articles`}
                         </button>
                     )}
                 </div>
@@ -694,10 +770,47 @@ const News = () => {
     const [discussModal, setDiscussModal] = useState({ open: false, article: null, feed: null });
     const [readerArticle, setReaderArticle] = useState(null);
     const [readerFeed, setReaderFeed] = useState(null);
-    const [activeTab, setActiveTab] = useState(feeds.length > 0 ? 'your' : 'hot');
+    const [activeTab, setActiveTab] = useState('trending');
     const [hotArticles, setHotArticles] = useState([]);
     const [hotLoading, setHotLoading] = useState(false);
     const [hotWindow, setHotWindow] = useState('7d');
+    const [hotSort, setHotSort] = useState('hot'); // 'hot' | 'recent' | 'reads' | 'saves'
+    const [hotSourceFilter, setHotSourceFilter] = useState(() => new Set());
+    const [hotSourceMenuOpen, setHotSourceMenuOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [markAllVersion, setMarkAllVersion] = useState(0);
+    const [focusedArticleLink, setFocusedArticleLink] = useState(null);
+    const [showKbdHelp, setShowKbdHelp] = useState(false);
+    const [readingStreak, setReadingStreak] = useState(null);
+    const searchInputRef = useRef(null);
+
+    // Fetch the user's reading streak on mount. Hidden for guests + cold accounts.
+    useEffect(() => {
+        if (!isAuthenticated) return;
+        axios.get('/api/reading-streak')
+            .then((res) => setReadingStreak(res.data))
+            .catch(() => {});
+    }, [isAuthenticated]);
+
+    const handleMarkAllRead = useCallback(() => {
+        const all = [...feeds, ...Object.values(defaultFeeds).flat()];
+        all.forEach((f) => { if (f?.feed_url) markFeedSeen(f.feed_url); });
+        setMarkAllVersion((v) => v + 1);
+    }, [feeds, defaultFeeds]);
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const matchesSearch = useCallback((article, extra = '') => {
+        if (!normalizedQuery) return true;
+        const haystack = `${article?.title || ''} ${article?.description || ''} ${extra}`.toLowerCase();
+        return haystack.includes(normalizedQuery);
+    }, [normalizedQuery]);
+
+    // Reactions: { [articleLink]: { counts: {like, insightful, fire}, mine: [] } }
+    const [reactionsByLink, setReactionsByLink] = useState({});
+    const reactionsFetchedRef = useRef(new Set()); // links we've already requested
+
+    const updateReactionForLink = useCallback((link, data) => {
+        setReactionsByLink((prev) => ({ ...prev, [link]: data }));
+    }, []);
 
     // Default feeds state — mutable so we can populate articles
     const [defaultFeeds, setDefaultFeeds] = useState(defaultFeedsByRegion);
@@ -734,8 +847,46 @@ const News = () => {
             feed_favicon: feed?.favicon || '',
             feed_url: feed?.feed_url || '',
             event_type: eventType,
+        }).then(() => {
+            // First read of today should bump the streak immediately. Skip the
+            // refetch once we already know today is active to avoid noise.
+            if (eventType === 'read' && isAuthenticated && readingStreak && !readingStreak.today_active) {
+                axios.get('/api/reading-streak')
+                    .then((res) => setReadingStreak(res.data))
+                    .catch(() => {});
+            }
         }).catch(() => {});
-    }, []);
+    }, [isAuthenticated, readingStreak]);
+
+    // Bulk-fetch reaction counts for any article links we haven't seen yet.
+    // Runs whenever any of the three article sources change. We only request
+    // links that aren't already in reactionsFetchedRef so we don't loop.
+    useEffect(() => {
+        const links = new Set();
+        feeds.forEach((f) => (f.articles || []).forEach((a) => a.link && links.add(a.link)));
+        Object.values(defaultFeeds).forEach((regionFeeds) =>
+            (regionFeeds || []).forEach((f) =>
+                (f.articles || []).forEach((a) => a.link && links.add(a.link))
+            )
+        );
+        hotArticles.forEach((a) => a.link && links.add(a.link));
+
+        const toFetch = [...links].filter((l) => !reactionsFetchedRef.current.has(l));
+        if (toFetch.length === 0) return;
+
+        toFetch.forEach((l) => reactionsFetchedRef.current.add(l));
+
+        const batch = toFetch.slice(0, 300);
+        axios.post('/api/news-feeds/reactions/bulk', { article_links: batch })
+            .then((res) => {
+                const map = res.data?.reactions || {};
+                setReactionsByLink((prev) => ({ ...prev, ...map }));
+            })
+            .catch(() => {
+                // Failed — let those links be retried on the next tick
+                batch.forEach((l) => reactionsFetchedRef.current.delete(l));
+            });
+    }, [feeds, defaultFeeds, hotArticles]);
 
     // Fetch hot articles when Hot tab activates or window changes
     useEffect(() => {
@@ -765,22 +916,34 @@ const News = () => {
         });
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Fetch articles for the active region's default feeds
+    // Fetch articles for the active region's default feeds.
+    // Feeds that fail to fetch or return zero articles are dropped from the region
+    // so we don't show empty/broken cards.
     useEffect(() => {
         if (!activeRegion) return;
         const regionFeeds = defaultFeeds[activeRegion] || [];
-        regionFeeds.forEach((feed, index) => {
+        regionFeeds.forEach((feed) => {
             if (feed.articles !== null) return; // already loaded
             fetchFeedArticles(feed.feed_url).then((data) => {
-                if (!data) return;
+                const hasArticles = data && Array.isArray(data.articles) && data.articles.length > 0;
+                if (!hasArticles) {
+                    setDefaultFeeds((prev) => {
+                        const updated = { ...prev };
+                        updated[activeRegion] = (updated[activeRegion] || []).filter(
+                            (f) => f.feed_url !== feed.feed_url
+                        );
+                        return updated;
+                    });
+                    return;
+                }
                 setDefaultFeeds((prev) => {
                     const updated = { ...prev };
-                    updated[activeRegion] = (updated[activeRegion] || []).map((f, i) =>
-                        i === index ? {
+                    updated[activeRegion] = (updated[activeRegion] || []).map((f) =>
+                        f.feed_url === feed.feed_url ? {
                             ...f,
                             title: data.title || f.title,
                             favicon: data.favicon || f.favicon,
-                            articles: data.articles || [],
+                            articles: data.articles,
                         } : f
                     );
                     return updated;
@@ -788,6 +951,16 @@ const News = () => {
             });
         });
     }, [activeRegion]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // If the active region drains to zero feeds (all failed/empty), jump to the next available one
+    useEffect(() => {
+        if (!activeRegion) return;
+        const current = defaultFeeds[activeRegion] || [];
+        if (current.length > 0) return;
+        const next = regions.find((r) => r !== activeRegion && (defaultFeeds[r] || []).length > 0);
+        if (next) setActiveRegion(next);
+        else setActiveRegion('');
+    }, [defaultFeeds, activeRegion, regions]);
 
     const getFeedId = (feedUrl) => 'feed-' + feedUrl.replace(/[^a-zA-Z0-9]/g, '-');
 
@@ -1082,6 +1255,112 @@ const News = () => {
         Toast.fire({ icon: 'success', title: 'Feed removed' });
     };
 
+    // Single ref bag — keeps state + handlers accessible inside the keydown
+    // listener without rebinding it on every render. The listener mounts once.
+    const kbdRef = useRef({});
+    kbdRef.current = {
+        focusedArticleLink, feeds, defaultFeeds, hotArticles,
+        readerArticle, discussModal, showKbdHelp,
+        handleToggleSaveArticle, trackArticleEngagement,
+    };
+
+    useEffect(() => {
+        const isTypingTarget = (el) => {
+            if (!el) return false;
+            const tag = el.tagName;
+            return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
+        };
+
+        const lookup = (link) => {
+            if (!link) return null;
+            const s = kbdRef.current;
+            for (const f of s.feeds) {
+                const a = f.articles?.find((a) => a.link === link);
+                if (a) return { article: a, feed: f };
+            }
+            for (const regionFeeds of Object.values(s.defaultFeeds)) {
+                for (const f of regionFeeds || []) {
+                    const a = f.articles?.find((a) => a.link === link);
+                    if (a) return { article: a, feed: f };
+                }
+            }
+            const hot = s.hotArticles.find((a) => a.link === link);
+            if (hot) {
+                return {
+                    article: hot,
+                    feed: { title: hot.feed_title, favicon: hot.feed_favicon, feed_url: hot.feed_url },
+                };
+            }
+            return null;
+        };
+
+        const handler = (e) => {
+            const s = kbdRef.current;
+
+            // '/' focuses search even when nothing else is typing
+            if (e.key === '/' && !isTypingTarget(e.target)) {
+                e.preventDefault();
+                searchInputRef.current?.focus();
+                return;
+            }
+
+            if (e.key === 'Escape') {
+                if (s.showKbdHelp) { setShowKbdHelp(false); return; }
+                if (s.focusedArticleLink) { setFocusedArticleLink(null); return; }
+                return;
+            }
+
+            if (e.metaKey || e.ctrlKey || e.altKey) return;
+            if (isTypingTarget(e.target)) return;
+            if (s.readerArticle || s.discussModal?.open) return;
+
+            if (e.key === '?') {
+                e.preventDefault();
+                setShowKbdHelp((v) => !v);
+                return;
+            }
+
+            if (e.key === 'j' || e.key === 'k') {
+                e.preventDefault();
+                const els = Array.from(document.querySelectorAll('[data-article-link]'));
+                if (els.length === 0) return;
+                const links = els.map((el) => el.dataset.articleLink);
+                let idx = links.indexOf(s.focusedArticleLink);
+                if (idx === -1) {
+                    idx = e.key === 'j' ? 0 : links.length - 1;
+                } else {
+                    idx += e.key === 'j' ? 1 : -1;
+                    idx = Math.max(0, Math.min(links.length - 1, idx));
+                }
+                const nextLink = links[idx];
+                setFocusedArticleLink(nextLink);
+                els[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            if (e.key === 's') {
+                e.preventDefault();
+                const found = lookup(s.focusedArticleLink);
+                if (found) s.handleToggleSaveArticle(found.article, found.feed);
+                return;
+            }
+
+            if (e.key === 'o' || e.key === 'Enter') {
+                e.preventDefault();
+                const found = lookup(s.focusedArticleLink);
+                if (found) {
+                    setReaderArticle(found.article);
+                    setReaderFeed(found.feed);
+                    s.trackArticleEngagement(found.article, found.feed, 'read');
+                }
+                return;
+            }
+        };
+
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+    }, []);
+
     return (
         <GuestLayout>
             <Metadata
@@ -1101,6 +1380,7 @@ const News = () => {
             {/* Page Header */}
             <section style={{ paddingTop: '96px', paddingBottom: '48px', background: '#fff' }}>
                 <Container>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
                     <div className="d-flex flex-column align-items-start">
                         <div className="d-flex flex-column align-items-start mb-3">
                             <span className="section-eyebrow" style={{ color: '#86868b' }}>
@@ -1132,6 +1412,46 @@ const News = () => {
                         >
                             Build your personalized news feed — paste any URL to start tracking updates
                         </p>
+                    </div>
+
+                    {isAuthenticated && readingStreak && readingStreak.current > 0 && (
+                        <div
+                            title={readingStreak.today_active
+                                ? `${readingStreak.current}-day reading streak — already active today`
+                                : `Read an article today to keep your ${readingStreak.current}-day streak alive`}
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '10px 16px',
+                                borderRadius: '9999px',
+                                background: readingStreak.today_active ? 'rgba(249,115,22,0.10)' : '#f5f5f7',
+                                border: readingStreak.today_active ? '1px solid rgba(249,115,22,0.30)' : '1px solid #e5e5e5',
+                                color: readingStreak.today_active ? '#f97316' : '#6e6e73',
+                                fontFamily: "'Poppins', sans-serif",
+                                marginTop: '4px',
+                            }}
+                        >
+                            <span
+                                className="material-symbols-outlined"
+                                style={{
+                                    fontSize: '20px',
+                                    color: readingStreak.today_active ? '#f97316' : '#b0b0b5',
+                                    fontVariationSettings: readingStreak.today_active ? "'FILL' 1" : "'FILL' 0",
+                                }}
+                            >
+                                local_fire_department
+                            </span>
+                            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+                                <span style={{ fontSize: '16px', fontWeight: 700, color: readingStreak.today_active ? '#f97316' : '#000' }}>
+                                    {readingStreak.current}
+                                </span>
+                                <span style={{ fontSize: '11px', fontWeight: 500, color: '#86868b' }}>
+                                    day{readingStreak.current === 1 ? '' : 's'}
+                                </span>
+                            </div>
+                        </div>
+                    )}
                     </div>
                 </Container>
             </section>
@@ -1436,13 +1756,88 @@ const News = () => {
                             {/* Loading skeleton */}
                             {isLoading && feeds.length === 0 && <FeedCardSkeleton />}
 
-                            {/* Feed Tabs */}
+                            {/* Search bar */}
                             <div style={{
+                                position: 'relative',
+                                marginBottom: '16px',
+                            }}>
+                                <span
+                                    className="material-symbols-outlined"
+                                    style={{
+                                        position: 'absolute',
+                                        left: '14px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        fontSize: '18px',
+                                        color: '#b0b0b5',
+                                        pointerEvents: 'none',
+                                    }}
+                                >
+                                    search
+                                </span>
+                                <input
+                                    ref={searchInputRef}
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Escape') {
+                                            setSearchQuery('');
+                                            e.currentTarget.blur();
+                                        }
+                                    }}
+                                    placeholder="Search your feeds... (press / to focus)"
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 38px 10px 42px',
+                                        borderRadius: '12px',
+                                        border: '1px solid #e5e5e5',
+                                        fontSize: '14px',
+                                        color: '#000',
+                                        outline: 'none',
+                                        background: '#fff',
+                                        fontFamily: "'Poppins', sans-serif",
+                                    }}
+                                    onFocus={(e) => { e.target.style.borderColor = '#000'; }}
+                                    onBlur={(e) => { e.target.style.borderColor = '#e5e5e5'; }}
+                                />
+                                {searchQuery && (
+                                    <button
+                                        onClick={() => setSearchQuery('')}
+                                        title="Clear search"
+                                        style={{
+                                            position: 'absolute',
+                                            right: '10px',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            background: '#f5f5f7',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            padding: '4px',
+                                            borderRadius: '50%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                        }}
+                                    >
+                                        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#86868b' }}>close</span>
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Feed Tabs + global mark-all-read */}
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: '12px',
+                                flexWrap: 'wrap',
+                                marginBottom: '16px',
+                            }}>
+                                <div style={{
                                     display: 'inline-flex',
                                     background: '#e8e8ed',
                                     borderRadius: '9999px',
                                     padding: '4px',
-                                    marginBottom: '16px',
                                 }}>
                                     {[
                                         { key: 'your', label: 'Your Feeds', count: feeds.length },
@@ -1491,6 +1886,38 @@ const News = () => {
                                         );
                                     })}
                                 </div>
+
+                                <button
+                                    onClick={handleMarkAllRead}
+                                    title="Mark every loaded feed as read"
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        padding: '8px 14px',
+                                        borderRadius: '9999px',
+                                        border: '1px solid #e5e5e5',
+                                        background: '#fff',
+                                        color: '#6e6e73',
+                                        fontSize: '12px',
+                                        fontWeight: 500,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.15s ease',
+                                        fontFamily: "'Poppins', sans-serif",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.borderColor = '#000';
+                                        e.currentTarget.style.color = '#000';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.borderColor = '#e5e5e5';
+                                        e.currentTarget.style.color = '#6e6e73';
+                                    }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>done_all</span>
+                                    Mark all read
+                                </button>
+                            </div>
 
                             {/* Your Feeds Tab */}
                             {activeTab === 'your' && (
@@ -1545,6 +1972,11 @@ const News = () => {
                                                     onToggleSaveArticle={handleToggleSaveArticle}
                                                     onDiscussArticle={handleDiscussArticle}
                                                     onReadArticle={(article, feed) => { setReaderArticle(article); setReaderFeed(feed); trackArticleEngagement(article, feed, 'read'); }}
+                                                    reactionsByLink={reactionsByLink}
+                                                    onReact={updateReactionForLink}
+                                                    searchQuery={searchQuery}
+                                                    markAllVersion={markAllVersion}
+                                                    focusedArticleLink={focusedArticleLink}
                                                 />
                                             ))}
 
@@ -1586,10 +2018,33 @@ const News = () => {
                             )}
 
                             {/* Hot Tab */}
-                            {activeTab === 'hot' && (
+                            {activeTab === 'hot' && (() => {
+                                const sortOptions = [
+                                    { key: 'hot', label: 'Hot' },
+                                    { key: 'recent', label: 'Recent' },
+                                    { key: 'reads', label: 'Most read' },
+                                    { key: 'saves', label: 'Most saved' },
+                                ];
+                                const sourceList = Array.from(new Map(
+                                    hotArticles
+                                        .filter((a) => a.feed_title)
+                                        .map((a) => [a.feed_title, { title: a.feed_title, favicon: a.feed_favicon }])
+                                ).values());
+                                const activeSources = hotSourceFilter;
+
+                                const toggleSource = (title) => {
+                                    setHotSourceFilter((prev) => {
+                                        const next = new Set(prev);
+                                        if (next.has(title)) next.delete(title);
+                                        else next.add(title);
+                                        return next;
+                                    });
+                                };
+
+                                return (
                                 <>
                                     {/* Window selector */}
-                                    <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                                    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
                                         {[
                                             { key: '24h', label: 'Today' },
                                             { key: '7d', label: 'This week' },
@@ -1599,7 +2054,7 @@ const News = () => {
                                             return (
                                                 <button
                                                     key={w.key}
-                                                    onClick={() => setHotWindow(w.key)}
+                                                    onClick={() => { setHotWindow(w.key); setHotSourceFilter(new Set()); }}
                                                     style={{
                                                         padding: '6px 14px',
                                                         borderRadius: '9999px',
@@ -1616,6 +2071,146 @@ const News = () => {
                                                 </button>
                                             );
                                         })}
+                                    </div>
+
+                                    {/* Sort + Source filter */}
+                                    <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '12px', color: '#86868b', marginRight: '4px' }}>Sort</span>
+                                        {sortOptions.map((s) => {
+                                            const active = hotSort === s.key;
+                                            return (
+                                                <button
+                                                    key={s.key}
+                                                    onClick={() => setHotSort(s.key)}
+                                                    style={{
+                                                        padding: '5px 12px',
+                                                        borderRadius: '9999px',
+                                                        border: active ? '1px solid #f97316' : '1px solid #e5e5e7',
+                                                        background: active ? 'rgba(249,115,22,0.1)' : '#fff',
+                                                        color: active ? '#f97316' : '#6e6e73',
+                                                        fontSize: '12px',
+                                                        fontWeight: 600,
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.15s ease',
+                                                    }}
+                                                >
+                                                    {s.label}
+                                                </button>
+                                            );
+                                        })}
+
+                                        {sourceList.length > 0 && (
+                                            <div style={{ position: 'relative', marginLeft: 'auto' }}>
+                                                <button
+                                                    onClick={() => setHotSourceMenuOpen((v) => !v)}
+                                                    style={{
+                                                        padding: '5px 12px',
+                                                        borderRadius: '9999px',
+                                                        border: activeSources.size > 0 ? '1px solid #000' : '1px solid #e5e5e7',
+                                                        background: activeSources.size > 0 ? '#000' : '#fff',
+                                                        color: activeSources.size > 0 ? '#fff' : '#6e6e73',
+                                                        fontSize: '12px',
+                                                        fontWeight: 600,
+                                                        cursor: 'pointer',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '6px',
+                                                        transition: 'all 0.15s ease',
+                                                    }}
+                                                >
+                                                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>filter_list</span>
+                                                    {activeSources.size > 0 ? `${activeSources.size} source${activeSources.size === 1 ? '' : 's'}` : 'All sources'}
+                                                    <span className="material-symbols-outlined" style={{ fontSize: '14px', transform: hotSourceMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>expand_more</span>
+                                                </button>
+
+                                                {hotSourceMenuOpen && (
+                                                    <>
+                                                        <div
+                                                            onClick={() => setHotSourceMenuOpen(false)}
+                                                            style={{ position: 'fixed', inset: 0, zIndex: 50 }}
+                                                        />
+                                                        <div
+                                                            style={{
+                                                                position: 'absolute',
+                                                                top: 'calc(100% + 6px)',
+                                                                right: 0,
+                                                                background: '#fff',
+                                                                border: '1px solid #e5e5e5',
+                                                                borderRadius: '12px',
+                                                                boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                                                                minWidth: '240px',
+                                                                maxHeight: '320px',
+                                                                overflowY: 'auto',
+                                                                padding: '6px',
+                                                                zIndex: 51,
+                                                            }}
+                                                        >
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px 8px' }}>
+                                                                <span style={{ fontSize: '11px', fontWeight: 600, color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                                                    Filter by source
+                                                                </span>
+                                                                {activeSources.size > 0 && (
+                                                                    <button
+                                                                        onClick={() => setHotSourceFilter(new Set())}
+                                                                        style={{
+                                                                            background: 'transparent', border: 'none', cursor: 'pointer',
+                                                                            fontSize: '11px', fontWeight: 500, color: '#f97316',
+                                                                            padding: 0, fontFamily: "'Poppins', sans-serif",
+                                                                        }}
+                                                                    >
+                                                                        Clear
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                            {sourceList.map((src) => {
+                                                                const checked = activeSources.has(src.title);
+                                                                return (
+                                                                    <button
+                                                                        key={src.title}
+                                                                        onClick={() => toggleSource(src.title)}
+                                                                        style={{
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            gap: '8px',
+                                                                            width: '100%',
+                                                                            padding: '8px 10px',
+                                                                            background: checked ? '#f5f5f7' : 'transparent',
+                                                                            border: 'none',
+                                                                            borderRadius: '8px',
+                                                                            cursor: 'pointer',
+                                                                            textAlign: 'left',
+                                                                            fontFamily: "'Poppins', sans-serif",
+                                                                        }}
+                                                                        onMouseEnter={(e) => { if (!checked) e.currentTarget.style.background = '#fafafa'; }}
+                                                                        onMouseLeave={(e) => { if (!checked) e.currentTarget.style.background = 'transparent'; }}
+                                                                    >
+                                                                        <span
+                                                                            style={{
+                                                                                width: '16px', height: '16px', borderRadius: '4px',
+                                                                                border: checked ? 'none' : '1px solid #d1d1d6',
+                                                                                background: checked ? '#f97316' : '#fff',
+                                                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                                                flexShrink: 0,
+                                                                            }}
+                                                                        >
+                                                                            {checked && (
+                                                                                <span className="material-symbols-outlined" style={{ fontSize: '12px', color: '#fff' }}>check</span>
+                                                                            )}
+                                                                        </span>
+                                                                        {src.favicon && (
+                                                                            <img src={src.favicon} alt="" width={14} height={14} style={{ borderRadius: '3px', flexShrink: 0 }} onError={(e) => e.target.style.display = 'none'} />
+                                                                        )}
+                                                                        <span style={{ fontSize: '13px', color: '#000', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                                            {src.title}
+                                                                        </span>
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {hotLoading && hotArticles.length === 0 && <FeedCardSkeleton />}
@@ -1637,14 +2232,49 @@ const News = () => {
                                         </div>
                                     )}
 
-                                    {hotArticles.length > 0 && (
+                                    {hotArticles.length > 0 && (() => {
+                                        let filteredHot = hotArticles.filter((a) => matchesSearch(a, a.feed_title || ''));
+                                        if (activeSources.size > 0) {
+                                            filteredHot = filteredHot.filter((a) => a.feed_title && activeSources.has(a.feed_title));
+                                        }
+                                        if (hotSort !== 'hot') {
+                                            const arr = [...filteredHot];
+                                            if (hotSort === 'recent') {
+                                                arr.sort((a, b) => {
+                                                    const da = Date.parse(a.published_at || a.article_date || '');
+                                                    const db = Date.parse(b.published_at || b.article_date || '');
+                                                    return (isNaN(db) ? 0 : db) - (isNaN(da) ? 0 : da);
+                                                });
+                                            } else if (hotSort === 'reads') {
+                                                arr.sort((a, b) => (b.engagement?.reads || 0) - (a.engagement?.reads || 0));
+                                            } else if (hotSort === 'saves') {
+                                                arr.sort((a, b) => (b.engagement?.saves || 0) - (a.engagement?.saves || 0));
+                                            }
+                                            filteredHot = arr;
+                                        }
+                                        if (normalizedQuery && filteredHot.length === 0) {
+                                            return (
+                                                <div style={{
+                                                    backgroundColor: '#fff',
+                                                    borderRadius: '16px',
+                                                    border: '1px solid #f0f0f0',
+                                                    padding: '40px 24px',
+                                                    textAlign: 'center',
+                                                }}>
+                                                    <p style={{ fontSize: '13px', color: '#86868b', margin: 0 }}>
+                                                        No matches for "{searchQuery}" in Hot articles.
+                                                    </p>
+                                                </div>
+                                            );
+                                        }
+                                        return (
                                         <div style={{
                                             backgroundColor: '#fff',
                                             borderRadius: '16px',
                                             border: '1px solid #f0f0f0',
                                             padding: '8px 20px',
                                         }}>
-                                            {hotArticles.map((article, i) => {
+                                            {filteredHot.map((article, i) => {
                                                 const isSaved = savedArticleLinks.includes(article.link);
                                                 const totalEngagement = (article.engagement?.reads || 0) + (article.engagement?.clicks || 0) + (article.engagement?.saves || 0);
                                                 const feed = {
@@ -1652,15 +2282,22 @@ const News = () => {
                                                     favicon: article.feed_favicon,
                                                     feed_url: article.feed_url,
                                                 };
+                                                const isFocused = focusedArticleLink === article.link;
                                                 return (
                                                     <div
                                                         key={article.link || i}
+                                                        data-article-link={article.link}
                                                         style={{
-                                                            padding: '14px 0',
+                                                            padding: '14px 12px',
+                                                            margin: '0 -12px',
                                                             borderTop: i > 0 ? '1px solid #f5f5f7' : 'none',
                                                             display: 'flex',
                                                             gap: '12px',
                                                             alignItems: 'flex-start',
+                                                            background: isFocused ? '#fff7ed' : 'transparent',
+                                                            borderLeft: isFocused ? '3px solid #f97316' : '3px solid transparent',
+                                                            borderRadius: '8px',
+                                                            transition: 'background 0.12s ease, border-color 0.12s ease',
                                                         }}
                                                     >
                                                         <span style={{
@@ -1707,17 +2344,27 @@ const News = () => {
                                                                     {article.description}
                                                                 </div>
                                                             )}
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', color: '#b0b0b5' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', color: '#b0b0b5', flexWrap: 'wrap' }}>
                                                                 {article.feed_favicon && (
                                                                     <img src={article.feed_favicon} alt="" style={{ width: '14px', height: '14px', borderRadius: '3px' }} />
                                                                 )}
                                                                 {article.feed_title && <span>{article.feed_title}</span>}
+                                                                <ReadTimeBadge article={article} />
                                                                 {totalEngagement > 0 && (
                                                                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                                                                         <span className="material-symbols-outlined" style={{ fontSize: '13px', color: '#f97316' }}>local_fire_department</span>
                                                                         {totalEngagement}
                                                                     </span>
                                                                 )}
+                                                            </div>
+                                                            <div style={{ marginTop: '8px' }} onClick={(e) => e.stopPropagation()}>
+                                                                <ReactionBar
+                                                                    article={article}
+                                                                    feed={feed}
+                                                                    reactions={reactionsByLink[article.link]}
+                                                                    isAuthenticated={isAuthenticated}
+                                                                    onChange={updateReactionForLink}
+                                                                />
                                                             </div>
                                                         </div>
                                                         <button
@@ -1759,9 +2406,11 @@ const News = () => {
                                                 );
                                             })}
                                         </div>
-                                    )}
+                                        );
+                                    })()}
                                 </>
-                            )}
+                                );
+                            })()}
 
                             {/* Trending Sources Tab */}
                             {activeTab === 'trending' && availableRegions.length > 0 && (
@@ -1829,6 +2478,11 @@ const News = () => {
                                             onToggleSaveArticle={handleToggleSaveArticle}
                                             onDiscussArticle={handleDiscussArticle}
                                             onReadArticle={(article, feed) => { setReaderArticle(article); setReaderFeed(feed); }}
+                                            reactionsByLink={reactionsByLink}
+                                            onReact={updateReactionForLink}
+                                            searchQuery={searchQuery}
+                                            markAllVersion={markAllVersion}
+                                            focusedArticleLink={focusedArticleLink}
                                         />
                                     ))}
 
@@ -1887,6 +2541,7 @@ const News = () => {
 
             <ArticleReaderModal
                 article={readerArticle}
+                feed={readerFeed}
                 onClose={() => { setReaderArticle(null); setReaderFeed(null); }}
                 isSaved={readerArticle ? savedArticleLinks.includes(readerArticle.link) : false}
                 onToggleSave={(article) => handleToggleSaveArticle(article, readerFeed)}
@@ -1896,6 +2551,8 @@ const News = () => {
                     setReaderFeed(null);
                     handleDiscussArticle(article, readerFeed);
                 }}
+                reactions={readerArticle ? reactionsByLink[readerArticle.link] : null}
+                onReact={updateReactionForLink}
             />
 
             <DiscussModal
@@ -1905,6 +2562,119 @@ const News = () => {
                 feed={discussModal.feed}
                 onCreated={handleDiscussionCreated}
             />
+
+            {/* Keyboard shortcuts hint */}
+            <button
+                onClick={() => setShowKbdHelp(true)}
+                title="Keyboard shortcuts (?)"
+                className="d-none d-md-flex"
+                style={{
+                    position: 'fixed',
+                    bottom: '20px',
+                    left: '20px',
+                    padding: '8px 12px',
+                    borderRadius: '9999px',
+                    border: '1px solid #e5e5e5',
+                    background: '#fff',
+                    color: '#6e6e73',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontFamily: "'Poppins', sans-serif",
+                    zIndex: 100,
+                    transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#000'; e.currentTarget.style.color = '#000'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e5e5'; e.currentTarget.style.color = '#6e6e73'; }}
+            >
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>keyboard</span>
+                Shortcuts
+            </button>
+
+            {/* Keyboard shortcuts help overlay */}
+            {showKbdHelp && (
+                <div
+                    onClick={() => setShowKbdHelp(false)}
+                    style={{
+                        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        zIndex: 10000, padding: '20px',
+                    }}
+                >
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                            background: '#fff', borderRadius: '16px', width: '100%', maxWidth: '420px',
+                            padding: '28px', fontFamily: "'Poppins', sans-serif",
+                            boxShadow: '0 24px 48px rgba(0,0,0,0.2)',
+                        }}
+                    >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+                            <div>
+                                <span style={{ fontSize: '11px', fontWeight: 600, color: '#f97316', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                    Keyboard
+                                </span>
+                                <div style={{ width: '24px', height: '2px', background: '#f97316', margin: '6px 0 12px' }} />
+                                <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#000', margin: 0 }}>Shortcuts</h3>
+                            </div>
+                            <button
+                                onClick={() => setShowKbdHelp(false)}
+                                style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex' }}
+                            >
+                                <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#86868b' }}>close</span>
+                            </button>
+                        </div>
+
+                        {[
+                            { keys: ['j'], label: 'Next article' },
+                            { keys: ['k'], label: 'Previous article' },
+                            { keys: ['o', 'Enter'], label: 'Open in reader' },
+                            { keys: ['s'], label: 'Save / unsave article' },
+                            { keys: ['/'], label: 'Focus search' },
+                            { keys: ['Esc'], label: 'Clear search / unfocus' },
+                            { keys: ['?'], label: 'Toggle this help' },
+                        ].map((row, i) => (
+                            <div
+                                key={i}
+                                style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                    padding: '10px 0',
+                                    borderTop: i > 0 ? '1px solid #f5f5f7' : 'none',
+                                }}
+                            >
+                                <span style={{ fontSize: '13px', color: '#000' }}>{row.label}</span>
+                                <span style={{ display: 'inline-flex', gap: '4px' }}>
+                                    {row.keys.map((k, j) => (
+                                        <kbd
+                                            key={j}
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                minWidth: '24px',
+                                                height: '24px',
+                                                padding: '0 6px',
+                                                background: '#f5f5f7',
+                                                border: '1px solid #e5e5e5',
+                                                borderRadius: '6px',
+                                                fontSize: '12px',
+                                                fontWeight: 600,
+                                                color: '#000',
+                                                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                                            }}
+                                        >
+                                            {k}
+                                        </kbd>
+                                    ))}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </GuestLayout>
     );
 };

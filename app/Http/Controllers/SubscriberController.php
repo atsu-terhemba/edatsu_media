@@ -276,13 +276,51 @@ class SubscriberController extends Controller
         ]);
     }
 
-    function savedArticles(){
-        $articles = SavedFeedArticle::where('user_id', Auth::id())
+    function savedArticles(Request $request){
+        $userId = Auth::id();
+        $collectionFilter = $request->query('collection');
+
+        $query = SavedFeedArticle::where('user_id', $userId);
+
+        if ($collectionFilter === 'uncategorized') {
+            // Articles not in any collection
+            $query->whereDoesntHave('collections');
+        } elseif (is_numeric($collectionFilter)) {
+            $query->whereHas('collections', fn ($q) => $q->where('article_collections.id', (int) $collectionFilter));
+        }
+
+        $articles = $query
+            ->with(['collections:id,name,color', 'highlights:id,saved_article_id,text,color,created_at'])
             ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->paginate(20)
+            ->through(function ($a) {
+                $arr = $a->toArray();
+                $arr['collection_ids'] = $a->collections->pluck('id')->all();
+                $arr['highlights'] = $a->highlights->map(fn ($h) => [
+                    'id'         => $h->id,
+                    'text'       => $h->text,
+                    'color'      => $h->color,
+                    'created_at' => $h->created_at?->toIso8601String(),
+                ])->values();
+                unset($arr['collections']);
+                return $arr;
+            });
+
+        $collections = \App\Models\ArticleCollection::where('user_id', $userId)
+            ->withCount('items')
+            ->orderBy('name')
+            ->get(['id', 'name', 'color'])
+            ->map(fn ($c) => [
+                'id'         => $c->id,
+                'name'       => $c->name,
+                'color'      => $c->color,
+                'item_count' => (int) $c->items_count,
+            ]);
 
         return Inertia::render('Subscriber/SavedArticles', [
-            'articles' => $articles,
+            'articles'           => $articles,
+            'collections'        => $collections,
+            'activeCollection'   => $collectionFilter,
         ]);
     }
 

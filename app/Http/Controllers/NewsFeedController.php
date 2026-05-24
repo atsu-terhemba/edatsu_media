@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\ArticleEngagement;
+use App\Models\ArticleHighlight;
+use App\Models\ArticleReaction;
 use App\Models\SavedFeedArticle;
 use App\Models\UserNewsFeed;
 use App\Services\FeatureGate;
@@ -587,6 +589,243 @@ class NewsFeedController extends Controller
         return response()->json([
             'window' => $window,
             'articles' => $articles,
+        ]);
+    }
+
+    /**
+     * Toggle a reaction (like / insightful / fire) on an article for the
+     * authenticated user. Same user can hold multiple reaction types on the
+     * same article; each one toggles independently.
+     */
+    public function toggleReaction(Request $request)
+    {
+        $request->validate([
+            'article_link'  => 'required|string|max:500',
+            'article_title' => 'required|string|max:255',
+            'feed_title'    => 'nullable|string|max:255',
+            'feed_favicon'  => 'nullable|string|max:500',
+            'feed_url'      => 'nullable|string|max:500',
+            'reaction_type' => 'required|in:' . implode(',', ArticleReaction::TYPES),
+        ]);
+
+        $hash = hash('sha256', $request->article_link);
+        $userId = Auth::id();
+
+        $existing = ArticleReaction::where('user_id', $userId)
+            ->where('article_link_hash', $hash)
+            ->where('reaction_type', $request->reaction_type)
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+            $reacted = false;
+        } else {
+            ArticleReaction::create([
+                'article_link_hash' => $hash,
+                'article_link'      => $request->article_link,
+                'article_title'     => $request->article_title,
+                'feed_title'        => $request->feed_title,
+                'feed_favicon'      => $request->feed_favicon,
+                'feed_url'          => $request->feed_url,
+                'reaction_type'     => $request->reaction_type,
+                'user_id'           => $userId,
+            ]);
+            $reacted = true;
+        }
+
+        $counts = ArticleReaction::where('article_link_hash', $hash)
+            ->selectRaw('reaction_type, COUNT(*) AS c')
+            ->groupBy('reaction_type')
+            ->pluck('c', 'reaction_type');
+
+        $mine = ArticleReaction::where('user_id', $userId)
+            ->where('article_link_hash', $hash)
+            ->pluck('reaction_type')
+            ->values();
+
+        return response()->json([
+            'ok'      => true,
+            'reacted' => $reacted,
+            'counts'  => [
+                'like'       => (int) ($counts['like']       ?? 0),
+                'insightful' => (int) ($counts['insightful'] ?? 0),
+                'fire'       => (int) ($counts['fire']       ?? 0),
+            ],
+            'mine'    => $mine,
+        ]);
+    }
+
+    /**
+     * Bulk fetch reaction counts (and the current user's own reactions, if
+     * authenticated) for a batch of article links. Used by the feeds list to
+     * paint reactions without N round-trips.
+     */
+    public function bulkReactions(Request $request)
+    {
+        $request->validate([
+            'article_links'   => 'required|array|min:1|max:300',
+            'article_links.*' => 'string|max:500',
+        ]);
+
+        $hashToLink = [];
+        foreach ($request->article_links as $link) {
+            $hashToLink[hash('sha256', $link)] = $link;
+        }
+        $hashes = array_keys($hashToLink);
+
+        $rows = ArticleReaction::whereIn('article_link_hash', $hashes)
+            ->selectRaw('article_link_hash, reaction_type, COUNT(*) AS c')
+            ->groupBy('article_link_hash', 'reaction_type')
+            ->get();
+
+        $mineByHash = [];
+        if (Auth::check()) {
+            $myRows = ArticleReaction::whereIn('article_link_hash', $hashes)
+                ->where('user_id', Auth::id())
+                ->get(['article_link_hash', 'reaction_type']);
+            foreach ($myRows as $r) {
+                $mineByHash[$r->article_link_hash][] = $r->reaction_type;
+            }
+        }
+
+        $result = [];
+        foreach ($hashToLink as $hash => $link) {
+            $result[$link] = [
+                'counts' => ['like' => 0, 'insightful' => 0, 'fire' => 0],
+                'mine'   => $mineByHash[$hash] ?? [],
+            ];
+        }
+        foreach ($rows as $r) {
+            if (!isset($hashToLink[$r->article_link_hash])) continue;
+            $link = $hashToLink[$r->article_link_hash];
+            if (isset($result[$link]['counts'][$r->reaction_type])) {
+                $result[$link]['counts'][$r->reaction_type] = (int) $r->c;
+            }
+        }
+
+        return response()->json(['reactions' => $result]);
+    }
+
+    /**
+     * Update the user-private note attached to a saved article. Pass an empty
+     * string to clear it.
+     */
+    public function updateArticleNote(Request $request, int $id)
+    {
+        $request->validate([
+            'note' => 'nullable|string|max:10000',
+        ]);
+
+        $article = SavedFeedArticle::where('user_id', Auth::id())->findOrFail($id);
+        $note = trim((string) $request->input('note', ''));
+        $article->note = $note === '' ? null : $note;
+        $article->save();
+
+        return response()->json(['ok' => true, 'note' => $article->note]);
+    }
+
+    /**
+     * Add a highlight to a saved article.
+     */
+    public function addHighlight(Request $request, int $id)
+    {
+        $data = $request->validate([
+            'text'  => 'required|string|min:1|max:5000',
+            'color' => 'nullable|string|max:16',
+        ]);
+
+        $article = SavedFeedArticle::where('user_id', Auth::id())->findOrFail($id);
+
+        $highlight = ArticleHighlight::create([
+            'saved_article_id' => $article->id,
+            'text'             => trim($data['text']),
+            'color'            => $data['color'] ?? 'yellow',
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'highlight' => [
+                'id'         => $highlight->id,
+                'text'       => $highlight->text,
+                'color'      => $highlight->color,
+                'created_at' => $highlight->created_at?->toIso8601String(),
+            ],
+        ], 201);
+    }
+
+    public function deleteHighlight(int $id)
+    {
+        $highlight = ArticleHighlight::findOrFail($id);
+        $article = SavedFeedArticle::find($highlight->saved_article_id);
+        if (!$article || $article->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Not found'], 404);
+        }
+        $highlight->delete();
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Compute the authenticated user's current + longest reading streak.
+     *
+     * A "day" is a calendar day in app time. A streak is consecutive days
+     * where the user logged at least one 'read' engagement. The streak is
+     * considered alive if the most recent activity is today or yesterday —
+     * a user who hasn't read today still has until end of day to keep going.
+     */
+    public function readingStreak()
+    {
+        $userId = Auth::id();
+        $empty = ['current' => 0, 'longest' => 0, 'today_active' => false, 'last_read_date' => null];
+        if (!$userId) return response()->json($empty);
+
+        $dates = ArticleEngagement::query()
+            ->where('user_id', $userId)
+            ->where('event_type', 'read')
+            ->selectRaw('DATE(created_at) AS d')
+            ->groupBy('d')
+            ->orderByDesc('d')
+            ->pluck('d')
+            ->map(fn ($d) => \Carbon\Carbon::parse($d)->toDateString())
+            ->values()
+            ->all();
+
+        if (empty($dates)) return response()->json($empty);
+
+        $today = now()->toDateString();
+        $yesterday = now()->subDay()->toDateString();
+        $todayActive = $dates[0] === $today;
+
+        // Current streak: walk back from today (or yesterday if not read today)
+        $current = 0;
+        $cursor = $todayActive ? $today : ($dates[0] === $yesterday ? $yesterday : null);
+        if ($cursor !== null) {
+            $set = array_flip($dates);
+            while (isset($set[$cursor])) {
+                $current++;
+                $cursor = \Carbon\Carbon::parse($cursor)->subDay()->toDateString();
+            }
+        }
+
+        // Longest streak across all dates. Carbon's diffInDays returns float
+        // in recent versions, so cast to int and use loose comparison.
+        $longest = 0;
+        $run = 0;
+        $prev = null;
+        foreach (array_reverse($dates) as $d) {
+            if ($prev !== null && (int) \Carbon\Carbon::parse($prev)->diffInDays(\Carbon\Carbon::parse($d)) === 1) {
+                $run++;
+            } else {
+                $run = 1;
+            }
+            if ($run > $longest) $longest = $run;
+            $prev = $d;
+        }
+
+        return response()->json([
+            'current'        => $current,
+            'longest'        => $longest,
+            'today_active'   => $todayActive,
+            'last_read_date' => $dates[0],
         ]);
     }
 

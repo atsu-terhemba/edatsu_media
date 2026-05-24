@@ -33,3 +33,16 @@ Schedule::command('newsletters:send-weekly-digest --dry-run')
     ->timezone('Africa/Lagos')
     ->appendOutputTo(storage_path('logs/digest-dryrun.log'))
     ->onOneServer();
+
+// Sunday 08:00 Africa/Lagos personalized reading digest. Same resend guard
+// pattern as the opportunity digest, keyed off reading_digest_last_sent_at.
+Schedule::command('newsletters:send-reading-digest')
+    ->weeklyOn(0, '08:00')
+    ->timezone('Africa/Lagos')
+    ->onOneServer();
+
+Schedule::command('newsletters:send-reading-digest --dry-run')
+    ->weeklyOn(0, '07:50')
+    ->timezone('Africa/Lagos')
+    ->appendOutputTo(storage_path('logs/reading-digest-dryrun.log'))
+    ->onOneServer();
