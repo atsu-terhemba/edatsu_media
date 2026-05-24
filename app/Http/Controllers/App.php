@@ -15,14 +15,10 @@ use Illuminate\Support\Facades\Validator;
 class App extends Controller
 {
    public function bookmark(Request $request){
-        // dd($request->input());
         if(Auth::check()){
-            $opp_id = $request->post('id'); 
-            $user_id = $request->user()->id;
-            $type = $request->post('type'); //type of post, opp or ts
-            //validate entries 
+            //validate entries
             $validator = Validator::make($request->all(), [
-                'id' => 'required|integer', 
+                'id' => 'required|integer',
                 "type" => "required",
             ]);
             //handle validation errors...
@@ -31,6 +27,12 @@ class App extends Controller
                     ['status' => 'error', 'message'=> 'Oops! Something went wrong']
                 );
             }
+            // Use input() so the body is read correctly for both
+            // application/json and form-encoded POSTs. post() only reads
+            // form data and returns null for JSON payloads.
+            $opp_id = (int) $request->input('id');
+            $user_id = $request->user()->id;
+            $type = $request->input('type'); //type of post, opp or ts
             //init bookmark...
             $bookmark = new Bookmark;
 
@@ -39,7 +41,25 @@ class App extends Controller
             ->where('post_type', '=', $type)
             ->exists();
 
-            //check if post_id already exist in database. 
+            // Any path that transitions a bookmark from inactive → active
+            // (fresh insert OR restoring a soft-removed row) must pass the
+            // quota check. The remove path (active → removed=1) skips it.
+            $assertQuota = function () use ($user_id, $request) {
+                $currentCount = Bookmark::where('user_id', $user_id)
+                    ->where('removed', 0)
+                    ->count();
+                if (!FeatureGate::withinQuota($request->user(), 'bookmarks', $currentCount)) {
+                    $limit = FeatureGate::quotaFor('bookmarks');
+                    return FeatureGate::denied(
+                        'bookmarks',
+                        "Free plan lets you save up to {$limit} items. Upgrade to Pro for unlimited bookmarks.",
+                        $limit
+                    );
+                }
+                return null;
+            };
+
+            //check if post_id already exist in database.
             if($bookmarked){
                 //check if its removed, if removed, update deleted to 0 to add it back
                 $is_removed = $bookmark->where('post_id', $opp_id)
@@ -48,6 +68,9 @@ class App extends Controller
                 ->where('removed', 1);
 
                 if($is_removed->count() > 0){
+                    // Restoring counts as activating — gate it
+                    if ($deny = $assertQuota()) return $deny;
+
                     //update record
                     $restore_bookmark = $bookmark->where('post_id', $opp_id)
                     ->where('user_id', $user_id)
@@ -63,7 +86,7 @@ class App extends Controller
                 ->where('user_id', $user_id)
                 ->where('post_type', '=', $type)
                 ->update(['removed' => 1]);
-                
+
                 if($remove_bookmark > 0){
                     return response()->json(['status' => 'warning', 'message' => 'Bookmark Removed']);
                 }else{
@@ -73,18 +96,8 @@ class App extends Controller
                // return response()->json(['status' => 'error', 'message'=> 'Already Bookmarked']);
             }
 
-            //enforce bookmark quota for free users
-            $currentCount = Bookmark::where('user_id', $user_id)
-                ->where('removed', 0)
-                ->count();
-            if (!FeatureGate::withinQuota($request->user(), 'bookmarks', $currentCount)) {
-                $limit = FeatureGate::quotaFor('bookmarks');
-                return FeatureGate::denied(
-                    'bookmarks',
-                    "Free plan lets you save up to {$limit} items. Upgrade to Pro for unlimited bookmarks.",
-                    $limit
-                );
-            }
+            // Fresh-insert path
+            if ($deny = $assertQuota()) return $deny;
 
             //save data...
             $bookmark->user_id = $user_id;

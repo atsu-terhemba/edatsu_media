@@ -112,7 +112,24 @@ const DisplayOpportunities = ({ data, isAuthenticated }) => {
     const result = await bookmark(btn);
 
     if (!result || !result.ok) {
-      // Revert optimistic toggle on failure / no-op
+      if (result?.quota) {
+        // Quota rejection — the Pro upgrade modal is already on screen. Shake
+        // the button so the user can see *which* click was denied, then revert
+        // once they've had time to read the modal.
+        try {
+          btn.animate(
+            [
+              { transform: 'translateX(0)' },
+              { transform: 'translateX(-4px)' },
+              { transform: 'translateX(4px)' },
+              { transform: 'translateX(-3px)' },
+              { transform: 'translateX(3px)' },
+              { transform: 'translateX(0)' },
+            ],
+            { duration: 320, easing: 'ease-in-out' },
+          );
+        } catch { /* animate API not supported — fall through */ }
+      }
       setItems(previous);
       return;
     }
