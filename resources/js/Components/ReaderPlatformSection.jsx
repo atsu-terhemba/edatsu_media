@@ -3,6 +3,9 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
+// Site convention (matches SuccessSection): 48px black circle, white icon.
+// Eyebrow + accent colors give each card distinct identity without breaking
+// the unified icon language.
 const FEATURES = [
     {
         icon: 'rss_feed',
@@ -10,7 +13,7 @@ const FEATURES = [
         title: 'Build your own news feed',
         body: 'Paste any URL and we find the RSS. Save articles, write private notes, highlight passages. Reactions, search, and keyboard shortcuts built in.',
         cta: { label: 'Open Feeds', href: '/feeds' },
-        color: '#f97316',
+        accent: '#f97316',
     },
     {
         icon: 'share',
@@ -18,7 +21,7 @@ const FEATURES = [
         title: 'Curate public reading lists',
         body: 'Group articles into named collections. Flip the Public toggle and share a link like edatsu.com/u/your-name/ai-research — your curation, your audience.',
         cta: { label: 'See how it works', href: '/sign-up' },
-        color: '#3b82f6',
+        accent: '#3b82f6',
     },
     {
         icon: 'local_fire_department',
@@ -26,7 +29,7 @@ const FEATURES = [
         title: 'Reading streaks & resume reading',
         body: 'Track consecutive days. Pick up long reads where you left off. Get a Sunday digest of what mattered in feeds you follow.',
         cta: { label: 'Start your streak', href: '/sign-up' },
-        color: '#10b981',
+        accent: '#10b981',
     },
 ];
 
@@ -92,20 +95,24 @@ export default function ReaderPlatformSection() {
                                     e.currentTarget.style.boxShadow = 'none';
                                 }}
                             >
-                                <div style={{
-                                    width: '48px', height: '48px', borderRadius: '14px',
-                                    background: `${f.color}1a`,
-                                    border: `1px solid ${f.color}33`,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    marginBottom: '20px',
-                                }}>
-                                    <span className="material-symbols-outlined" style={{ fontSize: '22px', color: f.color, fontVariationSettings: "'FILL' 1" }}>
+                                <div
+                                    className="d-inline-flex align-items-center justify-content-center"
+                                    style={{
+                                        width: '48px',
+                                        height: '48px',
+                                        borderRadius: '50%',
+                                        backgroundColor: '#000',
+                                        marginBottom: '20px',
+                                        transition: 'transform 0.3s ease',
+                                    }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#fff' }}>
                                         {f.icon}
                                     </span>
                                 </div>
                                 <span style={{
                                     fontSize: '11px', fontWeight: 600,
-                                    color: f.color,
+                                    color: f.accent,
                                     textTransform: 'uppercase',
                                     letterSpacing: '0.1em',
                                     marginBottom: '6px',
