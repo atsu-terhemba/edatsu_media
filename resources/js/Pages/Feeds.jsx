@@ -792,11 +792,6 @@ const News = () => {
             .catch(() => {});
     }, [isAuthenticated]);
 
-    const handleMarkAllRead = useCallback(() => {
-        const all = [...feeds, ...Object.values(defaultFeeds).flat()];
-        all.forEach((f) => { if (f?.feed_url) markFeedSeen(f.feed_url); });
-        setMarkAllVersion((v) => v + 1);
-    }, [feeds, defaultFeeds]);
     const normalizedQuery = searchQuery.trim().toLowerCase();
     const matchesSearch = useCallback((article, extra = '') => {
         if (!normalizedQuery) return true;
@@ -814,6 +809,16 @@ const News = () => {
 
     // Default feeds state — mutable so we can populate articles
     const [defaultFeeds, setDefaultFeeds] = useState(defaultFeedsByRegion);
+
+    // Mark-all-read across user + default feeds. Declared AFTER defaultFeeds
+    // so the dep array doesn't hit the TDZ on initial render (the const
+    // declarations are evaluated top-to-bottom and React reads the dep
+    // array at definition time).
+    const handleMarkAllRead = useCallback(() => {
+        const all = [...feeds, ...Object.values(defaultFeeds).flat()];
+        all.forEach((f) => { if (f?.feed_url) markFeedSeen(f.feed_url); });
+        setMarkAllVersion((v) => v + 1);
+    }, [feeds, defaultFeeds]);
 
     // Region selection — default to first available region
     const availableRegions = regions.filter((r) => defaultFeeds[r]?.length > 0 || defaultFeedsByRegion[r]?.length > 0);

@@ -94,19 +94,21 @@ class PublicRssController extends Controller
 
     public function toolshed()
     {
-        $xml = Cache::remember('rss:toolshed:v1', now()->addMinutes(30), function () {
+        // Bump the cache key when the schema mapping changes so a stale
+        // cached feed from before the rename doesn't keep serving.
+        $xml = Cache::remember('rss:toolshed:v2', now()->addMinutes(30), function () {
             $items = Product::query()
                 ->whereNull('deleted_at')
                 ->orderByDesc('created_at')
                 ->limit(50)
-                ->get(['id', 'slug', 'name', 'description', 'cover_img', 'created_at']);
+                ->get(['id', 'slug', 'product_name', 'product_description', 'cover_img', 'created_at']);
 
             $entries = $items->map(function ($p) {
                 return [
-                    'title'       => $p->name,
+                    'title'       => $p->product_name,
                     'link'        => $this->absoluteUrl("/product/{$p->id}/{$p->slug}"),
                     'guid'        => $this->absoluteUrl("/product/{$p->id}"),
-                    'description' => $this->cleanDescription($p->description),
+                    'description' => $this->cleanDescription($p->product_description),
                     'pubDate'     => optional($p->created_at)->toRssString(),
                     'image'       => $p->cover_img ? $this->absoluteImage($p->cover_img) : null,
                 ];
